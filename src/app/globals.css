@@ -1,26 +1,149 @@
+/* ─── Google Fonts: Material Symbols Outlined (variable icon font) ─────── */
+/* Must come before @import "tailwindcss" per CSS spec                       */
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block");
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ─── Design System Tokens via Tailwind v4 @theme ─────────────────────── */
+/* All tokens are defined here as CSS custom properties inside @theme so     */
+/* Tailwind generates utility classes like bg-primary, text-on-primary, etc. */
+
+@theme {
+  /* ── Fonts ──────────────────────────────────────────────────────────── */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  /* ── Colors ─────────────────────────────────────────────────────────── */
+
+  /* Primary */
+  --color-primary:                  #000000;
+  --color-on-primary:               #ffffff;
+  --color-primary-container:        #0d1c32;
+  --color-on-primary-container:     #76849f;
+  --color-primary-fixed:            #d6e3ff;
+  --color-primary-fixed-dim:        #b9c7e4;
+
+  /* Secondary */
+  --color-secondary:                #1d4ed8;
+  --color-on-secondary:             #ffffff;
+  --color-secondary-container:      #4069f2;
+  --color-on-secondary-container:   #fffbff;
+  --color-secondary-fixed:          #dce1ff;
+  --color-secondary-fixed-dim:      #b7c4ff;
+
+  /* Background / Surface */
+  --color-background:               #fbf9fb;
+  --color-on-background:            #1b1b1d;
+  --color-surface:                  #fbf9fb;
+  --color-on-surface:               #1b1b1d;
+  --color-surface-variant:          #e4e2e4;
+  --color-on-surface-variant:       #44474d;
+
+  /* Surface containers */
+  --color-surface-container-lowest:  #ffffff;
+  --color-surface-container-low:     #f5f3f5;
+  --color-surface-container:         #efedef;
+  --color-surface-container-high:    #eae7ea;
+  --color-surface-container-highest: #e4e2e4;
+  --color-surface-dim:               #dbd9db;
+  --color-surface-bright:            #fbf9fb;
+
+  /* Outline */
+  --color-outline:                  #75777e;
+  --color-outline-variant:          #c5c6cd;
+
+  /* Tertiary */
+  --color-tertiary-fixed:           #6ffbbe;
+  --color-on-tertiary-container:    #009668;
+
+  /* Error */
+  --color-error:                    #ba1a1a;
+  --color-error-container:          #ffdad6;
+
+  /* ── Typography — font sizes with line-heights ───────────────────────── */
+  --font-size-display-lg:   2rem;       /* 32px */
+  --font-size-headline-md:  1.5rem;     /* 24px */
+  --font-size-headline-sm:  1.25rem;    /* 20px */
+  --font-size-body-lg:      1rem;       /* 16px */
+  --font-size-body-md:      0.875rem;   /* 14px */
+  --font-size-label-caps:   0.75rem;    /* 12px */
+  --font-size-stat-value:   1.75rem;    /* 28px */
+
+  /* ── Border radius ───────────────────────────────────────────────────── */
+  --radius-DEFAULT: 0.25rem;    /* 4px  */
+  --radius-lg:      0.5rem;     /* 8px  */
+  --radius-xl:      0.75rem;    /* 12px */
+  --radius-full:    9999px;
+
+  /* ── Spacing ─────────────────────────────────────────────────────────── */
+  --spacing-unit:               0.25rem;  /* 4px  — base unit */
+  --spacing-stack-gap-sm:       0.5rem;   /* 8px  */
+  --spacing-stack-gap-md:       1rem;     /* 16px */
+  --spacing-stack-gap-lg:       1.5rem;   /* 24px */
+  --spacing-container-padding:  1.25rem;  /* 20px */
+  --spacing-section-margin:     2rem;     /* 32px */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Base styles ────────────────────────────────────────────────────────── */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-body-lg);
+  line-height: 1.5rem; /* 24px */
+}
+
+/* ─── Typography utility classes ─────────────────────────────────────────── */
+/* These provide the full spec (size + line-height + weight + tracking)       */
+/* Usage: className="type-display-lg"                                         */
+
+.type-display-lg {
+  font-size: var(--font-size-display-lg);
+  line-height: 2.5rem;        /* 40px */
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.type-headline-md {
+  font-size: var(--font-size-headline-md);
+  line-height: 2rem;          /* 32px */
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.type-headline-sm {
+  font-size: var(--font-size-headline-sm);
+  line-height: 1.75rem;       /* 28px */
+  font-weight: 600;
+}
+
+.type-body-lg {
+  font-size: var(--font-size-body-lg);
+  line-height: 1.5rem;        /* 24px */
+  font-weight: 400;
+}
+
+.type-body-md {
+  font-size: var(--font-size-body-md);
+  line-height: 1.25rem;       /* 20px */
+  font-weight: 400;
+}
+
+.type-label-caps {
+  font-size: var(--font-size-label-caps);
+  line-height: 1rem;          /* 16px */
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.type-stat-value {
+  font-size: var(--font-size-stat-value);
+  line-height: 2rem;          /* 32px */
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
