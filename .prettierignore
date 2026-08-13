@@ -1,0 +1,5 @@
+# Prettier ignore — files that should not be auto-formatted
+.next
+node_modules
+*.lock
+public
