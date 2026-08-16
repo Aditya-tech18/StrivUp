@@ -11,4 +11,5 @@ export { Card, CardHeader, CardFooter } from "./Card";
 export { Badge } from "./Badge";
 
 export { BottomNav } from "./BottomNav";
-export type { BottomNavItem } from "./BottomNav";
+
+export { SidebarNav } from "./SidebarNav";

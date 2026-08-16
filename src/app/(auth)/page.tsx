@@ -42,7 +42,8 @@ export default function GatewayPage() {
         }
       `}</style>
 
-      <div className="w-full max-w-sm px-5 py-10 flex flex-col gap-8">
+      <div className="min-h-screen flex items-center justify-center px-5 py-10">
+        <div className="w-full max-w-sm flex flex-col gap-8">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <header
@@ -171,6 +172,7 @@ export default function GatewayPage() {
           </p>
         </footer>
 
+      </div>
       </div>
     </>
   );

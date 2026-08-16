@@ -3,35 +3,44 @@
 import { type HTMLAttributes } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Bell, Compass, Home, PlusSquare, User } from "lucide-react";
+import type { LucideProps } from "lucide-react";
+import type { ComponentType } from "react";
 
-export interface BottomNavItem {
+/* ── Nav item definition lives here (client boundary) ───────────────────
+ * Icon components are React functions — they can't cross the server →
+ * client serialisation boundary as props. Keeping the items defined in
+ * this client component avoids that constraint entirely.
+ * ─────────────────────────────────────────────────────────────────────── */
+interface NavItem {
   href: string;
-  /** Material Symbols codepoint name, e.g. "home", "search", "person" */
-  icon: string;
+  icon: ComponentType<LucideProps>;
   label: string;
 }
 
-interface BottomNavProps extends HTMLAttributes<HTMLElement> {
-  items: BottomNavItem[];
-}
+const NAV_ITEMS: NavItem[] = [
+  { href: "/feed",    icon: Home,       label: "Home"    },
+  { href: "/explore", icon: Compass,    label: "Explore" },
+  { href: "/challenges/new", icon: PlusSquare, label: "Create"  },
+  { href: "/alerts",  icon: Bell,       label: "Alerts"  },
+  { href: "/profile", icon: User,       label: "Profile" },
+];
+
+// Re-export so the layout can reference it for the sidebar without
+// duplicating the list or crossing the serialisation boundary.
+export { NAV_ITEMS };
+export type { NavItem };
+
+interface BottomNavProps extends HTMLAttributes<HTMLElement> {}
 
 /**
  * BottomNav — persistent mobile navigation bar (visible below md breakpoint).
  *
- * Uses Material Symbols Outlined (variable icon font loaded in globals.css).
- * Active state is derived from the current pathname.
- *
- * Usage:
- *   <BottomNav items={[
- *     { href: "/feed",    icon: "home",   label: "Feed"    },
- *     { href: "/search",  icon: "search", label: "Search"  },
- *     { href: "/profile", icon: "person", label: "Profile" },
- *   ]} />
- *
- * Place inside the (app) layout; the nav is hidden on md+ screens via
- * the parent shell layout's md:hidden class.
+ * Nav items (with lucide-react icon components) are defined inside this
+ * client component to avoid passing function props across the server →
+ * client boundary. Active state is derived from usePathname().
  */
-export function BottomNav({ items, className = "", ...props }: BottomNavProps) {
+export function BottomNav({ className = "", ...props }: BottomNavProps) {
   const pathname = usePathname();
 
   return (
@@ -48,8 +57,10 @@ export function BottomNav({ items, className = "", ...props }: BottomNavProps) {
         .join(" ")}
       {...props}
     >
-      {items.map((item) => {
-        const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+      {NAV_ITEMS.map((item) => {
+        const isActive =
+          pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const Icon = item.icon;
         return (
           <Link
             key={item.href}
@@ -63,19 +74,12 @@ export function BottomNav({ items, className = "", ...props }: BottomNavProps) {
                 : "text-on-surface-variant hover:text-on-surface",
             ].join(" ")}
           >
-            {/* Material Symbol icon — variable FILL animates on active */}
-            <span
-              className="material-symbols-outlined text-[24px] leading-none transition-all duration-200"
-              style={{
-                fontVariationSettings: isActive
-                  ? "'FILL' 1, 'wght' 500"
-                  : "'FILL' 0, 'wght' 400",
-              }}
+            <Icon
+              size={24}
+              strokeWidth={isActive ? 2.5 : 1.75}
               aria-hidden="true"
-            >
-              {item.icon}
-            </span>
-            <span className="type-label-caps normal-case tracking-normal text-[10px]">
+            />
+            <span className="text-[10px] font-medium leading-none">
               {item.label}
             </span>
           </Link>

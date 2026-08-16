@@ -147,3 +147,12 @@ body {
   font-weight: 700;
   letter-spacing: -0.01em;
 }
+
+/* ─── Utility: hide scrollbar while keeping scrollability ──────────────── */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;        /* Chrome, Safari, Edge */
+}
+.no-scrollbar {
+  -ms-overflow-style: none;   /* IE 10+ */
+  scrollbar-width: none;      /* Firefox */
+}
