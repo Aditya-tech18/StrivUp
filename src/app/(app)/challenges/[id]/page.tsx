@@ -3,6 +3,9 @@
  *
  * Fetches all data server-side and passes typed props to ChallengeDetailClient.
  * In Next.js 16, `params` is a Promise and must be awaited.
+ *
+ * isParticipant = true when the user has a challenge_participants row
+ * (joinedAt !== null). This gates the task-list / upload section in the client.
  */
 
 import { notFound } from "next/navigation";
@@ -40,9 +43,12 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
 
   if (!baseDetail) notFound();
 
-  // Fetch this user's submissions (if logged in)
+  // isParticipant: user has a challenge_participants row for this challenge
+  const isParticipant = joinedAt !== null;
+
+  // Fetch this user's submissions only if they are a participant
   const userSubmissions =
-    user
+    user && isParticipant
       ? await getUserTaskSubmissions(supabase, id, user.id)
       : [];
 
@@ -62,6 +68,7 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
       feed={feed}
       userId={user?.id ?? null}
       joinedAt={joinedAt}
+      isParticipant={isParticipant}
       tasks={tasks}
       userSubmissions={userSubmissions}
     />

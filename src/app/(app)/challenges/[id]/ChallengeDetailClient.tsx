@@ -14,7 +14,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Bell,
@@ -28,6 +29,7 @@ import {
   Loader2,
   Lock,
   RefreshCw,
+  Rocket,
   Trophy,
   Upload,
   Users,
@@ -51,6 +53,7 @@ export interface ChallengeDetail {
   currentDay: number;
   totalDays: number;
   todayTask: string;
+  visibility: "public" | "private";
 }
 
 export interface LeaderboardEntry {
@@ -69,6 +72,7 @@ export interface ChallengeDetailClientProps {
   feed: FeedPost[];
   userId: string | null;
   joinedAt: string | null;
+  isParticipant: boolean;
   tasks: ChallengeTask[];
   userSubmissions: TaskSubmission[];
 }
@@ -506,10 +510,36 @@ export function ChallengeDetailClient({
   feed,
   userId,
   joinedAt,
+  isParticipant: initialIsParticipant,
   tasks,
   userSubmissions,
 }: ChallengeDetailClientProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [isParticipant, setIsParticipant] = useState(initialIsParticipant);
+  const [joinError, setJoinError] = useState<string | null>(null);
   const hasTasks = tasks.length > 0;
+
+  // Join this challenge (client-side insert)
+  const handleJoin = () => {
+    if (!userId) { router.push(`/login?next=/challenges/${challenge.id}`); return; }
+    setJoinError(null);
+    startTransition(async () => {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { error } = await supabase.from("challenge_participants").insert({
+        challenge_id: challenge.id,
+        user_id: userId,
+        status: "active",
+      });
+      // Unique constraint = already joined → treat as success
+      if (error && !error.message.includes("duplicate") && !error.message.includes("unique")) {
+        setJoinError(error.message);
+        return;
+      }
+      setIsParticipant(true);
+    });
+  };
 
   // Build a map: taskId → submission (latest per task)
   const submissionByTask = Object.fromEntries(
@@ -626,53 +656,108 @@ export function ChallengeDetailClient({
             ))}
           </div>
 
-          {/* ── Task list OR legacy single-proof card ─────────────── */}
-          {hasTasks ? (
-            <section aria-label="Challenge tasks">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="type-headline-sm text-on-surface font-semibold">
-                  Today&apos;s Tasks
-                </h2>
-                <span className="text-xs text-on-surface-variant">
-                  Day {challenge.currentDay} of {challenge.totalDays}
-                </span>
-              </div>
-              {!userId && (
-                <div className="mb-3 rounded-lg border border-outline-variant bg-surface-container px-4 py-3 flex items-center gap-2 text-sm text-on-surface-variant">
-                  <Lock size={14} aria-hidden="true" />
-                  Sign in to upload proof for each task.
+          {/* ── Participant gate: task list / upload / join CTA ─────── */}
+          {isParticipant ? (
+            <>
+              {/* Task list OR legacy single-proof card */}
+              {hasTasks ? (
+                <section aria-label="Challenge tasks">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="type-headline-sm text-on-surface font-semibold">
+                      Today&apos;s Tasks
+                    </h2>
+                    <span className="text-xs text-on-surface-variant">
+                      Day {challenge.currentDay} of {challenge.totalDays}
+                    </span>
+                  </div>
+                  {!userId && (
+                    <div className="mb-3 rounded-lg border border-outline-variant bg-surface-container px-4 py-3 flex items-center gap-2 text-sm text-on-surface-variant">
+                      <Lock size={14} aria-hidden="true" />
+                      Sign in to upload proof for each task.
+                    </div>
+                  )}
+                  <div className="space-y-3">
+                    {tasks.map((task) => (
+                      <TaskUploadSlot
+                        key={task.id}
+                        task={task}
+                        submission={submissionByTask[task.id]}
+                        challengeId={challenge.id}
+                        userId={userId}
+                        joinedAt={joinedAt}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ) : (
+                <LegacyUploadCard
+                  challenge={challenge}
+                  userId={userId}
+                  joinedAt={joinedAt}
+                  existingSubmission={legacySubmission}
+                />
+              )}
+
+              {/* Rejected submissions notice (task mode) */}
+              {hasTasks && userSubmissions.some((s) => s.status === "rejected") && (
+                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 flex gap-2 text-sm text-red-700">
+                  <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  <div>
+                    <strong>Some tasks were rejected.</strong> Review the reasons above and resubmit.
+                  </div>
                 </div>
               )}
-              <div className="space-y-3">
-                {tasks.map((task) => (
-                  <TaskUploadSlot
-                    key={task.id}
-                    task={task}
-                    submission={submissionByTask[task.id]}
-                    challengeId={challenge.id}
-                    userId={userId}
-                    joinedAt={joinedAt}
-                  />
-                ))}
-              </div>
-            </section>
+            </>
           ) : (
-            <LegacyUploadCard
-              challenge={challenge}
-              userId={userId}
-              joinedAt={joinedAt}
-              existingSubmission={legacySubmission}
-            />
-          )}
-
-          {/* ── Rejected submissions notice (task mode) ───────────── */}
-          {hasTasks && userSubmissions.some((s) => s.status === "rejected") && (
-            <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 flex gap-2 text-sm text-red-700">
-              <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" aria-hidden="true" />
-              <div>
-                <strong>Some tasks were rejected.</strong> Review the reasons above and resubmit.
-              </div>
-            </div>
+            /* Not a participant — show Join CTA or private wall */
+            <section aria-label="Join this challenge">
+              {challenge.visibility === "public" ? (
+                <div
+                  className="rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-8 text-center space-y-4"
+                  style={{ background: "linear-gradient(135deg, #0d1c32 0%, #1a3a6b 100%)" }}
+                >
+                  <div>
+                    <p className="type-label-caps text-white/60 text-[10px] mb-1">READY TO COMMIT?</p>
+                    <h2 className="text-white font-semibold text-lg leading-snug">
+                      Join {challenge.title}
+                    </h2>
+                    <p className="text-white/60 text-xs mt-1">
+                      {challenge.memberCount.toLocaleString()} members · {challenge.totalDays} day challenge
+                    </p>
+                  </div>
+                  {joinError && (
+                    <p className="text-red-300 text-sm">{joinError}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleJoin}
+                    disabled={isPending}
+                    className={[
+                      "w-full h-12 rounded-xl bg-white text-primary",
+                      "flex items-center justify-center gap-2 font-semibold text-sm",
+                      "hover:bg-white/90 active:bg-white/80 transition-colors",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
+                      isPending ? "opacity-70 cursor-not-allowed" : "",
+                    ].join(" ")}
+                  >
+                    {isPending ? (
+                      <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                    ) : (
+                      <><Rocket size={16} aria-hidden="true" /> Join Challenge — It&apos;s Free</>
+                    )}
+                  </button>
+                  <p className="text-white/40 text-xs">Upload your first proof after joining.</p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-outline-variant bg-surface-container px-6 py-8 text-center space-y-2">
+                  <Lock size={28} className="text-on-surface-variant mx-auto" aria-hidden="true" />
+                  <p className="font-semibold text-on-surface">Private Challenge</p>
+                  <p className="text-sm text-on-surface-variant">
+                    This challenge is private. You need an invitation to join.
+                  </p>
+                </div>
+              )}
+            </section>
           )}
 
           {/* ── Leaderboard ───────────────────────────────────────────── */}

@@ -152,7 +152,7 @@ export async function getChallengeDetail(
     .from("challenges")
     .select(
       `
-      id, title, duration_days, thumbnail_url, created_at, description,
+      id, title, duration_days, thumbnail_url, created_at, description, visibility,
       profiles!creator_id ( full_name )
       `
     )
@@ -185,6 +185,7 @@ export async function getChallengeDetail(
     currentDay,
     totalDays,
     todayTask: (data.description as string | null) ?? "Complete today's challenge task",
+    visibility: (data.visibility as "public" | "private") ?? "public",
   };
 }
 
