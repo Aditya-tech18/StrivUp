@@ -14,6 +14,7 @@ import {
   getParticipantJoinedAt,
 } from "@/lib/data/challenges";
 import { getFeedPosts } from "@/lib/data/feed";
+import { getChallengeTasks, getUserTaskSubmissions } from "@/lib/data/tasks";
 import { ChallengeDetailClient } from "./ChallengeDetailClient";
 
 interface PageProps {
@@ -28,15 +29,22 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
   const { data: { user } } = await supabase.auth.getUser();
 
   // Fetch everything in parallel for speed
-  const [baseDetail, stats, leaderboard, feed, joinedAt] = await Promise.all([
+  const [baseDetail, stats, leaderboard, feed, joinedAt, tasks] = await Promise.all([
     getChallengeDetail(supabase, id),
     getChallengeStats(supabase, id, user?.id),
     getChallengeLeaderboard(supabase, id, 3),
     getFeedPosts(supabase, { challengeId: id, limit: 10 }),
     user ? getParticipantJoinedAt(supabase, id, user.id) : Promise.resolve(null),
+    getChallengeTasks(supabase, id),
   ]);
 
   if (!baseDetail) notFound();
+
+  // Fetch this user's submissions (if logged in)
+  const userSubmissions =
+    user
+      ? await getUserTaskSubmissions(supabase, id, user.id)
+      : [];
 
   // Merge stats into the full ChallengeDetail shape
   const challenge = {
@@ -54,6 +62,8 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
       feed={feed}
       userId={user?.id ?? null}
       joinedAt={joinedAt}
+      tasks={tasks}
+      userSubmissions={userSubmissions}
     />
   );
 }

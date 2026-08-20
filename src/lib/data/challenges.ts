@@ -5,15 +5,19 @@
  * components (createClient from @/lib/supabase/server) and browser
  * client components (createClient from @/lib/supabase/client).
  *
- * Schema assumptions:
+ * Schema assumptions (as of 20260818_schema_extensions.sql):
  *   challenges:              id, creator_id, title, description, category,
  *                            duration_days (int|null), visibility, proof_methods (text[]),
- *                            thumbnail_url, created_at
+ *                            thumbnail_url, created_at,
+ *                            featured (bool), creator_type, campaign_objective,
+ *                            reward_description, proof_type
  *   challenge_participants:  id, challenge_id, user_id, status, joined_at
  *   proof_submissions:       id, challenge_id, user_id, day_number,
  *                            media_url, caption, verification_status, submitted_at
- *   profiles:                id, full_name, avatar_url, is_verified
+ *   profiles:                id, full_name, avatar_url,
+ *                            account_type, bio, verification_status, is_admin
  *   streaks (view):          challenge_id, user_id, current_streak, longest_streak
+ *   followers:               follower_id, followed_id, created_at
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -34,9 +38,9 @@ function fallbackThumbnail(seed: string): string {
 /* ── Explore page ────────────────────────────────────────────────────────── */
 
 /**
- * Top 6 public challenges by participant count (heuristic for "featured").
- * Because PostgREST cannot ORDER BY an embedded aggregate, we fetch up to
- * 50 rows with their participant arrays and sort client-side.
+ * Public challenges explicitly marked featured = true, up to 6.
+ * Ordered by creation date (newest featured first) so admins can promote
+ * challenges simply by setting featured = true in the dashboard.
  */
 export async function getFeaturedChallenges(
   supabase: SupabaseClient
@@ -45,46 +49,37 @@ export async function getFeaturedChallenges(
     .from("challenges")
     .select(
       `
-      id, title, thumbnail_url, duration_days, creator_id,
+      id, title, thumbnail_url, duration_days,
       profiles!creator_id ( full_name ),
       challenge_participants!challenge_id ( user_id )
       `
     )
     .eq("visibility", "public")
-    .limit(50);
+    .eq("featured", true)
+    .order("created_at", { ascending: false })
+    .limit(6);
 
   if (error || !data) {
     if (error) console.error("[getFeaturedChallenges]", error.message);
     return [];
   }
 
-  return data
-    .sort((a, b) => {
-      const ca = Array.isArray(a.challenge_participants)
-        ? a.challenge_participants.length
-        : 0;
-      const cb = Array.isArray(b.challenge_participants)
-        ? b.challenge_participants.length
-        : 0;
-      return cb - ca;
-    })
-    .slice(0, 6)
-    .map((row) => {
-      const profile = row.profiles as unknown as { full_name: string | null } | null;
-      const memberCount = Array.isArray(row.challenge_participants)
-        ? row.challenge_participants.length
-        : 0;
-      return {
-        id: row.id as string,
-        title: row.title as string,
-        creatorName: profile?.full_name ?? "Unknown",
-        coverImageUrl:
-          (row.thumbnail_url as string | null) ?? fallbackThumbnail(row.id as string),
-        memberCount,
-        durationLabel: durationLabel(row.duration_days as number | null),
-        verified: false, // no verified flag in schema yet
-      };
-    });
+  return data.map((row) => {
+    const profile = row.profiles as unknown as { full_name: string | null } | null;
+    const memberCount = Array.isArray(row.challenge_participants)
+      ? row.challenge_participants.length
+      : 0;
+    return {
+      id: row.id as string,
+      title: row.title as string,
+      creatorName: profile?.full_name ?? "Unknown",
+      coverImageUrl:
+        (row.thumbnail_url as string | null) ?? fallbackThumbnail(row.id as string),
+      memberCount,
+      durationLabel: durationLabel(row.duration_days as number | null),
+      verified: false,
+    };
+  });
 }
 
 /**
