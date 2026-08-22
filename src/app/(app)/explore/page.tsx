@@ -34,14 +34,17 @@ export interface TrendingChallenge {
   memberCount: number;
   progressPercent: number;
   visibility: "public" | "private";
+  isParticipant: boolean;
 }
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 export default async function ExplorePage() {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   const [featured, trending] = await Promise.all([
     getFeaturedChallenges(supabase),
-    getTrendingChallenges(supabase),
+    getTrendingChallenges(supabase, user?.id ?? null),
   ]);
 
   return (

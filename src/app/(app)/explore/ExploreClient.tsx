@@ -154,7 +154,18 @@ function TrendingRow({
         </div>
       </div>
       <div className="flex-shrink-0">
-        {joinState === "joined" ? (
+        {challenge.isParticipant ? (
+          <Link
+            href={`/challenges/${challenge.id}`}
+            className={[
+              "inline-flex items-center h-8 px-3 rounded-lg",
+              "bg-secondary/10 text-secondary text-xs font-semibold",
+              "hover:bg-secondary/20 transition-colors",
+            ].join(" ")}
+          >
+            View →
+          </Link>
+        ) : joinState === "joined" ? (
           <div className="flex items-center gap-1 text-green-600 text-xs font-semibold">
             <CheckCircle2 size={14} aria-hidden="true" />
             Joined

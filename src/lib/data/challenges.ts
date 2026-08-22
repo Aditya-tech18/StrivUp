@@ -83,22 +83,23 @@ export async function getFeaturedChallenges(
 }
 
 /**
- * Top 10 public challenges by recency.
+ * Top 10 challenges by recency, any visibility.
  * Progress % = (days since creation / duration_days) × 100, capped at 100.
+ * Visibility is passed through so ExploreClient renders Join vs Request correctly.
  */
 export async function getTrendingChallenges(
-  supabase: SupabaseClient
+  supabase: SupabaseClient,
+  userId: string | null = null
 ): Promise<TrendingChallenge[]> {
   const { data, error } = await supabase
     .from("challenges")
     .select(
       `
-      id, title, thumbnail_url, duration_days, created_at, creator_id,
+      id, title, thumbnail_url, duration_days, created_at, creator_id, visibility,
       profiles!creator_id ( full_name ),
       challenge_participants!challenge_id ( user_id )
       `
     )
-    .eq("visibility", "public")
     .order("created_at", { ascending: false })
     .limit(10);
 
@@ -112,6 +113,12 @@ export async function getTrendingChallenges(
     const memberCount = Array.isArray(row.challenge_participants)
       ? row.challenge_participants.length
       : 0;
+    const isParticipant =
+      userId !== null &&
+      Array.isArray(row.challenge_participants) &&
+      (row.challenge_participants as { user_id: string }[]).some(
+        (p) => p.user_id === userId
+      );
     const totalDays = (row.duration_days as number | null) ?? 90;
     const daysSinceCreation = Math.max(
       1,
@@ -133,7 +140,8 @@ export async function getTrendingChallenges(
       totalDays,
       memberCount,
       progressPercent,
-      visibility: "public" as const,
+      visibility: (row.visibility as "public" | "private") ?? "public",
+      isParticipant,
     };
   });
 }
