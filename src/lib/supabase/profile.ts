@@ -61,8 +61,8 @@ export async function getMyProfile(): Promise<Profile | null> {
 }
 
 export async function upsertMyProfile(
-  fields: Partial
-    Pick
+  fields: Partial<
+    Pick<
       Profile,
       "full_name" | "age" | "email" | "phone" | "phone_verified" | "bio" | "username" | "avatar_url" | "profile_completed"
     >

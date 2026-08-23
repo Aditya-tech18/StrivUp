@@ -110,13 +110,14 @@ export async function getTrendingChallenges(
 
   return data.map((row) => {
     const profile = row.profiles as unknown as { full_name: string | null } | null;
-    const memberCount = Array.isArray(row.challenge_participants)
-      ? row.challenge_participants.length
+    const rawParticipants = row.challenge_participants;
+    const memberCount = Array.isArray(rawParticipants)
+      ? rawParticipants.length
       : 0;
     const isParticipant =
       userId !== null &&
-      Array.isArray(row.challenge_participants) &&
-      (row.challenge_participants as { user_id: string }[]).some(
+      Array.isArray(rawParticipants) &&
+      (rawParticipants as { user_id: string }[]).some(
         (p) => p.user_id === userId
       );
     const totalDays = (row.duration_days as number | null) ?? 90;

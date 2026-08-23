@@ -71,8 +71,8 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all (app) shell routes. Currently only /feed is built; extend
-     * this list as new authenticated routes are added.
+     * Match all (app) shell routes — session must be refreshed on every
+     * authenticated page so that server components can call getUser().
      *
      * Explicitly excluded (no proxy):
      *  - auth pages: /, /login, /signup, /forgot-password, /auth/*
@@ -80,5 +80,12 @@ export const config = {
      *  - Next.js internals: _next/*, favicon.ico, public assets
      */
     "/feed/:path*",
+    "/explore/:path*",
+    "/explore",
+    "/challenges/:path*",
+    "/creator/:path*",
+    "/alerts/:path*",
+    "/settings/:path*",
+    "/profile/:path*",
   ],
 };
