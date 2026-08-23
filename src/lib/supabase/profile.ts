@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 
-/** Shape of a row in public.profiles, extended for the profile system. */
+/** Public profile fields — on the publicly-readable profiles table. */
 export interface Profile {
   id: string;
   username: string | null;
@@ -9,13 +9,22 @@ export interface Profile {
   bio: string | null;
   account_type: string;
   verification_status: string;
+  profile_completed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Private profile fields — on profile_private (owner-only RLS).
+ * Moved from profiles for privacy: profiles is publicly readable,
+ * so PII (age, email, phone, phone_verified) must not live there.
+ */
+export interface ProfilePrivate {
+  id: string;
   age: number | null;
   email: string | null;
   phone: string | null;
   phone_verified: boolean;
-  profile_completed: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Interest {
@@ -43,6 +52,8 @@ export interface SocialLink {
 const MIN_INTERESTS = 3;
 const MAX_SOCIAL_LINKS = 4;
 
+// ── Public profile ────────────────────────────────────────────────────────────
+
 export async function getMyProfile(): Promise<Profile | null> {
   const supabase = createClient();
   const {
@@ -52,7 +63,7 @@ export async function getMyProfile(): Promise<Profile | null> {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, username, full_name, avatar_url, bio, account_type, verification_status, profile_completed, created_at, updated_at")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -64,7 +75,7 @@ export async function upsertMyProfile(
   fields: Partial<
     Pick<
       Profile,
-      "full_name" | "age" | "email" | "phone" | "phone_verified" | "bio" | "username" | "avatar_url" | "profile_completed"
+      "full_name" | "bio" | "username" | "avatar_url" | "profile_completed"
     >
   >
 ): Promise<Profile> {
@@ -77,12 +88,49 @@ export async function upsertMyProfile(
   const { data, error } = await supabase
     .from("profiles")
     .upsert({ id: user.id, ...fields, updated_at: new Date().toISOString() })
-    .select("*")
+    .select("id, username, full_name, avatar_url, bio, account_type, verification_status, profile_completed, created_at, updated_at")
     .single();
 
   if (error) throw error;
   return data as Profile;
 }
+
+// ── Private profile (PII) ─────────────────────────────────────────────────────
+
+export async function getMyProfilePrivate(): Promise<ProfilePrivate | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("profile_private")
+    .select("id, age, email, phone, phone_verified")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as ProfilePrivate | null;
+}
+
+export async function upsertMyProfilePrivate(
+  fields: Partial<Pick<ProfilePrivate, "age" | "email" | "phone" | "phone_verified">>
+): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("profile_private")
+    .upsert({ id: user.id, ...fields });
+
+  if (error) throw error;
+}
+
+// ── Interests ─────────────────────────────────────────────────────────────────
 
 export async function getAllInterests(): Promise<Interest[]> {
   const supabase = createClient();
@@ -132,6 +180,8 @@ export async function setMyInterests(interestIds: number[]): Promise<void> {
   }
 }
 
+// ── Social links ──────────────────────────────────────────────────────────────
+
 export async function getMySocialLinks(): Promise<SocialLink[]> {
   const supabase = createClient();
   const {
@@ -176,6 +226,8 @@ export async function deleteMySocialLink(id: string): Promise<void> {
   if (error) throw error;
 }
 
+// ── Avatar ────────────────────────────────────────────────────────────────────
+
 export async function uploadMyAvatar(file: File): Promise<string> {
   const supabase = createClient();
   const {
@@ -212,6 +264,8 @@ export async function removeMyAvatar(): Promise<void> {
   await upsertMyProfile({ avatar_url: null });
 }
 
+// ── Phone OTP ─────────────────────────────────────────────────────────────────
+
 export async function sendPhoneOtp(phone: string): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.auth.signInWithOtp({ phone });
@@ -222,7 +276,8 @@ export async function verifyPhoneOtp(phone: string, token: string): Promise<void
   const supabase = createClient();
   const { error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" });
   if (error) throw error;
-  await upsertMyProfile({ phone, phone_verified: true });
+  // Write phone + phone_verified to profile_private (not profiles)
+  await upsertMyProfilePrivate({ phone, phone_verified: true });
 }
 
 export async function resendEmailVerification(email: string): Promise<void> {
@@ -231,20 +286,30 @@ export async function resendEmailVerification(email: string): Promise<void> {
   if (error) throw error;
 }
 
+// ── Completeness helper ───────────────────────────────────────────────────────
+
+/**
+ * Determines if a profile is fully set up for onboarding gate purposes.
+ * Takes public profile + private profile separately since they live on
+ * different tables.
+ */
 export function isProfileComplete(
-  profile: Pick<Profile, "full_name" | "age" | "phone_verified"> | null,
+  profile: Pick<Profile, "full_name"> | null,
+  priv: Pick<ProfilePrivate, "age" | "phone_verified"> | null,
   emailVerified: boolean,
   interestCount: number
 ): boolean {
-  if (!profile) return false;
+  if (!profile || !priv) return false;
   return Boolean(
     profile.full_name?.trim() &&
-      profile.age &&
+      priv.age &&
       emailVerified &&
-      profile.phone_verified &&
+      priv.phone_verified &&
       interestCount >= MIN_INTERESTS
   );
 }
+
+// ── Account deletion ──────────────────────────────────────────────────────────
 
 export async function deleteMyAccount(): Promise<void> {
   const supabase = createClient();

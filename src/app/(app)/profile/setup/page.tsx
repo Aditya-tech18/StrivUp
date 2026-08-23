@@ -8,6 +8,8 @@ import { Button, Input, Card, Badge } from "@/components/ui";
 import {
   getMyProfile,
   upsertMyProfile,
+  getMyProfilePrivate,
+  upsertMyProfilePrivate,
   getAllInterests,
   getMyInterestIds,
   setMyInterests,
@@ -19,6 +21,7 @@ import {
   deleteMyAccount,
   PROFILE_CONSTANTS,
   type Profile,
+  type ProfilePrivate,
   type Interest,
   type SocialLink,
   type SocialPlatform,
@@ -43,6 +46,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
 
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [priv, setPriv] = useState<ProfilePrivate | null>(null);
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("");
   const [bio, setBio] = useState("");
@@ -63,15 +67,17 @@ export default function ProfilePage() {
   const [deleting, setDeleting] = useState(false);
 
   async function loadAll() {
-    const [p, interests, myIds, socialLinks] = await Promise.all([
+    const [p, privData, interests, myIds, socialLinks] = await Promise.all([
       getMyProfile(),
+      getMyProfilePrivate(),
       getAllInterests(),
       getMyInterestIds(),
       getMySocialLinks(),
     ]);
     setProfile(p);
+    setPriv(privData);
     setFullName(p?.full_name ?? "");
-    setAge(p?.age ? String(p.age) : "");
+    setAge(privData?.age ? String(privData.age) : "");
     setBio(p?.bio ?? "");
     setUsername(p?.username ?? "");
     setAllInterests(interests);
@@ -121,12 +127,16 @@ export default function ProfilePage() {
 
   async function handleSaveBasics() {
     try {
-      await upsertMyProfile({
-        full_name: fullName.trim(),
-        age: age ? Number(age) : null,
-        bio: bio.trim() || null,
-        username: username.trim() || null,
-      });
+      await Promise.all([
+        upsertMyProfile({
+          full_name: fullName.trim(),
+          bio: bio.trim() || null,
+          username: username.trim() || null,
+        }),
+        upsertMyProfilePrivate({
+          age: age ? Number(age) : null,
+        }),
+      ]);
       await loadAll();
       setEditing(false);
     } catch (err) {
