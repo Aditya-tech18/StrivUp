@@ -13,3 +13,5 @@ export { Badge } from "./Badge";
 export { BottomNav } from "./BottomNav";
 
 export { SidebarNav } from "./SidebarNav";
+
+export { AlertsProvider, useUnreadCount } from "./AlertsContext";
