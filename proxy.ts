@@ -165,6 +165,8 @@ export const config = {
     "/explore/:path*",
     "/explore",
     "/challenges/:path*",
+    "/quests/:path*",
+    "/quests",
     "/creator/:path*",
     "/alerts/:path*",
     "/settings/:path*",
