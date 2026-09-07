@@ -62,9 +62,9 @@ export default function GatewayPage() {
               </Link>
             </div>
 
-            {/* Continue as Business — now active */}
+            {/* Continue as Business — full auth flow */}
             <div style={fadeUpStyle("160ms")}>
-              <Link href="/business/onboarding"
+              <Link href="/business-signup"
                 className="group flex items-center gap-4 rounded-xl p-5 bg-surface-container-low border border-outline-variant hover:bg-surface-container hover:border-outline active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
               >
                 <div className="w-11 h-11 rounded-lg bg-secondary/10 flex items-center justify-center flex-shrink-0">
