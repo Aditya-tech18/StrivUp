@@ -111,8 +111,9 @@ export function BusinessLoginForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/business-callback`,
-        queryParams: { account_type: "business" },
+        // Use the existing /auth/callback route (already whitelisted in Supabase)
+        // Pass next=/business so callback knows to set up business profile
+        redirectTo: `${window.location.origin}/auth/callback?next=/business`,
       },
     });
     if (error) { setAuthError(error.message); setGoogleLoading(false); }
