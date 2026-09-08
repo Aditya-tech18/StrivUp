@@ -107,12 +107,12 @@ export function BusinessLoginForm() {
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     setAuthError(null);
+    // Set a cookie so root page / middleware knows this is a business flow
+    document.cookie = "strivup_business_intent=1; path=/; max-age=300; SameSite=Lax";
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        // Use the existing /auth/callback route (already whitelisted in Supabase)
-        // Pass next=/business so callback knows to set up business profile
         redirectTo: `${window.location.origin}/auth/callback?next=/business`,
       },
     });

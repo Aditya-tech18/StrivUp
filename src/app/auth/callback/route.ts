@@ -22,6 +22,10 @@ export async function GET(request: Request) {
     if (!error && data.user) {
       // If this is a business OAuth flow, set up the business profile
       if (next.startsWith("/business")) {
+        // Clear the business intent cookie
+        const clearCookie = new NextResponse();
+        clearCookie.cookies.set("strivup_business_intent", "", { maxAge: 0, path: "/" });
+
         // Mark account as business
         await supabase
           .from("profiles")
@@ -51,7 +55,9 @@ export async function GET(request: Request) {
           .maybeSingle();
 
         const destination = bp?.onboarding_done ? "/business/dashboard" : "/business/onboarding";
-        return NextResponse.redirect(`${origin}${destination}`);
+        const response = NextResponse.redirect(`${origin}${destination}`);
+        response.cookies.set("strivup_business_intent", "", { maxAge: 0, path: "/" });
+        return response;
       }
 
       return NextResponse.redirect(`${origin}${next}`);
