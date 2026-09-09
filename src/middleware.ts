@@ -33,7 +33,43 @@ export async function middleware(request: NextRequest) {
       },
     }
   );
-  await supabase.auth.getUser();
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // If authenticated user is on a protected app route, check deactivation state
+  const isAppRoute = pathname.startsWith("/feed") ||
+    pathname.startsWith("/explore") ||
+    pathname.startsWith("/challenges") ||
+    pathname.startsWith("/quests") ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/alerts");
+
+  if (user && isAppRoute && pathname !== "/deactivated") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_deactivated")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.is_deactivated) {
+      return NextResponse.redirect(new URL("/deactivated", origin));
+    }
+  }
+
+  // Redirect /deactivated back to feed if account is active
+  if (user && pathname === "/deactivated") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_deactivated")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile && !profile.is_deactivated) {
+      return NextResponse.redirect(new URL("/feed", origin));
+    }
+  }
+
   return supabaseResponse;
 }
 
