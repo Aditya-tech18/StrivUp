@@ -1,13 +1,10 @@
 "use client";
-
 /**
- * /business — Smart entry point.
- * Checks existing business profile and routes to the right place.
- * Case A: No profile → /business/onboarding
- * Case B: Incomplete onboarding → /business/onboarding (resumes)
- * Case C/D: Onboarding done → /business/dashboard
+ * /business — Smart router.
+ * No profile → onboarding
+ * Incomplete → onboarding (resumes)
+ * Done → dashboard
  */
-
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -25,6 +22,16 @@ export default function BusinessEntryPage() {
       const bp = await getMyBusinessProfile(supabase);
 
       if (!bp || !bp.onboarding_done) {
+        // Create starter row if none exists
+        if (!bp) {
+          await supabase.from("business_profiles").upsert({
+            id: user.id,
+            onboarding_step: 1,
+            onboarding_done: false,
+            verification_status: "draft",
+          }, { onConflict: "id", ignoreDuplicates: true });
+          await supabase.from("profiles").update({ account_type: "business" }).eq("id", user.id);
+        }
         router.replace("/business/onboarding");
       } else {
         router.replace("/business/dashboard");
@@ -34,11 +41,9 @@ export default function BusinessEntryPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
-        <p className="type-body-md text-on-surface-variant">Loading your business…</p>
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8F9FC] gap-3">
+      <div className="w-8 h-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+      <p className="text-sm text-gray-500">Loading your business…</p>
     </div>
   );
 }

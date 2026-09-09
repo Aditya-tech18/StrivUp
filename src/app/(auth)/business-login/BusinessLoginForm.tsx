@@ -14,7 +14,6 @@ const schema = z.object({
   email: z.string().min(1, "Email is required.").email("Please enter a valid email."),
   password: z.string().min(8, "Password must be at least 8 characters."),
 });
-
 type FormValues = z.infer<typeof schema>;
 
 function GoogleIcon() {
@@ -29,27 +28,25 @@ function GoogleIcon() {
 }
 
 const socialBtnCls = [
-  "w-full flex items-center justify-center gap-3 h-11 px-4 rounded border border-outline-variant",
+  "w-full flex items-center justify-center gap-3 h-12 px-4 rounded-xl border border-outline-variant",
   "bg-surface-container-lowest hover:bg-surface-container transition-colors duration-150",
   "text-[length:var(--font-size-body-lg)] font-medium text-on-surface",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
   "disabled:opacity-50 disabled:cursor-not-allowed",
 ].join(" ");
 
-function passwordFieldCls(hasError: boolean) {
+function pwdCls(hasErr: boolean) {
   return [
-    "w-full h-10 px-3 pr-10 rounded border bg-surface-container-lowest",
+    "w-full h-12 px-4 pr-11 rounded-xl border bg-surface-container-lowest",
     "text-on-surface placeholder:text-on-surface-variant text-[length:var(--font-size-body-lg)] leading-6",
-    "transition-colors duration-150 focus:outline-none focus:ring-2",
-    hasError
-      ? "border-error focus:ring-error/30 focus:border-error"
-      : "border-outline-variant focus:border-secondary focus:ring-secondary/20",
+    "transition-colors focus:outline-none focus:ring-2",
+    hasErr ? "border-error focus:ring-error/20" : "border-outline-variant focus:border-secondary focus:ring-secondary/20",
   ].join(" ");
 }
 
 export function BusinessLoginForm() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -57,64 +54,58 @@ export function BusinessLoginForm() {
     resolver: zodResolver(schema),
   });
 
+  /** After successful auth, smartly route based on business profile state */
+  async function routeAfterAuth(userId: string) {
+    const supabase = createClient();
+
+    // Ensure account_type = business on profiles
+    await supabase.from("profiles").update({ account_type: "business" }).eq("id", userId);
+
+    // Check business_profiles
+    const { data: bp } = await supabase
+      .from("business_profiles")
+      .select("id, onboarding_done, verification_status")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (!bp) {
+      // Case A: No business profile → create starter row + go to onboarding
+      await supabase.from("business_profiles").insert({
+        id: userId,
+        onboarding_step: 1,
+        onboarding_done: false,
+        verification_status: "draft",
+      });
+      router.push("/business/onboarding");
+    } else if (!bp.onboarding_done) {
+      // Case B: Incomplete onboarding → resume
+      router.push("/business/onboarding");
+    } else {
+      // Case C/D/E: Onboarding done → dashboard (handles all verification states)
+      router.push("/business/dashboard");
+    }
+    router.refresh();
+  }
+
   const onSubmit = async (data: FormValues) => {
     setAuthError(null);
     const supabase = createClient();
-
     const { data: signInData, error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
     });
-
     if (error) { setAuthError(error.message); return; }
-
-    // Verify this account has business account_type
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("account_type")
-      .eq("id", signInData.user.id)
-      .single();
-
-    if (profile && profile.account_type !== "business") {
-      // Still let them in — redirect to onboarding which will set account_type
-      await supabase.from("profiles").update({ account_type: "business" }).eq("id", signInData.user.id);
-    }
-
-    // Check if business profile exists
-    const { data: bp } = await supabase
-      .from("business_profiles")
-      .select("id, onboarding_done")
-      .eq("id", signInData.user.id)
-      .maybeSingle();
-
-    if (!bp || !bp.onboarding_done) {
-      // Create initial row if it doesn't exist
-      if (!bp) {
-        await supabase.from("business_profiles").upsert({
-          id: signInData.user.id,
-          onboarding_step: 1,
-          onboarding_done: false,
-          verification_status: "draft",
-        });
-      }
-      router.push("/business/onboarding");
-    } else {
-      router.push("/business/dashboard");
-    }
-    router.refresh();
+    await routeAfterAuth(signInData.user.id);
   };
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     setAuthError(null);
-    // Set a cookie so root page / middleware knows this is a business flow
     document.cookie = "strivup_business_intent=1; path=/; max-age=300; SameSite=Lax";
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/business`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/business` },
     });
     if (error) { setAuthError(error.message); setGoogleLoading(false); }
   };
@@ -122,19 +113,23 @@ export function BusinessLoginForm() {
   const busy = isSubmitting || googleLoading;
 
   return (
-    <div className="w-full max-w-md space-y-6 py-10">
+    <div className="w-full max-w-sm space-y-6">
       {/* Header */}
       <div className="flex flex-col items-center gap-3 text-center">
-        <div className="w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center">
-          <Building2 size={28} className="text-on-primary" />
+        <div className="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center">
+          <Building2 size={28} className="text-secondary" />
         </div>
-        <p className="type-label-caps text-secondary tracking-widest">STRIVUP BUSINESS</p>
-        <h1 className="type-headline-md text-on-surface">Welcome Back</h1>
-        <p className="type-body-md text-on-surface-variant">Log in to manage your campaigns and verifications.</p>
+        <div>
+          <p className="text-[11px] font-black tracking-[0.2em] text-secondary uppercase mb-1">STRIVUP BUSINESS</p>
+          <h1 className="type-headline-md text-on-surface font-black">Welcome Back</h1>
+          <p className="type-body-md text-on-surface-variant mt-1">
+            Sign in to manage your campaigns and verifications.
+          </p>
+        </div>
       </div>
 
       {authError && (
-        <div role="alert" className="rounded border border-error/30 bg-error-container px-4 py-3 type-body-md text-error">
+        <div role="alert" className="rounded-xl border border-error/30 bg-error-container px-4 py-3 type-body-md text-error">
           {authError}
         </div>
       )}
@@ -145,12 +140,13 @@ export function BusinessLoginForm() {
         Continue with Google
       </button>
 
-      <div className="flex items-center gap-3" aria-hidden="true">
+      <div className="flex items-center gap-3">
         <hr className="flex-1 border-outline-variant" />
-        <span className="type-label-caps text-on-surface-variant">or</span>
+        <span className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest">or</span>
         <hr className="flex-1 border-outline-variant" />
       </div>
 
+      {/* Email + password */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         <Input
           id="biz-login-email"
@@ -164,41 +160,38 @@ export function BusinessLoginForm() {
         />
 
         <div className="flex flex-col gap-1">
-          <div className="flex items-center justify-between mb-0.5">
-            <label htmlFor="biz-login-password" className="type-body-md font-medium text-on-surface">Password</label>
-            <Link href="/forgot-password" className="type-body-md text-secondary hover:underline">Forgot Password?</Link>
+          <div className="flex items-center justify-between">
+            <label htmlFor="biz-login-pwd" className="type-body-md font-medium text-on-surface">Password</label>
+            <Link href="/forgot-password" className="type-body-md text-secondary hover:underline">Forgot?</Link>
           </div>
           <div className="relative">
             <input
-              id="biz-login-password"
-              type={showPassword ? "text" : "password"}
+              id="biz-login-pwd"
+              type={showPwd ? "text" : "password"}
               autoComplete="current-password"
               placeholder="Min. 8 characters"
               disabled={busy}
-              className={`${passwordFieldCls(!!errors.password)} disabled:opacity-50`}
+              className={`${pwdCls(!!errors.password)} disabled:opacity-50`}
               {...register("password")}
             />
-            <button type="button" onClick={() => setShowPassword(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors"
-              aria-label={showPassword ? "Hide password" : "Show password"}>
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            <button type="button" onClick={() => setShowPwd(v => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface"
+              aria-label={showPwd ? "Hide password" : "Show password"}>
+              {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-          {errors.password && <p className="type-body-md text-error" role="alert">{errors.password.message}</p>}
+          {errors.password && <p className="type-body-md text-error">{errors.password.message}</p>}
         </div>
 
-        <Button id="biz-login-btn" type="submit" variant="primary" fullWidth disabled={busy}>
-          {isSubmitting
-            ? <span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" />Logging in…</span>
-            : "Login to Business Account"
-          }
+        <Button type="submit" variant="primary" fullWidth disabled={busy} size="lg">
+          {isSubmitting ? <><Loader2 size={16} className="animate-spin mr-2" />Signing in…</> : "Login to Business Account"}
         </Button>
       </form>
 
       <div className="space-y-2 text-center">
         <p className="type-body-md text-on-surface-variant">
-          No business account?{" "}
-          <Link href="/business-signup" className="text-secondary font-semibold hover:underline">Create one</Link>
+          New business?{" "}
+          <Link href="/business-signup" className="text-secondary font-semibold hover:underline">Create account</Link>
         </p>
         <p className="type-body-md text-on-surface-variant">
           Not a business?{" "}

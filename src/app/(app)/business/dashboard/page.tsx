@@ -1,83 +1,49 @@
 "use client";
-
 /**
- * /business/dashboard — Main business hub.
- * Shows: profile header, stats, business tools grid, active campaigns, recent activity.
+ * /business/dashboard — Main business hub matching the STRIVUP design.
+ * Shows: profile header with stats, business tools grid, active campaigns, recent activity.
  */
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  BookOpen, ChevronRight, ClipboardCheck, Clock, Edit2, Plus, Shield, ShieldCheck, Star, Store, TrendingUp, Users,
-} from "lucide-react";
+import { BookOpen, ChevronRight, Clock, Edit2, Plus, ShieldCheck, Star, Store, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { Button, Card, Badge } from "@/components/ui";
-import { getMyBusinessProfile, getBusinessVerifications, type BusinessProfile, type VerificationRequest } from "@/lib/data/business";
+import { getMyBusinessProfile, getBusinessVerifications, getVerificationInsights, type BusinessProfile, type VerificationRequest } from "@/lib/data/business";
 
-/* ── Status badge ─────────────────────────────────────────────────────── */
-function VerificationBadge({ status }: { status: BusinessProfile["verification_status"] }) {
-  const config: Record<BusinessProfile["verification_status"], { label: string; variant: "success" | "error" | "primary" | "default" | "outline" | "secondary" }> = {
-    verified:     { label: "✓ Verified",          variant: "success" },
-    submitted:    { label: "⏳ Under Review",       variant: "primary" },
-    under_review: { label: "⏳ Under Review",       variant: "primary" },
-    incomplete:   { label: "⚠ Incomplete",         variant: "default" },
-    draft:        { label: "Draft",                 variant: "outline" },
-    rejected:     { label: "✕ Rejected",            variant: "error" },
-    suspended:    { label: "Suspended",             variant: "error" },
-  };
-  const c = config[status] ?? config.draft;
-  return <Badge variant={c.variant}>{c.label}</Badge>;
+function timeAgo(d: string) {
+  const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
+  if (m < 60) return `${m} hour${m !== 1 ? "s" : ""} ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} hour${h !== 1 ? "s" : ""} ago`;
+  return `${Math.floor(h / 24)} day${Math.floor(h/24) !== 1 ? "s" : ""} ago`;
 }
 
-/* ── Recent verification row ──────────────────────────────────────────── */
-function VerificationRow({ req }: { req: VerificationRequest }) {
-  const name = ((req.participant as unknown as { full_name: string | null; avatar_url: string | null; username: string | null } | null))?.full_name ?? "Unknown";
-  const challenge = ((req.challenge as unknown as { title: string } | null))?.title ?? ((req.quest as unknown as { title: string } | null))?.title ?? "—";
-  const statusConfig = {
-    approved: { label: "Verified", color: "text-on-tertiary-container bg-tertiary-fixed" },
-    pending:  { label: "Pending",  color: "text-amber-700 bg-amber-100" },
-    rejected: { label: "Rejected", color: "text-error bg-error-container" },
-    expired:  { label: "Expired",  color: "text-on-surface-variant bg-surface-container" },
-  } as const;
-  const sc = statusConfig[req.status as keyof typeof statusConfig] ?? statusConfig.expired;
-  const timeAgo = formatTimeAgo(req.created_at);
-
+function StatusBadge({ status }: { status: BusinessProfile["verification_status"] }) {
+  const map = {
+    verified:     { icon: "✓", label: "Verified",     cls: "text-green-700 bg-green-50 border-green-200" },
+    submitted:    { icon: "⏳", label: "Under Review", cls: "text-blue-700 bg-blue-50 border-blue-200" },
+    under_review: { icon: "⏳", label: "Under Review", cls: "text-blue-700 bg-blue-50 border-blue-200" },
+    incomplete:   { icon: "⚠",  label: "Incomplete",  cls: "text-amber-700 bg-amber-50 border-amber-200" },
+    draft:        { icon: "○",  label: "Draft",        cls: "text-gray-500 bg-gray-50 border-gray-200" },
+    rejected:     { icon: "✕",  label: "Rejected",     cls: "text-red-700 bg-red-50 border-red-200" },
+    suspended:    { icon: "✕",  label: "Suspended",    cls: "text-red-700 bg-red-50 border-red-200" },
+  };
+  const c = map[status] ?? map.draft;
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-outline-variant last:border-0">
-      <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
-        <span className="type-headline-sm text-secondary font-bold">{name.charAt(0).toUpperCase()}</span>
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="type-body-md font-semibold text-on-surface">{name}</p>
-        <p className="type-body-md text-on-surface-variant truncate">{challenge}</p>
-      </div>
-      <div className="flex flex-col items-end gap-1 shrink-0">
-        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${sc.color}`}>{sc.label}</span>
-        <span className="type-body-md text-on-surface-variant">{timeAgo}</span>
-      </div>
-    </div>
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${c.cls}`}>
+      {c.icon} {c.label}
+    </span>
   );
 }
 
-function formatTimeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
-
-/* ── Main ─────────────────────────────────────────────────────────────── */
 export default function BusinessDashboardPage() {
   const router = useRouter();
   const supabase = createClient();
-
   const [loading, setLoading] = useState(true);
   const [bp, setBp] = useState<BusinessProfile | null>(null);
-  const [recentVerifications, setRecentVerifications] = useState<VerificationRequest[]>([]);
-  const [challenges, setChallenges] = useState<any[]>([]);
+  const [verifs, setVerifs] = useState<VerificationRequest[]>([]);
+  const [insights, setInsights] = useState({ total: 0, approved: 0, pending: 0, rejected: 0 });
+  const [challenges, setChallenges] = useState<{ id: string; title: string; description: string | null; thumbnail_url: string | null; participant_count: number }[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -87,229 +53,266 @@ export default function BusinessDashboardPage() {
       const profile = await getMyBusinessProfile(supabase);
       if (!profile) { router.replace("/business/onboarding"); return; }
       if (!profile.onboarding_done) { router.replace("/business/onboarding"); return; }
-
       setBp(profile);
 
-      // Fetch recent verifications
-      const verifs = await getBusinessVerifications(supabase, profile.id, { limit: 5 });
-      setRecentVerifications(verifs);
+      const [v, ins] = await Promise.all([
+        getBusinessVerifications(supabase, profile.id, { limit: 3 }),
+        getVerificationInsights(supabase, profile.id),
+      ]);
+      setVerifs(v);
+      setInsights(ins);
 
-      // Fetch business challenges
+      // Fetch this business's challenges
       const { data: ch } = await supabase
         .from("challenges")
-        .select("id, title, description, thumbnail_url, challenge_participants!challenge_id(count)")
+        .select("id,title,description,thumbnail_url")
         .eq("creator_id", user.id)
         .order("created_at", { ascending: false })
         .limit(3);
 
-      setChallenges(ch ?? []);
+      // Get participant counts
+      const withCounts = await Promise.all((ch ?? []).map(async (c: { id: string; title: string; description: string | null; thumbnail_url: string | null }) => {
+        const { count } = await supabase.from("challenge_participants")
+          .select("id", { count: "exact", head: true }).eq("challenge_id", c.id);
+        return { ...c, participant_count: count ?? 0 };
+      }));
+      setChallenges(withCounts);
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-surface">
-        <div className="w-8 h-8 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
-      </div>
-    );
-  }
-
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#F8F9FC]">
+      <div className="w-8 h-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+    </div>
+  );
   if (!bp) return null;
 
-  const displayName = bp.business_name || "Your Business";
-  const displayCity = [bp.city, bp.state].filter(Boolean).join(", ") || "";
+  const name = bp.business_name || "Your Business";
+  const city = [bp.city, bp.state].filter(Boolean).join(", ");
+
+  const TOOLS = [
+    {
+      icon: <ShieldCheck size={22} className="text-blue-600" />,
+      bg: "bg-blue-50",
+      title: "Verification",
+      desc: "Verify participant activities and business visits.",
+      cta: { label: "Verify Participant →", href: "/business/verification", primary: true },
+    },
+    {
+      icon: <BookOpen size={22} className="text-gray-500" />,
+      bg: "bg-gray-50",
+      title: "Verification History",
+      desc: "View all past verifications.",
+      cta: { label: "View all", href: "/business/verification/history", primary: false },
+    },
+    {
+      icon: <Clock size={22} className="text-gray-500" />,
+      bg: "bg-gray-50",
+      title: "Pending Requests",
+      desc: "Check and approve pending verifications.",
+      cta: { label: "View", href: "/business/verification?filter=pending", primary: false },
+    },
+    {
+      icon: <BookOpen size={22} className="text-gray-500" />,
+      bg: "bg-gray-50",
+      title: "How Verification Works",
+      desc: "Learn how the verification process works.",
+      cta: { label: "Learn", href: "/business/verification/how-it-works", primary: false },
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-surface pb-24">
-      {/* ── Profile header ─────────────────────────────────────────── */}
-      <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-5">
-        <div className="flex items-start gap-4">
-          {/* Logo */}
-          <div className="w-16 h-16 rounded-2xl bg-surface-container border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center">
-            {bp.logo_url
-              ? <img src={bp.logo_url} alt={displayName} className="w-full h-full object-cover" /> // eslint-disable-line @next/next/no-img-element
-              : <Store size={28} className="text-on-surface-variant" />
-            }
-          </div>
-
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="type-headline-sm text-on-surface">{displayName}</h1>
-              <VerificationBadge status={bp.verification_status} />
-            </div>
-            {bp.business_username && (
-              <p className="type-body-md text-on-surface-variant">@{bp.business_username}</p>
-            )}
-            {bp.category && <p className="type-body-md text-on-surface-variant">{bp.category}</p>}
-            {displayCity && (
-              <p className="type-body-md text-on-surface-variant">{displayCity}</p>
-            )}
-          </div>
-
-          <Link href="/business/settings" aria-label="Edit profile">
-            <div className="w-9 h-9 rounded-lg bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors">
-              <Edit2 size={16} className="text-on-surface-variant" />
-            </div>
-          </Link>
+    <div className="min-h-screen bg-[#F8F9FC] pb-28">
+      {/* ── Top Nav ──────────────────────────────────────────────────── */}
+      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between sticky top-0 z-30">
+        <div className="flex items-center gap-2">
+          <svg width="28" height="28" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="12" fill="#0F172A"/><path d="M24 36V18M24 18L17 25M24 18L31 25" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/><circle cx="24" cy="13" r="3" fill="#3B82F6"/></svg>
+          <span className="font-black text-gray-900 text-[15px] tracking-tight">STRIVUP</span>
         </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-4 gap-0 mt-5 border border-outline-variant rounded-xl overflow-hidden">
-          {[
-            { label: "Customers", value: bp.total_customers.toLocaleString() },
-            { label: "Challenges", value: bp.total_challenges.toLocaleString() },
-            { label: "Participants", value: bp.total_participants.toLocaleString() },
-            { label: "Rating", value: bp.rating > 0 ? `${bp.rating}★` : "—" },
-          ].map((s, i) => (
-            <div key={s.label} className={`flex flex-col items-center py-3 px-1 bg-surface-container-lowest ${i > 0 ? "border-l border-outline-variant" : ""}`}>
-              <span className="type-stat-value text-on-surface font-bold leading-none">{s.value}</span>
-              <span className="type-label-caps text-on-surface-variant mt-0.5">{s.label}</span>
-            </div>
-          ))}
+        <div className="flex items-center gap-3">
+          <Link href="/business/settings">
+            <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center"><Edit2 size={16} className="text-gray-600" /></div>
+          </Link>
         </div>
       </div>
 
-      <div className="px-5 py-5 flex flex-col gap-6">
-        {/* ── Rejection notice ───────────────────────────────────────── */}
-        {bp.verification_status === "rejected" && bp.rejection_reason && (
-          <Card bordered padding="md" className="border-error/30 bg-error-container">
-            <p className="type-body-md font-semibold text-error mb-1">⚠ Verification Rejected</p>
-            <p className="type-body-md text-error">{bp.rejection_reason}</p>
-            <Button variant="outline" size="sm" className="mt-3 border-error text-error" onClick={() => router.push("/business/onboarding")}>
+      <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
+
+        {/* ── Rejection Banner ────────────────────────────────────────── */}
+        {bp.verification_status === "rejected" && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-4">
+            <p className="text-sm font-bold text-red-700 mb-1">⚠ Verification Rejected</p>
+            <p className="text-sm text-red-600">{bp.rejection_reason || "Your verification was rejected."}</p>
+            <button onClick={() => router.push("/business/onboarding")}
+              className="mt-2 px-4 py-1.5 rounded-lg border border-red-300 text-red-700 text-sm font-semibold">
               Resubmit
-            </Button>
-          </Card>
+            </button>
+          </div>
         )}
 
-        {/* ── Business Tools ─────────────────────────────────────────── */}
-        <div>
-          <h2 className="type-headline-sm text-on-surface mb-1">Business Tools</h2>
-          <p className="type-body-md text-on-surface-variant mb-4">Manage your challenges, verify participants and track your impact on STRIVUP.</p>
+        {/* ── Profile Header ───────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 px-5 py-5">
+          <div className="flex items-start gap-4">
+            {/* Logo */}
+            <div className="w-16 h-16 rounded-2xl bg-gray-100 overflow-hidden flex items-center justify-center shrink-0 border border-gray-200">
+              {bp.logo_url
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={bp.logo_url} alt={name} className="w-full h-full object-cover" />
+                : <Store size={28} className="text-gray-400" />
+              }
+            </div>
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-[18px] font-black text-gray-900">{name}</h1>
+                {bp.verification_status === "verified" && (
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-label="Verified"><circle cx="9" cy="9" r="9" fill="#3B82F6"/><path d="M5 9l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                )}
+              </div>
+              {bp.business_username && <p className="text-sm text-gray-500">@{bp.business_username}</p>}
+              {bp.category && <p className="text-sm text-gray-500">{bp.category}</p>}
+              {city && <p className="text-sm text-gray-400">{city}</p>}
+            </div>
+            <button onClick={() => router.push("/business/settings")}
+              className="px-4 py-1.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 shrink-0">
+              Edit Profile
+            </button>
+          </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            {/* Verification */}
-            <Card bordered padding="md" className="flex flex-col gap-3">
-              <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-                <ShieldCheck size={22} className="text-secondary" />
+          {/* ── Stats row ────────────────────────────────────────────── */}
+          <div className="grid grid-cols-4 mt-5 border border-gray-100 rounded-xl overflow-hidden">
+            {[
+              { label: "Customers",    value: bp.total_customers.toLocaleString() },
+              { label: "Challenges",   value: bp.total_challenges.toLocaleString() },
+              { label: "Participants", value: bp.total_participants.toLocaleString() },
+              { label: "Rating",       value: bp.rating > 0 ? `${bp.rating}★` : "—" },
+            ].map((s, i) => (
+              <div key={s.label} className={`flex flex-col items-center py-3 bg-gray-50/50 ${i > 0 ? "border-l border-gray-100" : ""}`}>
+                <span className="text-lg font-black text-gray-900">{s.value}</span>
+                <span className="text-[10px] text-gray-400 font-medium mt-0.5">{s.label}</span>
               </div>
-              <div>
-                <p className="type-body-md font-semibold text-on-surface">Verification</p>
-                <p className="type-body-md text-on-surface-variant">Verify participant activities and business visits.</p>
-              </div>
-              <Button variant="primary" size="sm" onClick={() => router.push("/business/verification")}>
-                Verify Participant →
-              </Button>
-            </Card>
+            ))}
+          </div>
 
-            {/* Verification History */}
-            <Card bordered padding="md" className="flex flex-col gap-3">
-              <div className="w-10 h-10 rounded-xl bg-surface-variant flex items-center justify-center">
-                <BookOpen size={22} className="text-on-surface-variant" />
-              </div>
-              <div>
-                <p className="type-body-md font-semibold text-on-surface">Verification History</p>
-                <p className="type-body-md text-on-surface-variant">View all past verifications.</p>
-              </div>
-              <Link href="/business/verification/history" className="type-body-md text-secondary font-semibold flex items-center gap-1">
-                View all <ChevronRight size={14} />
-              </Link>
-            </Card>
-
-            {/* Pending Requests */}
-            <Card bordered padding="md" className="flex flex-col gap-3">
-              <div className="w-10 h-10 rounded-xl bg-surface-variant flex items-center justify-center">
-                <Clock size={22} className="text-on-surface-variant" />
-              </div>
-              <div>
-                <p className="type-body-md font-semibold text-on-surface">Pending Requests</p>
-                <p className="type-body-md text-on-surface-variant">Check and approve pending verifications.</p>
-              </div>
-              <Link href="/business/verification?filter=pending" className="type-body-md text-secondary font-semibold flex items-center gap-1">
-                View <ChevronRight size={14} />
-              </Link>
-            </Card>
-
-            {/* How Verification Works */}
-            <Card bordered padding="md" className="flex flex-col gap-3">
-              <div className="w-10 h-10 rounded-xl bg-surface-variant flex items-center justify-center">
-                <ClipboardCheck size={22} className="text-on-surface-variant" />
-              </div>
-              <div>
-                <p className="type-body-md font-semibold text-on-surface">How Verification Works</p>
-                <p className="type-body-md text-on-surface-variant">Learn how the verification process works.</p>
-              </div>
-              <Link href="/business/verification/how-it-works" className="type-body-md text-secondary font-semibold flex items-center gap-1">
-                Learn <ChevronRight size={14} />
-              </Link>
-            </Card>
+          {/* Verification status */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+            <span className="text-sm text-gray-500">Business Verification</span>
+            <StatusBadge status={bp.verification_status} />
           </div>
         </div>
 
-        {/* ── Active Campaigns ────────────────────────────────────────── */}
-        <div>
+        {/* ── Business Tools ───────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 px-5 py-5">
+          <h2 className="text-[17px] font-black text-gray-900 mb-1">Business Tools</h2>
+          <p className="text-sm text-gray-500 mb-4">Manage your challenges, verify participants and track your impact on STRIVUP.</p>
+          <div className="grid grid-cols-2 gap-3">
+            {TOOLS.map(tool => (
+              <div key={tool.title} className="rounded-2xl border border-gray-100 p-4 flex flex-col gap-3">
+                <div className={`w-10 h-10 rounded-xl ${tool.bg} flex items-center justify-center`}>{tool.icon}</div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">{tool.title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5 leading-snug">{tool.desc}</p>
+                </div>
+                {tool.cta.primary ? (
+                  <Link href={tool.cta.href}>
+                    <button className="w-full h-9 rounded-xl bg-blue-600 text-white text-xs font-bold">
+                      {tool.cta.label}
+                    </button>
+                  </Link>
+                ) : (
+                  <Link href={tool.cta.href} className="text-sm text-blue-600 font-semibold flex items-center gap-1">
+                    {tool.cta.label} <ChevronRight size={14} />
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Active Campaigns ─────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 px-5 py-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="type-headline-sm text-on-surface">Your Active Campaigns</h2>
-            <Link href="/challenges" className="type-body-md text-secondary font-semibold">View all</Link>
+            <h2 className="text-[17px] font-black text-gray-900">Your Active Campaigns</h2>
+            <Link href="/challenges" className="text-sm text-blue-600 font-semibold">View all</Link>
           </div>
           {challenges.length === 0 ? (
-            <Card bordered padding="lg" className="flex flex-col items-center gap-3 text-center">
-              <TrendingUp size={32} className="text-on-surface-variant" />
-              <p className="type-body-lg text-on-surface">No campaigns yet</p>
-              <p className="type-body-md text-on-surface-variant">Create your first challenge to start attracting customers.</p>
-              <Button variant="primary" size="sm" onClick={() => router.push("/challenges/new")}>
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <TrendingUp size={32} className="text-gray-300" />
+              <p className="text-sm font-semibold text-gray-700">No campaigns yet</p>
+              <p className="text-xs text-gray-400">Create your first challenge to attract customers.</p>
+              <button onClick={() => router.push("/challenges/new")}
+                className="h-9 px-5 rounded-xl bg-blue-600 text-white text-sm font-bold flex items-center gap-2">
                 <Plus size={16} /> Create Challenge
-              </Button>
-            </Card>
+              </button>
+            </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {challenges.map((ch: any) => {
-                const count = Array.isArray(ch.challenge_participants)
-                  ? ch.challenge_participants.length
-                  : (ch.challenge_participants?.[0]?.count ?? 0);
-                return (
-                  <Link key={ch.id} href={`/challenges/${ch.id}`}>
-                    <Card bordered padding="md" className="flex items-center gap-3 hover:bg-surface-container-high transition-colors">
-                      <div className="w-12 h-12 rounded-xl bg-secondary/10 overflow-hidden shrink-0 flex items-center justify-center">
-                        {ch.thumbnail_url
-                          ? <img src={ch.thumbnail_url} alt={ch.title} className="w-full h-full object-cover" /> // eslint-disable-line @next/next/no-img-element
-                          : <Star size={20} className="text-secondary" />
-                        }
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="type-body-md font-semibold text-on-surface truncate">{ch.title}</p>
-                        <p className="type-body-md text-on-surface-variant truncate">{ch.description}</p>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-on-tertiary-container bg-tertiary-fixed px-2 py-0.5 rounded-full mt-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-on-tertiary-container" /> Active
-                        </span>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="type-body-md font-bold text-on-surface">{count}</p>
-                        <p className="type-body-md text-on-surface-variant">Participants</p>
-                      </div>
-                      <ChevronRight size={16} className="text-on-surface-variant shrink-0" />
-                    </Card>
-                  </Link>
-                );
-              })}
+              {challenges.map(ch => (
+                <Link key={ch.id} href={`/challenges/${ch.id}`}>
+                  <div className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                    <div className="w-14 h-14 rounded-xl bg-gray-100 overflow-hidden shrink-0">
+                      {ch.thumbnail_url
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={ch.thumbnail_url} alt={ch.title} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full flex items-center justify-center"><Star size={20} className="text-gray-300" /></div>
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-gray-900 truncate">{ch.title}</p>
+                      {ch.description && <p className="text-xs text-gray-400 truncate mt-0.5">{ch.description}</p>}
+                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Active
+                      </span>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-black text-gray-900">{ch.participant_count}</p>
+                      <p className="text-[10px] text-gray-400">Participants</p>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-300 shrink-0" />
+                  </div>
+                </Link>
+              ))}
             </div>
           )}
         </div>
 
-        {/* ── Recent Activity ─────────────────────────────────────────── */}
-        {recentVerifications.length > 0 && (
-          <div>
+        {/* ── Recent Activity ───────────────────────────────────────────── */}
+        {verifs.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 px-5 py-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="type-headline-sm text-on-surface">Recent Activity</h2>
-              <Link href="/business/verification/history" className="type-body-md text-secondary font-semibold">View all</Link>
+              <h2 className="text-[17px] font-black text-gray-900">Recent Activity</h2>
+              <Link href="/business/verification/history" className="text-sm text-blue-600 font-semibold">View all</Link>
             </div>
-            <Card bordered padding="md">
-              {recentVerifications.map(req => (
-                <VerificationRow key={req.id} req={req} />
-              ))}
-            </Card>
+            <div className="flex flex-col gap-0">
+              {verifs.map(req => {
+                const participant = req.participant as { full_name: string | null; avatar_url: string | null } | undefined;
+                const pName = participant?.full_name ?? "Unknown";
+                const actionLabel = req.status === "approved" ? "completed a verification" : "requested verification";
+                const statusCfg = {
+                  approved: { label: "Verified",  cls: "text-green-700 bg-green-50" },
+                  pending:  { label: "Pending",   cls: "text-amber-700 bg-amber-50" },
+                  rejected: { label: "Rejected",  cls: "text-red-700 bg-red-50" },
+                  expired:  { label: "Expired",   cls: "text-gray-500 bg-gray-50" },
+                } as const;
+                const sc = statusCfg[req.status as keyof typeof statusCfg] ?? statusCfg.expired;
+                return (
+                  <div key={req.id} className="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 text-sm font-bold text-blue-600">
+                      {pName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900">
+                        <span className="font-semibold">{pName}</span>{" "}{actionLabel}
+                      </p>
+                      <p className="text-xs text-gray-400">{timeAgo(req.created_at)}</p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${sc.cls}`}>{sc.label}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

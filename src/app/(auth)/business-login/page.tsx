@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function BusinessLoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-5 py-10 bg-surface">
+    <div className="min-h-screen flex items-center justify-center px-5 py-10 bg-[#F8F9FC]">
       <BusinessLoginForm />
     </div>
   );

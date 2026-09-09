@@ -6,24 +6,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2, Eye, EyeOff, Flame, Loader2, Store } from "lucide-react";
+import { Building2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 
-/* ── Schema — mirrors SignupForm but adds businessName ───────────────── */
 const schema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
   email: z.string().min(1, "Email is required.").email("Please enter a valid email."),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters.")
+  password: z.string().min(8, "Password must be at least 8 characters.")
     .regex(/[a-zA-Z]/, "Must contain at least one letter.")
     .regex(/[0-9]/, "Must contain at least one number."),
 });
-
 type FormValues = z.infer<typeof schema>;
 
-/* ── Google G icon ───────────────────────────────────────────────────── */
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 24 24" width={20} height={20} aria-hidden="true">
@@ -35,228 +30,143 @@ function GoogleIcon() {
   );
 }
 
-const socialBtnCls = [
-  "w-full flex items-center justify-center gap-3",
-  "h-11 px-4 rounded border border-outline-variant",
-  "bg-surface-container-lowest hover:bg-surface-container",
-  "transition-colors duration-150",
-  "text-[length:var(--font-size-body-lg)] font-medium text-on-surface",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
-  "disabled:opacity-50 disabled:cursor-not-allowed",
-].join(" ");
+const socialBtnCls = "w-full flex items-center justify-center gap-3 h-12 px-4 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container transition-colors text-[length:var(--font-size-body-lg)] font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary disabled:opacity-50 disabled:cursor-not-allowed";
 
-function passwordFieldCls(hasError: boolean) {
-  return [
-    "w-full h-10 px-3 pr-10 rounded border bg-surface-container-lowest",
-    "text-on-surface placeholder:text-on-surface-variant",
-    "text-[length:var(--font-size-body-lg)] leading-6",
-    "transition-colors duration-150 focus:outline-none focus:ring-2",
-    hasError
-      ? "border-error focus:ring-error/30 focus:border-error"
-      : "border-outline-variant focus:border-secondary focus:ring-secondary/20",
-  ].join(" ");
+function pwdCls(err: boolean) {
+  return `w-full h-12 px-4 pr-11 rounded-xl border bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant text-[length:var(--font-size-body-lg)] transition-colors focus:outline-none focus:ring-2 ${err ? "border-error focus:ring-error/20" : "border-outline-variant focus:border-secondary focus:ring-secondary/20"}`;
 }
 
 export function BusinessSignupForm() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [checkEmail, setCheckEmail] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [checkEmail, setCheckEmail] = useState(false);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
 
-  /* ── Email/password signup ─────────────────────────────────────────── */
   const onSubmit = async (data: FormValues) => {
     setAuthError(null);
     const supabase = createClient();
-
     const { data: signUpData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
-      options: {
-        data: {
-          full_name: data.businessName,
-          account_type: "business",   // handle_new_user() picks this up
-        },
-      },
+      options: { data: { full_name: data.businessName, account_type: "business" } },
     });
-
     if (error) { setAuthError(error.message); return; }
 
-    // Email confirmation required?
-    const needsConfirmation =
-      !signUpData.session && signUpData.user?.identities?.length === 0;
-    if (needsConfirmation) { setCheckEmail(true); return; }
+    // Email confirmation needed?
+    if (!signUpData.session && signUpData.user?.identities?.length === 0) {
+      setCheckEmail(true);
+      return;
+    }
 
-    // Create business_profile row immediately
     if (signUpData.user) {
+      await supabase.from("profiles").update({ account_type: "business" }).eq("id", signUpData.user.id);
       await supabase.from("business_profiles").upsert({
         id: signUpData.user.id,
         business_name: data.businessName,
         onboarding_step: 1,
         onboarding_done: false,
         verification_status: "draft",
-      });
-      // Ensure account_type is set on profile
-      await supabase.from("profiles").update({ account_type: "business" }).eq("id", signUpData.user.id);
+      }, { onConflict: "id", ignoreDuplicates: true });
     }
-
     router.push("/business/onboarding");
     router.refresh();
   };
 
-  /* ── Google OAuth (business) ─────────────────────────────────────────── */
-  const handleGoogleSignup = async () => {
+  const handleGoogle = async () => {
     setGoogleLoading(true);
     setAuthError(null);
-    // Set a cookie so the root page / middleware knows this is a business flow
-    // (needed when Supabase lands on localhost:3000/?code= instead of /auth/callback)
     document.cookie = "strivup_business_intent=1; path=/; max-age=300; SameSite=Lax";
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/business`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/business` },
     });
     if (error) { setAuthError(error.message); setGoogleLoading(false); }
   };
 
   const busy = isSubmitting || googleLoading;
 
-  /* ── Check email screen ──────────────────────────────────────────────── */
   if (checkEmail) return (
-    <div className="w-full max-w-md space-y-6 py-12 text-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center">
-          <Flame size={28} className="text-on-primary" />
-        </div>
-        <p className="type-label-caps text-secondary tracking-widest">STRIVUP BUSINESS</p>
+    <div className="w-full max-w-sm text-center space-y-6 py-10">
+      <div className="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center mx-auto">
+        <Building2 size={28} className="text-secondary" />
       </div>
-      <div className="space-y-2">
-        <h1 className="type-headline-md text-on-surface">Check your inbox</h1>
-        <p className="type-body-md text-on-surface-variant">
-          We&apos;ve sent a confirmation link to your email. Click it to activate your business account.
+      <div>
+        <h2 className="type-headline-md text-on-surface font-black">Check your inbox</h2>
+        <p className="type-body-md text-on-surface-variant mt-2">
+          We sent a confirmation link to your email. Click it to activate your business account.
         </p>
       </div>
-      <p className="type-body-md text-on-surface-variant">
-        Already confirmed?{" "}
-        <Link href="/business-login" className="text-secondary font-semibold hover:underline">
-          Login
-        </Link>
-      </p>
+      <Link href="/business-login" className="type-body-md text-secondary font-semibold hover:underline">
+        Already confirmed? Login →
+      </Link>
     </div>
   );
 
   return (
-    <div className="w-full max-w-md space-y-6 py-10">
-      {/* Header */}
+    <div className="w-full max-w-sm space-y-6">
       <div className="flex flex-col items-center gap-3 text-center">
-        <div className="w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center">
-          <Building2 size={28} className="text-on-primary" />
+        <div className="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center">
+          <Building2 size={28} className="text-secondary" />
         </div>
-        <p className="type-label-caps text-secondary tracking-widest">STRIVUP BUSINESS</p>
-        <h1 className="type-headline-md text-on-surface">Create Business Account</h1>
-        <p className="type-body-md text-on-surface-variant">
-          Attract customers, run challenge campaigns and grow your brand.
-        </p>
+        <div>
+          <p className="text-[11px] font-black tracking-[0.2em] text-secondary uppercase mb-1">STRIVUP BUSINESS</p>
+          <h1 className="type-headline-md text-on-surface font-black">Create Business Account</h1>
+          <p className="type-body-md text-on-surface-variant mt-1">Attract customers, run campaigns, grow your brand.</p>
+        </div>
       </div>
 
-      {/* Error */}
       {authError && (
-        <div role="alert" className="rounded border border-error/30 bg-error-container px-4 py-3 type-body-md text-error">
-          {authError}
-        </div>
+        <div role="alert" className="rounded-xl border border-error/30 bg-error-container px-4 py-3 type-body-md text-error">{authError}</div>
       )}
 
-      {/* Google */}
-      <button type="button" onClick={handleGoogleSignup} disabled={busy} className={socialBtnCls}>
+      <button type="button" onClick={handleGoogle} disabled={busy} className={socialBtnCls}>
         {googleLoading ? <Loader2 size={20} className="animate-spin" /> : <GoogleIcon />}
         Continue with Google
       </button>
 
-      {/* Divider */}
-      <div className="flex items-center gap-3" aria-hidden="true">
+      <div className="flex items-center gap-3">
         <hr className="flex-1 border-outline-variant" />
-        <span className="type-label-caps text-on-surface-variant">or</span>
+        <span className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest">or</span>
         <hr className="flex-1 border-outline-variant" />
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-        <Input
-          id="biz-name"
-          label="Business Name"
-          type="text"
-          autoComplete="organization"
-          placeholder="e.g. The Brew House"
-          error={errors.businessName?.message}
-          disabled={busy}
-          {...register("businessName")}
-        />
-        <Input
-          id="biz-email"
-          label="Business Email"
-          type="email"
-          autoComplete="email"
-          placeholder="hello@yourbusiness.com"
-          error={errors.email?.message}
-          disabled={busy}
-          {...register("email")}
-        />
-
-        {/* Password */}
+        <Input id="biz-name" label="Business Name" type="text" autoComplete="organization"
+          placeholder="e.g. The Brew House" error={errors.businessName?.message} disabled={busy} {...register("businessName")} />
+        <Input id="biz-email" label="Business Email" type="email" autoComplete="email"
+          placeholder="hello@yourbusiness.com" error={errors.email?.message} disabled={busy} {...register("email")} />
         <div className="flex flex-col gap-1">
-          <label htmlFor="biz-password" className="type-body-md font-medium text-on-surface">Password</label>
+          <label htmlFor="biz-pwd" className="type-body-md font-medium text-on-surface">Password</label>
           <div className="relative">
-            <input
-              id="biz-password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              placeholder="Min. 8 chars, 1 letter + 1 number"
-              disabled={busy}
-              className={`${passwordFieldCls(!!errors.password)} disabled:opacity-50`}
-              aria-invalid={!!errors.password}
-              {...register("password")}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            <input id="biz-pwd" type={showPwd ? "text" : "password"} autoComplete="new-password"
+              placeholder="Min. 8 chars, 1 letter + 1 number" disabled={busy}
+              className={`${pwdCls(!!errors.password)} disabled:opacity-50`} {...register("password")} />
+            <button type="button" onClick={() => setShowPwd(v => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant" aria-label="Toggle password">
+              {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-          {errors.password && (
-            <p className="type-body-md text-error" role="alert">{errors.password.message}</p>
-          )}
+          {errors.password && <p className="type-body-md text-error">{errors.password.message}</p>}
         </div>
-
-        <Button id="biz-signup-btn" type="submit" variant="primary" fullWidth disabled={busy}>
-          {isSubmitting
-            ? <span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" />Creating account…</span>
-            : <span className="flex items-center gap-2"><Store size={16} />Create Business Account</span>
-          }
+        <Button type="submit" variant="primary" fullWidth disabled={busy} size="lg">
+          {isSubmitting ? <><Loader2 size={16} className="animate-spin mr-2" />Creating…</> : "Create Business Account"}
         </Button>
       </form>
 
-      {/* Footer */}
       <div className="space-y-2 text-center">
         <p className="type-body-md text-on-surface-variant">
           Already have a business account?{" "}
-          <Link href="/business-login" className="text-secondary font-semibold hover:underline">
-            Login
-          </Link>
+          <Link href="/business-login" className="text-secondary font-semibold hover:underline">Login</Link>
         </p>
         <p className="type-body-md text-on-surface-variant">
           Not a business?{" "}
-          <Link href="/signup" className="text-secondary font-semibold hover:underline">
-            Sign up as User
-          </Link>
+          <Link href="/signup" className="text-secondary font-semibold hover:underline">Sign up as User</Link>
         </p>
       </div>
     </div>
