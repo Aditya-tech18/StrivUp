@@ -1,23 +1,22 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Camera, Check, ChevronRight, Edit2, Flame, Globe,
-  Loader2, Plus, Settings, ShieldCheck, Trash2, X, Link as LinkIcon,
+  Camera, Check, ChevronRight, Edit2, Flame,
+  Loader2, Plus, Settings, ShieldCheck, Trash2, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { Button, Badge } from "@/components/ui";
 import {
-  getMyProfile, upsertMyProfile, getMySocialLinks,
-  addMySocialLink, deleteMySocialLink, uploadMyAvatar,
-  getFollowerCount, getFollowingCount,
+  getMyProfile, upsertMyProfile,
+  getMySocialLinks, addMySocialLink, deleteMySocialLink,
+  uploadMyAvatar, getFollowerCount, getFollowingCount,
   getFollowers, getFollowing,
   type Profile, type SocialLink, type SocialPlatform,
   type FollowerUser, PROFILE_CONSTANTS,
 } from "@/lib/supabase/profile";
 
-/* ── Types ────────────────────────────────────────────────────────── */
+// ── Types ─────────────────────────────────────────────────────────────────
 interface ChallengeStats {
   challenge_id: string;
   title: string;
@@ -32,34 +31,44 @@ interface ChallengeStats {
 }
 interface HeatmapEntry { submission_date: string; submission_count: number; }
 
-/* ── Platform config ─────────────────────────────────────────────── */
-const PLATFORM_META: Record<string, { label: string; icon: string }> = {
-  github:    { label: "GitHub",      icon: "🐙" },
-  linkedin:  { label: "LinkedIn",    icon: "💼" },
-  instagram: { label: "Instagram",   icon: "📷" },
-  twitter:   { label: "X",           icon: "𝕏" },
-  youtube:   { label: "YouTube",     icon: "▶️" },
-  portfolio: { label: "Portfolio",   icon: "🌐" },
-  other:     { label: "Link",        icon: "🔗" },
+// ── Platform labels (no emojis) ─────────────────────────────────────────
+const PLATFORM_LABEL: Record<string, string> = {
+  instagram: "Instagram",
+  linkedin:  "LinkedIn",
+  github:    "GitHub",
+  twitter:   "X",
+  youtube:   "YouTube",
+  portfolio: "Portfolio",
+  other:     "Link",
 };
 
 const PLATFORMS: { value: SocialPlatform; label: string }[] = [
-  { value: "instagram", label: "Instagram" },
-  { value: "linkedin",  label: "LinkedIn"  },
-  { value: "github",    label: "GitHub"    },
+  { value: "instagram", label: "Instagram"   },
+  { value: "linkedin",  label: "LinkedIn"    },
+  { value: "github",    label: "GitHub"      },
   { value: "twitter",   label: "X / Twitter" },
-  { value: "youtube",   label: "YouTube"   },
-  { value: "portfolio", label: "Portfolio" },
-  { value: "other",     label: "Other"     },
+  { value: "youtube",   label: "YouTube"     },
+  { value: "portfolio", label: "Portfolio"   },
+  { value: "other",     label: "Other"       },
 ];
 
-/* ── Heatmap ─────────────────────────────────────────────────────── */
-function ConsistencyHeatmap({ entries, currentStreak }: { entries: HeatmapEntry[]; currentStreak: number }) {
+// ── Skeleton ───────────────────────────────────────────────────────────────
+function Sk({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse rounded-xl bg-[#e4e2e4] ${className}`} />;
+}
+
+// ── Heatmap ────────────────────────────────────────────────────────────────
+function ConsistencyHeatmap({
+  entries, currentStreak,
+}: {
+  entries: HeatmapEntry[];
+  currentStreak: number;
+}) {
   const today = new Date();
   const WEEKS = 26;
   const dateMap = new Map(entries.map(e => [e.submission_date, e.submission_count]));
-  const grid: { date: string; count: number }[][] = [];
 
+  const grid: { date: string; count: number }[][] = [];
   for (let w = WEEKS - 1; w >= 0; w--) {
     const week: { date: string; count: number }[] = [];
     for (let d = 0; d < 7; d++) {
@@ -71,52 +80,69 @@ function ConsistencyHeatmap({ entries, currentStreak }: { entries: HeatmapEntry[
     grid.push(week);
   }
 
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const monthLabels: { label: string; col: number }[] = [];
   grid.forEach((week, i) => {
     const d = new Date(week[0].date);
-    if (i === 0 || new Date(grid[i-1][0].date).getMonth() !== d.getMonth())
-      monthLabels.push({ label: months[d.getMonth()], col: i });
+    if (i === 0 || new Date(grid[i - 1][0].date).getMonth() !== d.getMonth())
+      monthLabels.push({ label: MONTHS[d.getMonth()], col: i });
   });
 
   const cellColor = (n: number) =>
     n === 0 ? "bg-[#ebedf0]" :
-    n === 1 ? "bg-secondary/25" :
-    n === 2 ? "bg-secondary/50" :
-    n === 3 ? "bg-secondary/75" : "bg-secondary";
+    n === 1 ? "bg-secondary/20" :
+    n === 2 ? "bg-secondary/45" :
+    n === 3 ? "bg-secondary/70" : "bg-secondary";
 
   return (
-    <div className="w-full overflow-x-auto no-scrollbar">
-      <div className="min-w-[520px]">
-        <div className="relative flex mb-1 ml-7 h-4">
-          {monthLabels.map((ml, i) => (
-            <span key={ml.col} className="absolute text-[9px] text-on-surface-variant"
-              style={{ left: `${ml.col * 14}px` }}>{ml.label}</span>
+    <div className="w-full overflow-x-auto">
+      <div className="min-w-[480px]">
+        {/* Month labels */}
+        <div className="relative flex h-4 mb-1 ml-7">
+          {monthLabels.map(ml => (
+            <span
+              key={ml.col}
+              className="absolute text-[9px] text-on-surface-variant"
+              style={{ left: `${ml.col * 14}px` }}
+            >
+              {ml.label}
+            </span>
           ))}
         </div>
-        <div className="flex gap-0.5">
-          <div className="flex flex-col gap-0.5 mr-1 pt-0.5">
-            {["","M","","W","","F",""].map((l, i) => (
-              <div key={i} className="w-5 h-[12px] text-[9px] text-on-surface-variant flex items-center justify-end pr-1">{l}</div>
+        <div className="flex gap-[2px]">
+          {/* Day labels */}
+          <div className="flex flex-col gap-[2px] mr-1">
+            {["", "Mon", "", "Wed", "", "Fri", ""].map((l, i) => (
+              <div key={i} className="h-[12px] text-[9px] text-on-surface-variant flex items-center justify-end w-6 pr-1">
+                {l}
+              </div>
             ))}
           </div>
+          {/* Cells */}
           {grid.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-0.5">
+            <div key={wi} className="flex flex-col gap-[2px]">
               {week.map((cell, di) => (
-                <div key={di} title={`${cell.date}: ${cell.count}`}
-                  className={`w-[12px] h-[12px] rounded-[2px] ${cellColor(cell.count)}`} />
+                <div
+                  key={di}
+                  title={`${cell.date}: ${cell.count} submission${cell.count !== 1 ? "s" : ""}`}
+                  className={`w-[12px] h-[12px] rounded-[2px] transition-opacity ${cellColor(cell.count)}`}
+                />
               ))}
             </div>
           ))}
         </div>
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-1">
+        {/* Legend + streak */}
+        <div className="flex items-center justify-between mt-2.5">
+          <div className="flex items-center gap-1.5">
             <span className="text-[9px] text-on-surface-variant">Less</span>
-            {[0,1,2,3,4].map(n => <div key={n} className={`w-[10px] h-[10px] rounded-[2px] ${cellColor(n)}`} />)}
+            {[0, 1, 2, 3, 4].map(n => (
+              <div key={n} className={`w-[10px] h-[10px] rounded-[2px] ${cellColor(n)}`} />
+            ))}
             <span className="text-[9px] text-on-surface-variant">More</span>
           </div>
           <span className="flex items-center gap-1 text-[11px] font-bold text-on-surface">
-            <Flame size={13} className="text-orange-400" /> {currentStreak} day streak
+            <Flame size={12} className="text-orange-400" />
+            {currentStreak} day streak
           </span>
         </div>
       </div>
@@ -124,39 +150,43 @@ function ConsistencyHeatmap({ entries, currentStreak }: { entries: HeatmapEntry[
   );
 }
 
-/* ── Challenge Card ──────────────────────────────────────────────── */
+// ── Challenge Card ─────────────────────────────────────────────────────────
 function ChallengeCard({ stats }: { stats: ChallengeStats }) {
-  const emoji = stats.status === "completed" ? "🎉" : stats.consistency_pct >= 90 ? "🔥" : "💪";
   return (
-    <div className="flex flex-col rounded-xl overflow-hidden border border-outline-variant bg-white shadow-sm">
+    <div className="flex flex-col rounded-xl overflow-hidden border border-outline-variant bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
       <div className="relative w-full aspect-[4/3] bg-surface-container overflow-hidden">
-        {stats.thumbnail_url
-          ? <img src={stats.thumbnail_url} alt={stats.title} className="w-full h-full object-cover" /> // eslint-disable-line
-          : <div className="w-full h-full bg-gradient-to-br from-secondary/15 to-secondary/5 flex items-center justify-center"><span className="text-3xl">🏆</span></div>}
-        <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-[#22c55e] flex items-center justify-center shadow">
+        {stats.thumbnail_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={stats.thumbnail_url} alt={stats.title} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-secondary/10 to-secondary/5 flex items-center justify-center">
+            <span className="text-[28px] font-black text-secondary/30">
+              {stats.title.charAt(0)}
+            </span>
+          </div>
+        )}
+        <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-[#16a34a] flex items-center justify-center shadow">
           <Check size={11} className="text-white" strokeWidth={3} />
         </div>
       </div>
       <div className="p-2 flex flex-col gap-0.5">
         <p className="text-[11px] font-bold text-on-surface leading-tight line-clamp-2">{stats.title}</p>
-        <p className="text-[10px] text-on-surface-variant">Day {stats.current_day}{stats.duration_days ? `/${stats.duration_days}` : ""} {emoji}</p>
+        <p className="text-[10px] text-on-surface-variant">
+          Day {stats.current_day}{stats.duration_days ? `/${stats.duration_days}` : ""}
+          {stats.consistency_pct >= 90 ? " · On fire" : ""}
+        </p>
         <p className="text-[10px] font-bold text-secondary">{stats.consistency_pct}% Consistency</p>
       </div>
     </div>
   );
 }
 
-/* ── Skeleton ─────────────────────────────────────────────────────── */
-function Sk({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-xl bg-[#e9eaec] ${className}`} />;
-}
-
-/* ── Follow List Modal ───────────────────────────────────────────── */
+// ── Follow List Modal ──────────────────────────────────────────────────────
 function FollowModal({
-  title, userId,
-  fetchFn, onClose,
+  title, userId, fetchFn, onClose,
 }: {
-  title: string; userId: string;
+  title: string;
+  userId: string;
   fetchFn: (uid: string, page: number) => Promise<FollowerUser[]>;
   onClose: () => void;
 }) {
@@ -177,141 +207,229 @@ function FollowModal({
   useEffect(() => { load(0); }, [load]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-4 py-6">
-      <div className="w-full max-w-md bg-white rounded-2xl flex flex-col max-h-[80vh] shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+      <div className="w-full max-w-md bg-white rounded-2xl flex flex-col max-h-[80vh] shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant shrink-0">
-          <h2 className="type-headline-sm font-bold text-on-surface">{title}</h2>
-          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface"><X size={20} /></button>
+          <h2 className="text-[17px] font-bold text-on-surface">{title}</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+            <X size={18} className="text-on-surface-variant" />
+          </button>
         </div>
         <div className="flex-1 overflow-y-auto px-5">
-          {busy && users.length === 0
-            ? <div className="flex justify-center py-10"><Loader2 size={22} className="animate-spin text-secondary" /></div>
-            : users.length === 0
-              ? <p className="text-center py-10 text-on-surface-variant type-body-md">No {title.toLowerCase()} yet.</p>
-              : <>
-                  {users.map(u => {
-                    const initials = (u.full_name ?? u.username ?? "?").charAt(0).toUpperCase();
-                    return (
-                      <div key={u.id} className="flex items-center gap-3 py-3 border-b border-outline-variant last:border-0">
-                        <div className="w-10 h-10 rounded-full bg-secondary/10 overflow-hidden shrink-0 flex items-center justify-center">
-                          {u.avatar_url
-                            ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> // eslint-disable-line
-                            : <span className="text-secondary font-bold">{initials}</span>}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1">
-                            <p className="type-body-md font-semibold text-on-surface truncate">{u.full_name ?? u.username ?? "Unknown"}</p>
-                            {u.verification_status === "approved" && <ShieldCheck size={13} className="text-secondary shrink-0" />}
-                          </div>
-                          {u.username && <p className="text-[11px] text-on-surface-variant">@{u.username}</p>}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {more && (
-                    <div className="py-4 flex justify-center">
-                      <button onClick={() => { const next = page + 1; setPage(next); load(next); }}
-                        disabled={busy}
-                        className="text-[13px] text-secondary font-semibold disabled:opacity-40">
-                        {busy ? <Loader2 size={14} className="animate-spin" /> : "Load more"}
-                      </button>
+          {busy && users.length === 0 ? (
+            <div className="flex justify-center py-12">
+              <Loader2 size={22} className="animate-spin text-secondary" />
+            </div>
+          ) : users.length === 0 ? (
+            <p className="text-center py-12 text-[14px] text-on-surface-variant">No {title.toLowerCase()} yet.</p>
+          ) : (
+            <>
+              {users.map(u => (
+                <div key={u.id} className="flex items-center gap-3 py-3 border-b border-outline-variant last:border-0">
+                  <div className="w-10 h-10 rounded-full bg-secondary/8 overflow-hidden shrink-0 flex items-center justify-center border border-outline-variant">
+                    {u.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[15px] font-bold text-secondary">
+                        {(u.full_name ?? u.username ?? "?").charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-[14px] font-semibold text-on-surface truncate">
+                        {u.full_name ?? u.username ?? "Unknown"}
+                      </p>
+                      {u.verification_status === "approved" && (
+                        <ShieldCheck size={13} className="text-secondary shrink-0" />
+                      )}
                     </div>
-                  )}
-                </>
-          }
+                    {u.username && (
+                      <p className="text-[12px] text-on-surface-variant">@{u.username}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {more && (
+                <div className="py-4 flex justify-center">
+                  <button
+                    onClick={() => { const next = page + 1; setPage(next); load(next); }}
+                    disabled={busy}
+                    className="text-[13px] text-secondary font-semibold disabled:opacity-40"
+                  >
+                    {busy ? <Loader2 size={14} className="animate-spin inline" /> : "Load more"}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-/* ── Main ────────────────────────────────────────────────────────── */
+// ── Manage Challenges Modal ───────────────────────────────────────────────
+function ManageModal({
+  allStats, pinnedIds, onToggle, onClose,
+}: {
+  allStats: ChallengeStats[];
+  pinnedIds: string[];
+  onToggle: (id: string) => void;
+  onClose: () => void;
+}) {
+  const active = allStats.filter(s => s.status === "active");
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-5 max-h-[80vh] overflow-y-auto shadow-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-[17px] font-bold text-on-surface">Manage Challenges</h2>
+            <p className="text-[12px] text-on-surface-variant mt-0.5">Pin up to 3 to display on your profile.</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+            <X size={18} className="text-on-surface-variant" />
+          </button>
+        </div>
+        <div className="flex flex-col gap-2">
+          {active.map(s => {
+            const pinned = pinnedIds.includes(s.challenge_id);
+            const atLimit = pinnedIds.length >= 3 && !pinned;
+            return (
+              <button
+                key={s.challenge_id}
+                onClick={() => { if (!atLimit) onToggle(s.challenge_id); }}
+                disabled={atLimit}
+                className={[
+                  "flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all",
+                  pinned ? "border-secondary bg-secondary/5" : "border-outline-variant hover:bg-surface-container-low",
+                  atLimit ? "opacity-40 cursor-not-allowed" : "",
+                ].join(" ")}
+              >
+                <div className={[
+                  "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                  pinned ? "bg-secondary border-secondary" : "border-outline",
+                ].join(" ")}>
+                  {pinned && <Check size={11} className="text-white" strokeWidth={3} />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-semibold text-on-surface truncate">{s.title}</p>
+                  <p className="text-[11px] text-on-surface-variant">
+                    Day {s.current_day}{s.duration_days ? `/${s.duration_days}` : ""} · {s.consistency_pct}% consistency
+                  </p>
+                </div>
+                {pinned && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary shrink-0">
+                    Pinned
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          onClick={onClose}
+          className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-[14px] shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Profile Page ──────────────────────────────────────────────────────
 export default function ProfilePage() {
-  const router  = useRouter();
+  const router   = useRouter();
   const supabase = createClient();
 
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState<string | null>(null);
-  const [profile, setProfile]   = useState<Profile | null>(null);
-  const [links, setLinks]       = useState<SocialLink[]>([]);
-  const [userId, setUserId]     = useState<string | null>(null);
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState<string | null>(null);
+  const [profile,   setProfile]   = useState<Profile | null>(null);
+  const [links,     setLinks]     = useState<SocialLink[]>([]);
+  const [userId,    setUserId]    = useState<string | null>(null);
+  const [fCount,    setFCount]    = useState(0);
+  const [fgCount,   setFgCount]   = useState(0);
 
-  // Followers
-  const [fCount, setFCount]     = useState(0);
-  const [fgCount, setFgCount]   = useState(0);
-  const [showFoll, setShowFoll] = useState(false);
-  const [showFolg, setShowFolg] = useState(false);
+  const [showFoll,    setShowFoll]    = useState(false);
+  const [showFolg,    setShowFolg]    = useState(false);
+  const [manageOpen,  setManageOpen]  = useState(false);
 
-  // Challenges
-  const [activeStats, setActiveStats]   = useState<ChallengeStats[]>([]);
-  const [allStats, setAllStats]         = useState<ChallengeStats[]>([]);
-  const [pinnedIds, setPinnedIds]       = useState<string[]>([]);
-  const [manageOpen, setManageOpen]     = useState(false);
+  const [allStats,    setAllStats]    = useState<ChallengeStats[]>([]);
+  const [activeStats, setActiveStats] = useState<ChallengeStats[]>([]);
+  const [pinnedIds,   setPinnedIds]   = useState<string[]>([]);
+  const [achievements,setAchievements]= useState<ChallengeStats[]>([]);
 
-  // Heatmap
-  const [heatId, setHeatId]         = useState<string | null>(null);
+  const [heatId,      setHeatId]      = useState<string | null>(null);
   const [heatEntries, setHeatEntries] = useState<HeatmapEntry[]>([]);
-  const [heatStreak, setHeatStreak] = useState(0);
+  const [heatStreak,  setHeatStreak]  = useState(0);
 
-  // Achievements
-  const [achievements, setAchievements] = useState<ChallengeStats[]>([]);
-
-  // Edit
-  const [editing, setEditing]   = useState(false);
-  const [fullName, setFullName] = useState("");
-  const [bio, setBio]           = useState("");
-  const [username, setUsername] = useState("");
-  const [saving, setSaving]     = useState(false);
+  // Inline edit state
+  const [editing,   setEditing]   = useState(false);
+  const [fullName,  setFullName]  = useState("");
+  const [username,  setUsername]  = useState("");
+  const [bio,       setBio]       = useState("");
+  const [saving,    setSaving]    = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Social links
+  // Social link add form
   const [addingLink, setAddingLink] = useState(false);
-  const [newPlat, setNewPlat]       = useState<SocialPlatform>("instagram");
-  const [newUrl, setNewUrl]         = useState("");
+  const [newPlat,    setNewPlat]    = useState<SocialPlatform>("instagram");
+  const [newUrl,     setNewUrl]     = useState("");
 
   const loadAll = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.replace("/login"); return; }
     setUserId(user.id);
 
-    const [p, sl, statsRes, hmRes, fc, fgc] = await Promise.all([
+    const [p, sl, fC, fgC] = await Promise.all([
       getMyProfile(),
       getMySocialLinks(),
-      supabase.from("profile_challenge_stats")
-        .select("challenge_id,title,duration_days,thumbnail_url,current_day,current_streak,longest_streak,consistency_pct,status,completed_at,joined_at")
-        .eq("user_id", user.id),
-      supabase.from("profile_heatmap")
-        .select("challenge_id,submission_date,submission_count")
-        .eq("user_id", user.id),
       getFollowerCount(user.id),
       getFollowingCount(user.id),
     ]);
 
-    setProfile(p); setLinks(sl);
-    setFullName(p?.full_name ?? ""); setBio(p?.bio ?? ""); setUsername(p?.username ?? "");
-    setFCount(fc); setFgCount(fgc);
+    setProfile(p);
+    setLinks(sl);
+    setFullName(p?.full_name ?? "");
+    setUsername(p?.username ?? "");
+    setBio(p?.bio ?? "");
+    setFCount(fC);
+    setFgCount(fgC);
 
-    const stats = (statsRes.data ?? []) as ChallengeStats[];
-    setAllStats(stats);
-    setAchievements(stats.filter(s => s.status === "completed"));
+    // Challenge stats — may not exist if migration not run
+    try {
+      const { data: statsData } = await supabase
+        .from("profile_challenge_stats")
+        .select("challenge_id,title,duration_days,thumbnail_url,current_day,current_streak,consistency_pct,status,completed_at,joined_at")
+        .eq("user_id", user.id);
 
-    const pinned: string[] = (p as any)?.pinned_challenge_ids ?? [];
-    setPinnedIds(pinned);
+      const stats = (statsData ?? []) as ChallengeStats[];
+      setAllStats(stats);
+      setAchievements(stats.filter(s => s.status === "completed"));
 
-    const active = pinned.length > 0
-      ? pinned.map(id => stats.find(s => s.challenge_id === id)).filter(Boolean) as ChallengeStats[]
-      : stats.filter(s => s.status === "active").slice(0, 3);
-    setActiveStats(active);
+      const pinned: string[] = (p as any)?.pinned_challenge_ids ?? [];
+      setPinnedIds(pinned);
 
-    const defChallenge = stats.find(s => s.status === "active");
-    const defId = defChallenge?.challenge_id ?? null;
-    setHeatId(defId);
-    if (defId) {
-      const hdata = ((hmRes.data ?? []) as any[])
-        .filter(e => e.challenge_id === defId)
-        .map(e => ({ submission_date: e.submission_date, submission_count: e.submission_count }));
-      setHeatEntries(hdata);
-      setHeatStreak(defChallenge?.current_streak ?? 0);
+      const active = pinned.length > 0
+        ? pinned.map(id => stats.find(s => s.challenge_id === id)).filter(Boolean) as ChallengeStats[]
+        : stats.filter(s => s.status === "active").slice(0, 3);
+      setActiveStats(active);
+
+      const def = stats.find(s => s.status === "active");
+      if (def) {
+        setHeatId(def.challenge_id);
+        setHeatStreak(def.current_streak ?? 0);
+        const { data: hmData } = await supabase
+          .from("profile_heatmap")
+          .select("submission_date,submission_count")
+          .eq("user_id", user.id)
+          .eq("challenge_id", def.challenge_id);
+        setHeatEntries((hmData ?? []) as HeatmapEntry[]);
+      }
+    } catch {
+      // Views not yet created — stats/heatmap stay empty
     }
   }, [supabase, router]);
 
@@ -328,10 +446,14 @@ export default function ProfilePage() {
     setHeatId(cid);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { data } = await supabase.from("profile_heatmap")
-      .select("submission_date,submission_count")
-      .eq("user_id", user.id).eq("challenge_id", cid);
-    setHeatEntries((data ?? []) as HeatmapEntry[]);
+    try {
+      const { data } = await supabase
+        .from("profile_heatmap")
+        .select("submission_date,submission_count")
+        .eq("user_id", user.id)
+        .eq("challenge_id", cid);
+      setHeatEntries((data ?? []) as HeatmapEntry[]);
+    } catch { /* view not ready */ }
     setHeatStreak(allStats.find(s => s.challenge_id === cid)?.current_streak ?? 0);
   };
 
@@ -340,13 +462,14 @@ export default function ProfilePage() {
     try {
       await upsertMyProfile({
         full_name: fullName.trim() || undefined,
-        bio: bio.trim() || undefined,
-        username: username.trim() || undefined,
+        bio:       bio.trim() || undefined,
+        username:  username.trim() || undefined,
       });
       await loadAll();
       setEditing(false);
-    } catch (e) { setError(e instanceof Error ? e.message : "Failed to save"); }
-    finally { setSaving(false); }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't save changes. Please try again.");
+    } finally { setSaving(false); }
   };
 
   const handleAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -356,8 +479,9 @@ export default function ProfilePage() {
     try {
       const url = await uploadMyAvatar(file);
       setProfile(p => p ? { ...p, avatar_url: url } : p);
-    } catch (e) { setError(e instanceof Error ? e.message : "Upload failed"); }
-    finally { setUploading(false); }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload failed");
+    } finally { setUploading(false); e.target.value = ""; }
   };
 
   const togglePin = async (id: string) => {
@@ -367,7 +491,11 @@ export default function ProfilePage() {
       ? pinnedIds.filter(p => p !== id)
       : pinnedIds.length >= 3 ? pinnedIds : [...pinnedIds, id];
     setPinnedIds(next);
-    await supabase.from("profiles").update({ pinned_challenge_ids: next }).eq("id", user.id);
+    try {
+      await supabase.from("profiles")
+        .update({ pinned_challenge_ids: next })
+        .eq("id", user.id);
+    } catch { /* column not yet ready */ }
     const active = next.length > 0
       ? next.map(pid => allStats.find(s => s.challenge_id === pid)).filter(Boolean) as ChallengeStats[]
       : allStats.filter(s => s.status === "active").slice(0, 3);
@@ -378,29 +506,46 @@ export default function ProfilePage() {
     if (!newUrl.trim()) return;
     try {
       const l = await addMySocialLink(newPlat, newUrl.trim());
-      setLinks(prev => [...prev, l]); setNewUrl(""); setAddingLink(false);
+      setLinks(prev => [...prev, l]);
+      setNewUrl(""); setAddingLink(false);
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to add link"); }
   };
 
   const handleDelLink = async (id: string) => {
-    await deleteMySocialLink(id);
-    setLinks(prev => prev.filter(l => l.id !== id));
+    try {
+      await deleteMySocialLink(id);
+      setLinks(prev => prev.filter(l => l.id !== id));
+    } catch (e) { setError(e instanceof Error ? e.message : "Failed to remove link"); }
   };
 
-  /* ── Loading skeleton ───────────────────────────────────────────── */
+  const fmtN = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n);
+
+  // ── Loading skeleton ───────────────────────────────────────────────────
   if (loading) return (
-    <div className="min-h-screen bg-[#F8F9FC] pb-24">
-      <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-outline-variant">
-        <Sk className="h-6 w-28" /><div className="flex gap-2"><Sk className="w-9 h-9 rounded-xl" /><Sk className="w-9 h-9 rounded-xl" /></div>
+    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+      <div className="flex items-center justify-between px-5 py-3.5 bg-white border-b border-outline-variant">
+        <Sk className="h-5 w-24" />
+        <div className="flex gap-2"><Sk className="w-9 h-9 rounded-xl" /><Sk className="w-9 h-9 rounded-xl" /></div>
       </div>
-      <div className="max-w-lg mx-auto px-5 py-5 flex flex-col gap-4">
-        <div className="bg-white rounded-2xl border border-outline-variant p-5">
-          <div className="flex gap-4"><Sk className="w-20 h-20 rounded-full shrink-0" /><div className="flex-1 flex flex-col gap-2 pt-1"><Sk className="h-5 w-36" /><Sk className="h-4 w-24" /><Sk className="h-4 w-48" /></div></div>
-          <div className="flex gap-8 mt-4 pt-4 border-t border-outline-variant"><Sk className="h-10 w-20" /><Sk className="h-10 w-20" /></div>
+      <div className="max-w-lg mx-auto px-4 py-4 flex flex-col gap-3">
+        <div className="bg-white rounded-2xl border border-outline-variant p-5 flex flex-col gap-4">
+          <div className="flex gap-4">
+            <Sk className="w-[76px] h-[76px] rounded-full shrink-0" />
+            <div className="flex-1 flex flex-col gap-2 pt-1">
+              <Sk className="h-5 w-36" /><Sk className="h-4 w-24" /><Sk className="h-4 w-48" />
+            </div>
+          </div>
+          <div className="flex gap-6 pt-3 border-t border-outline-variant">
+            <Sk className="h-10 w-20" /><Sk className="h-10 w-20" />
+          </div>
         </div>
         <div className="bg-white rounded-2xl border border-outline-variant p-4">
           <Sk className="h-4 w-40 mb-3" />
-          <div className="grid grid-cols-3 gap-2"><Sk className="aspect-[4/3] rounded-xl" /><Sk className="aspect-[4/3] rounded-xl" /><Sk className="aspect-[4/3] rounded-xl" /></div>
+          <div className="grid grid-cols-3 gap-2">
+            <Sk className="aspect-[4/3] rounded-xl" />
+            <Sk className="aspect-[4/3] rounded-xl" />
+            <Sk className="aspect-[4/3] rounded-xl" />
+          </div>
         </div>
       </div>
     </div>
@@ -409,57 +554,91 @@ export default function ProfilePage() {
   const displayName = profile?.full_name || "Your Name";
   const isVerified  = profile?.verification_status === "approved";
 
-  const fmtCount = (n: number) =>
-    n >= 1000 ? `${(n / 1000).toFixed(1)}K` : n.toString();
-
   return (
-    <div className="min-h-screen bg-[#F8F9FC] pb-24">
-      {/* ── Sticky header ─────────────────────────────────────────── */}
-      <div className="sticky top-0 z-30 flex items-center justify-between px-5 py-4 bg-white border-b border-outline-variant">
-        <h1 className="text-[17px] font-bold text-on-surface">My Profile</h1>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setEditing(v => !v)} aria-label="Edit"
-            className="w-9 h-9 rounded-xl bg-[#F5F6F8] border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors">
-            <Edit2 size={15} className="text-on-surface-variant" />
-          </button>
-          <button onClick={() => router.push("/settings")} aria-label="Settings"
-            className="w-9 h-9 rounded-xl bg-[#F5F6F8] border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors">
-            <Settings size={15} className="text-on-surface-variant" />
-          </button>
+    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+
+      {/* ── Sticky header ───────────────────────────────────────────────── */}
+      <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+        <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
+          <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">My Profile</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setEditing(v => !v)}
+              aria-label="Edit profile"
+              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors"
+            >
+              <Edit2 size={15} className="text-on-surface-variant" />
+            </button>
+            <button
+              onClick={() => router.push("/settings")}
+              aria-label="Settings"
+              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors"
+            >
+              <Settings size={15} className="text-on-surface-variant" />
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* ── Error banner ─────────────────────────────────────────────────── */}
       {error && (
-        <div className="mx-5 mt-3 px-4 py-3 rounded-xl bg-red-50 border border-red-100 flex items-center gap-2">
-          <p className="text-[13px] text-error flex-1">{error}</p>
-          <button onClick={() => setError(null)}><X size={14} className="text-error" /></button>
+        <div className="max-w-lg mx-auto px-4 mt-3">
+          <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-error-container border border-error/20">
+            <p className="text-[13px] text-error flex-1">{error}</p>
+            <button onClick={() => setError(null)}>
+              <X size={14} className="text-error" />
+            </button>
+          </div>
         </div>
       )}
 
       <div className="max-w-lg mx-auto px-4 py-4 flex flex-col gap-3">
 
-        {/* ── Profile card ────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+        {/* ── Profile card ─────────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] overflow-hidden">
           <div className="px-4 pt-5 pb-4">
 
-            {/* Avatar + name row */}
+            {/* Avatar + name */}
             <div className="flex items-start gap-3.5">
-              <label className="relative cursor-pointer shrink-0 group">
-                <div className={`w-[76px] h-[76px] rounded-full overflow-hidden border-2 border-outline-variant bg-secondary/10 ${uploading ? "opacity-60" : ""}`}>
-                  {profile?.avatar_url
-                    ? <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" /> // eslint-disable-line
-                    : <div className="w-full h-full flex items-center justify-center"><span className="text-[28px] font-black text-secondary">{displayName.charAt(0)}</span></div>}
+              <label className="relative cursor-pointer shrink-0">
+                <div className={[
+                  "w-[76px] h-[76px] rounded-full overflow-hidden border-2 border-outline-variant bg-secondary/8",
+                  uploading ? "opacity-60" : "",
+                ].join(" ")}>
+                  {profile?.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-[28px] font-black text-secondary">
+                        {displayName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="absolute bottom-0 right-0 w-[22px] h-[22px] rounded-full bg-secondary flex items-center justify-center shadow border-2 border-white">
-                  {uploading ? <Loader2 size={10} className="text-white animate-spin" /> : <Camera size={10} className="text-white" />}
+                <div className="absolute bottom-0 right-0 w-[22px] h-[22px] rounded-full bg-secondary border-2 border-white flex items-center justify-center shadow-md">
+                  {uploading
+                    ? <Loader2 size={10} className="text-white animate-spin" />
+                    : <Camera size={10} className="text-white" />
+                  }
                 </div>
-                <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleAvatar} disabled={uploading} />
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  onChange={handleAvatar}
+                  disabled={uploading}
+                />
               </label>
 
-              <div className="flex-1 min-w-0 pt-0.5">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <h2 className="text-[17px] font-bold text-on-surface leading-tight">{displayName}</h2>
-                  {isVerified && <ShieldCheck size={15} className="text-secondary shrink-0" />}
+              <div className="flex-1 min-w-0 pt-1">
+                <div className="flex items-center gap-1.5">
+                  <h2 className="text-[17px] font-bold text-on-surface tracking-[-0.01em] truncate">
+                    {displayName}
+                  </h2>
+                  {isVerified && (
+                    <ShieldCheck size={15} className="text-secondary shrink-0" aria-label="Verified" />
+                  )}
                 </div>
                 {profile?.username && (
                   <p className="text-[13px] text-on-surface-variant">@{profile.username}</p>
@@ -468,143 +647,192 @@ export default function ProfilePage() {
                   <p className="text-[13px] text-on-surface mt-1.5 leading-snug">{profile.bio}</p>
                 )}
                 {!editing && !profile?.bio && (
-                  <button onClick={() => setEditing(true)} className="mt-1.5 text-[12px] text-secondary font-medium hover:underline">+ Add bio</button>
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="mt-1.5 text-[12px] text-secondary font-medium hover:underline"
+                  >
+                    + Add bio
+                  </button>
+                )}
+                {!editing && (
+                  <button
+                    onClick={() => router.push("/settings/edit-profile")}
+                    className="mt-2.5 px-3.5 py-1.5 rounded-lg border border-outline-variant text-[12px] font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
+                  >
+                    Edit Profile
+                  </button>
                 )}
               </div>
-
-              {!editing && (
-                <button onClick={() => router.push("/settings/edit-profile")}
-                  className="shrink-0 px-3.5 py-1.5 rounded-lg border border-outline-variant text-[12px] font-semibold text-on-surface bg-[#F5F6F8] hover:bg-surface-container-high transition-colors">
-                  Edit Profile
-                </button>
-              )}
             </div>
 
-            {/* ── Followers / Following ──────────────────────────── */}
+            {/* Followers / Following */}
             <div className="flex items-center gap-5 mt-4 pt-3.5 border-t border-outline-variant">
               <button onClick={() => setShowFoll(true)} className="flex flex-col items-center group">
-                <span className="text-[20px] font-bold text-on-surface tabular-nums">{fmtCount(fCount)}</span>
-                <span className="text-[11px] text-on-surface-variant group-hover:text-secondary transition-colors font-medium">Followers</span>
+                <span className="text-[20px] font-bold text-on-surface tabular-nums tracking-tight">
+                  {fmtN(fCount)}
+                </span>
+                <span className="text-[11px] text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
+                  Followers
+                </span>
               </button>
               <div className="w-px h-7 bg-outline-variant" />
               <button onClick={() => setShowFolg(true)} className="flex flex-col items-center group">
-                <span className="text-[20px] font-bold text-on-surface tabular-nums">{fmtCount(fgCount)}</span>
-                <span className="text-[11px] text-on-surface-variant group-hover:text-secondary transition-colors font-medium">Following</span>
+                <span className="text-[20px] font-bold text-on-surface tabular-nums tracking-tight">
+                  {fmtN(fgCount)}
+                </span>
+                <span className="text-[11px] text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
+                  Following
+                </span>
               </button>
             </div>
 
-            {/* ── Social link pills ─────────────────────────────── */}
+            {/* Social links pills */}
             {links.length > 0 && !editing && (
               <div className="flex flex-wrap gap-2 mt-3">
                 {links.map(link => {
-                  const meta = PLATFORM_META[link.platform] ?? { label: link.platform, icon: "🔗" };
+                  const label = PLATFORM_LABEL[link.platform] ?? link.platform;
                   const display = link.url.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/");
                   return (
-                    <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F5F6F8] border border-outline-variant text-on-surface-variant hover:text-secondary hover:border-secondary transition-colors">
-                      <span className="text-[13px]">{meta.icon}</span>
-                      <span className="text-[11px] font-medium max-w-[80px] truncate">{display}</span>
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container border border-outline-variant text-[11px] font-medium text-on-surface-variant hover:text-secondary hover:border-secondary transition-colors"
+                    >
+                      <span className="font-semibold text-[10px] uppercase tracking-wide text-secondary/70">{label}</span>
+                      <span className="truncate max-w-[80px]">{display}</span>
                     </a>
                   );
                 })}
               </div>
             )}
             {links.length === 0 && !editing && (
-              <button onClick={() => setEditing(true)}
-                className="mt-3 flex items-center gap-1.5 text-[12px] text-on-surface-variant hover:text-secondary transition-colors">
+              <button
+                onClick={() => setEditing(true)}
+                className="mt-3 flex items-center gap-1.5 text-[12px] text-on-surface-variant hover:text-secondary transition-colors"
+              >
                 <Plus size={13} /> Add social links
               </button>
             )}
           </div>
 
-          {/* ── Inline edit form ────────────────────────────────── */}
+          {/* Inline edit form */}
           {editing && (
             <div className="border-t border-outline-variant px-4 py-4 bg-[#FAFAFA] flex flex-col gap-3">
-              <p className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Editing Profile</p>
+              <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
+                Editing Profile
+              </p>
 
-              <div>
-                <label className="block text-[11px] font-medium text-on-surface-variant mb-1">Full Name</label>
-                <input value={fullName} onChange={e => setFullName(e.target.value)} maxLength={80}
-                  className="w-full h-10 rounded-xl border border-outline-variant bg-white px-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-medium text-on-surface-variant">Full Name</label>
+                <input
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  maxLength={80}
+                  className="w-full h-10 rounded-xl border border-outline-variant bg-white px-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-medium text-on-surface-variant mb-1">Username</label>
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-medium text-on-surface-variant">Username</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[13px]">@</span>
-                  <input value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g,""))} maxLength={30}
-                    className="w-full h-10 rounded-xl border border-outline-variant bg-white pl-7 pr-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
+                  <input
+                    value={username}
+                    onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))}
+                    maxLength={30}
+                    className="w-full h-10 rounded-xl border border-outline-variant bg-white pl-7 pr-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                  />
                 </div>
               </div>
 
-              <div>
-                <div className="flex justify-between items-center mb-1">
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between">
                   <label className="text-[11px] font-medium text-on-surface-variant">Bio</label>
                   <span className="text-[10px] text-on-surface-variant">{bio.length}/150</span>
                 </div>
-                <textarea value={bio} onChange={e => setBio(e.target.value)} maxLength={150} rows={3}
-                  className="w-full rounded-xl border border-outline-variant bg-white px-3 py-2 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary resize-none" />
+                <textarea
+                  value={bio}
+                  onChange={e => setBio(e.target.value)}
+                  maxLength={150}
+                  rows={3}
+                  className="w-full rounded-xl border border-outline-variant bg-white px-3 py-2 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary resize-none"
+                />
               </div>
 
               {/* Social links in edit mode */}
-              <div>
-                <p className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">Social Links</p>
-                <div className="flex flex-col gap-2">
-                  {links.map(link => {
-                    const meta = PLATFORM_META[link.platform];
-                    return (
-                      <div key={link.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-white">
-                        <span className="text-base shrink-0">{meta?.icon ?? "🔗"}</span>
-                        <span className="flex-1 text-[12px] text-on-surface truncate">{link.url}</span>
-                        <button onClick={() => handleDelLink(link.id)} className="text-error shrink-0"><Trash2 size={13} /></button>
-                      </div>
-                    );
-                  })}
-                  {!addingLink && links.length < PROFILE_CONSTANTS.MAX_SOCIAL_LINKS && (
-                    <button onClick={() => setAddingLink(true)}
-                      className="flex items-center gap-1.5 text-[13px] text-secondary font-semibold">
-                      <Plus size={14} /> Add Social Link
-                    </button>
-                  )}
-                  {addingLink && (
-                    <div className="flex flex-col gap-2">
-                      <select value={newPlat} onChange={e => setNewPlat(e.target.value as SocialPlatform)}
-                        className="h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface">
-                        {PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-                      </select>
-                      <div className="flex gap-2">
-                        <input value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="https://…"
-                          className="flex-1 h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
-                        <button onClick={handleAddLink} disabled={!newUrl.trim()}
-                          className="px-3 h-9 rounded-xl bg-secondary text-white font-semibold text-[13px] disabled:opacity-40">Add</button>
-                        <button onClick={() => setAddingLink(false)}
-                          className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface-variant text-[13px]">✕</button>
-                      </div>
+              <div className="flex flex-col gap-2">
+                <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Social Links</p>
+                {links.map(link => {
+                  const label = PLATFORM_LABEL[link.platform] ?? link.platform;
+                  return (
+                    <div key={link.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-white">
+                      <span className="text-[10px] font-bold text-secondary/70 uppercase tracking-wide shrink-0 w-16 truncate">{label}</span>
+                      <span className="flex-1 text-[12px] text-on-surface truncate">{link.url}</span>
+                      <button onClick={() => handleDelLink(link.id)} className="text-on-surface-variant hover:text-error transition-colors shrink-0">
+                        <Trash2 size={13} />
+                      </button>
                     </div>
-                  )}
-                </div>
+                  );
+                })}
+                {!addingLink && links.length < PROFILE_CONSTANTS.MAX_SOCIAL_LINKS && (
+                  <button onClick={() => setAddingLink(true)} className="flex items-center gap-1.5 text-[13px] text-secondary font-semibold">
+                    <Plus size={14} /> Add Social Link
+                  </button>
+                )}
+                {addingLink && (
+                  <div className="flex flex-col gap-2">
+                    <select
+                      value={newPlat}
+                      onChange={e => setNewPlat(e.target.value as SocialPlatform)}
+                      className="h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none"
+                    >
+                      {PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                    </select>
+                    <div className="flex gap-2">
+                      <input
+                        value={newUrl}
+                        onChange={e => setNewUrl(e.target.value)}
+                        placeholder="https://…"
+                        className="flex-1 h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                      />
+                      <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-[13px] font-semibold disabled:opacity-40">Add</button>
+                      <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-[13px]">✕</button>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="flex gap-2">
-                <button onClick={handleSave} disabled={saving}
-                  className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-[14px] flex items-center justify-center gap-1.5 disabled:opacity-50">
+              <div className="flex gap-2 mt-1">
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-[14px] flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+                >
                   {saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Save Changes"}
                 </button>
-                <button onClick={() => setEditing(false)}
-                  className="flex-1 h-10 rounded-xl border border-outline-variant text-on-surface font-semibold text-[14px]">Cancel</button>
+                <button onClick={() => setEditing(false)} className="flex-1 h-10 rounded-xl border border-outline-variant text-on-surface font-semibold text-[14px]">
+                  Cancel
+                </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* ── My Active Challenges ─────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant p-4 shadow-sm">
+        {/* ── My Active Challenges ─────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[15px] font-bold text-on-surface">
-              My Active Challenges{activeStats.length > 0 && <span className="text-on-surface-variant font-normal"> ({activeStats.length})</span>}
+            <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em]">
+              My Active Challenges
+              {activeStats.length > 0 && (
+                <span className="text-on-surface-variant font-normal ml-1">({activeStats.length})</span>
+              )}
             </h3>
             {allStats.filter(s => s.status === "active").length > 0 && (
-              <button onClick={() => setManageOpen(true)} className="text-[13px] text-secondary font-bold hover:underline">Manage</button>
+              <button onClick={() => setManageOpen(true)} className="text-[13px] text-secondary font-bold hover:opacity-75 transition-opacity">
+                Manage
+              </button>
             )}
           </div>
 
@@ -614,24 +842,33 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2.5 py-8 text-center">
-              <span className="text-4xl">🚀</span>
-              <p className="text-[13px] font-semibold text-on-surface">No active challenges yet.</p>
-              <p className="text-[12px] text-on-surface-variant">Join a challenge to start tracking your progress here.</p>
-              <button onClick={() => router.push("/explore")}
-                className="mt-1 px-4 py-2 rounded-xl bg-secondary text-white text-[13px] font-bold">
+              <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
+                <Flame size={22} className="text-on-surface-variant" />
+              </div>
+              <p className="text-[14px] font-semibold text-on-surface">No active challenges yet.</p>
+              <p className="text-[12px] text-on-surface-variant max-w-[200px]">
+                Join a challenge to start tracking your progress here.
+              </p>
+              <button
+                onClick={() => router.push("/explore")}
+                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-[13px] font-bold shadow-[0_2px_8px_rgba(29,78,216,0.2)]"
+              >
                 Explore Challenges
               </button>
             </div>
           )}
         </div>
 
-        {/* ── Consistency Heatmap ──────────────────────────────────── */}
+        {/* ── Consistency Heatmap ────────────────────────────────────────── */}
         {allStats.filter(s => s.status === "active").length > 0 && (
-          <div className="bg-white rounded-2xl border border-outline-variant p-4 shadow-sm">
+          <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[15px] font-bold text-on-surface">Consistency Heatmap</h3>
-              <select value={heatId ?? ""} onChange={e => switchHeatmap(e.target.value)}
-                className="text-[11px] font-medium text-on-surface bg-[#F5F6F8] border border-outline-variant rounded-lg px-2 py-1.5 focus:outline-none max-w-[140px] truncate">
+              <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em]">Consistency Heatmap</h3>
+              <select
+                value={heatId ?? ""}
+                onChange={e => switchHeatmap(e.target.value)}
+                className="text-[11px] font-medium text-on-surface bg-surface-container border border-outline-variant rounded-lg px-2 py-1.5 focus:outline-none max-w-[140px] truncate"
+              >
                 {allStats.filter(s => s.status === "active").map(s => (
                   <option key={s.challenge_id} value={s.challenge_id}>
                     {s.title.length > 22 ? s.title.slice(0, 22) + "…" : s.title}
@@ -643,28 +880,32 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* ── Achievements ─────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant p-4 shadow-sm">
-          <h3 className="text-[15px] font-bold text-on-surface mb-3">Achievements</h3>
+        {/* ── Achievements ─────────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
+          <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em] mb-3">Achievements</h3>
           {achievements.length > 0 ? (
             <div>
               {achievements.map((a, i) => {
-                const emojis = ["🏆","💻","📖","🏃","💪","🎯","✍️","🎨"];
-                const bgs    = ["bg-amber-50","bg-blue-50","bg-purple-50","bg-orange-50","bg-green-50","bg-red-50","bg-pink-50","bg-teal-50"];
-                const idx    = i % emojis.length;
+                const BG = ["bg-amber-50","bg-blue-50","bg-violet-50","bg-orange-50","bg-green-50","bg-rose-50","bg-teal-50","bg-sky-50"];
+                const FG = ["text-amber-600","text-blue-600","text-violet-600","text-orange-600","text-green-600","text-rose-600","text-teal-600","text-sky-600"];
+                const idx = i % BG.length;
                 return (
                   <div key={a.challenge_id} className="flex items-center gap-3 py-3 border-b border-outline-variant last:border-0">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bgs[idx]}`}>
-                      <span className="text-lg">{emojis[idx]}</span>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${BG[idx]}`}>
+                      <span className={`text-[13px] font-black ${FG[idx]}`}>{a.title.charAt(0)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-bold text-on-surface truncate">{a.title}</p>
+                      <p className="text-[14px] font-semibold text-on-surface truncate">{a.title}</p>
                       <p className="text-[11px] text-on-surface-variant">
-                        Completed{a.completed_at ? ` on ${new Date(a.completed_at).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}` : ""}
+                        Completed{a.completed_at
+                          ? ` · ${new Date(a.completed_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+                          : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700">Completed</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100">
+                        Completed
+                      </span>
                       <ChevronRight size={14} className="text-outline" />
                     </div>
                   </div>
@@ -673,10 +914,16 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2.5 py-6 text-center">
-              <span className="text-4xl">🎖️</span>
-              <p className="text-[13px] text-on-surface-variant">Your achievements will appear here as you complete challenges and quests.</p>
-              <button onClick={() => router.push("/explore")}
-                className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-[13px] font-semibold hover:bg-surface-container transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
+                <ChevronRight size={20} className="text-on-surface-variant" />
+              </div>
+              <p className="text-[13px] text-on-surface-variant max-w-[220px] leading-relaxed">
+                Your achievements will appear here as you complete challenges and quests.
+              </p>
+              <button
+                onClick={() => router.push("/explore")}
+                className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-[13px] font-semibold hover:bg-surface-container transition-colors"
+              >
                 Start a Challenge
               </button>
             </div>
@@ -684,42 +931,21 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* ── Manage Challenges Modal ─────────────────────────────────── */}
+      {/* ── Modals ───────────────────────────────────────────────────────── */}
       {manageOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50">
-          <div className="w-full max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-5 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-[17px] font-bold text-on-surface">Manage Challenges</h2>
-              <button onClick={() => setManageOpen(false)} className="text-on-surface-variant"><X size={20} /></button>
-            </div>
-            <p className="text-[13px] text-on-surface-variant mb-4">Pin up to 3 challenges to display on your profile.</p>
-            <div className="flex flex-col gap-2">
-              {allStats.filter(s => s.status === "active").map(s => {
-                const pinned = pinnedIds.includes(s.challenge_id);
-                return (
-                  <button key={s.challenge_id} onClick={() => togglePin(s.challenge_id)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${pinned ? "border-secondary bg-secondary/5" : "border-outline-variant hover:bg-[#F5F6F8]"}`}>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${pinned ? "bg-secondary border-secondary" : "border-outline-variant"}`}>
-                      {pinned && <Check size={11} className="text-white" strokeWidth={3} />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-semibold text-on-surface truncate">{s.title}</p>
-                      <p className="text-[11px] text-on-surface-variant">Day {s.current_day}{s.duration_days ? `/${s.duration_days}` : ""} · {s.consistency_pct}% consistency</p>
-                    </div>
-                    {pinned && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary shrink-0">Pinned</span>}
-                  </button>
-                );
-              })}
-            </div>
-            <button onClick={() => setManageOpen(false)}
-              className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-[14px]">Done</button>
-          </div>
-        </div>
+        <ManageModal
+          allStats={allStats}
+          pinnedIds={pinnedIds}
+          onToggle={togglePin}
+          onClose={() => setManageOpen(false)}
+        />
       )}
-
-      {/* ── Follow Modals ─────────────────────────────────────────── */}
-      {showFoll && userId && <FollowModal title="Followers" userId={userId} fetchFn={getFollowers} onClose={() => setShowFoll(false)} />}
-      {showFolg && userId && <FollowModal title="Following" userId={userId} fetchFn={getFollowing} onClose={() => setShowFolg(false)} />}
+      {showFoll && userId && (
+        <FollowModal title="Followers" userId={userId} fetchFn={getFollowers} onClose={() => setShowFoll(false)} />
+      )}
+      {showFolg && userId && (
+        <FollowModal title="Following" userId={userId} fetchFn={getFollowing} onClose={() => setShowFolg(false)} />
+      )}
     </div>
   );
 }
