@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, ChevronRight, Clock, Edit2, Plus, ShieldCheck, Star, Store, TrendingUp } from "lucide-react";
+import { BookOpen, ChevronRight, Clock, Edit2, Plus, ShieldCheck, Store, TrendingUp, Users, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessProfile, getBusinessVerifications, getVerificationInsights, type BusinessProfile, type VerificationRequest } from "@/lib/data/business";
 
@@ -43,7 +43,8 @@ export default function BusinessDashboardPage() {
   const [bp, setBp] = useState<BusinessProfile | null>(null);
   const [verifs, setVerifs] = useState<VerificationRequest[]>([]);
   const [insights, setInsights] = useState({ total: 0, approved: 0, pending: 0, rejected: 0 });
-  const [challenges, setChallenges] = useState<{ id: string; title: string; description: string | null; thumbnail_url: string | null; participant_count: number }[]>([]);
+  const [activeQuests, setActiveQuests] = useState<{ id: string; title: string; description: string | null; cover_url: string | null; participant_count: number }[]>([]);
+  const [questStats, setQuestStats] = useState({ total: 0, active: 0, participants: 0, pending_proofs: 0 });
 
   useEffect(() => {
     (async () => {
@@ -62,21 +63,27 @@ export default function BusinessDashboardPage() {
       setVerifs(v);
       setInsights(ins);
 
-      // Fetch this business's challenges
-      const { data: ch } = await supabase
-        .from("challenges")
-        .select("id,title,description,thumbnail_url")
-        .eq("creator_id", user.id)
+      // Fetch this business's active quests
+      const { data: questData } = await supabase
+        .from("quests")
+        .select("id,title,description,cover_url,thumbnail_url,participant_count,quest_status")
+        .eq("business_id", profile.id)
         .order("created_at", { ascending: false })
-        .limit(3);
+        .limit(20);
 
-      // Get participant counts
-      const withCounts = await Promise.all((ch ?? []).map(async (c: { id: string; title: string; description: string | null; thumbnail_url: string | null }) => {
-        const { count } = await supabase.from("challenge_participants")
-          .select("id", { count: "exact", head: true }).eq("challenge_id", c.id);
-        return { ...c, participant_count: count ?? 0 };
-      }));
-      setChallenges(withCounts);
+      const allQuests = questData ?? [];
+      const active = allQuests.filter((q: { quest_status: string }) => q.quest_status === "active");
+      setActiveQuests(active.slice(0, 3).map((q: { id: string; title: string; description: string | null; cover_url: string | null; thumbnail_url: string | null; participant_count: number }) => ({
+        id: q.id, title: q.title, description: q.description, cover_url: q.cover_url ?? q.thumbnail_url, participant_count: q.participant_count
+      })));
+
+      const totalParticipants = allQuests.reduce((sum: number, q: { participant_count: number }) => sum + (q.participant_count ?? 0), 0);
+      const { count: pendingProofs } = await supabase.from("quest_task_submissions")
+        .select("id", { count: "exact", head: true })
+        .in("quest_id", allQuests.map((q: { id: string }) => q.id))
+        .eq("verification_status", "pending");
+
+      setQuestStats({ total: allQuests.length, active: active.length, participants: totalParticipants, pending_proofs: pendingProofs ?? 0 });
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,18 +115,32 @@ export default function BusinessDashboardPage() {
       cta: { label: "View all", href: "/business/verification/history", primary: false },
     },
     {
-      icon: <Clock size={22} className="text-gray-500" />,
-      bg: "bg-gray-50",
-      title: "Pending Requests",
-      desc: "Check and approve pending verifications.",
-      cta: { label: "View", href: "/business/verification?filter=pending", primary: false },
+      icon: <Clock size={22} className="text-amber-500" />,
+      bg: "bg-amber-50",
+      title: "Proof Review",
+      desc: "Approve or reject participant proof submissions.",
+      cta: { label: "Review Proofs", href: "/business/proof-verification", primary: false },
     },
     {
-      icon: <BookOpen size={22} className="text-gray-500" />,
-      bg: "bg-gray-50",
-      title: "How Verification Works",
-      desc: "Learn how the verification process works.",
-      cta: { label: "Learn", href: "/business/verification/how-it-works", primary: false },
+      icon: <TrendingUp size={22} className="text-green-500" />,
+      bg: "bg-green-50",
+      title: "Analytics",
+      desc: "Track Quest performance and participant engagement.",
+      cta: { label: "View Analytics", href: "/business/analytics", primary: false },
+    },
+    {
+      icon: <Users size={22} className="text-purple-500" />,
+      bg: "bg-purple-50",
+      title: "Participants",
+      desc: "See who's joined your Quests.",
+      cta: { label: "View All", href: "/business/participants", primary: false },
+    },
+    {
+      icon: <BookOpen size={22} className="text-orange-500" />,
+      bg: "bg-orange-50",
+      title: "Rewards",
+      desc: "Manage reward eligibility and fulfillment.",
+      cta: { label: "Manage Rewards", href: "/business/rewards", primary: false },
     },
   ];
 
@@ -128,12 +149,27 @@ export default function BusinessDashboardPage() {
       {/* ── Top Nav ──────────────────────────────────────────────────── */}
       <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-2">
-          <svg width="28" height="28" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="12" fill="#0F172A"/><path d="M24 36V18M24 18L17 25M24 18L31 25" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/><circle cx="24" cy="13" r="3" fill="#3B82F6"/></svg>
-          <span className="font-black text-gray-900 text-[15px] tracking-tight">STRIVUP</span>
+          <Link href="/business/profile">
+            {bp.logo_url
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={bp.logo_url} alt={bp.business_name ?? ""} className="w-8 h-8 rounded-xl object-cover border border-gray-200" />
+              : <div className="w-8 h-8 rounded-xl bg-blue-50 border border-gray-200 flex items-center justify-center"><Store size={16} className="text-blue-600" /></div>
+            }
+          </Link>
+          <span className="font-black text-gray-900 text-[15px] tracking-tight truncate max-w-[140px]">
+            {bp.business_name ?? "STRIVUP BIZ"}
+          </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Link href="/business/promote" title="Promote Quest">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+              <Zap size={16} className="text-blue-600" />
+            </div>
+          </Link>
           <Link href="/business/settings">
-            <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center"><Edit2 size={16} className="text-gray-600" /></div>
+            <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
+              <Edit2 size={16} className="text-gray-600" />
+            </div>
           </Link>
         </div>
       </div>
@@ -203,6 +239,18 @@ export default function BusinessDashboardPage() {
           </div>
         </div>
 
+        {/* ── Quick Actions ─────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-3">
+          <button onClick={() => router.push("/business/quests/new")}
+            className="flex items-center justify-center gap-2 h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all shadow-sm shadow-blue-200">
+            <Plus size={18} /> Create Quest
+          </button>
+          <button onClick={() => router.push("/business/quests")}
+            className="flex items-center justify-center gap-2 h-12 rounded-2xl bg-white border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-all">
+            My Quests →
+          </button>
+        </div>
+
         {/* ── Business Tools ───────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-gray-100 px-5 py-5">
           <h2 className="text-[17px] font-black text-gray-900 mb-1">Business Tools</h2>
@@ -231,43 +279,58 @@ export default function BusinessDashboardPage() {
           </div>
         </div>
 
-        {/* ── Active Campaigns ─────────────────────────────────────────── */}
+        {/* ── Quest Stats Row ───────────────────────────────────────── */}
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { label: "Total Quests", value: questStats.total,         color: "text-blue-600" },
+            { label: "Active",       value: questStats.active,        color: "text-green-600" },
+            { label: "Participants", value: questStats.participants,   color: "text-purple-600" },
+            { label: "Pending Proof",value: questStats.pending_proofs, color: questStats.pending_proofs > 0 ? "text-amber-600" : "text-gray-400" },
+          ].map(s => (
+            <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-3 flex flex-col items-center">
+              <span className={`text-xl font-black ${s.color}`}>{s.value}</span>
+              <span className="text-[9px] text-gray-400 font-medium mt-0.5 text-center leading-tight">{s.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Active Quests ─────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-gray-100 px-5 py-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[17px] font-black text-gray-900">Your Active Campaigns</h2>
-            <Link href="/challenges" className="text-sm text-blue-600 font-semibold">View all</Link>
+            <Link href="/business/quests" className="text-sm text-blue-600 font-semibold">View all</Link>
           </div>
-          {challenges.length === 0 ? (
+          {activeQuests.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-8 text-center">
               <TrendingUp size={32} className="text-gray-300" />
-              <p className="text-sm font-semibold text-gray-700">No campaigns yet</p>
-              <p className="text-xs text-gray-400">Create your first challenge to attract customers.</p>
-              <button onClick={() => router.push("/challenges/new")}
+              <p className="text-sm font-semibold text-gray-700">No active Quests yet</p>
+              <p className="text-xs text-gray-400">Create your first Quest to start attracting participants.</p>
+              <button onClick={() => router.push("/business/quests/new")}
                 className="h-9 px-5 rounded-xl bg-blue-600 text-white text-sm font-bold flex items-center gap-2">
-                <Plus size={16} /> Create Challenge
+                <Plus size={16} /> Create Quest
               </button>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {challenges.map(ch => (
-                <Link key={ch.id} href={`/challenges/${ch.id}`}>
+              {activeQuests.map(quest => (
+                <Link key={quest.id} href={`/quests/${quest.id}`}>
                   <div className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
                     <div className="w-14 h-14 rounded-xl bg-gray-100 overflow-hidden shrink-0">
-                      {ch.thumbnail_url
+                      {quest.cover_url
                         // eslint-disable-next-line @next/next/no-img-element
-                        ? <img src={ch.thumbnail_url} alt={ch.title} className="w-full h-full object-cover" />
-                        : <div className="w-full h-full flex items-center justify-center"><Star size={20} className="text-gray-300" /></div>
+                        ? <img src={quest.cover_url} alt={quest.title} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full flex items-center justify-center text-2xl">🏆</div>
                       }
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900 truncate">{ch.title}</p>
-                      {ch.description && <p className="text-xs text-gray-400 truncate mt-0.5">{ch.description}</p>}
+                      <p className="text-sm font-bold text-gray-900 truncate">{quest.title}</p>
+                      {quest.description && <p className="text-xs text-gray-400 truncate mt-0.5">{quest.description}</p>}
                       <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Active
                       </span>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-black text-gray-900">{ch.participant_count}</p>
+                      <p className="text-sm font-black text-gray-900">{quest.participant_count}</p>
                       <p className="text-[10px] text-gray-400">Participants</p>
                     </div>
                     <ChevronRight size={16} className="text-gray-300 shrink-0" />
