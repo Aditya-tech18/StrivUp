@@ -12,12 +12,19 @@ const nextConfig: NextConfig = {
         hostname: "api.dicebear.com",
       },
       {
-        // Supabase Storage CDN — covers thumbnails + proof media
-        // from the proof-media bucket (project: cxujipeulvhreiryaptr)
+        // Supabase Storage — proof-media + avatars buckets
+        // project: cxujipeulvhreiryaptr (StrivUp)
         protocol: "https",
         hostname: "cxujipeulvhreiryaptr.supabase.co",
       },
     ],
+  },
+  // Silence known safe build warnings
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
   },
 };
 
