@@ -46,6 +46,7 @@ export async function getFeedPosts(
       day_number,
       user_id,
       challenge_id,
+      admin_removed,
       profiles!user_id ( full_name, avatar_url, verification_status ),
       challenges!challenge_id ( title )
       `
@@ -88,6 +89,7 @@ export async function getFeedPosts(
       // Likes/comments not in schema yet — placeholder zeros
       likeCount: 0,
       commentCount: 0,
+      adminRemoved: Boolean(row.admin_removed),
     };
   });
 }

@@ -112,37 +112,88 @@ interface UploadOpts {
   existingSubmissionId?: string | null;
 }
 
-type SlotState = "idle" | "uploading" | "pending" | "error";
+type SlotState = "idle" | "uploading" | "reviewing" | "pending" | "approved" | "rejected" | "error";
 interface SlotData {
   state: SlotState;
   preview: string | null;
   error: string | null;
+  rejectionReason: string | null;
+}
+
+type UploadResult =
+  | { submissionId: string; preview: string; error: null }
+  | { submissionId: null; preview: null; error: string };
+
+/**
+ * Resize an image file to at most `maxPx` on its longest side and re-encode
+ * as JPEG at `quality` (0–1). Videos are returned unchanged.
+ * Runs entirely on the client via an offscreen <canvas> — nothing oversized
+ * ever hits Supabase Storage.
+ */
+async function resizeImage(
+  file: File,
+  maxPx = 1024,
+  quality = 0.85
+): Promise<File> {
+  // Pass videos through unchanged
+  if (!file.type.startsWith("image/")) return file;
+
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { naturalWidth: w, naturalHeight: h } = img;
+      const scale = Math.min(1, maxPx / Math.max(w, h));
+      const canvas = document.createElement("canvas");
+      canvas.width  = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { resolve(file); return; }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { resolve(file); return; }
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Image load failed")); };
+    img.src = url;
+  });
 }
 
 async function uploadProof(
   opts: UploadOpts,
   file: File
-): Promise<{ preview: string; error: null } | { preview: null; error: string }> {
+): Promise<UploadResult> {
   const { challengeId, userId, joinedAt, taskId, existingSubmissionId } = opts;
 
-  if (!userId) return { preview: null, error: "Sign in to upload proof." };
+  if (!userId) return { submissionId: null, preview: null, error: "Sign in to upload proof." };
 
   const supabase = createClient();
   const dayNumber = calcDayNumber(joinedAt);
 
-  // 1. Upload to storage
-  const ext = file.name.split(".").pop() ?? "jpg";
+  // 1. Resize image client-side (videos pass through unchanged)
+  //    Max 1024px longest side, JPEG 85% — keeps uploads under ~300 KB
+  const resized = await resizeImage(file).catch(() => file);
+
+  // 2. Upload to storage
+  const ext = resized.name.split(".").pop() ?? "jpg";
   const path = `${userId}/proofs/${challengeId}/${taskId ?? "main"}/${dayNumber}-${Date.now()}.${ext}`;
   const { error: storageError } = await supabase.storage
     .from("proof-media")
-    .upload(path, file, { upsert: false });
-  if (storageError) return { preview: null, error: storageError.message };
+    .upload(path, resized, { upsert: false });
+  if (storageError) return { submissionId: null, preview: null, error: storageError.message };
 
   const { data: { publicUrl } } = supabase.storage.from("proof-media").getPublicUrl(path);
 
-  // 2. Upsert proof_submissions row
+  // 2. Upsert proof_submissions row — return the id for the review-proof call
+  let submissionId: string;
   if (existingSubmissionId) {
-    // Resubmit: PATCH the existing row (respects unique constraints)
+    // Resubmit: PATCH the existing row
     const { error: updateError } = await supabase
       .from("proof_submissions")
       .update({
@@ -154,9 +205,10 @@ async function uploadProof(
         submitted_at: new Date().toISOString(),
       })
       .eq("id", existingSubmissionId);
-    if (updateError) return { preview: null, error: updateError.message };
+    if (updateError) return { submissionId: null, preview: null, error: updateError.message };
+    submissionId = existingSubmissionId;
   } else {
-    const { error: insertError } = await supabase
+    const { data: insertedRow, error: insertError } = await supabase
       .from("proof_submissions")
       .insert({
         challenge_id: challengeId,
@@ -165,8 +217,11 @@ async function uploadProof(
         task_id: taskId ?? null,
         media_url: publicUrl,
         verification_status: "pending",
-      });
-    if (insertError) return { preview: null, error: insertError.message };
+      })
+      .select("id")
+      .single();
+    if (insertError || !insertedRow) return { submissionId: null, preview: null, error: insertError?.message ?? "Insert failed" };
+    submissionId = insertedRow.id as string;
   }
 
   // 3. Generate preview data URL
@@ -177,7 +232,28 @@ async function uploadProof(
     reader.readAsDataURL(file);
   });
 
-  return { preview: dataUrl, error: null };
+  return { submissionId, preview: dataUrl, error: null };
+}
+
+/** Call the review-proof edge function and return normalised verdict. */
+async function callReviewProof(
+  submissionId: string
+): Promise<{ status: "approved" | "rejected" | "pending"; rejectionReason: string | null }> {
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase.functions.invoke("review-proof", {
+      body: { submission_id: submissionId },
+    });
+    if (error) return { status: "pending", rejectionReason: null };
+    const status = (data as { status?: string })?.status;
+    const reason = (data as { rejection_reason?: string })?.rejection_reason ?? null;
+    if (status === "approved") return { status: "approved", rejectionReason: null };
+    if (status === "rejected") return { status: "rejected", rejectionReason: reason };
+    return { status: "pending", rejectionReason: null };
+  } catch {
+    // Edge function errors should not block the UI — fall back to pending
+    return { status: "pending", rejectionReason: null };
+  }
 }
 
 /* ── Per-task upload slot ────────────────────────────────────────────────── */
@@ -196,12 +272,13 @@ function TaskUploadSlot({
 }) {
   const [slot, setSlot] = useState<SlotData>({
     state: submission?.status === "approved"
-      ? "pending"   // approved → show approved state
+      ? "approved"
       : submission?.status === "pending"
       ? "pending"
       : "idle",
     preview: null,
     error: null,
+    rejectionReason: submission?.rejectionReason ?? null,
   });
   const [localStatus, setLocalStatus] = useState<TaskSubmission["status"] | null>(
     submission?.status ?? null
@@ -212,7 +289,7 @@ function TaskUploadSlot({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    setSlot({ state: "uploading", preview: null, error: null });
+    setSlot({ state: "uploading", preview: null, error: null, rejectionReason: null });
 
     const result = await uploadProof(
       {
@@ -227,17 +304,32 @@ function TaskUploadSlot({
     );
 
     if (result.error) {
-      setSlot({ state: "error", preview: null, error: result.error });
-    } else {
-      setSlot({ state: "pending", preview: result.preview, error: null });
-      setLocalStatus("pending");
+      setSlot({ state: "error", preview: null, error: result.error, rejectionReason: null });
+      return;
     }
+
+    // Optimistically show "reviewing" while edge function runs
+    setSlot({ state: "reviewing", preview: result.preview, error: null, rejectionReason: null });
+    setLocalStatus("pending");
+
+    const verdict = await callReviewProof(result.submissionId!);
+    setLocalStatus(verdict.status);
+    setSlot({
+      state: verdict.status,
+      preview: result.preview,
+      error: null,
+      rejectionReason: verdict.rejectionReason,
+    });
   }, [challengeId, userId, joinedAt, task.id, localStatus, submission]);
 
-  const isApproved = localStatus === "approved";
-  const isPending  = localStatus === "pending" && slot.state === "pending";
-  const isRejected = localStatus === "rejected";
-  const isIdle     = !isApproved && !isPending && !isRejected && slot.state === "idle";
+  const isApproved = slot.state === "approved";
+  const isReviewing = slot.state === "reviewing";
+  const isPending  = slot.state === "pending";
+  const isRejected = slot.state === "rejected";
+  const isIdle     = slot.state === "idle";
+
+  // Rejection reason: prefer live verdict, fall back to DB value
+  const shownRejectionReason = slot.rejectionReason ?? submission?.rejectionReason ?? null;
 
   return (
     <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
@@ -266,10 +358,12 @@ function TaskUploadSlot({
             <span className="text-xs font-semibold">Approved</span>
           </div>
         )}
-        {isPending && (
+        {(isPending || isReviewing) && (
           <div className="flex items-center gap-1 text-yellow-600 flex-shrink-0">
-            <Clock size={14} aria-hidden="true" />
-            <span className="text-xs font-semibold">Pending</span>
+            {isReviewing
+              ? <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+              : <Clock size={14} aria-hidden="true" />}
+            <span className="text-xs font-semibold">{isReviewing ? "Reviewing…" : "Pending"}</span>
           </div>
         )}
         {isRejected && (
@@ -281,9 +375,9 @@ function TaskUploadSlot({
       </div>
 
       {/* Rejection reason */}
-      {isRejected && submission?.rejectionReason && (
+      {isRejected && shownRejectionReason && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
-          <strong>Reason:</strong> {submission.rejectionReason}
+          <strong>Reason:</strong> {shownRejectionReason}
         </div>
       )}
 
@@ -307,7 +401,7 @@ function TaskUploadSlot({
             </div>
           )}
 
-          {(isIdle || isRejected) && slot.state !== "uploading" && (
+          {(isIdle || isRejected) && (
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
@@ -330,7 +424,7 @@ function TaskUploadSlot({
             </button>
           )}
 
-          {slot.state === "pending" && slot.preview && (
+          {(isReviewing || isPending) && slot.preview && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={slot.preview}
@@ -370,20 +464,24 @@ function LegacyUploadCard({
   existingSubmission: TaskSubmission | undefined;
 }) {
   const [slot, setSlot] = useState<SlotData>({
-    state: existingSubmission ? "pending" : "idle",
+    state: existingSubmission?.status === "approved"
+      ? "approved"
+      : existingSubmission?.status === "rejected"
+      ? "rejected"
+      : existingSubmission
+      ? "pending"
+      : "idle",
     preview: null,
     error: null,
+    rejectionReason: existingSubmission?.rejectionReason ?? null,
   });
-  const [localStatus, setLocalStatus] = useState<TaskSubmission["status"] | null>(
-    existingSubmission?.status ?? null
-  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    setSlot({ state: "uploading", preview: null, error: null });
+    setSlot({ state: "uploading", preview: null, error: null, rejectionReason: null });
 
     const result = await uploadProof(
       {
@@ -392,20 +490,29 @@ function LegacyUploadCard({
         joinedAt,
         taskId: null,
         existingSubmissionId:
-          localStatus === "rejected" ? existingSubmission?.submissionId ?? null : null,
+          slot.state === "rejected" ? existingSubmission?.submissionId ?? null : null,
       },
       file
     );
 
     if (result.error) {
-      setSlot({ state: "error", preview: null, error: result.error });
-    } else {
-      setSlot({ state: "pending", preview: result.preview, error: null });
-      setLocalStatus("pending");
+      setSlot({ state: "error", preview: null, error: result.error, rejectionReason: null });
+      return;
     }
-  }, [challenge.id, userId, joinedAt, localStatus, existingSubmission]);
 
-  const isRejected = localStatus === "rejected";
+    // Show "reviewing" while the edge function runs
+    setSlot({ state: "reviewing", preview: result.preview, error: null, rejectionReason: null });
+
+    const verdict = await callReviewProof(result.submissionId!);
+    setSlot({
+      state: verdict.status,
+      preview: result.preview,
+      error: null,
+      rejectionReason: verdict.rejectionReason,
+    });
+  }, [challenge.id, userId, joinedAt, slot.state, existingSubmission]);
+
+  const isRejected = slot.state === "rejected";
 
   return (
     <div
@@ -425,10 +532,10 @@ function LegacyUploadCard({
         </p>
       </div>
 
-      {/* Rejection reason */}
-      {isRejected && existingSubmission?.rejectionReason && (
+      {/* Rejection reason (live verdict or DB value) */}
+      {isRejected && (slot.rejectionReason ?? existingSubmission?.rejectionReason) && (
         <div className="rounded-lg bg-red-900/30 border border-red-500/30 px-3 py-2 text-xs text-red-300">
-          <strong>Rejected:</strong> {existingSubmission.rejectionReason}
+          <strong>Rejected:</strong> {slot.rejectionReason ?? existingSubmission?.rejectionReason}
         </div>
       )}
 
@@ -441,7 +548,8 @@ function LegacyUploadCard({
         aria-hidden="true"
       />
 
-      {slot.state === "idle" && (
+      {/* Idle or rejected → upload/resubmit button */}
+      {(slot.state === "idle" || slot.state === "rejected") && (
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -468,6 +576,21 @@ function LegacyUploadCard({
         </div>
       )}
 
+      {/* Reviewing (edge function in-flight) */}
+      {slot.state === "reviewing" && (
+        <div className="space-y-2">
+          {slot.preview && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={slot.preview} alt="Proof preview" className="w-full rounded-lg object-cover max-h-40" />
+          )}
+          <div className="w-full h-11 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center gap-2 text-white/80 text-sm font-medium">
+            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+            Reviewing your proof…
+          </div>
+        </div>
+      )}
+
+      {/* Pending */}
       {slot.state === "pending" && (
         <div className="space-y-2">
           {slot.preview && (
@@ -482,6 +605,20 @@ function LegacyUploadCard({
             className="w-full text-white/40 text-xs hover:text-white/60 transition-colors">
             Upload again
           </button>
+        </div>
+      )}
+
+      {/* Approved */}
+      {slot.state === "approved" && (
+        <div className="space-y-2">
+          {slot.preview && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={slot.preview} alt="Proof preview" className="w-full rounded-lg object-cover max-h-40" />
+          )}
+          <div className="w-full h-11 rounded-lg bg-green-500/20 border border-green-400/30 flex items-center justify-center gap-2 text-green-300 text-sm font-medium">
+            <CheckCircle2 size={16} aria-hidden="true" />
+            Proof approved!
+          </div>
         </div>
       )}
 
