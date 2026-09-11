@@ -112,6 +112,8 @@ export function SignupForm() {
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
     setAuthError(null);
+    // Clear any stale business intent cookie
+    document.cookie = "strivup_business_intent=; path=/; max-age=0";
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
