@@ -1,11 +1,13 @@
 /**
  * src/lib/supabase/profile.ts
- * 
- * FAULT-TOLERANT: works whether or not the 20260909 migration has been run.
+ *
+ * FAULT-TOLERANT — works whether or not migration 20260909 has been run.
  * Extended columns (is_deactivated, is_private, gender, pinned_challenge_ids)
- * are fetched in a separate query that silently falls back to defaults on error.
+ * are fetched in a separate try/catch so they never cause 400 errors.
  */
 import { createClient } from "@/lib/supabase/client";
+
+// ── Public types ───────────────────────────────────────────────────────────
 
 export interface Profile {
   id: string;
@@ -16,7 +18,9 @@ export interface Profile {
   account_type: string;
   verification_status: string;
   profile_completed: boolean;
+  /** Added by 20260909 migration — defaults to false before migration runs */
   is_deactivated: boolean;
+  /** Added by 20260909 migration — defaults to false before migration runs */
   is_private: boolean;
   gender: string | null;
   pinned_challenge_ids: string[];
@@ -33,11 +37,20 @@ export interface ProfilePrivate {
   gender: string | null;
 }
 
-export interface Interest { id: number; name: string; slug: string; }
+export interface Interest {
+  id: number;
+  name: string;
+  slug: string;
+}
 
 export type SocialPlatform =
-  | "instagram" | "linkedin" | "github" | "twitter"
-  | "youtube" | "portfolio" | "other";
+  | "instagram"
+  | "linkedin"
+  | "github"
+  | "twitter"
+  | "youtube"
+  | "portfolio"
+  | "other";
 
 export interface SocialLink {
   id: string;
@@ -54,10 +67,16 @@ export interface FollowerUser {
   verification_status: string;
 }
 
-const MIN_INTERESTS = 3;
-const MAX_SOCIAL_LINKS = 4;
+// ── Constants ──────────────────────────────────────────────────────────────
 
-// Safely coerce a raw DB row into the Profile shape
+export const PROFILE_CONSTANTS = {
+  MIN_INTERESTS: 3,
+  MAX_SOCIAL_LINKS: 4,
+} as const;
+
+// ── Internal helpers ───────────────────────────────────────────────────────
+
+/** Safely coerce a raw Supabase row into the Profile shape. */
 function toProfile(raw: Record<string, unknown>): Profile {
   return {
     id:                   String(raw.id ?? ""),
@@ -67,26 +86,27 @@ function toProfile(raw: Record<string, unknown>): Profile {
     bio:                  (raw.bio as string) ?? null,
     account_type:         (raw.account_type as string) ?? "user",
     verification_status:  (raw.verification_status as string) ?? "none",
-    profile_completed:    Boolean(raw.profile_completed),
+    profile_completed:    Boolean(raw.profile_completed ?? false),
     is_deactivated:       Boolean(raw.is_deactivated ?? false),
     is_private:           Boolean(raw.is_private ?? false),
     gender:               (raw.gender as string) ?? null,
     pinned_challenge_ids: Array.isArray(raw.pinned_challenge_ids)
       ? (raw.pinned_challenge_ids as string[])
       : [],
-    created_at:           (raw.created_at as string) ?? new Date().toISOString(),
-    updated_at:           (raw.updated_at as string) ?? new Date().toISOString(),
+    created_at:  (raw.created_at as string) ?? new Date().toISOString(),
+    updated_at:  (raw.updated_at as string) ?? new Date().toISOString(),
   };
 }
 
 // ── Public profile ─────────────────────────────────────────────────────────
 
+/** Load the current user's profile. Never throws on missing extended cols. */
 export async function getMyProfile(): Promise<Profile | null> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Always-safe base columns
+  // Base columns — always exist
   const { data, error } = await supabase
     .from("profiles")
     .select(
@@ -101,7 +121,7 @@ export async function getMyProfile(): Promise<Profile | null> {
 
   const profile = toProfile(data as Record<string, unknown>);
 
-  // Extended columns — only available after migration; fail silently
+  // Extended columns — only available after 20260909 migration
   try {
     const { data: ext } = await supabase
       .from("profiles")
@@ -110,33 +130,33 @@ export async function getMyProfile(): Promise<Profile | null> {
       .maybeSingle();
 
     if (ext) {
-      profile.is_deactivated       = Boolean((ext as any).is_deactivated ?? false);
-      profile.is_private            = Boolean((ext as any).is_private ?? false);
-      profile.gender                = ((ext as any).gender as string) ?? null;
-      profile.pinned_challenge_ids  = Array.isArray((ext as any).pinned_challenge_ids)
-        ? ((ext as any).pinned_challenge_ids as string[])
+      const e = ext as Record<string, unknown>;
+      profile.is_deactivated      = Boolean(e.is_deactivated ?? false);
+      profile.is_private           = Boolean(e.is_private ?? false);
+      profile.gender               = (e.gender as string) ?? null;
+      profile.pinned_challenge_ids = Array.isArray(e.pinned_challenge_ids)
+        ? (e.pinned_challenge_ids as string[])
         : [];
     }
   } catch {
-    // Migration not run yet — defaults already set in toProfile()
+    // Columns not yet added — silently use defaults
   }
 
   return profile;
 }
 
+/** Update the current user's profile fields. Falls back gracefully if ext cols missing. */
 export async function upsertMyProfile(
   fields: Partial<Pick<
     Profile,
-    | "full_name" | "bio" | "username" | "avatar_url"
-    | "profile_completed" | "gender" | "pinned_challenge_ids"
-    | "is_private" | "is_deactivated"
+    | "full_name" | "bio" | "username" | "avatar_url" | "profile_completed"
+    | "gender" | "pinned_challenge_ids" | "is_private" | "is_deactivated"
   >>
 ): Promise<void> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  // Separate base fields from extended (migration-dependent) fields
   const base: Record<string, unknown> = {
     id: user.id,
     updated_at: new Date().toISOString(),
@@ -157,20 +177,13 @@ export async function upsertMyProfile(
   const hasExt = Object.keys(ext).length > 0;
 
   if (hasExt) {
-    // Try full update first
-    const { error } = await supabase
-      .from("profiles")
-      .upsert({ ...base, ...ext });
-
+    const { error } = await supabase.from("profiles").upsert({ ...base, ...ext });
     if (!error) return;
-    // Extended cols don't exist yet — fall back to base-only update
+    // Extended cols missing — fall through to base-only update
   }
 
-  const { error: baseErr } = await supabase
-    .from("profiles")
-    .upsert(base);
-
-  if (baseErr) throw baseErr;
+  const { error } = await supabase.from("profiles").upsert(base);
+  if (error) throw error;
 }
 
 // ── Private profile ────────────────────────────────────────────────────────
@@ -180,7 +193,6 @@ export async function getMyProfilePrivate(): Promise<ProfilePrivate | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Try with gender col first
   try {
     const { data, error } = await supabase
       .from("profile_private")
@@ -188,10 +200,9 @@ export async function getMyProfilePrivate(): Promise<ProfilePrivate | null> {
       .eq("id", user.id)
       .maybeSingle();
     if (error) throw error;
-    if (!data) return null;
-    return data as ProfilePrivate;
+    return data ? (data as ProfilePrivate) : null;
   } catch {
-    // gender col not yet added — try without
+    // gender col not yet added — retry without it
     try {
       const { data } = await supabase
         .from("profile_private")
@@ -221,13 +232,9 @@ export async function upsertMyProfilePrivate(
 
   if (fields.gender !== undefined) {
     try {
-      const { error } = await supabase
-        .from("profile_private")
-        .upsert({ ...payload, gender: fields.gender });
+      const { error } = await supabase.from("profile_private").upsert({ ...payload, gender: fields.gender });
       if (!error) return;
-    } catch {
-      // gender col not ready
-    }
+    } catch { /* gender col not yet added */ }
   }
 
   const { error } = await supabase.from("profile_private").upsert(payload);
@@ -259,18 +266,13 @@ export async function getMyInterestIds(): Promise<number[]> {
 }
 
 export async function setMyInterests(ids: number[]): Promise<void> {
-  if (ids.length < MIN_INTERESTS)
-    throw new Error(`Select at least ${MIN_INTERESTS} interests`);
+  if (ids.length < PROFILE_CONSTANTS.MIN_INTERESTS)
+    throw new Error(`Select at least ${PROFILE_CONSTANTS.MIN_INTERESTS} interests`);
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
-
-  const { error: del } = await supabase
-    .from("user_interests")
-    .delete()
-    .eq("user_id", user.id);
+  const { error: del } = await supabase.from("user_interests").delete().eq("user_id", user.id);
   if (del) throw del;
-
   if (ids.length > 0) {
     const { error: ins } = await supabase
       .from("user_interests")
@@ -294,14 +296,11 @@ export async function getMySocialLinks(): Promise<SocialLink[]> {
     if (error) throw error;
     return (data ?? []) as SocialLink[];
   } catch {
-    return [];
+    return []; // Table not yet created by migration
   }
 }
 
-export async function addMySocialLink(
-  platform: SocialPlatform,
-  url: string
-): Promise<SocialLink> {
+export async function addMySocialLink(platform: SocialPlatform, url: string): Promise<SocialLink> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
@@ -316,14 +315,11 @@ export async function addMySocialLink(
 
 export async function deleteMySocialLink(id: string): Promise<void> {
   const supabase = createClient();
-  const { error } = await supabase
-    .from("profile_social_links")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("profile_social_links").delete().eq("id", id);
   if (error) throw error;
 }
 
-// ── Followers ──────────────────────────────────────────────────────────────
+// ── Followers / Following ──────────────────────────────────────────────────
 
 export async function getFollowerCount(userId: string): Promise<number> {
   const supabase = createClient();
@@ -349,11 +345,7 @@ export async function getFollowingCount(userId: string): Promise<number> {
   } catch { return 0; }
 }
 
-export async function getFollowers(
-  userId: string,
-  page = 0,
-  pageSize = 20
-): Promise<FollowerUser[]> {
+export async function getFollowers(userId: string, page = 0, pageSize = 20): Promise<FollowerUser[]> {
   const supabase = createClient();
   try {
     const { data, error } = await supabase
@@ -363,17 +355,11 @@ export async function getFollowers(
       .order("created_at", { ascending: false })
       .range(page * pageSize, (page + 1) * pageSize - 1);
     if (error) throw error;
-    return (data ?? [])
-      .map((r: any) => r.profiles)
-      .filter(Boolean) as FollowerUser[];
+    return (data ?? []).map((r: any) => r.profiles).filter(Boolean) as FollowerUser[];
   } catch { return []; }
 }
 
-export async function getFollowing(
-  userId: string,
-  page = 0,
-  pageSize = 20
-): Promise<FollowerUser[]> {
+export async function getFollowing(userId: string, page = 0, pageSize = 20): Promise<FollowerUser[]> {
   const supabase = createClient();
   try {
     const { data, error } = await supabase
@@ -383,13 +369,11 @@ export async function getFollowing(
       .order("created_at", { ascending: false })
       .range(page * pageSize, (page + 1) * pageSize - 1);
     if (error) throw error;
-    return (data ?? [])
-      .map((r: any) => r.profiles)
-      .filter(Boolean) as FollowerUser[];
+    return (data ?? []).map((r: any) => r.profiles).filter(Boolean) as FollowerUser[];
   } catch { return []; }
 }
 
-// ── Avatar upload ──────────────────────────────────────────────────────────
+// ── Avatar ─────────────────────────────────────────────────────────────────
 
 export async function uploadMyAvatar(file: File): Promise<string> {
   const supabase = createClient();
@@ -419,9 +403,7 @@ export async function removeMyAvatar(): Promise<void> {
   if (!user) throw new Error("Not authenticated");
   const { data: files } = await supabase.storage.from("avatars").list(user.id);
   if (files?.length) {
-    await supabase.storage
-      .from("avatars")
-      .remove(files.map(f => `${user.id}/${f.name}`));
+    await supabase.storage.from("avatars").remove(files.map(f => `${user.id}/${f.name}`));
   }
   await upsertMyProfile({ avatar_url: null });
 }
@@ -438,7 +420,7 @@ export async function deactivateMyAccount(): Promise<void> {
       .update({ is_deactivated: true, updated_at: new Date().toISOString() })
       .eq("id", user.id);
   } catch {
-    // Column may not exist yet — sign out anyway
+    // Column not yet added — sign out anyway
   }
   await supabase.auth.signOut();
 }
@@ -456,9 +438,9 @@ export async function deleteMyAccount(): Promise<void> {
   );
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error ?? "Failed to delete account. Please contact support.");
+    throw new Error(
+      (body as any).error ?? "Failed to delete account. Please contact support."
+    );
   }
   await supabase.auth.signOut();
 }
-
-export const PROFILE_CONSTANTS = { MIN_INTERESTS, MAX_SOCIAL_LINKS };
