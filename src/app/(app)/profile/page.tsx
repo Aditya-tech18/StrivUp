@@ -26,13 +26,12 @@ interface ChallengeStats {
   consistency_pct: number;
   status: string;
   completed_at: string | null;
-  joined_at: string;
 }
 interface HeatmapEntry { submission_date: string; submission_count: number; }
 
 const PLATFORM_LABEL: Record<string, string> = {
-  instagram: "Instagram", linkedin: "LinkedIn", github: "GitHub",
-  twitter: "X", youtube: "YouTube", portfolio: "Portfolio", other: "Link",
+  instagram: "IG", linkedin: "LI", github: "GH",
+  twitter: "X", youtube: "YT", portfolio: "WEB", other: "LINK",
 };
 const PLATFORMS: { value: SocialPlatform; label: string }[] = [
   { value: "instagram", label: "Instagram"   },
@@ -52,7 +51,6 @@ function ConsistencyHeatmap({ entries, currentStreak }: { entries: HeatmapEntry[
   const today = new Date();
   const WEEKS = 26;
   const dateMap = new Map(entries.map(e => [e.submission_date, e.submission_count]));
-
   const grid: { date: string; count: number }[][] = [];
   for (let w = WEEKS - 1; w >= 0; w--) {
     const week: { date: string; count: number }[] = [];
@@ -64,7 +62,6 @@ function ConsistencyHeatmap({ entries, currentStreak }: { entries: HeatmapEntry[
     }
     grid.push(week);
   }
-
   const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const monthLabels: { label: string; col: number }[] = [];
   grid.forEach((week, i) => {
@@ -72,11 +69,9 @@ function ConsistencyHeatmap({ entries, currentStreak }: { entries: HeatmapEntry[
     if (i === 0 || new Date(grid[i-1][0].date).getMonth() !== d.getMonth())
       monthLabels.push({ label: MONTHS[d.getMonth()], col: i });
   });
-
   const cellColor = (n: number) =>
     n === 0 ? "bg-[#ebedf0]" : n === 1 ? "bg-secondary/20" :
     n === 2 ? "bg-secondary/45" : n === 3 ? "bg-secondary/70" : "bg-secondary";
-
   return (
     <div className="w-full overflow-x-auto">
       <div className="min-w-[480px]">
@@ -134,18 +129,14 @@ function ChallengeCard({ stats }: { stats: ChallengeStats }) {
       </div>
       <div className="p-2 flex flex-col gap-0.5">
         <p className="text-[11px] font-bold text-on-surface leading-tight line-clamp-2">{stats.title}</p>
-        <p className="text-[10px] text-on-surface-variant">
-          Day {stats.current_day}{stats.duration_days ? `/${stats.duration_days}` : ""}
-        </p>
+        <p className="text-[10px] text-on-surface-variant">Day {stats.current_day}{stats.duration_days ? `/${stats.duration_days}` : ""}</p>
         <p className="text-[10px] font-bold text-secondary">{stats.consistency_pct}% Consistency</p>
       </div>
     </div>
   );
 }
 
-function FollowModal({
-  title, userId, fetchFn, onClose,
-}: {
+function FollowModal({ title, userId, fetchFn, onClose }: {
   title: string; userId: string;
   fetchFn: (uid: string, page: number) => Promise<FollowerUser[]>;
   onClose: () => void;
@@ -160,7 +151,6 @@ function FollowModal({
     let cancelled = false;
     (async () => {
       try {
-        setBusy(true);
         const data = await fetchFn(userId, 0);
         if (!cancelled) { setUsers(data); setMore(data.length === PAGE); }
       } finally { if (!cancelled) setBusy(false); }
@@ -168,15 +158,6 @@ function FollowModal({
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
-
-  const loadMore = async () => {
-    const next = page + 1;
-    setPage(next); setBusy(true);
-    const data = await fetchFn(userId, next);
-    setUsers(prev => [...prev, ...data]);
-    setMore(data.length === PAGE);
-    setBusy(false);
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm px-4">
@@ -213,7 +194,13 @@ function FollowModal({
                   ))}
                   {more && (
                     <div className="py-4 flex justify-center">
-                      <button onClick={loadMore} disabled={busy} className="text-[13px] text-secondary font-semibold disabled:opacity-40">
+                      <button
+                        onClick={async () => {
+                          const next = page + 1; setPage(next); setBusy(true);
+                          const data = await fetchFn(userId, next);
+                          setUsers(prev => [...prev, ...data]); setMore(data.length === PAGE); setBusy(false);
+                        }}
+                        disabled={busy} className="text-[13px] text-secondary font-semibold disabled:opacity-40">
                         {busy ? <Loader2 size={14} className="animate-spin inline" /> : "Load more"}
                       </button>
                     </div>
@@ -227,9 +214,7 @@ function FollowModal({
   );
 }
 
-function ManageModal({
-  allStats, pinnedIds, onToggle, onClose,
-}: {
+function ManageModal({ allStats, pinnedIds, onToggle, onClose }: {
   allStats: ChallengeStats[]; pinnedIds: string[];
   onToggle: (id: string) => void; onClose: () => void;
 }) {
@@ -249,142 +234,131 @@ function ManageModal({
         <div className="flex flex-col gap-2">
           {active.length === 0 && <p className="text-center py-4 text-[14px] text-on-surface-variant">No active challenges.</p>}
           {active.map(s => {
-            const pinned  = pinnedIds.includes(s.challenge_id);
+            const pinned = pinnedIds.includes(s.challenge_id);
             const atLimit = pinnedIds.length >= 3 && !pinned;
             return (
-              <button key={s.challenge_id}
-                onClick={() => { if (!atLimit) onToggle(s.challenge_id); }}
+              <button key={s.challenge_id} onClick={() => { if (!atLimit) onToggle(s.challenge_id); }}
                 disabled={atLimit}
-                className={[
-                  "flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all",
+                className={["flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all",
                   pinned ? "border-secondary bg-secondary/5" : "border-outline-variant hover:bg-surface-container-low",
-                  atLimit ? "opacity-40 cursor-not-allowed" : "",
-                ].join(" ")}>
-                <div className={["w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                  atLimit ? "opacity-40 cursor-not-allowed" : ""].join(" ")}>
+                <div className={["w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0",
                   pinned ? "bg-secondary border-secondary" : "border-outline"].join(" ")}>
                   {pinned && <Check size={11} className="text-white" strokeWidth={3} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[14px] font-semibold text-on-surface truncate">{s.title}</p>
-                  <p className="text-[11px] text-on-surface-variant">
-                    Day {s.current_day}{s.duration_days ? `/${s.duration_days}` : ""} · {s.consistency_pct}% consistency
-                  </p>
+                  <p className="text-[11px] text-on-surface-variant">Day {s.current_day}{s.duration_days ? `/${s.duration_days}` : ""} · {s.consistency_pct}% consistency</p>
                 </div>
                 {pinned && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary shrink-0">Pinned</span>}
               </button>
             );
           })}
         </div>
-        <button onClick={onClose}
-          className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-[14px] shadow-[0_2px_8px_rgba(29,78,216,0.25)]">
-          Done
-        </button>
+        <button onClick={onClose} className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-[14px] shadow-[0_2px_8px_rgba(29,78,216,0.25)]">Done</button>
       </div>
     </div>
   );
 }
 
 export default function ProfilePage() {
-  const router = useRouter();
-  // Stable supabase ref — avoids infinite re-render from useCallback([supabase])
-  const clientRef = useRef(createClient());
+  const router     = useRouter();
+  const clientRef  = useRef(createClient());
 
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState<string | null>(null);
-  const [profile,   setProfile]   = useState<Profile | null>(null);
-  const [links,     setLinks]     = useState<SocialLink[]>([]);
-  const [userId,    setUserId]    = useState<string | null>(null);
-  const [fCount,    setFCount]    = useState(0);
-  const [fgCount,   setFgCount]   = useState(0);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState<string | null>(null);
+  const [profile,    setProfile]    = useState<Profile | null>(null);
+  const [links,      setLinks]      = useState<SocialLink[]>([]);
+  const [userId,     setUserId]     = useState<string | null>(null);
+  const [fCount,     setFCount]     = useState(0);
+  const [fgCount,    setFgCount]    = useState(0);
   const [showFoll,   setShowFoll]   = useState(false);
   const [showFolg,   setShowFolg]   = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
-  const [allStats,     setAllStats]     = useState<ChallengeStats[]>([]);
-  const [activeStats,  setActiveStats]  = useState<ChallengeStats[]>([]);
-  const [pinnedIds,    setPinnedIds]    = useState<string[]>([]);
-  const [achievements, setAchievements] = useState<ChallengeStats[]>([]);
-  const [heatId,      setHeatId]      = useState<string | null>(null);
-  const [heatEntries, setHeatEntries] = useState<HeatmapEntry[]>([]);
-  const [heatStreak,  setHeatStreak]  = useState(0);
-  const [editing,   setEditing]   = useState(false);
-  const [fullName,  setFullName]  = useState("");
-  const [username,  setUsername]  = useState("");
-  const [bio,       setBio]       = useState("");
-  const [saving,    setSaving]    = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [allStats,   setAllStats]   = useState<ChallengeStats[]>([]);
+  const [activeStats,setActiveStats]= useState<ChallengeStats[]>([]);
+  const [pinnedIds,  setPinnedIds]  = useState<string[]>([]);
+  const [achievements,setAchievements]= useState<ChallengeStats[]>([]);
+  const [heatId,     setHeatId]     = useState<string | null>(null);
+  const [heatEntries,setHeatEntries]= useState<HeatmapEntry[]>([]);
+  const [heatStreak, setHeatStreak] = useState(0);
+  const [editing,    setEditing]    = useState(false);
+  const [fullName,   setFullName]   = useState("");
+  const [username,   setUsername]   = useState("");
+  const [bio,        setBio]        = useState("");
+  const [saving,     setSaving]     = useState(false);
+  const [uploading,  setUploading]  = useState(false);
   const [addingLink, setAddingLink] = useState(false);
   const [newPlat,    setNewPlat]    = useState<SocialPlatform>("instagram");
   const [newUrl,     setNewUrl]     = useState("");
 
-  // ── Load once on mount ───────────────────────────────────────────────────
+  // Single load on mount — no deps, no re-runs
   useEffect(() => {
     let cancelled = false;
     const supabase = clientRef.current;
 
-    async function load() {
-      // Get authenticated user
-      const { data: { user }, error: authErr } = await supabase.auth.getUser();
-      if (authErr || !user) { router.replace("/login"); return; }
-      if (cancelled) return;
-      setUserId(user.id);
-
-      // Fetch profile + social links + follower counts in parallel
-      const [p, sl, fC, fgC] = await Promise.all([
-        getMyProfile(),
-        getMySocialLinks(),
-        getFollowerCount(user.id),
-        getFollowingCount(user.id),
-      ]);
-
-      if (cancelled) return;
-      setProfile(p);
-      setLinks(sl);
-      setFullName(p?.full_name ?? "");
-      setUsername(p?.username ?? "");
-      setBio(p?.bio ?? "");
-      setFCount(fC);
-      setFgCount(fgC);
-
-      // Challenge stats — only if views exist (migration ran), never throw
-      try {
-        const { data: statsData, error: statsErr } = await supabase
-          .from("profile_challenge_stats")
-          .select("challenge_id,title,duration_days,thumbnail_url,current_day,current_streak,consistency_pct,status,completed_at,joined_at")
-          .eq("user_id", user.id);
-
-        if (statsErr || !statsData || cancelled) return;
-
-        const stats = statsData as ChallengeStats[];
-        setAllStats(stats);
-        setAchievements(stats.filter(s => s.status === "completed"));
-
-        const pinned: string[] = Array.isArray(p?.pinned_challenge_ids) ? p!.pinned_challenge_ids : [];
-        setPinnedIds(pinned);
-
-        const active = pinned.length > 0
-          ? pinned.map(id => stats.find(s => s.challenge_id === id)).filter(Boolean) as ChallengeStats[]
-          : stats.filter(s => s.status === "active").slice(0, 3);
-        setActiveStats(active);
-
-        const def = stats.find(s => s.status === "active");
-        if (def && !cancelled) {
-          setHeatId(def.challenge_id);
-          setHeatStreak(def.current_streak ?? 0);
-          const { data: hmData } = await supabase
-            .from("profile_heatmap")
-            .select("submission_date,submission_count")
-            .eq("user_id", user.id)
-            .eq("challenge_id", def.challenge_id);
-          if (!cancelled) setHeatEntries((hmData ?? []) as HeatmapEntry[]);
-        }
-      } catch {
-        // Views not created yet — challenges section stays empty, no crash
-      }
-    }
-
     (async () => {
-      try { await load(); }
-      catch (e) {
+      try {
+        // 1. Auth check
+        const { data: { user }, error: authErr } = await supabase.auth.getUser();
+        if (authErr || !user) { router.replace("/login"); return; }
+        if (cancelled) return;
+        setUserId(user.id);
+
+        // 2. All primary data in parallel — profile.ts is fault-tolerant, never throws on 400
+        const [p, sl, fC, fgC] = await Promise.all([
+          getMyProfile(),
+          getMySocialLinks(),
+          getFollowerCount(user.id),
+          getFollowingCount(user.id),
+        ]);
+
+        if (cancelled) return;
+        setProfile(p);
+        setLinks(sl);
+        setFullName(p?.full_name ?? "");
+        setUsername(p?.username ?? "");
+        setBio(p?.bio ?? "");
+        setFCount(fC);
+        setFgCount(fgC);
+
+        // 3. Challenge stats — only if views exist (migration ran)
+        // If the view doesn't exist Supabase returns an error — we catch and continue
+        try {
+          const { data: statsData, error: statsErr } = await supabase
+            .from("profile_challenge_stats")
+            .select("challenge_id,title,duration_days,thumbnail_url,current_day,current_streak,consistency_pct,status,completed_at")
+            .eq("user_id", user.id);
+
+          if (statsErr || !statsData || cancelled) return;
+
+          const stats = statsData as ChallengeStats[];
+          setAllStats(stats);
+          setAchievements(stats.filter(s => s.status === "completed"));
+
+          const pinned: string[] = Array.isArray(p?.pinned_challenge_ids) ? p!.pinned_challenge_ids : [];
+          setPinnedIds(pinned);
+
+          const active = pinned.length > 0
+            ? pinned.map(id => stats.find(s => s.challenge_id === id)).filter(Boolean) as ChallengeStats[]
+            : stats.filter(s => s.status === "active").slice(0, 3);
+          setActiveStats(active);
+
+          const def = stats.find(s => s.status === "active");
+          if (def && !cancelled) {
+            setHeatId(def.challenge_id);
+            setHeatStreak(def.current_streak ?? 0);
+            const { data: hmData } = await supabase
+              .from("profile_heatmap")
+              .select("submission_date,submission_count")
+              .eq("user_id", user.id)
+              .eq("challenge_id", def.challenge_id);
+            if (!cancelled) setHeatEntries((hmData ?? []) as HeatmapEntry[]);
+          }
+        } catch {
+          // Views not yet created — challenges section stays empty, no crash
+        }
+      } catch (e) {
         if (!cancelled)
           setError(e instanceof Error ? e.message : "Failed to load profile");
       } finally {
@@ -400,11 +374,9 @@ export default function ProfilePage() {
     if (!userId) return;
     setHeatId(cid);
     try {
-      const { data } = await clientRef.current
-        .from("profile_heatmap")
+      const { data } = await clientRef.current.from("profile_heatmap")
         .select("submission_date,submission_count")
-        .eq("user_id", userId)
-        .eq("challenge_id", cid);
+        .eq("user_id", userId).eq("challenge_id", cid);
       setHeatEntries((data ?? []) as HeatmapEntry[]);
     } catch { /* view not ready */ }
     setHeatStreak(allStats.find(s => s.challenge_id === cid)?.current_streak ?? 0);
@@ -430,8 +402,7 @@ export default function ProfilePage() {
   };
 
   const handleAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]; if (!file) return;
     setUploading(true); setError(null);
     try {
       const url = await uploadMyAvatar(file);
@@ -447,9 +418,7 @@ export default function ProfilePage() {
       ? pinnedIds.filter(p => p !== id)
       : pinnedIds.length >= 3 ? pinnedIds : [...pinnedIds, id];
     setPinnedIds(next);
-    try {
-      await clientRef.current.from("profiles").update({ pinned_challenge_ids: next }).eq("id", userId);
-    } catch { /* column not yet added */ }
+    try { await clientRef.current.from("profiles").update({ pinned_challenge_ids: next }).eq("id", userId); } catch { /* col missing */ }
     const active = next.length > 0
       ? next.map(pid => allStats.find(s => s.challenge_id === pid)).filter(Boolean) as ChallengeStats[]
       : allStats.filter(s => s.status === "active").slice(0, 3);
@@ -460,16 +429,12 @@ export default function ProfilePage() {
     if (!newUrl.trim()) return;
     try {
       const l = await addMySocialLink(newPlat, newUrl.trim());
-      setLinks(prev => [...prev, l]);
-      setNewUrl(""); setAddingLink(false);
+      setLinks(prev => [...prev, l]); setNewUrl(""); setAddingLink(false);
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to add link"); }
   };
-
   const handleDelLink = async (id: string) => {
-    try {
-      await deleteMySocialLink(id);
-      setLinks(prev => prev.filter(l => l.id !== id));
-    } catch (e) { setError(e instanceof Error ? e.message : "Failed to remove link"); }
+    try { await deleteMySocialLink(id); setLinks(prev => prev.filter(l => l.id !== id)); }
+    catch (e) { setError(e instanceof Error ? e.message : "Failed to remove link"); }
   };
 
   const fmtN = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n);
@@ -495,15 +460,10 @@ export default function ProfilePage() {
         <div className="bg-white rounded-2xl border border-outline-variant p-4">
           <Sk className="h-4 w-40 mb-3" />
           <div className="grid grid-cols-3 gap-2">
-            <Sk className="aspect-[4/3] rounded-xl" />
-            <Sk className="aspect-[4/3] rounded-xl" />
-            <Sk className="aspect-[4/3] rounded-xl" />
+            <Sk className="aspect-[4/3] rounded-xl" /><Sk className="aspect-[4/3] rounded-xl" /><Sk className="aspect-[4/3] rounded-xl" />
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-outline-variant p-4">
-          <Sk className="h-4 w-32 mb-3" />
-          <Sk className="h-32 w-full" />
-        </div>
+        <div className="bg-white rounded-2xl border border-outline-variant p-4"><Sk className="h-32 w-full" /></div>
       </div>
     </div>
   );
@@ -540,7 +500,6 @@ export default function ProfilePage() {
       )}
 
       <div className="max-w-lg mx-auto px-4 py-4 flex flex-col gap-3">
-
         {/* Profile card */}
         <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] overflow-hidden">
           <div className="px-4 pt-5 pb-4">
@@ -551,21 +510,15 @@ export default function ProfilePage() {
                   {profile?.avatar_url
                     // eslint-disable-next-line @next/next/no-img-element
                     ? <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
-                    : (
-                      <div className="w-full h-full flex items-center justify-center">
+                    : <div className="w-full h-full flex items-center justify-center">
                         <span className="text-[28px] font-black text-secondary">{displayName.charAt(0).toUpperCase()}</span>
-                      </div>
-                    )}
+                      </div>}
                 </div>
                 <div className="absolute bottom-0 right-0 w-[22px] h-[22px] rounded-full bg-secondary border-2 border-white flex items-center justify-center shadow-md">
-                  {uploading
-                    ? <Loader2 size={10} className="text-white animate-spin" />
-                    : <Camera size={10} className="text-white" />}
+                  {uploading ? <Loader2 size={10} className="text-white animate-spin" /> : <Camera size={10} className="text-white" />}
                 </div>
-                <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only"
-                  onChange={handleAvatar} disabled={uploading} />
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleAvatar} disabled={uploading} />
               </label>
-
               <div className="flex-1 min-w-0 pt-1">
                 <div className="flex items-center gap-1.5">
                   <h2 className="text-[17px] font-bold text-on-surface tracking-[-0.01em] truncate">{displayName}</h2>
@@ -607,7 +560,7 @@ export default function ProfilePage() {
                   return (
                     <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container border border-outline-variant text-[11px] font-medium text-on-surface-variant hover:text-secondary hover:border-secondary transition-colors">
-                      <span className="font-semibold text-[10px] uppercase tracking-wide text-secondary/70">{label}</span>
+                      <span className="font-bold text-[10px] uppercase tracking-wide text-secondary/70">{label}</span>
                       <span className="truncate max-w-[80px]">{display}</span>
                     </a>
                   );
@@ -621,10 +574,10 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Inline edit form */}
+          {/* Inline edit */}
           {editing && (
             <div className="border-t border-outline-variant px-4 py-4 bg-[#FAFAFA] flex flex-col gap-3">
-              <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Editing Profile</p>
+              <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Edit Profile</p>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-medium text-on-surface-variant">Full Name</label>
                 <input value={fullName} onChange={e => setFullName(e.target.value)} maxLength={80}
@@ -651,19 +604,13 @@ export default function ProfilePage() {
                 <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Social Links</p>
                 {links.map(link => (
                   <div key={link.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-white">
-                    <span className="text-[10px] font-bold text-secondary/70 uppercase tracking-wide shrink-0 w-16 truncate">
-                      {PLATFORM_LABEL[link.platform] ?? link.platform}
-                    </span>
+                    <span className="text-[10px] font-bold text-secondary/70 uppercase tracking-wide shrink-0 w-10 truncate">{PLATFORM_LABEL[link.platform] ?? link.platform}</span>
                     <span className="flex-1 text-[12px] text-on-surface truncate">{link.url}</span>
-                    <button onClick={() => handleDelLink(link.id)} className="text-on-surface-variant hover:text-error transition-colors shrink-0">
-                      <Trash2 size={13} />
-                    </button>
+                    <button onClick={() => handleDelLink(link.id)} className="text-on-surface-variant hover:text-error transition-colors shrink-0"><Trash2 size={13} /></button>
                   </div>
                 ))}
                 {!addingLink && links.length < PROFILE_CONSTANTS.MAX_SOCIAL_LINKS && (
-                  <button onClick={() => setAddingLink(true)} className="flex items-center gap-1.5 text-[13px] text-secondary font-semibold">
-                    <Plus size={14} /> Add Social Link
-                  </button>
+                  <button onClick={() => setAddingLink(true)} className="flex items-center gap-1.5 text-[13px] text-secondary font-semibold"><Plus size={14} /> Add Social Link</button>
                 )}
                 {addingLink && (
                   <div className="flex flex-col gap-2">
@@ -674,10 +621,8 @@ export default function ProfilePage() {
                     <div className="flex gap-2">
                       <input value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="https://…"
                         className="flex-1 h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary" />
-                      <button onClick={handleAddLink} disabled={!newUrl.trim()}
-                        className="px-3 h-9 rounded-xl bg-secondary text-white text-[13px] font-semibold disabled:opacity-40">Add</button>
-                      <button onClick={() => { setAddingLink(false); setNewUrl(""); }}
-                        className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-[13px]">✕</button>
+                      <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-[13px] font-semibold disabled:opacity-40">Add</button>
+                      <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-[13px]">✕</button>
                     </div>
                   </div>
                 )}
@@ -687,8 +632,7 @@ export default function ProfilePage() {
                   className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-[14px] flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-[0_2px_8px_rgba(29,78,216,0.25)]">
                   {saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Save Changes"}
                 </button>
-                <button onClick={() => setEditing(false)}
-                  className="flex-1 h-10 rounded-xl border border-outline-variant text-on-surface font-semibold text-[14px]">Cancel</button>
+                <button onClick={() => setEditing(false)} className="flex-1 h-10 rounded-xl border border-outline-variant text-on-surface font-semibold text-[14px]">Cancel</button>
               </div>
             </div>
           )}
@@ -698,28 +642,20 @@ export default function ProfilePage() {
         <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em]">
-              My Active Challenges
-              {activeStats.length > 0 && <span className="text-on-surface-variant font-normal ml-1">({activeStats.length})</span>}
+              My Active Challenges{activeStats.length > 0 && <span className="text-on-surface-variant font-normal ml-1">({activeStats.length})</span>}
             </h3>
             {allStats.filter(s => s.status === "active").length > 0 && (
               <button onClick={() => setManageOpen(true)} className="text-[13px] text-secondary font-bold hover:opacity-75 transition-opacity">Manage</button>
             )}
           </div>
           {activeStats.length > 0 ? (
-            <div className="grid grid-cols-3 gap-2">
-              {activeStats.map(s => <ChallengeCard key={s.challenge_id} stats={s} />)}
-            </div>
+            <div className="grid grid-cols-3 gap-2">{activeStats.map(s => <ChallengeCard key={s.challenge_id} stats={s} />)}</div>
           ) : (
             <div className="flex flex-col items-center gap-2.5 py-8 text-center">
-              <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-                <Flame size={22} className="text-on-surface-variant" />
-              </div>
+              <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center"><Flame size={22} className="text-on-surface-variant" /></div>
               <p className="text-[14px] font-semibold text-on-surface">No active challenges yet.</p>
               <p className="text-[12px] text-on-surface-variant max-w-[200px]">Join a challenge to start tracking your progress here.</p>
-              <button onClick={() => router.push("/explore")}
-                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-[13px] font-bold shadow-[0_2px_8px_rgba(29,78,216,0.2)]">
-                Explore Challenges
-              </button>
+              <button onClick={() => router.push("/explore")} className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-[13px] font-bold shadow-[0_2px_8px_rgba(29,78,216,0.2)]">Explore Challenges</button>
             </div>
           )}
         </div>
@@ -732,9 +668,7 @@ export default function ProfilePage() {
               <select value={heatId ?? ""} onChange={e => switchHeatmap(e.target.value)}
                 className="text-[11px] font-medium text-on-surface bg-surface-container border border-outline-variant rounded-lg px-2 py-1.5 focus:outline-none max-w-[140px] truncate">
                 {allStats.filter(s => s.status === "active").map(s => (
-                  <option key={s.challenge_id} value={s.challenge_id}>
-                    {s.title.length > 22 ? s.title.slice(0,22) + "…" : s.title}
-                  </option>
+                  <option key={s.challenge_id} value={s.challenge_id}>{s.title.length > 22 ? s.title.slice(0,22) + "…" : s.title}</option>
                 ))}
               </select>
             </div>
@@ -748,8 +682,8 @@ export default function ProfilePage() {
           {achievements.length > 0 ? (
             <div>
               {achievements.map((a, i) => {
-                const BG = ["bg-amber-50","bg-blue-50","bg-violet-50","bg-orange-50","bg-green-50","bg-rose-50","bg-teal-50","bg-sky-50"];
-                const FG = ["text-amber-600","text-blue-600","text-violet-600","text-orange-600","text-green-600","text-rose-600","text-teal-600","text-sky-600"];
+                const BG = ["bg-amber-50","bg-blue-50","bg-violet-50","bg-orange-50","bg-green-50","bg-rose-50"];
+                const FG = ["text-amber-600","text-blue-600","text-violet-600","text-orange-600","text-green-600","text-rose-600"];
                 const idx = i % BG.length;
                 return (
                   <div key={a.challenge_id} className="flex items-center gap-3 py-3 border-b border-outline-variant last:border-0">
@@ -772,16 +706,9 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2.5 py-6 text-center">
-              <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-                <ChevronRight size={20} className="text-on-surface-variant" />
-              </div>
-              <p className="text-[13px] text-on-surface-variant max-w-[220px] leading-relaxed">
-                Your achievements will appear here as you complete challenges and quests.
-              </p>
-              <button onClick={() => router.push("/explore")}
-                className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-[13px] font-semibold hover:bg-surface-container transition-colors">
-                Start a Challenge
-              </button>
+              <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center"><ChevronRight size={20} className="text-on-surface-variant" /></div>
+              <p className="text-[13px] text-on-surface-variant max-w-[220px] leading-relaxed">Your achievements will appear here as you complete challenges and quests.</p>
+              <button onClick={() => router.push("/explore")} className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-[13px] font-semibold hover:bg-surface-container transition-colors">Start a Challenge</button>
             </div>
           )}
         </div>
