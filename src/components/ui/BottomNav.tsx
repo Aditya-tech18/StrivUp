@@ -4,8 +4,8 @@ import { type HTMLAttributes } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BarChart2, Bell, Briefcase, CheckSquare, Compass,
-  Gift, Home, MapPin, Plus, ShieldCheck, Users,
+  Bell, Briefcase, CheckSquare, Compass,
+  Home, Plus, Search, ShieldCheck,
 } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
@@ -22,16 +22,16 @@ const USER_ITEMS: NavItem[] = [
   { href: "/feed",           icon: Home,     label: "Home"    },
   { href: "/explore",        icon: Compass,  label: "Explore" },
   { href: "/challenges/new", icon: Plus,     label: "Create"  },
-  { href: "/quests",         icon: MapPin,   label: "Quests"  },
+  { href: "/search",         icon: Search,   label: "Search"  },
   { href: "/alerts",         icon: Bell,     label: "Alerts", showBadge: true },
 ];
 
 const BUSINESS_ITEMS: NavItem[] = [
-  { href: "/business/dashboard",          icon: Home,         label: "Home"      },
-  { href: "/business/quests",             icon: MapPin,       label: "Quests"    },
-  { href: "/business/quests/new",         icon: Plus,         label: "Create"    },
-  { href: "/business/proof-verification", icon: CheckSquare,  label: "Proofs"    },
-  { href: "/business/verification",       icon: ShieldCheck,  label: "Verify"    },
+  { href: "/business/dashboard",          icon: Home,         label: "Home"    },
+  { href: "/business/quests",             icon: Compass,      label: "Quests"  },
+  { href: "/business/quests/new",         icon: Plus,         label: "Create"  },
+  { href: "/business/proof-verification", icon: CheckSquare,  label: "Proofs"  },
+  { href: "/business/verification",       icon: ShieldCheck,  label: "Verify"  },
 ];
 
 export type { NavItem };

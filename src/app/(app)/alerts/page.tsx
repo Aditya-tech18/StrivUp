@@ -37,6 +37,15 @@ type NotificationType =
   | "proof_approved"
   | "proof_rejected"
   | "challenge_joined"
+  | "quest_joined"
+  | "quest_task_approved"
+  | "quest_task_rejected"
+  | "quest_completed"
+  | "quest_reward_earned"
+  | "quest_reward_fulfilled"
+  | "business_verification_approved"
+  | "business_verification_rejected"
+  | "business_bill_code_generated"
   | string;
 
 interface Notification {
@@ -47,6 +56,7 @@ interface Notification {
   is_read: boolean;
   related_challenge_id: string | null;
   related_user_id: string | null;
+  related_quest_id: string | null;
   created_at: string;
 }
 
@@ -58,16 +68,25 @@ function NotifIcon({ type }: { type: NotificationType }) {
     case "new_follower":
       return <UserPlus size={20} className={`${cls} text-secondary`} aria-hidden="true" />;
     case "proof_approved":
+    case "quest_task_approved":
+    case "business_verification_approved":
+    case "quest_completed":
+    case "quest_reward_fulfilled":
       return <CheckCircle2 size={20} className={`${cls} text-success`} aria-hidden="true" />;
     case "proof_rejected":
+    case "quest_task_rejected":
+    case "business_verification_rejected":
       return <XCircle size={20} className={`${cls} text-error`} aria-hidden="true" />;
     case "challenge_joined":
+    case "quest_joined":
       return <Users size={20} className={`${cls} text-primary`} aria-hidden="true" />;
+    case "quest_reward_earned":
+    case "business_bill_code_generated":
+      return <Bell size={20} className={`${cls} text-amber-500`} aria-hidden="true" />;
     default:
       return <Bell size={20} className={`${cls} text-on-surface-variant`} aria-hidden="true" />;
   }
 }
-
 // ── Relative timestamp ────────────────────────────────────────────────────────
 
 function relativeTime(isoString: string): string {
@@ -103,7 +122,7 @@ export default function AlertsPage() {
       const { data } = await supabase
         .from("notifications")
         .select(
-          "id, type, title, message, is_read, related_challenge_id, related_user_id, created_at"
+          "id, type, title, message, is_read, related_challenge_id, related_user_id, related_quest_id, created_at"
         )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
@@ -136,10 +155,17 @@ export default function AlertsPage() {
       }
 
       // Navigate
-      if (notif.related_challenge_id) {
+      if (notif.related_quest_id) {
+        router.push(`/quests/${notif.related_quest_id}`);
+      } else if (notif.related_challenge_id) {
         router.push(`/challenges/${notif.related_challenge_id}`);
       } else if (notif.related_user_id) {
         router.push(`/profile/${notif.related_user_id}`);
+      } else if (
+        notif.type === "business_verification_approved" ||
+        notif.type === "business_verification_rejected"
+      ) {
+        router.push("/business/dashboard");
       }
     },
     [markOneRead, router, supabase]

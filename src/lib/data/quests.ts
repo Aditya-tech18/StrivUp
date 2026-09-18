@@ -580,3 +580,111 @@ export async function markQuestVisited(
 
   return true;
 }
+
+/* ── Business Quest Detail (supports quest_status column) ─────────────── */
+
+export interface BusinessQuestDetail {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string | null;
+  business_name: string | null;
+  business_id: string | null;
+  cover_url: string | null;
+  thumbnail_url: string | null;
+  location_name: string | null;
+  destination_link: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  visibility: string;
+  quest_status: string;
+  rules: string | null;
+  eligibility: string | null;
+  participant_count: number;
+  view_count: number;
+  completion_count: number;
+  creator_id: string;
+  created_at: string;
+  tasks: {
+    id: string;
+    title: string;
+    description: string | null;
+    proof_type: string;
+    is_required: boolean;
+    sort_order: number;
+    instructions: string | null;
+  }[];
+  rewards: {
+    id: string;
+    title: string;
+    reward_type: string;
+    value: string | null;
+    rank_from: number | null;
+    rank_to: number | null;
+    is_leaderboard: boolean;
+  }[];
+  business_logo: string | null;
+  business_verification: string | null;
+}
+
+export async function getBusinessQuestDetail(
+  supabase: SupabaseClient,
+  id: string
+): Promise<BusinessQuestDetail | null> {
+  const { data, error } = await supabase
+    .from("quests")
+    .select(`
+      id, title, description, category, business_name, business_id,
+      cover_url, thumbnail_url, location_name, destination_link,
+      start_date, end_date, visibility, quest_status, rules, eligibility,
+      participant_count, view_count, completion_count, creator_id, created_at
+    `)
+    .eq("id", id)
+    .in("quest_status", ["active", "published", "completed"])
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.error("[getBusinessQuestDetail]", error.message);
+    return null;
+  }
+
+  // Fetch tasks
+  const { data: tasks } = await supabase
+    .from("quest_tasks")
+    .select("id,title,description,proof_type,is_required,sort_order,instructions")
+    .eq("quest_id", id)
+    .order("sort_order");
+
+  // Fetch rewards
+  const { data: rewards } = await supabase
+    .from("quest_rewards")
+    .select("id,title,reward_type,value,rank_from,rank_to,is_leaderboard")
+    .eq("quest_id", id);
+
+  // Fetch business logo if business_id exists
+  let businessLogo: string | null = null;
+  let businessVerification: string | null = null;
+  if (data.business_id) {
+    const { data: bp } = await supabase
+      .from("business_profiles")
+      .select("logo_url, verification_status")
+      .eq("id", data.business_id)
+      .maybeSingle();
+    businessLogo = bp?.logo_url ?? null;
+    businessVerification = bp?.verification_status ?? null;
+  }
+
+  // Track view event
+  supabase.from("quest_events").insert({
+    quest_id: id,
+    event_type: "view",
+  }).then(() => { /* fire and forget */ }, () => { /* ignore errors */ });
+
+  return {
+    ...data,
+    tasks: (tasks ?? []) as BusinessQuestDetail["tasks"],
+    rewards: (rewards ?? []) as BusinessQuestDetail["rewards"],
+    business_logo: businessLogo,
+    business_verification: businessVerification,
+  } as BusinessQuestDetail;
+}

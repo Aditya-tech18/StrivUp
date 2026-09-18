@@ -1,41 +1,35 @@
 /**
- * src/app/(app)/quests/[id]/page.tsx — Quest detail (server component)
+ * /quests/[id] — Quest detail (server component)
  *
- * Shows quest details with conditional UI based on:
- *  - Not joined: "Join Quest" CTA
- *  - Joined + proof_type='photo': upload area with state machine
- *  - Joined + proof_type='checkin': "Mark as Visited" button
- *  - Joined + proof_type='none': auto-approved on join
- *
- * Handles rejection reason + resubmit flow, and verification states.
+ * Supports both:
+ * - Legacy quests (status = 'active', proof_type simple)
+ * - Business quests (quest_status = 'active'|'published', with tasks/rewards)
  */
 
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getQuestDetail } from "@/lib/data/quests";
+import { getQuestDetail, getBusinessQuestDetail } from "@/lib/data/quests";
 import QuestDetailClient from "./QuestDetailClient";
+import BusinessQuestDetailClient from "./BusinessQuestDetailClient";
 
 export const dynamic = "force-dynamic";
 
-interface QuestDetailPageProps {
-  params: Promise<{ id: string }>;
-}
+interface Props { params: Promise<{ id: string }> }
 
-export default async function QuestDetailPage({ params }: QuestDetailPageProps) {
+export default async function QuestDetailPage({ params }: Props) {
   const { id } = await params;
-
   const supabase = await createClient();
-  const quest = await getQuestDetail(supabase, id);
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!quest) {
-    notFound();
+  // Try business quest first (has tasks/rewards)
+  const bizQuest = await getBusinessQuestDetail(supabase, id);
+  if (bizQuest && bizQuest.tasks.length > 0) {
+    return <BusinessQuestDetailClient quest={bizQuest} currentUserId={user?.id ?? null} />;
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Fallback to legacy quest
+  const quest = await getQuestDetail(supabase, id);
+  if (!quest) notFound();
 
-  return (
-    <QuestDetailClient quest={quest} currentUserId={user?.id ?? null} />
-  );
+  return <QuestDetailClient quest={quest} currentUserId={user?.id ?? null} />;
 }
