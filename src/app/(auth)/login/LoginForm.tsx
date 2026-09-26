@@ -119,7 +119,7 @@ export function LoginForm() {
         <div className="w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center">
           <Flame size={28} className="text-on-primary" aria-hidden="true" />
         </div>
-        <p className="type-label-caps text-secondary tracking-widest">STRIV</p>
+        <p className="type-label-caps text-secondary tracking-widest">STRIVUP</p>
       </div>
 
       {/* ── Headline ─────────────────────────────────────────────────── */}

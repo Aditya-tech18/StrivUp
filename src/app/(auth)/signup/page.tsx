@@ -3,8 +3,8 @@ import { SignupForm } from "./SignupForm";
 import { ValuePropPanel } from "../ValuePropPanel";
 
 export const metadata: Metadata = {
-  title: "Sign Up — STRIV",
-  description: "Create your STRIV account and start building better habits today.",
+  title: "Sign Up — STRIVUP",
+  description: "Create your STRIVUP account and start building better habits today.",
 };
 
 export default function SignupPage() {

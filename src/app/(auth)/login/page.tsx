@@ -3,8 +3,8 @@ import { LoginForm } from "./LoginForm";
 import { ValuePropPanel } from "../ValuePropPanel";
 
 export const metadata: Metadata = {
-  title: "Login — STRIV",
-  description: "Log in to your STRIV account and keep your streak alive.",
+  title: "Login — STRIVUP",
+  description: "Log in to your STRIVUP account and keep your streak alive.",
 };
 
 export default function LoginPage() {

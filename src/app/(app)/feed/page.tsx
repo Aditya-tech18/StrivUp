@@ -1,5 +1,5 @@
 /**
- * app/(app)/feed/page.tsx — STRIV Growth Feed
+ * app/(app)/feed/page.tsx — STRIVUP Growth Feed
  *
  * Server component: fetches approved proof_submissions joined with profiles
  * and challenges, ordered by submitted_at desc, limit 20.
@@ -30,7 +30,7 @@ export default async function FeedPage() {
               <Flame size={16} className="text-on-primary" aria-hidden="true" />
             </div>
             <span className="type-label-caps text-secondary tracking-widest font-semibold">
-              STRIV
+              STRIVUP
             </span>
           </div>
           {/* Settings */}

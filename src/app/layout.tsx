@@ -16,8 +16,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Striv",
-  description: "Striv — your social fitness companion",
+  title: "STRIVUP",
+  description: "STRIVUP — India's Platform for Growth",
 };
 
 export default function RootLayout({
