@@ -4,8 +4,8 @@ import { type HTMLAttributes } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Bell, Briefcase, CheckSquare, Compass,
-  Home, Plus, Search, ShieldCheck,
+  Bell, Briefcase, Compass, Home,
+  Plus, Search, Trophy, Users,
 } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
@@ -16,6 +16,8 @@ interface NavItem {
   icon: ComponentType<LucideProps>;
   label: string;
   showBadge?: boolean;
+  /** Keep this item active for any pathname under this prefix. */
+  activePrefix?: string;
 }
 
 const USER_ITEMS: NavItem[] = [
@@ -27,11 +29,11 @@ const USER_ITEMS: NavItem[] = [
 ];
 
 const BUSINESS_ITEMS: NavItem[] = [
-  { href: "/business/dashboard",          icon: Home,         label: "Home"    },
-  { href: "/business/quests",             icon: Compass,      label: "Quests"  },
-  { href: "/business/quests/new",         icon: Plus,         label: "Create"  },
-  { href: "/business/proof-verification", icon: CheckSquare,  label: "Proofs"  },
-  { href: "/business/verification",       icon: ShieldCheck,  label: "Verify"  },
+  { href: "/feed",                 icon: Home,      label: "Home"       },
+  { href: "/explore",              icon: Trophy,    label: "Challenges" },
+  { href: "/business/quests/new",  icon: Plus,      label: "Create"     },
+  { href: "/quests",               icon: Users,     label: "Quests"     },
+  { href: "/business/dashboard",   icon: Briefcase, label: "Business", activePrefix: "/business" },
 ];
 
 export type { NavItem };
@@ -61,6 +63,7 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
         const isCreate = item.href.endsWith("/new");
         const isActive = !isCreate && (
           pathname === item.href ||
+          (item.activePrefix !== undefined && pathname.startsWith(item.activePrefix)) ||
           (item.href !== "/feed" && item.href !== "/business/dashboard" && pathname.startsWith(item.href))
         );
         const Icon = item.icon;

@@ -287,15 +287,24 @@ export async function getBusinessVerifications(
 
 /**
  * Verification insights: total / approved / pending / rejected counts.
+ * Pass `sinceDays` to only count requests created in the last N days (all-time when omitted).
  */
 export async function getVerificationInsights(
   supabase: SupabaseClient,
-  businessId: string
+  businessId: string,
+  sinceDays?: number
 ): Promise<{ total: number; approved: number; pending: number; rejected: number }> {
-  const { data, error } = await supabase
+  let query = supabase
     .from("business_verification_requests")
     .select("status")
     .eq("business_id", businessId);
+
+  if (sinceDays !== undefined) {
+    const since = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000).toISOString();
+    query = query.gte("created_at", since);
+  }
+
+  const { data, error } = await query;
 
   if (error || !data) return { total: 0, approved: 0, pending: 0, rejected: 0 };
 
