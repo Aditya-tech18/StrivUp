@@ -271,7 +271,7 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {/* Sticky save bar */}
-      <div className="fixed bottom-16 md:bottom-0 left-0 md:left-64 right-0 z-30 bg-surface/95 backdrop-blur-sm border-t border-outline-variant px-4 py-3">
+      <div className="fixed above-bottom-nav z-30 bg-surface/95 backdrop-blur-sm border-t border-outline-variant px-4 py-3">
         <div className="max-w-2xl mx-auto flex gap-3">
           <Button type="button" variant="outline" onClick={() => router.back()} className="flex-shrink-0">
             Cancel

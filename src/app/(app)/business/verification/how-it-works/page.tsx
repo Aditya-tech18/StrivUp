@@ -63,7 +63,7 @@ export default function HowItWorksPage() {
         ))}
       </div>
 
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 px-5 py-4">
+      <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4">
         <button onClick={() => router.back()}
           className="w-full h-12 rounded-xl bg-blue-600 text-white font-bold text-[15px]">
           Got it

@@ -36,7 +36,7 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-5 py-5 pb-28 max-w-lg mx-auto w-full">{children}</div>
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 px-5 py-4 safe-area-bottom">
+      <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4">
         <button onClick={onNext} disabled={nextDisabled || saving}
           className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold flex items-center justify-center gap-2 transition-all">
           {saving ? "Saving…" : <>{nextLabel} <ChevronRight size={18} /></>}
@@ -516,7 +516,7 @@ function CreateQuestContent() {
         )}
       </div>
 
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 px-5 py-4 flex flex-col gap-2">
+      <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4 flex flex-col gap-2">
         {isVerified && (
           <button onClick={handlePublish} disabled={saving}
             className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold text-[15px] transition-all">
