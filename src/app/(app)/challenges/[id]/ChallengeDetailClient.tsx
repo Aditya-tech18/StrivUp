@@ -703,7 +703,7 @@ export function ChallengeDetailClient({
               <Flame size={16} className="text-on-primary" aria-hidden="true" />
             </div>
             <span className="type-label-caps text-secondary tracking-widest font-semibold">
-              STRIV
+              STRIVUP
             </span>
           </div>
           <div className="flex items-center gap-1">

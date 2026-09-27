@@ -87,7 +87,7 @@ export default async function ExplorePage() {
             <div className="w-7 h-7 rounded-lg bg-primary-container flex items-center justify-center">
               <Flame size={16} className="text-on-primary" />
             </div>
-            <span className="type-label-caps text-secondary tracking-widest font-semibold">STRIV</span>
+            <span className="type-label-caps text-secondary tracking-widest font-semibold">STRIVUP</span>
           </div>
           <Link href="/search"
             className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors">
