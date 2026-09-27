@@ -68,6 +68,7 @@ function CreateQuestContent() {
   const [category, setCategory] = useState("");
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [taskImageUploading, setTaskImageUploading] = useState<number | null>(null);
   const [destinationLink, setDestinationLink] = useState("");
   const [locationName, setLocationName] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -157,7 +158,12 @@ function CreateQuestContent() {
         await upsertQuestTask(supabase, { ...row, quest_id: questId, sort_order: i } as Partial<QuestTask> & { quest_id: string });
       }
       setStep(3);
-    } catch(e) { setError(e instanceof Error ? e.message : "Failed to save tasks"); }
+    } catch(e) {
+      const msg = e instanceof Error ? e.message : "Failed to save tasks";
+      setError(/image_url|order_link|order_verification/.test(msg)
+        ? "This task uses a feature that isn't switched on yet (task photos or order verification). Remove it or try again later."
+        : msg);
+    }
     finally { setSaving(false); }
   }, [questId, tasks, supabase]);
 
@@ -205,6 +211,22 @@ function CreateQuestContent() {
 
   const handleSaveDraft = async () => {
     router.push("/business/quests");
+  };
+
+  const handleTaskImage = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; e.target.value = ""; if (!file) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    setTaskImageUploading(index);
+    try {
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `${user.id}/quest-tasks/${Date.now()}-${index}.${ext}`;
+      const { error } = await supabase.storage.from("proof-media").upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from("proof-media").getPublicUrl(path);
+      setTasks(prev => prev.map((t, j) => j === index ? { ...t, image_url: data.publicUrl } : t));
+    } catch(err) { setError(err instanceof Error ? err.message : "Upload failed"); }
+    finally { setTaskImageUploading(null); }
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -307,6 +329,23 @@ function CreateQuestContent() {
             </div>
             <input aria-label="Task title" value={task.title ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, title: e.target.value } : t))}
               placeholder="Task title *" className="w-full h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:border-blue-500 focus:bg-white" />
+            <div className="flex items-center gap-3">
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center">
+                {taskImageUploading === i
+                  ? <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                  : task.image_url
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={task.image_url} alt={task.title ? `${task.title} photo` : "Task photo"} className="h-full w-full object-cover" />
+                    : <Upload size={18} className="text-gray-400" aria-hidden="true" />}
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="inline-flex h-9 cursor-pointer items-center rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-800 hover:bg-gray-50">
+                  {task.image_url ? "Change task photo" : "Add task photo"}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e => handleTaskImage(i, e)} />
+                </label>
+                <span className="text-[11px] text-gray-600">Square photo of this item · shown on the Quest page</span>
+              </div>
+            </div>
             <textarea aria-label="Task description" value={task.description ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, description: e.target.value } : t))}
               placeholder="Task description..." rows={2}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:bg-white resize-none" />

@@ -583,6 +583,21 @@ export async function markQuestVisited(
 
 /* ── Business Quest Detail (supports quest_status column) ─────────────── */
 
+export interface QuestBusinessInfo {
+  id: string;
+  name: string | null;
+  logo_url: string | null;
+  verified: boolean;
+  category: string | null;
+  description: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  phone: string | null;
+  website: string | null;
+}
+
 export interface BusinessQuestDetail {
   id: string;
   title: string;
@@ -613,16 +628,22 @@ export interface BusinessQuestDetail {
     is_required: boolean;
     sort_order: number;
     instructions: string | null;
+    image_url?: string | null;
+    order_link_zomato?: string | null;
+    order_link_swiggy?: string | null;
   }[];
   rewards: {
     id: string;
     title: string;
+    description: string | null;
     reward_type: string;
     value: string | null;
     rank_from: number | null;
     rank_to: number | null;
     is_leaderboard: boolean;
   }[];
+  /** null when the business profile isn't publicly readable (not yet verified). */
+  business: QuestBusinessInfo | null;
   business_logo: string | null;
   business_verification: string | null;
 }
@@ -648,31 +669,32 @@ export async function getBusinessQuestDetail(
     return null;
   }
 
-  // Fetch tasks
-  const { data: tasks } = await supabase
-    .from("quest_tasks")
-    .select("id,title,description,proof_type,is_required,sort_order,instructions")
-    .eq("quest_id", id)
-    .order("sort_order");
+  // select("*") so optional columns (image_url, order links) appear once
+  // their migrations are applied, without breaking before.
+  const [{ data: tasks }, { data: rewards }, { data: bp }] = await Promise.all([
+    supabase.from("quest_tasks").select("*").eq("quest_id", id).order("sort_order"),
+    supabase.from("quest_rewards")
+      .select("id,title,description,reward_type,value,rank_from,rank_to,is_leaderboard")
+      .eq("quest_id", id).order("rank_from", { ascending: true, nullsFirst: false }),
+    data.business_id
+      ? supabase.from("business_profiles").select("*").eq("id", data.business_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
 
-  // Fetch rewards
-  const { data: rewards } = await supabase
-    .from("quest_rewards")
-    .select("id,title,reward_type,value,rank_from,rank_to,is_leaderboard")
-    .eq("quest_id", id);
-
-  // Fetch business logo if business_id exists
-  let businessLogo: string | null = null;
-  let businessVerification: string | null = null;
-  if (data.business_id) {
-    const { data: bp } = await supabase
-      .from("business_profiles")
-      .select("logo_url, verification_status")
-      .eq("id", data.business_id)
-      .maybeSingle();
-    businessLogo = bp?.logo_url ?? null;
-    businessVerification = bp?.verification_status ?? null;
-  }
+  const business: QuestBusinessInfo | null = bp ? {
+    id: bp.id as string,
+    name: (bp.business_name as string | null) ?? data.business_name,
+    logo_url: (bp.logo_url as string | null) ?? null,
+    verified: bp.verification_status === "verified",
+    category: (bp.category as string | null) ?? null,
+    description: (bp.description as string | null) ?? null,
+    address: (bp.address as string | null) ?? null,
+    city: (bp.city as string | null) ?? null,
+    state: (bp.state as string | null) ?? null,
+    pincode: (bp.pincode as string | null) ?? null,
+    phone: (bp.business_phone as string | null) ?? null,
+    website: (bp.website as string | null) ?? null,
+  } : null;
 
   // Track view event
   supabase.from("quest_events").insert({
@@ -684,7 +706,8 @@ export async function getBusinessQuestDetail(
     ...data,
     tasks: (tasks ?? []) as BusinessQuestDetail["tasks"],
     rewards: (rewards ?? []) as BusinessQuestDetail["rewards"],
-    business_logo: businessLogo,
-    business_verification: businessVerification,
+    business,
+    business_logo: business?.logo_url ?? null,
+    business_verification: bp ? (bp.verification_status as string) : null,
   } as BusinessQuestDetail;
 }

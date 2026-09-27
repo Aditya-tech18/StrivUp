@@ -24,7 +24,12 @@ export default async function QuestDetailPage({ params }: Props) {
   // Try business quest first (has tasks/rewards)
   const bizQuest = await getBusinessQuestDetail(supabase, id);
   if (bizQuest && bizQuest.tasks.length > 0) {
-    return <BusinessQuestDetailClient quest={bizQuest} currentUserId={user?.id ?? null} />;
+    let currentUserName: string | null = null;
+    if (user) {
+      const { data: me } = await supabase.from("profiles").select("full_name, username").eq("id", user.id).maybeSingle();
+      currentUserName = (me?.full_name as string | null)?.split(" ")[0] ?? (me?.username as string | null) ?? null;
+    }
+    return <BusinessQuestDetailClient quest={bizQuest} currentUserId={user?.id ?? null} currentUserName={currentUserName} />;
   }
 
   // Fallback to legacy quest

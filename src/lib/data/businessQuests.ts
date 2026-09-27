@@ -21,6 +21,8 @@ export interface QuestTask {
   /** Order Verification tasks: where "Order on Zomato / Swiggy" sends participants. */
   order_link_zomato?: string | null;
   order_link_swiggy?: string | null;
+  /** Thumbnail shown on the Quest detail page (quest_task_images migration). */
+  image_url?: string | null;
   created_at: string;
 }
 
