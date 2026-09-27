@@ -135,7 +135,7 @@ export default function InterestsPage() {
       </div>
 
       {/* Bottom save bar */}
-      <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-outline-variant px-5 py-4">
+      <div className="fixed above-bottom-nav z-40 bg-white/95 backdrop-blur-md border-t border-outline-variant px-5 py-4">
         <div className="max-w-lg mx-auto flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <p className="text-[13px] text-on-surface-variant">

@@ -3,9 +3,10 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Camera, Check, ChevronRight, Edit2, Flame,
-  Loader2, Plus, Settings, ShieldCheck, Trash2, X,
+  Camera, Check, ChevronRight, Crown, Edit2, Flame,
+  Loader2, Plus, Settings, ShieldCheck, Trash2, Trophy, X,
 } from "lucide-react";
+import Link from "next/link";
 import {
   getMyProfile, upsertMyProfile,
   getMySocialLinks, addMySocialLink, deleteMySocialLink,
@@ -636,6 +637,30 @@ export default function ProfilePage() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Creator tools */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/creator/challenges"
+            className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 flex items-center gap-3 active:scale-[0.98] transition-transform">
+            <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
+              <Trophy size={18} className="text-secondary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] font-bold text-on-surface leading-tight">My Challenges</p>
+              <p className="text-[11px] text-on-surface-variant">Created by you</p>
+            </div>
+          </Link>
+          <Link href="/creator/pro"
+            className="bg-gray-950 rounded-2xl p-4 flex items-center gap-3 active:scale-[0.98] transition-transform">
+            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+              <Crown size={18} className="text-amber-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] font-bold text-white leading-tight">Creator Pro</p>
+              <p className="text-[11px] text-gray-400">Grow your reach</p>
+            </div>
+          </Link>
         </div>
 
         {/* Active Challenges */}

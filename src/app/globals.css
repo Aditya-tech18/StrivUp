@@ -156,3 +156,28 @@ body {
   -ms-overflow-style: none;   /* IE 10+ */
   scrollbar-width: none;      /* Firefox */
 }
+
+/* ─── Mobile shell: bottom nav height + iOS safe area ─────────────────────── */
+/* BottomNav is 4rem tall plus the home-indicator inset on notched phones.     */
+:root {
+  --bottom-nav-h: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Page content never hides behind the bottom nav. */
+.pb-bottom-nav { padding-bottom: var(--bottom-nav-h); }
+
+/* Sticky action bars sit just above the bottom nav on mobile, and at the     */
+/* viewport bottom (right of the 16rem sidebar) on desktop.                    */
+.above-bottom-nav {
+  bottom: var(--bottom-nav-h);
+  left: 0;
+  right: 0;
+}
+
+/* The nav itself pads its content away from the home indicator. */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+@media (min-width: 768px) {
+  .pb-bottom-nav { padding-bottom: 0; }
+  .above-bottom-nav { bottom: 0; left: 16rem; }
+}

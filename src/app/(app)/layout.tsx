@@ -40,7 +40,7 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
         </aside>
 
         {/* ── Main content ────────────────────────────────────────────── */}
-        <main className="flex-1 md:ml-64 pb-16 md:pb-0">
+        <main className="flex-1 min-w-0 md:ml-64 pb-bottom-nav">
           {children}
         </main>
 

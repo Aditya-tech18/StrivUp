@@ -40,7 +40,7 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-5 py-6 pb-32 max-w-lg mx-auto w-full">{children}</div>
       {/* Sticky CTA */}
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 px-5 py-4 safe-area-bottom">
+      <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4">
         <button
           onClick={onNext}
           disabled={nextDisabled || saving}
@@ -336,7 +336,7 @@ export default function BusinessOnboardingPage() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 px-5 py-4 flex flex-col gap-2">
+      <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4 flex flex-col gap-2">
         <button onClick={async () => {
           setSaving(true); setError(null);
           try {

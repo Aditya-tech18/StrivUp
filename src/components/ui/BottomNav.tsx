@@ -51,7 +51,7 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
       aria-label="Bottom navigation"
       className={[
         "fixed bottom-0 left-0 right-0 z-50",
-        "flex h-16 items-stretch",
+        "flex h-[var(--bottom-nav-h)] items-stretch pb-safe",
         "bg-white border-t border-gray-100",
         "shadow-[0_-1px_0_0_rgba(0,0,0,0.05)]",
         "md:hidden",

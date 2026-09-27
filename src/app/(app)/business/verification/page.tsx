@@ -377,7 +377,7 @@ function VerifyContent() {
         </div>
 
         {/* Sticky buttons */}
-        <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 px-5 py-4 flex gap-3">
+        <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4 flex gap-3">
           <button onClick={handleReject} disabled={rejecting || approving}
             className="flex-1 h-12 rounded-xl border-2 border-red-500 text-red-600 font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
             {rejecting ? <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" /> : <><XCircle size={18} /> Reject</>}

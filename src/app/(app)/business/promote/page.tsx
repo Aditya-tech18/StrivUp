@@ -176,7 +176,7 @@ export default function PromotePage() {
 
       {/* Sticky CTA */}
       {selectedBudget && quests.length > 0 && (
-        <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 px-5 py-4">
+        <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4">
           <div className="max-w-lg mx-auto flex flex-col gap-2">
             <div className="flex items-center justify-between text-sm mb-1">
               <span className="text-gray-500">Selected budget:</span>

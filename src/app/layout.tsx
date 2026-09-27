@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -18,6 +18,14 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "STRIVUP",
   description: "STRIVUP — India's Platform for Growth",
+};
+
+/** viewportFit "cover" exposes env(safe-area-inset-*) on notched phones. */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({

@@ -244,7 +244,7 @@ export default function BusinessQuestDetailClient({ quest, currentUserId }: Prop
 
       {/* Sticky CTA */}
       {!loading && (
-        <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 px-5 py-4 safe-area-bottom">
+        <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4">
           {hasJoined ? (
             <Link href={`/quests/${quest.id}/tasks`}>
               <button className="w-full h-12 rounded-xl bg-blue-600 text-white font-bold text-[15px]">
