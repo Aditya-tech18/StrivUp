@@ -3,11 +3,15 @@
  * /quests/[id]/tasks — User task progress page for a business Quest.
  * Shows all tasks, their submission status, allows uploading proof (max 2 images).
  */
-import { useEffect, useState, use } from "react";
+import { useCallback, useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, CheckCircle2, Clock, Lock, Upload, X, XCircle } from "lucide-react";
+import { ArrowLeft, Check, CheckCircle2, Clock, HelpCircle, Trophy, Upload, X, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  getMyOrderRequests, getQuestLeaderboard, type LeaderboardRow, type OrderRequest,
+} from "@/lib/data/orderVerification";
+import { OrderVerificationTask } from "./OrderVerificationTask";
 
 interface QuestTask {
   id: string;
@@ -17,6 +21,8 @@ interface QuestTask {
   is_required: boolean;
   sort_order: number;
   instructions: string | null;
+  order_link_zomato?: string | null;
+  order_link_swiggy?: string | null;
 }
 
 interface TaskSubmission {
@@ -56,12 +62,13 @@ const PROOF_LABEL: Record<string, string> = {
   location: "Location check-in",
   manual: "Manual verification required",
   none: "No proof required",
+  order_verification: "Order verification · Zomato / Swiggy",
 };
 
 export default function QuestTasksPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: questId } = use(params);
   const router = useRouter();
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   const [loading, setLoading] = useState(true);
   const [quest, setQuest] = useState<QuestInfo | null>(null);
@@ -69,6 +76,8 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
   const [submissions, setSubmissions] = useState<Map<string, TaskSubmission>>(new Map());
   const [isParticipant, setIsParticipant] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [orderRequests, setOrderRequests] = useState<Map<string, OrderRequest>>(new Map());
+  const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
 
   // Upload state per task
   const [uploading, setUploading] = useState<string | null>(null);
@@ -101,10 +110,38 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
         subMap.set(s.task_id, s as TaskSubmission);
       }
       setSubmissions(subMap);
+      const [reqs, board] = await Promise.all([
+        getMyOrderRequests(supabase, questId, user.id),
+        getQuestLeaderboard(supabase, questId),
+      ]);
+      setOrderRequests(reqs);
+      setLeaderboard(board);
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questId]);
+
+  // Business verification happens elsewhere; re-check when the user comes back
+  // to the app (e.g. after placing the order in Zomato/Swiggy).
+  const refreshOrders = useCallback(async () => {
+    if (!userId) return;
+    setOrderRequests(await getMyOrderRequests(supabase, questId, userId));
+  }, [supabase, questId, userId]);
+
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === "visible") refreshOrders(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [refreshOrders]);
+
+  const handleOrderCompleted = async (taskId: string) => {
+    setSubmissions(prev => new Map(prev).set(taskId, {
+      id: `local-${taskId}`, task_id: taskId, verification_status: "approved", media_url: null, media_url_2: null,
+      caption: null, rejection_reason: null, submitted_at: new Date().toISOString(),
+    }));
+    await refreshOrders();
+    setLeaderboard(await getQuestLeaderboard(supabase, questId));
+  };
 
   const handleFileSelect = (taskId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -201,16 +238,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
       setSelectedFiles(prev => ({ ...prev, [task.id]: [] }));
       setPreviewUrls(prev => ({ ...prev, [task.id]: [] }));
       setCaption(prev => ({ ...prev, [task.id]: "" }));
-
-      // Notify if all tasks approved
-      const allApproved = tasks.every(t => {
-        const s = t.id === task.id ? data : submissions.get(t.id);
-        return !t.is_required || s?.verification_status === "approved";
-      });
-      if (allApproved) {
-        await supabase.from("quest_participants").update({ completed_at: new Date().toISOString(), verification_status: "approved" })
-          .eq("quest_id", questId).eq("user_id", userId);
-      }
+      // Quest completion is evaluated server-side when tasks are approved.
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -284,6 +312,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
           const previews = previewUrls[task.id] ?? [];
           const isApproved = sub?.verification_status === "approved";
           const canResubmit = sub?.verification_status === "rejected" || sub?.verification_status === "resubmission_required";
+          const isOrderTask = task.proof_type === "order_verification";
           const needsFile = !["none","manual"].includes(task.proof_type);
           const hasExistingMedia = !!(sub?.media_url);
           const existingCount = hasExistingMedia ? (sub?.media_url_2 ? 2 : 1) : 0;
@@ -310,7 +339,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
               </div>
 
               {/* Status badge */}
-              {sc && (
+              {sc && !isOrderTask && (
                 <div className={`flex items-center gap-2 px-4 py-2.5 border-b border-gray-50 ${sc.cls}`}>
                   <sc.icon size={14} />
                   <span className="text-xs font-semibold">{sc.label}</span>
@@ -321,7 +350,19 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
               )}
 
               {/* Submission area — only if not approved or can resubmit */}
-              {isParticipant && !isApproved && (!sub || canResubmit) && (
+              {isOrderTask && (
+                <OrderVerificationTask
+                  task={task}
+                  request={orderRequests.get(task.id)}
+                  completed={isApproved}
+                  isParticipant={isParticipant}
+                  onRequestChange={req => setOrderRequests(prev => new Map(prev).set(task.id, req))}
+                  onCompleted={() => handleOrderCompleted(task.id)}
+                  onRefresh={refreshOrders}
+                />
+              )}
+
+              {!isOrderTask && isParticipant && !isApproved && (!sub || canResubmit) && (
                 <div className="p-4 flex flex-col gap-3">
                   {/* Existing uploaded images */}
                   {hasExistingMedia && (
@@ -399,9 +440,36 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
               <CheckCircle2 size={28} className="text-white" />
             </div>
             <h3 className="text-[17px] font-black text-green-900">Quest Completed! 🎉</h3>
-            <p className="text-sm text-green-700">All tasks approved. Rewards will be announced by the business.</p>
+            <p className="text-sm text-green-700">All tasks verified. Reward eligibility follows this Quest&apos;s published reward conditions.</p>
           </div>
         )}
+
+        {/* Leaderboard — verified progress only */}
+        {leaderboard.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 pt-4">
+              <Trophy size={18} className="text-amber-500" />
+              <h2 className="text-[15px] font-black text-gray-900 flex-1">Leaderboard</h2>
+              <span className="text-[11px] text-gray-600">Verified tasks only</span>
+            </div>
+            <ol className="mt-2 divide-y divide-gray-50">
+              {leaderboard.map(row => (
+                <li key={row.user_id} className={`flex items-center gap-3 px-4 py-2.5 ${row.is_me ? "bg-blue-50" : ""}`}>
+                  <span className={`w-8 text-sm font-black ${row.rank <= 3 ? "text-amber-600" : "text-gray-600"}`}>#{row.rank}</span>
+                  <span className="flex-1 truncate text-sm font-semibold text-gray-900">{row.is_me ? "You" : row.display_name}</span>
+                  <span className="text-sm font-black text-gray-900">{row.completed_tasks}<span className="text-xs font-medium text-gray-600">/{totalRequired}</span></span>
+                </li>
+              ))}
+            </ol>
+            <p className="px-4 py-3 text-[11px] text-gray-600 border-t border-gray-50">
+              Ranked by verified tasks. Ties go to whoever completed their latest verification first.
+            </p>
+          </div>
+        )}
+
+        <Link href="/how-quests-work" className="flex items-center justify-center gap-1.5 text-sm font-semibold text-blue-700">
+          <HelpCircle size={15} /> How Quests work
+        </Link>
       </div>
     </div>
   );

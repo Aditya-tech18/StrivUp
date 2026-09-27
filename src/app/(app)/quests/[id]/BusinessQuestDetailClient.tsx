@@ -21,6 +21,12 @@ interface Props {
 const PROOF_ICON: Record<string, string> = {
   photo: "📷", video: "🎥", screenshot: "📸", photo_text: "📝",
   qr: "🔲", bill_document: "📄", location: "📍", manual: "✋", none: "✅",
+  order_verification: "🧾",
+};
+
+const PROOF_NAME: Record<string, string> = {
+  order_verification: "Order verification", photo_text: "Photo + text", bill_document: "Bill / document",
+  none: "No proof", manual: "Manual", qr: "QR code",
 };
 
 const REWARD_ICON: Record<string, string> = {
@@ -170,7 +176,7 @@ export default function BusinessQuestDetailClient({ quest, currentUserId }: Prop
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-bold text-gray-900">{task.title}</p>
                       {task.is_required && <span className="text-[10px] font-semibold text-red-500">Required</span>}
-                      <span className="text-xs text-gray-600">{PROOF_ICON[task.proof_type] ?? "📋"} {task.proof_type}</span>
+                      <span className="text-xs text-gray-600">{PROOF_ICON[task.proof_type] ?? "📋"} {PROOF_NAME[task.proof_type] ?? task.proof_type}</span>
                     </div>
                     {task.description && <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{task.description}</p>}
                     {task.instructions && <p className="text-xs text-blue-600 mt-1 italic">ℹ {task.instructions}</p>}
@@ -178,6 +184,20 @@ export default function BusinessQuestDetailClient({ quest, currentUserId }: Prop
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Verification method */}
+        {quest.tasks.some(t => t.proof_type === "order_verification") && (
+          <div className="bg-white rounded-2xl border border-blue-100 p-5">
+            <h3 className="text-[15px] font-black text-gray-900 mb-2">How your order is verified</h3>
+            <ol className="flex flex-col gap-1.5 text-sm text-gray-700">
+              <li><span className="font-bold text-blue-700">1.</span> Add the eligible item on Zomato or Swiggy, then tap <span className="font-semibold">Post Proof</span> for a code.</li>
+              <li><span className="font-bold text-blue-700">2.</span> Put the code in your order description and place the order.</li>
+              <li><span className="font-bold text-blue-700">3.</span> The business verifies it and writes a new code on your bill.</li>
+              <li><span className="font-bold text-blue-700">4.</span> Enter the bill code in STRIVUP — your task completes.</li>
+            </ol>
+            <Link href="/how-quests-work" className="mt-3 inline-block text-sm font-semibold text-blue-700 underline">Full guide</Link>
           </div>
         )}
 

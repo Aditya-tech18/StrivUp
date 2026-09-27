@@ -5,6 +5,7 @@
  */
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { ChevronLeft, ChevronRight, GripVertical, Plus, Trash2, Upload, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessProfile } from "@/lib/data/business";
@@ -151,7 +152,9 @@ function CreateQuestContent() {
       for (let i = 0; i < tasks.length; i++) {
         const t = tasks[i];
         if (!t.title?.trim()) continue;
-        await upsertQuestTask(supabase, { ...t, quest_id: questId, sort_order: i } as Partial<QuestTask> & { quest_id: string });
+        const row: Partial<QuestTask> = { ...t };
+        if (row.proof_type !== "order_verification") { delete row.order_link_zomato; delete row.order_link_swiggy; }
+        await upsertQuestTask(supabase, { ...row, quest_id: questId, sort_order: i } as Partial<QuestTask> & { quest_id: string });
       }
       setStep(3);
     } catch(e) { setError(e instanceof Error ? e.message : "Failed to save tasks"); }
@@ -310,7 +313,11 @@ function CreateQuestContent() {
             <div className="flex gap-3">
               <div className="flex-1">
                 <label className="text-[10px] font-semibold text-gray-600 uppercase tracking-wider mb-1 block">Proof Type</label>
-                <select aria-label="Proof Type" value={task.proof_type ?? "photo"} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, proof_type: e.target.value as ProofType } : t))}
+                <select aria-label="Proof Type" value={task.proof_type ?? "photo"} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? {
+                    ...t,
+                    proof_type: e.target.value as ProofType,
+                    instructions: e.target.value === "order_verification" && !t.instructions?.trim() ? ORDER_INSTRUCTIONS : t.instructions,
+                  } : t))}
                   className="w-full h-9 rounded-xl border border-gray-200 bg-gray-50 px-3 text-xs text-gray-700 focus:outline-none focus:border-blue-500">
                   {PROOF_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                 </select>
@@ -324,6 +331,24 @@ function CreateQuestContent() {
                 </label>
               </div>
             </div>
+            {task.proof_type === "order_verification" && (
+              <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 flex flex-col gap-2">
+                <p className="text-xs text-blue-900 leading-relaxed">
+                  <span className="font-bold">Two-step order verification.</span> The participant taps Post Proof and adds their
+                  STRIVUP order code to the Zomato/Swiggy order note. You search that code in <span className="font-semibold">Verify Order</span>,
+                  confirm it, and write the new bill code STRIVUP gives you on their bill. The task completes when they enter the bill code.{" "}
+                  <Link href="/how-quests-work" className="font-semibold underline">How it works</Link>
+                </p>
+                <input aria-label="Zomato order link (optional)" type="url" inputMode="url" value={task.order_link_zomato ?? ""}
+                  onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, order_link_zomato: e.target.value || null } : t))}
+                  placeholder="Zomato link to your outlet or item (optional)"
+                  className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:border-blue-500" />
+                <input aria-label="Swiggy order link (optional)" type="url" inputMode="url" value={task.order_link_swiggy ?? ""}
+                  onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, order_link_swiggy: e.target.value || null } : t))}
+                  placeholder="Swiggy link to your outlet or item (optional)"
+                  className="w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:border-blue-500" />
+              </div>
+            )}
             <textarea aria-label="Instructions for participants (optional)" value={task.instructions ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, instructions: e.target.value } : t))}
               placeholder="Instructions for participants (optional)..." rows={2}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:bg-white resize-none" />
@@ -531,6 +556,9 @@ function CreateQuestContent() {
     </div>
   );
 }
+
+const ORDER_INSTRUCTIONS =
+  "Select an eligible item on Zomato or Swiggy. Before placing the order, tap Post Proof in STRIVUP to get your verification code and add it to the order description.";
 
 export default function CreateQuestPage() {
   return <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#F8F9FC]"><div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>}><CreateQuestContent /></Suspense>;

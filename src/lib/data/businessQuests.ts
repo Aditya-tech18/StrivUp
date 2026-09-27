@@ -6,7 +6,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type QuestStatus = "draft"|"pending_review"|"published"|"active"|"paused"|"completed"|"expired"|"rejected"|"cancelled"|"archived";
-export type ProofType = "photo"|"video"|"screenshot"|"photo_text"|"qr"|"bill_document"|"location"|"manual"|"none";
+export type ProofType = "order_verification"|"photo"|"video"|"screenshot"|"photo_text"|"qr"|"bill_document"|"location"|"manual"|"none";
 export type RewardType = "cash"|"coupon"|"gift_card"|"discount"|"product"|"subscription"|"voucher"|"certificate"|"internship"|"custom"|"other";
 
 export interface QuestTask {
@@ -18,6 +18,9 @@ export interface QuestTask {
   is_required: boolean;
   sort_order: number;
   instructions: string | null;
+  /** Order Verification tasks: where "Order on Zomato / Swiggy" sends participants. */
+  order_link_zomato?: string | null;
+  order_link_swiggy?: string | null;
   created_at: string;
 }
 
@@ -89,6 +92,7 @@ export const QUEST_CATEGORIES = [
 ] as const;
 
 export const PROOF_TYPES: { value: ProofType; label: string }[] = [
+  { value: "order_verification", label: "🧾 Order Verification (2-step code)" },
   { value: "photo",         label: "📷 Photo" },
   { value: "video",         label: "🎥 Video" },
   { value: "screenshot",    label: "📸 Screenshot" },
@@ -264,12 +268,14 @@ export async function reviewSubmission(
 
 /* ── Analytics ───────────────────────────────────────────────────── */
 export async function getQuestAnalytics(supabase: SupabaseClient, questId: string) {
-  const [questRes, eventsRes, participantsRes, submissionsRes] = await Promise.all([
+  const [questRes, eventsRes, participantsRes, submissionsRes, ordersRes] = await Promise.all([
     supabase.from("quests").select("view_count,participant_count,completion_count").eq("id", questId).single(),
     supabase.from("quest_events").select("event_type, created_at").eq("quest_id", questId),
     supabase.from("quest_participants").select("verification_status, joined_at, completed_at").eq("quest_id", questId),
     supabase.from("quest_task_submissions").select("verification_status, task_id").eq("quest_id", questId),
+    supabase.from("business_verification_requests").select("status").eq("quest_id", questId),
   ]);
+  const orders = (ordersRes.data ?? []) as { status: string }[];
   const quest = questRes.data;
   const events = eventsRes.data ?? [];
   const participants = participantsRes.data ?? [];
@@ -289,5 +295,10 @@ export async function getQuestAnalytics(supabase: SupabaseClient, questId: strin
     rejectedProofs: rejected,
     approvalRate: (approved+rejected) > 0 ? Math.round((approved/(approved+rejected))*100) : 0,
     eventTimeline: events,
+    // Two-stage order verification funnel
+    orderCodesGenerated: orders.length,
+    ordersVerified: orders.filter(o => o.status === "approved" || o.status === "completed").length,
+    billCodesEntered: orders.filter(o => o.status === "completed").length,
+    ordersRejected: orders.filter(o => o.status === "rejected").length,
   };
 }

@@ -17,6 +17,10 @@ interface Analytics {
   rejectedProofs: number;
   approvalRate: number;
   eventTimeline: { event_type: string; created_at: string }[];
+  orderCodesGenerated: number;
+  ordersVerified: number;
+  billCodesEntered: number;
+  ordersRejected: number;
 }
 
 function MetricCard({ label, value, sub, color = "text-gray-900" }: { label: string; value: string | number; sub?: string; color?: string }) {
@@ -131,13 +135,20 @@ export default function AnalyticsPage() {
                     <h3 className="text-[15px] font-black text-gray-900">Quest Funnel</h3>
                   </div>
                   <div className="flex flex-col gap-3">
-                    {[
+                    {(analytics.orderCodesGenerated > 0 ? [
+                      { label: "Views",                 value: analytics.views,               color: "bg-blue-400" },
+                      { label: "Joins",                 value: analytics.joins,               color: "bg-blue-500" },
+                      { label: "Proof codes generated", value: analytics.orderCodesGenerated, color: "bg-indigo-500" },
+                      { label: "Orders verified",       value: analytics.ordersVerified,      color: "bg-amber-500" },
+                      { label: "Bill codes entered",    value: analytics.billCodesEntered,    color: "bg-green-500" },
+                      { label: "Quest completions",     value: analytics.completions,         color: "bg-purple-500" },
+                    ] : [
                       { label: "Views",          value: analytics.views,                  color: "bg-blue-400" },
                       { label: "Joins",          value: analytics.joins,                  color: "bg-blue-500" },
                       { label: "Proofs Submitted",value: analytics.approvedProofs + analytics.rejectedProofs + analytics.pendingProofs, color: "bg-indigo-500" },
                       { label: "Proofs Approved",value: analytics.approvedProofs,         color: "bg-green-500" },
                       { label: "Completions",    value: analytics.completions,            color: "bg-purple-500" },
-                    ].map(row => (
+                    ]).map(row => (
                       <FunnelBar key={row.label} label={row.label} value={row.value} max={Math.max(analytics.views, 1)} color={row.color} />
                     ))}
                   </div>
