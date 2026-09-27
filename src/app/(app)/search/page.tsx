@@ -104,9 +104,9 @@ export default function SearchPage() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-outline-variant">
         <div className="max-w-lg mx-auto px-5 py-3">
-          <div className="flex items-center gap-2 bg-surface-container rounded-xl border border-outline-variant px-4 h-11">
+          <div className="flex items-center gap-2 bg-surface-container rounded-xl border border-outline-variant px-4 h-11 focus-within:ring-2 focus-within:ring-secondary focus-within:border-secondary">
             <Search size={18} className="text-on-surface-variant shrink-0" />
-            <input
+            <input aria-label="Search people, challenges and quests"
               ref={inputRef}
               value={query}
               onChange={e => handleChange(e.target.value)}
@@ -115,7 +115,7 @@ export default function SearchPage() {
               autoFocus
             />
             {query && (
-              <button onClick={() => { setQuery(""); setUsers([]); setChallenges([]); setQuests([]); inputRef.current?.focus(); }}>
+              <button aria-label="Clear search" onClick={() => { setQuery(""); setUsers([]); setChallenges([]); setQuests([]); inputRef.current?.focus(); }}>
                 <X size={16} className="text-on-surface-variant" />
               </button>
             )}

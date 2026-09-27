@@ -89,7 +89,7 @@ export default async function ExplorePage() {
             </div>
             <span className="type-label-caps text-secondary tracking-widest font-semibold">STRIVUP</span>
           </div>
-          <Link href="/search"
+          <Link aria-label="Search" href="/search"
             className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors">
             <Search size={20} strokeWidth={1.75} />
           </Link>

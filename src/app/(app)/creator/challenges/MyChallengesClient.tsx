@@ -53,10 +53,10 @@ function ChallengeCard({ c }: { c: CreatedChallenge }) {
               )}
             </div>
           </div>
-          <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+          <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-gray-600">
             {[c.category, c.durationDays ? `${c.durationDays} days` : "Ongoing"].filter(Boolean).join(" · ")}
           </p>
-          <p className="text-xs italic text-gray-400">
+          <p className="text-xs italic text-gray-600">
             Created {new Date(c.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
           </p>
         </div>
@@ -65,15 +65,15 @@ function ChallengeCard({ c }: { c: CreatedChallenge }) {
       <div className="mt-3 grid grid-cols-3 gap-2 border-t border-gray-100 pt-3 text-center">
         <div>
           <p className="flex items-center justify-center gap-1 text-sm font-black text-gray-900"><Users size={13} className="text-gray-400" />{compact(c.members)}</p>
-          <p className="text-[10px] text-gray-400">Members</p>
+          <p className="text-[10px] text-gray-600">Members</p>
         </div>
         <div>
           <p className="flex items-center justify-center gap-1 text-sm font-black text-blue-600"><Zap size={13} />{activePct}%</p>
-          <p className="text-[10px] text-gray-400">Active</p>
+          <p className="text-[10px] text-gray-600">Active</p>
         </div>
         <div>
           <p className="flex items-center justify-center gap-1 text-sm font-black text-green-600"><CheckCircle2 size={13} />{pct(c.completed, c.members)}%</p>
-          <p className="text-[10px] text-gray-400">Completed</p>
+          <p className="text-[10px] text-gray-600">Completed</p>
         </div>
       </div>
 
@@ -125,13 +125,13 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
             <Crown size={13} className="text-amber-400" /> Creator Pro
           </Link>
         </div>
-        <p className="mt-1 text-xs leading-snug text-gray-500">
+        <p className="mt-1 text-xs leading-snug text-gray-600">
           Track growth, engagement and success across the challenges you created.
         </p>
         <div className="mt-2 flex gap-5">
           {([["created", "Created Challenges"], ["analytics", "Analytics Overview"]] as const).map(([key, label]) => (
             <button key={key} type="button" onClick={() => setTab(key)}
-              className={`-mb-px border-b-2 pb-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${tab === key ? "border-blue-600 text-blue-600" : "border-transparent text-gray-400"}`}>
+              className={`-mb-px border-b-2 pb-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${tab === key ? "border-blue-600 text-blue-600" : "border-transparent text-gray-600"}`}>
               {label}
             </button>
           ))}
@@ -153,14 +153,14 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
           </div>
         ) : tab === "created" ? (
           <>
-            <label className="flex h-11 items-center gap-2 rounded-xl bg-white px-3 ring-1 ring-gray-100 focus-within:ring-blue-200">
+            <label className="flex h-11 items-center gap-2 rounded-xl bg-white px-3 ring-1 ring-gray-100 focus-within:ring-2 focus-within:ring-blue-600">
               <Search size={16} className="text-gray-400" />
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search challenges…"
-                className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none" />
+                className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none" />
             </label>
             {filtered.map(c => <ChallengeCard key={c.id} c={c} />)}
             {filtered.length === 0 && (
-              <p className="py-6 text-center text-sm text-gray-400">No challenges match “{query}”.</p>
+              <p className="py-6 text-center text-sm text-gray-600">No challenges match “{query}”.</p>
             )}
           </>
         ) : (
@@ -174,7 +174,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
               ].map(s => (
                 <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4">
                   <p className={`text-2xl font-black ${s.cls}`}>{s.value}</p>
-                  <p className="text-xs text-gray-400">{s.label}</p>
+                  <p className="text-xs text-gray-600">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -201,7 +201,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="text-sm font-black text-gray-900">{compact(c.members)}</p>
-                      <p className="text-[10px] text-gray-400">{pct(c.active, c.members)}% active</p>
+                      <p className="text-[10px] text-gray-600">{pct(c.active, c.members)}% active</p>
                     </div>
                     <ChevronRight size={16} className="shrink-0 text-gray-300" />
                   </Link>

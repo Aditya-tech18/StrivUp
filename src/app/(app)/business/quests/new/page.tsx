@@ -28,9 +28,9 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
     <div className="min-h-screen bg-[#F8F9FC] flex flex-col">
       <div className="h-1 bg-gray-200"><div className="h-1 bg-blue-600 transition-all duration-500" style={{ width: `${(step/TOTAL_STEPS)*100}%` }} /></div>
       <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
-        {onBack && <button onClick={onBack} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center"><ChevronLeft size={20} className="text-gray-600" /></button>}
+        {onBack && <button aria-label="Back" onClick={onBack} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center"><ChevronLeft size={20} className="text-gray-600" /></button>}
         <div className="flex-1">
-          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Step {step} of {TOTAL_STEPS} · {STEP_LABELS[step-1]}</p>
+          <p className="text-[10px] text-gray-600 font-semibold uppercase tracking-wider">Step {step} of {TOTAL_STEPS} · {STEP_LABELS[step-1]}</p>
           <h1 className="text-[18px] font-black text-gray-900 leading-tight">{title}</h1>
           {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
         </div>
@@ -231,7 +231,7 @@ function CreateQuestContent() {
     <StepShell step={1} title="Quest Details" subtitle="Tell participants what this Quest is about."
       onBack={() => router.push("/business/quests")}
       onNext={saveBasicInfo} nextDisabled={!title.trim()} saving={saving}>
-      {error && <p className="text-red-600 text-sm mb-4 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-4 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
       <div className="flex flex-col gap-4">
         {/* Cover upload */}
         <div className="flex flex-col gap-2">
@@ -244,7 +244,7 @@ function CreateQuestContent() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={coverUrl} alt="cover" className="w-full h-full object-cover" />
               ) : (
-                <div className="flex flex-col items-center gap-2 text-gray-400">
+                <div className="flex flex-col items-center gap-2 text-gray-600">
                   <Upload size={28} /><span className="text-sm">Upload Cover Image</span>
                 </div>
               )}
@@ -256,14 +256,14 @@ function CreateQuestContent() {
         <Input label="Quest Title *" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. 30-Day Morning Run Challenge" maxLength={100} />
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-gray-700">Description *</label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={1000} rows={4}
+          <textarea aria-label="Description" value={description} onChange={e => setDescription(e.target.value)} maxLength={1000} rows={4}
             placeholder="Describe the quest, what participants need to do, and why they should join..."
             className="w-full rounded-xl border border-gray-200 bg-white text-gray-900 text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-100 resize-none" />
-          <p className="text-xs text-gray-400 text-right">{description.length}/1000</p>
+          <p className="text-xs text-gray-600 text-right">{description.length}/1000</p>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-gray-700">Category</label>
-          <select value={category} onChange={e => setCategory(e.target.value)}
+          <select aria-label="Category" value={category} onChange={e => setCategory(e.target.value)}
             className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:outline-none focus:border-blue-500">
             <option value="">Select category…</option>
             {QUEST_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -284,7 +284,7 @@ function CreateQuestContent() {
     <StepShell step={2} title="Quest Tasks" subtitle="Define what participants need to complete."
       onBack={() => setStep(1)} onNext={saveTasks}
       nextDisabled={tasks.filter(t => t.title?.trim()).length === 0} saving={saving}>
-      {error && <p className="text-red-600 text-sm mb-4 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-4 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
       <div className="flex flex-col gap-3">
         {tasks.map((task, i) => (
           <div key={i} className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col gap-3">
@@ -294,7 +294,7 @@ function CreateQuestContent() {
                 <span className="text-sm font-bold text-gray-700">Task {i + 1}</span>
               </div>
               {tasks.length > 1 && (
-                <button type="button" onClick={() => {
+                <button aria-label="Remove task" type="button" onClick={() => {
                   if (task.id) deleteQuestTask(supabase, task.id).catch(console.error);
                   setTasks(prev => prev.filter((_, j) => j !== i));
                 }} className="text-red-400 hover:text-red-600 transition-colors">
@@ -302,15 +302,15 @@ function CreateQuestContent() {
                 </button>
               )}
             </div>
-            <input value={task.title ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, title: e.target.value } : t))}
+            <input aria-label="Task title" value={task.title ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, title: e.target.value } : t))}
               placeholder="Task title *" className="w-full h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:border-blue-500 focus:bg-white" />
-            <textarea value={task.description ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, description: e.target.value } : t))}
+            <textarea aria-label="Task description" value={task.description ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, description: e.target.value } : t))}
               placeholder="Task description..." rows={2}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:bg-white resize-none" />
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1 block">Proof Type</label>
-                <select value={task.proof_type ?? "photo"} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, proof_type: e.target.value as ProofType } : t))}
+                <label className="text-[10px] font-semibold text-gray-600 uppercase tracking-wider mb-1 block">Proof Type</label>
+                <select aria-label="Proof Type" value={task.proof_type ?? "photo"} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, proof_type: e.target.value as ProofType } : t))}
                   className="w-full h-9 rounded-xl border border-gray-200 bg-gray-50 px-3 text-xs text-gray-700 focus:outline-none focus:border-blue-500">
                   {PROOF_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                 </select>
@@ -324,7 +324,7 @@ function CreateQuestContent() {
                 </label>
               </div>
             </div>
-            <textarea value={task.instructions ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, instructions: e.target.value } : t))}
+            <textarea aria-label="Instructions for participants (optional)" value={task.instructions ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, instructions: e.target.value } : t))}
               placeholder="Instructions for participants (optional)..." rows={2}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:bg-white resize-none" />
           </div>
@@ -341,47 +341,47 @@ function CreateQuestContent() {
   if (step === 3) return (
     <StepShell step={3} title="Rewards" subtitle="Define what participants can win."
       onBack={() => setStep(2)} onNext={saveRewards} nextLabel="Continue" saving={saving}>
-      {error && <p className="text-red-600 text-sm mb-4 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-4 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
       <div className="flex flex-col gap-4">
         <label className="flex items-center gap-3 bg-white rounded-xl border border-gray-100 px-4 py-3 cursor-pointer">
           <input type="checkbox" checked={isLeaderboard} onChange={e => setIsLeaderboard(e.target.checked)}
             className="w-4 h-4 rounded border-gray-300 accent-blue-600" />
           <div>
             <p className="text-sm font-semibold text-gray-900">Enable Leaderboard Ranking</p>
-            <p className="text-xs text-gray-400">Rank participants and assign tiered rewards</p>
+            <p className="text-xs text-gray-600">Rank participants and assign tiered rewards</p>
           </div>
         </label>
         {rewards.map((reward, i) => (
           <div key={i} className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-bold text-gray-700">Reward {i + 1}</span>
-              <button type="button" onClick={() => {
+              <button aria-label="Remove reward" type="button" onClick={() => {
                 if (reward.id) deleteQuestReward(supabase, reward.id).catch(console.error);
                 setRewards(prev => prev.filter((_, j) => j !== i));
               }} className="text-red-400 hover:text-red-600"><Trash2 size={16} /></button>
             </div>
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1 block">Reward Type</label>
-                <select value={reward.reward_type ?? "other"} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, reward_type: e.target.value as RewardType } : r))}
+                <label className="text-[10px] font-semibold text-gray-600 uppercase tracking-wider mb-1 block">Reward Type</label>
+                <select aria-label="Reward Type" value={reward.reward_type ?? "other"} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, reward_type: e.target.value as RewardType } : r))}
                   className="w-full h-9 rounded-xl border border-gray-200 bg-gray-50 px-3 text-xs text-gray-700 focus:outline-none focus:border-blue-500">
                   {REWARD_TYPES.map(rt => <option key={rt.value} value={rt.value}>{rt.label}</option>)}
                 </select>
               </div>
             </div>
-            <input value={reward.title ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, title: e.target.value } : r))}
+            <input aria-label="Reward title" value={reward.title ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, title: e.target.value } : r))}
               placeholder="Reward title (e.g. ₹10,000 Cash Prize) *" className="w-full h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:border-blue-500 focus:bg-white" />
-            <input value={reward.value ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, value: e.target.value } : r))}
+            <input aria-label="Reward value" value={reward.value ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, value: e.target.value } : r))}
               placeholder="Value (e.g. ₹10,000)" className="w-full h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:border-blue-500 focus:bg-white" />
             {isLeaderboard && (
               <div className="grid grid-cols-2 gap-3">
-                <input type="number" value={reward.rank_from ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, rank_from: parseInt(e.target.value) || null } : r))}
+                <input aria-label="Rank from" type="number" value={reward.rank_from ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, rank_from: parseInt(e.target.value) || null } : r))}
                   placeholder="Rank from" className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:border-blue-500" />
-                <input type="number" value={reward.rank_to ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, rank_to: parseInt(e.target.value) || null } : r))}
+                <input aria-label="Rank to" type="number" value={reward.rank_to ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, rank_to: parseInt(e.target.value) || null } : r))}
                   placeholder="Rank to" className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:border-blue-500" />
               </div>
             )}
-            <textarea value={reward.description ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, description: e.target.value } : r))}
+            <textarea aria-label="Reward details" value={reward.description ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, description: e.target.value } : r))}
               placeholder="Additional details about this reward..." rows={2}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:border-blue-500 resize-none" />
           </div>
@@ -391,7 +391,7 @@ function CreateQuestContent() {
           <Plus size={18} /> Add Reward
         </button>
         {rewards.length === 0 && (
-          <p className="text-xs text-gray-400 text-center">You can skip this step if there are no rewards.</p>
+          <p className="text-xs text-gray-600 text-center">You can skip this step if there are no rewards.</p>
         )}
       </div>
     </StepShell>
@@ -404,13 +404,13 @@ function CreateQuestContent() {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-gray-700">Eligibility</label>
-          <textarea value={eligibility} onChange={e => setEligibility(e.target.value)} rows={3}
+          <textarea aria-label="Eligibility" value={eligibility} onChange={e => setEligibility(e.target.value)} rows={3}
             placeholder="Who can participate? (e.g. Open to all, 18+ only, Indian residents only...)"
             className="w-full rounded-xl border border-gray-200 bg-white text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-100 resize-none" />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-gray-700">Participation Rules</label>
-          <textarea value={rules} onChange={e => setRules(e.target.value)} rows={6}
+          <textarea aria-label="Participation Rules" value={rules} onChange={e => setRules(e.target.value)} rows={6}
             placeholder="List the rules, proof requirements, reward criteria, disqualification rules..."
             className="w-full rounded-xl border border-gray-200 bg-white text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-100 resize-none" />
         </div>
@@ -438,7 +438,7 @@ function CreateQuestContent() {
             <span className="text-2xl mt-0.5">{opt.icon}</span>
             <div>
               <p className={`text-sm font-bold ${visibility === opt.value ? "text-blue-700" : "text-gray-900"}`}>{opt.title}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
+              <p className="text-xs text-gray-600 mt-0.5">{opt.desc}</p>
             </div>
           </button>
         ))}
@@ -451,15 +451,15 @@ function CreateQuestContent() {
     <div className="min-h-screen bg-[#F8F9FC] flex flex-col">
       <div className="h-1 bg-blue-600 w-full" />
       <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
-        <button onClick={() => setStep(5)} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center"><ChevronLeft size={20} className="text-gray-600" /></button>
+        <button aria-label="Back" onClick={() => setStep(5)} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center"><ChevronLeft size={20} className="text-gray-600" /></button>
         <div>
-          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Step 6 of 6 · Review</p>
+          <p className="text-[10px] text-gray-600 font-semibold uppercase tracking-wider">Step 6 of 6 · Review</p>
           <h1 className="text-[18px] font-black text-gray-900">Review & Publish</h1>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-5 pb-36 max-w-lg mx-auto w-full flex flex-col gap-4">
-        {error && <p className="text-red-600 text-sm bg-red-50 rounded-xl px-4 py-3">{error}</p>}
+        {error && <p role="alert" className="text-red-600 text-sm bg-red-50 rounded-xl px-4 py-3">{error}</p>}
 
         {/* Cover preview */}
         {coverUrl && (
@@ -477,7 +477,7 @@ function CreateQuestContent() {
 
         {tasks.filter(t => t.title?.trim()).length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Tasks ({tasks.filter(t => t.title?.trim()).length})</p>
+            <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-3">Tasks ({tasks.filter(t => t.title?.trim()).length})</p>
             <div className="flex flex-col gap-2">
               {tasks.filter(t => t.title?.trim()).map((t, i) => (
                 <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
@@ -485,7 +485,7 @@ function CreateQuestContent() {
                     <span className="text-[10px] font-black text-blue-600">{i+1}</span>
                   </div>
                   <p className="text-sm text-gray-800 font-medium">{t.title}</p>
-                  <span className="ml-auto text-[10px] text-gray-400 shrink-0">{PROOF_TYPES.find(p => p.value === t.proof_type)?.label}</span>
+                  <span className="ml-auto text-[10px] text-gray-600 shrink-0">{PROOF_TYPES.find(p => p.value === t.proof_type)?.label}</span>
                 </div>
               ))}
             </div>
@@ -494,13 +494,13 @@ function CreateQuestContent() {
 
         {rewards.filter(r => r.title?.trim()).length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Rewards ({rewards.filter(r => r.title?.trim()).length})</p>
+            <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-3">Rewards ({rewards.filter(r => r.title?.trim()).length})</p>
             {rewards.filter(r => r.title?.trim()).map((r, i) => (
               <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
                 <span className="text-lg">🏆</span>
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-gray-900">{r.title}</p>
-                  {r.rank_from && <p className="text-xs text-gray-400">Rank {r.rank_from}{r.rank_to ? `–${r.rank_to}` : "+"}</p>}
+                  {r.rank_from && <p className="text-xs text-gray-600">Rank {r.rank_from}{r.rank_to ? `–${r.rank_to}` : "+"}</p>}
                 </div>
                 {r.value && <span className="text-sm font-bold text-green-600 shrink-0">{r.value}</span>}
               </div>

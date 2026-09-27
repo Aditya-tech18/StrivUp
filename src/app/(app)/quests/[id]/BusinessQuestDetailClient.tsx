@@ -72,7 +72,7 @@ export default function BusinessQuestDetailClient({ quest, currentUserId }: Prop
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <button onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+        <button aria-label="Back" onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
           <ArrowLeft size={20} className="text-gray-600" />
         </button>
         <h1 className="text-[15px] font-black text-gray-900 flex-1 truncate">{quest.title}</h1>
@@ -101,7 +101,7 @@ export default function BusinessQuestDetailClient({ quest, currentUserId }: Prop
             {quest.business_logo
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={quest.business_logo} alt={quest.business_name ?? ""} className="w-full h-full object-cover" />
-              : <span className="text-xl font-black text-gray-400">{(quest.business_name ?? "B").charAt(0)}</span>
+              : <span className="text-xl font-black text-gray-600">{(quest.business_name ?? "B").charAt(0)}</span>
             }
           </div>
           <div className="flex-1 min-w-0">
@@ -109,10 +109,10 @@ export default function BusinessQuestDetailClient({ quest, currentUserId }: Prop
               <p className="text-sm font-bold text-gray-900 truncate">{quest.business_name ?? "Business"}</p>
               {isVerifiedBiz && <ShieldCheck size={15} className="text-blue-600 shrink-0" />}
             </div>
-            <p className="text-xs text-gray-400">Quest Creator</p>
+            <p className="text-xs text-gray-600">Quest Creator</p>
           </div>
           {quest.destination_link && (
-            <a href={quest.destination_link} target="_blank" rel="noopener noreferrer"
+            <a aria-label="Open business website" href={quest.destination_link} target="_blank" rel="noopener noreferrer"
               className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
               <Globe size={16} className="text-blue-600" />
             </a>
@@ -169,9 +169,9 @@ export default function BusinessQuestDetailClient({ quest, currentUserId }: Prop
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-bold text-gray-900">{task.title}</p>
                       {task.is_required && <span className="text-[10px] font-semibold text-red-500">Required</span>}
-                      <span className="text-xs text-gray-400">{PROOF_ICON[task.proof_type] ?? "📋"} {task.proof_type}</span>
+                      <span className="text-xs text-gray-600">{PROOF_ICON[task.proof_type] ?? "📋"} {task.proof_type}</span>
                     </div>
-                    {task.description && <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{task.description}</p>}
+                    {task.description && <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{task.description}</p>}
                     {task.instructions && <p className="text-xs text-blue-600 mt-1 italic">ℹ {task.instructions}</p>}
                   </div>
                 </div>
@@ -214,13 +214,13 @@ export default function BusinessQuestDetailClient({ quest, currentUserId }: Prop
             <h3 className="text-[15px] font-black text-gray-900 mb-3">Rules & Eligibility</h3>
             {quest.eligibility && (
               <div className="mb-3">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Eligibility</p>
+                <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Eligibility</p>
                 <p className="text-sm text-gray-600 leading-relaxed">{quest.eligibility}</p>
               </div>
             )}
             {quest.rules && (
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Rules</p>
+                <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Rules</p>
                 <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{quest.rules}</p>
               </div>
             )}

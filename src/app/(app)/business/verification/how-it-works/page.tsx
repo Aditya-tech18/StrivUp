@@ -40,7 +40,7 @@ export default function HowItWorksPage() {
         <div className="flex-1">
           <h1 className="text-[17px] font-black text-gray-900">How to Complete Verification</h1>
         </div>
-        <button onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
+        <button aria-label="Close" onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
           <X size={18} className="text-gray-600" />
         </button>
       </div>

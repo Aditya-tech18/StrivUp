@@ -47,7 +47,7 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-[#F5F5F7] pb-28">
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-5 py-3.5">
-          <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
           <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Account Privacy</h1>
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
 
       <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-4">
         {error && (
-          <div className="px-4 py-3 rounded-xl bg-error-container border border-error/20">
+          <div role="alert" className="px-4 py-3 rounded-xl bg-error-container border border-error/20">
             <p className="text-[13px] text-error">{error}</p>
           </div>
         )}

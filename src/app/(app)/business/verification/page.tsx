@@ -143,9 +143,9 @@ function VerifyContent() {
   if (screen === "search") return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
-        <Link href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
         <h1 className="text-[17px] font-black text-gray-900 flex-1">Verify Participant</h1>
-        <Link href="/business/verification/how-it-works"><HelpCircle size={22} className="text-gray-400" /></Link>
+        <Link aria-label="How verification works" href="/business/verification/how-it-works"><HelpCircle size={22} className="text-gray-400" /></Link>
       </div>
 
       <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
@@ -161,22 +161,22 @@ function VerifyContent() {
         <div className="flex flex-col gap-2">
           <label className="text-sm font-semibold text-gray-700">Verification OTP</label>
           <div className="flex gap-2">
-            <input
+            <input aria-label="Verification OTP"
               value={svCode}
               onChange={e => { setSvCode(e.target.value.toUpperCase()); setSearchErr(null); }}
               onKeyDown={e => e.key === "Enter" && handleSearch()}
               placeholder="SV-000000"
               maxLength={9}
-              className="flex-1 h-12 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 px-4 font-mono tracking-wider text-lg focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-100"
+              className="flex-1 h-12 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder:text-gray-500 px-4 font-mono tracking-wider text-lg focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-100"
             />
             {svCode && (
-              <button type="button" onClick={() => setSvCode("")}
-                className="w-12 h-12 flex items-center justify-center text-gray-400 border border-gray-200 rounded-xl bg-white">
+              <button aria-label="Clear code" type="button" onClick={() => setSvCode("")}
+                className="w-12 h-12 flex items-center justify-center text-gray-600 border border-gray-200 rounded-xl bg-white">
                 <XCircle size={18} />
               </button>
             )}
           </div>
-          {searchErr && <p className="text-sm text-red-600">{searchErr}</p>}
+          {searchErr && <p role="alert" className="text-sm text-red-600">{searchErr}</p>}
           <button onClick={handleSearch} disabled={!svCode.trim() || searching}
             className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold flex items-center justify-center gap-2 transition-all">
             {searching ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Search size={18} /> Search Verification →</>}
@@ -213,7 +213,7 @@ function VerifyContent() {
             ].map(t => (
               <div key={t.label} className="rounded-xl bg-gray-50/50 border border-gray-100 py-3 flex flex-col items-center">
                 <span className={`text-lg font-black ${t.cls}`}>{t.value}</span>
-                <span className="text-[10px] text-gray-400 font-medium mt-0.5">{t.label}</span>
+                <span className="text-[10px] text-gray-600 font-medium mt-0.5">{t.label}</span>
               </div>
             ))}
           </div>
@@ -227,7 +227,7 @@ function VerifyContent() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-gray-900">How does verification work?</p>
-              <p className="text-xs text-gray-400">Learn the step-by-step process</p>
+              <p className="text-xs text-gray-600">Learn the step-by-step process</p>
             </div>
             <ChevronRight size={16} className="text-gray-300" />
           </div>
@@ -241,7 +241,7 @@ function VerifyContent() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-gray-900">Build a more active community</p>
-              <p className="text-xs text-gray-400">Create a Quest to bring more participants to your business.</p>
+              <p className="text-xs text-gray-600">Create a Quest to bring more participants to your business.</p>
             </div>
             <span className="h-8 px-3 rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center shrink-0">Create Quest</span>
           </div>
@@ -263,7 +263,7 @@ function VerifyContent() {
                     <Search size={16} className="text-gray-400 shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-mono font-semibold text-gray-900">{s.code}</p>
-                      <p className="text-xs text-gray-400">Today, {s.time}</p>
+                      <p className="text-xs text-gray-600">Today, {s.time}</p>
                     </div>
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${c.cls}`}>{c.label}</span>
                   </div>
@@ -296,8 +296,8 @@ function VerifyContent() {
                     <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 text-sm font-bold text-blue-600">{pName.charAt(0)}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900">{pName}</p>
-                      <p className="text-xs text-gray-400 truncate">{challenge}</p>
-                      <p className="text-xs text-gray-400">{timeAgo(req.created_at)}</p>
+                      <p className="text-xs text-gray-600 truncate">{challenge}</p>
+                      <p className="text-xs text-gray-600">{timeAgo(req.created_at)}</p>
                     </div>
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${sc.cls} shrink-0`}>{sc.label}</span>
                     <ChevronRight size={14} className="text-gray-300 shrink-0" />
@@ -320,9 +320,8 @@ function VerifyContent() {
     return (
       <div className="min-h-screen bg-[#F8F9FC] pb-32">
         <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
-          <button onClick={reset}><ArrowLeft size={22} className="text-gray-600" /></button>
+          <button aria-label="Back" onClick={reset}><ArrowLeft size={22} className="text-gray-600" /></button>
           <h1 className="text-[17px] font-black text-gray-900 flex-1">Verification Request</h1>
-          <button className="text-gray-400">⋮</button>
         </div>
 
         <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-4">
@@ -337,7 +336,7 @@ function VerifyContent() {
 
           {/* Participant */}
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Participant</p>
+            <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-2">Participant</p>
             <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center shrink-0 text-lg font-black text-blue-600">{pName.charAt(0)}</div>
               <div className="flex-1">
@@ -350,7 +349,7 @@ function VerifyContent() {
 
           {/* Activity Details */}
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Activity Details</p>
+            <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-2">Activity Details</p>
             <div className="bg-white rounded-2xl border border-gray-100 px-4 divide-y divide-gray-50">
               {[
                 { label: "Business", value: bp?.business_name ?? "This Business" },
@@ -360,7 +359,7 @@ function VerifyContent() {
                 { label: "Challenge", value: challengeTitle },
               ].map(row => (
                 <div key={row.label} className="flex items-center gap-4 py-3">
-                  <span className="text-sm text-gray-400 w-32 shrink-0">{row.label}</span>
+                  <span className="text-sm text-gray-600 w-32 shrink-0">{row.label}</span>
                   <span className="text-sm text-gray-800 font-medium flex-1">{row.value}</span>
                 </div>
               ))}
@@ -373,7 +372,7 @@ function VerifyContent() {
             <p className="text-sm text-amber-700">Only approve this request if you have personally verified the participant and their activity.</p>
           </div>
 
-          {searchErr && <p className="text-sm text-red-600">{searchErr}</p>}
+          {searchErr && <p role="alert" className="text-sm text-red-600">{searchErr}</p>}
         </div>
 
         {/* Sticky buttons */}
@@ -412,11 +411,11 @@ function VerifyContent() {
         {/* Bill code card */}
         <div className="w-full bg-white rounded-2xl border border-gray-100 p-5">
           <p className="text-sm font-bold text-gray-900 mb-1">Bill Verification Code</p>
-          <p className="text-xs text-gray-500 mb-4">Write this code clearly on the participant&apos;s physical bill or receipt.</p>
+          <p className="text-xs text-gray-600 mb-4">Write this code clearly on the participant&apos;s physical bill or receipt.</p>
           <div className="flex items-center justify-between bg-gray-50 rounded-xl px-5 py-4 border border-gray-100">
             <span className="font-mono font-black text-[28px] text-gray-900 tracking-widest">{billCode}</span>
             <button type="button" onClick={() => navigator.clipboard.writeText(billCode).catch(()=>{})}
-              className="text-gray-400 hover:text-gray-600 ml-3" aria-label="Copy">
+              className="text-gray-600 hover:text-gray-600 ml-3" aria-label="Copy">
               <Copy size={20} />
             </button>
           </div>

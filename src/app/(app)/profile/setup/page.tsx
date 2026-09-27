@@ -317,7 +317,7 @@ export default function ProfilePage() {
 
           {addingLink ? (
             <div className="flex flex-col gap-2">
-              <select
+              <select aria-label="Social platform"
                 value={newPlatform}
                 onChange={(e) => setNewPlatform(e.target.value as SocialPlatform)}
                 className="h-10 rounded border border-outline-variant bg-surface-container-lowest px-3 type-body-lg text-on-surface"

@@ -242,13 +242,13 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link href={`/quests/${questId}`}><ArrowLeft size={22} className="text-gray-600" /></Link>
+        <Link aria-label="Back" href={`/quests/${questId}`}><ArrowLeft size={22} className="text-gray-600" /></Link>
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-400 font-medium">{quest.business_name ?? "Quest"}</p>
+          <p className="text-xs text-gray-600 font-medium">{quest.business_name ?? "Quest"}</p>
           <h1 className="text-[15px] font-black text-gray-900 truncate">{quest.title}</h1>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-xs text-gray-400">Progress</p>
+          <p className="text-xs text-gray-600">Progress</p>
           <p className="text-sm font-black text-blue-600">{completedCount}/{totalRequired}</p>
         </div>
       </div>
@@ -303,9 +303,9 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
                     <p className="text-sm font-bold text-gray-900">{task.title}</p>
                     {task.is_required && <span className="text-[10px] text-red-500 font-semibold">Required</span>}
                   </div>
-                  {task.description && <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{task.description}</p>}
+                  {task.description && <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{task.description}</p>}
                   {task.instructions && <p className="text-xs text-blue-600 mt-1 italic">{task.instructions}</p>}
-                  <p className="text-[11px] text-gray-400 mt-1">{PROOF_LABEL[task.proof_type] ?? task.proof_type}</p>
+                  <p className="text-[11px] text-gray-600 mt-1">{PROOF_LABEL[task.proof_type] ?? task.proof_type}</p>
                 </div>
               </div>
 
@@ -333,7 +333,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
                         </div>
                       ))}
                       <div className="flex items-center">
-                        <span className="text-xs text-gray-400">{existingCount}/2 uploaded</span>
+                        <span className="text-xs text-gray-600">{existingCount}/2 uploaded</span>
                       </div>
                     </div>
                   )}
@@ -345,7 +345,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
                         <div key={i} className="relative w-20 h-20">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={url} alt="preview" className="w-20 h-20 rounded-xl object-cover" />
-                          <button onClick={() => removeSelectedFile(task.id, i)}
+                          <button aria-label="Remove photo" onClick={() => removeSelectedFile(task.id, i)}
                             className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center">
                             <X size={11} />
                           </button>
@@ -364,7 +364,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
 
                   {/* Caption */}
                   {(task.proof_type === "photo_text" || task.proof_type === "text") && (
-                    <textarea value={caption[task.id] ?? ""} onChange={e => setCaption(prev => ({ ...prev, [task.id]: e.target.value }))}
+                    <textarea aria-label="Describe your activity" value={caption[task.id] ?? ""} onChange={e => setCaption(prev => ({ ...prev, [task.id]: e.target.value }))}
                       placeholder="Describe your activity..." rows={2}
                       className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:border-blue-500 resize-none" />
                   )}

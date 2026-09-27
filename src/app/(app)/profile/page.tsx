@@ -165,7 +165,7 @@ function FollowModal({ title, userId, fetchFn, onClose }: {
       <div className="w-full max-w-md bg-white rounded-2xl flex flex-col max-h-[80vh] shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant shrink-0">
           <h2 className="text-[17px] font-bold text-on-surface">{title}</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+          <button aria-label="Close" onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
             <X size={18} className="text-on-surface-variant" />
           </button>
         </div>
@@ -228,7 +228,7 @@ function ManageModal({ allStats, pinnedIds, onToggle, onClose }: {
             <h2 className="text-[17px] font-bold text-on-surface">Manage Challenges</h2>
             <p className="text-[12px] text-on-surface-variant mt-0.5">Pin up to 3 to show on your profile.</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+          <button aria-label="Close" onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
             <X size={18} className="text-on-surface-variant" />
           </button>
         </div>
@@ -492,10 +492,10 @@ export default function ProfilePage() {
       </div>
 
       {error && (
-        <div className="max-w-lg mx-auto px-4 mt-3">
+        <div role="alert" className="max-w-lg mx-auto px-4 mt-3">
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-error-container border border-error/20">
             <p className="text-[13px] text-error flex-1">{error}</p>
-            <button onClick={() => setError(null)}><X size={14} className="text-error" /></button>
+            <button aria-label="Dismiss error" onClick={() => setError(null)}><X size={14} className="text-error" /></button>
           </div>
         </div>
       )}
@@ -581,14 +581,14 @@ export default function ProfilePage() {
               <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Edit Profile</p>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-medium text-on-surface-variant">Full Name</label>
-                <input value={fullName} onChange={e => setFullName(e.target.value)} maxLength={80}
+                <input aria-label="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} maxLength={80}
                   className="w-full h-10 rounded-xl border border-outline-variant bg-white px-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary" />
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-medium text-on-surface-variant">Username</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[13px]">@</span>
-                  <input value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g,""))}
+                  <input aria-label="Username" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g,""))}
                     maxLength={30}
                     className="w-full h-10 rounded-xl border border-outline-variant bg-white pl-7 pr-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary" />
                 </div>
@@ -598,7 +598,7 @@ export default function ProfilePage() {
                   <label className="text-[11px] font-medium text-on-surface-variant">Bio</label>
                   <span className="text-[10px] text-on-surface-variant">{bio.length}/150</span>
                 </div>
-                <textarea value={bio} onChange={e => setBio(e.target.value)} maxLength={150} rows={3}
+                <textarea aria-label="Bio" value={bio} onChange={e => setBio(e.target.value)} maxLength={150} rows={3}
                   className="w-full rounded-xl border border-outline-variant bg-white px-3 py-2 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary resize-none" />
               </div>
               <div className="flex flex-col gap-2">
@@ -607,7 +607,7 @@ export default function ProfilePage() {
                   <div key={link.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-white">
                     <span className="text-[10px] font-bold text-secondary/70 uppercase tracking-wide shrink-0 w-10 truncate">{PLATFORM_LABEL[link.platform] ?? link.platform}</span>
                     <span className="flex-1 text-[12px] text-on-surface truncate">{link.url}</span>
-                    <button onClick={() => handleDelLink(link.id)} className="text-on-surface-variant hover:text-error transition-colors shrink-0"><Trash2 size={13} /></button>
+                    <button aria-label="Remove link" onClick={() => handleDelLink(link.id)} className="text-on-surface-variant hover:text-error transition-colors shrink-0"><Trash2 size={13} /></button>
                   </div>
                 ))}
                 {!addingLink && links.length < PROFILE_CONSTANTS.MAX_SOCIAL_LINKS && (
@@ -615,15 +615,15 @@ export default function ProfilePage() {
                 )}
                 {addingLink && (
                   <div className="flex flex-col gap-2">
-                    <select value={newPlat} onChange={e => setNewPlat(e.target.value as SocialPlatform)}
-                      className="h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none">
+                    <select aria-label="Social platform" value={newPlat} onChange={e => setNewPlat(e.target.value as SocialPlatform)}
+                      className="h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary">
                       {PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                     </select>
                     <div className="flex gap-2">
-                      <input value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="https://…"
+                      <input aria-label="Link URL" value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="https://…"
                         className="flex-1 h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary" />
                       <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-[13px] font-semibold disabled:opacity-40">Add</button>
-                      <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-[13px]">✕</button>
+                      <button aria-label="Cancel" onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-[13px]">✕</button>
                     </div>
                   </div>
                 )}
@@ -658,7 +658,7 @@ export default function ProfilePage() {
             </div>
             <div className="min-w-0">
               <p className="text-[13px] font-bold text-white leading-tight">Creator Pro</p>
-              <p className="text-[11px] text-gray-400">Grow your reach</p>
+              <p className="text-[11px] text-gray-600">Grow your reach</p>
             </div>
           </Link>
         </div>
@@ -690,8 +690,8 @@ export default function ProfilePage() {
           <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em]">Consistency Heatmap</h3>
-              <select value={heatId ?? ""} onChange={e => switchHeatmap(e.target.value)}
-                className="text-[11px] font-medium text-on-surface bg-surface-container border border-outline-variant rounded-lg px-2 py-1.5 focus:outline-none max-w-[140px] truncate">
+              <select aria-label="Challenge shown in heatmap" value={heatId ?? ""} onChange={e => switchHeatmap(e.target.value)}
+                className="text-[11px] font-medium text-on-surface bg-surface-container border border-outline-variant rounded-lg px-2 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary max-w-[140px] truncate">
                 {allStats.filter(s => s.status === "active").map(s => (
                   <option key={s.challenge_id} value={s.challenge_id}>{s.title.length > 22 ? s.title.slice(0,22) + "…" : s.title}</option>
                 ))}

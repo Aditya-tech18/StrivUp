@@ -173,6 +173,8 @@ export function BusinessLoginForm() {
               disabled={busy}
               className={`${pwdCls(!!errors.password)} disabled:opacity-50`}
               {...register("password")}
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? "password-error" : undefined}
             />
             <button type="button" onClick={() => setShowPwd(v => !v)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface"
@@ -180,7 +182,7 @@ export function BusinessLoginForm() {
               {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-          {errors.password && <p className="type-body-md text-error">{errors.password.message}</p>}
+          {errors.password && <p id="password-error" role="alert" className="type-body-md text-error">{errors.password.message}</p>}
         </div>
 
         <Button type="submit" variant="primary" fullWidth disabled={busy} size="lg">

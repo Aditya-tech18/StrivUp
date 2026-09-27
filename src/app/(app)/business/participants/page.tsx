@@ -84,7 +84,7 @@ export default function ParticipantsPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
         <h1 className="text-[17px] font-black text-gray-900 flex-1">Participants</h1>
         <span className="text-sm font-bold text-blue-600">{filtered.length}</span>
       </div>
@@ -92,7 +92,7 @@ export default function ParticipantsPage() {
       <div className="px-5 py-4 max-w-2xl mx-auto flex flex-col gap-3">
         {/* Quest filter */}
         <div className="relative">
-          <select value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
+          <select aria-label="Filter by quest" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
             className="w-full h-10 rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm font-medium text-gray-700 focus:outline-none focus:border-blue-500 appearance-none">
             <option value="all">All Quests</option>
             {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
@@ -133,9 +133,9 @@ export default function ParticipantsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900">{pName}</p>
-                    {p.profile?.username && <p className="text-xs text-gray-400">@{p.profile.username}</p>}
-                    <p className="text-xs text-gray-400 truncate">{p.quest?.title ?? "—"}</p>
-                    <p className="text-xs text-gray-400">Joined {timeAgo(p.joined_at)}</p>
+                    {p.profile?.username && <p className="text-xs text-gray-600">@{p.profile.username}</p>}
+                    <p className="text-xs text-gray-600 truncate">{p.quest?.title ?? "—"}</p>
+                    <p className="text-xs text-gray-600">Joined {timeAgo(p.joined_at)}</p>
                   </div>
                   <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${sc.cls}`}>{sc.label}</span>
                 </div>

@@ -527,7 +527,7 @@ function LegacyUploadCard({
         <h2 className="text-white font-semibold text-base leading-snug">
           Day {challenge.currentDay}: {challenge.todayTask}
         </h2>
-        <p className="text-white/50 text-xs mt-1">
+        <p className="text-white/75 text-xs mt-1">
           {challenge.currentDay} of {challenge.totalDays} days
         </p>
       </div>
@@ -602,7 +602,7 @@ function LegacyUploadCard({
             Pending review — we&apos;ll notify you when approved
           </div>
           <button type="button" onClick={() => setSlot(s => ({ ...s, state: "idle" }))}
-            className="w-full text-white/40 text-xs hover:text-white/60 transition-colors">
+            className="w-full text-white/75 text-xs hover:text-white/60 transition-colors">
             Upload again
           </button>
         </div>
@@ -883,7 +883,7 @@ export function ChallengeDetailClient({
                       <><Rocket size={16} aria-hidden="true" /> Join Challenge — It&apos;s Free</>
                     )}
                   </button>
-                  <p className="text-white/40 text-xs">Upload your first proof after joining.</p>
+                  <p className="text-white/75 text-xs">Upload your first proof after joining.</p>
                 </div>
               ) : (
                 <div className="rounded-xl border border-outline-variant bg-surface-container px-6 py-8 text-center space-y-2">

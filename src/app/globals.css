@@ -181,3 +181,14 @@ body {
   .pb-bottom-nav { padding-bottom: 0; }
   .above-bottom-nav { bottom: 0; left: 16rem; }
 }
+
+/* ─── Focus visibility (WCAG 2.4.7) ───────────────────────────────────────── */
+/* Every interactive element shows a 2px brand-blue ring on keyboard focus.   */
+/* In the base layer so components that draw their own focus ring (via       */
+/* focus:ring / focus-visible:ring utilities) still take precedence.          */
+@layer base {
+  :where(a, button, input, select, textarea, summary, [tabindex], [role="button"], [role="tab"], [role="switch"]):focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+  }
+}

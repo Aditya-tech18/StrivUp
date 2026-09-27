@@ -244,7 +244,7 @@ export default function ModerationClient({
             <p className="type-body-sm text-on-surface-variant">
               Please provide a reason for removal. This is required and will be logged.
             </p>
-            <textarea
+            <textarea aria-label="Removal reason"
               className="w-full p-3 rounded-lg border border-outline-variant bg-surface-container text-on-surface min-h-[100px] type-body-md"
               placeholder="e.g. Violates community guidelines, spam, explicit content..."
               value={removeReason}
