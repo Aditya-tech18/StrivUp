@@ -2,9 +2,29 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Shield, ShieldAlert, Check, X, Search } from "lucide-react";
+import { Shield, ShieldAlert, Check, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, Button } from "@/components/ui";
+
+interface ProofRow {
+  id: string;
+  media_url: string | null;
+  caption: string | null;
+  admin_removed: boolean | null;
+  user_id: string;
+  challenge_id?: string;
+  profiles?: { full_name: string | null; avatar_url: string | null } | null;
+  challenges?: { title: string } | null;
+}
+
+interface ReportRow {
+  id: string;
+  reason: string;
+  status: string;
+  created_at: string;
+  proof_id: string;
+  proof_submissions?: ProofRow | null;
+}
 
 export default function ModerationClient({ 
   moderatorRole, 
@@ -18,8 +38,8 @@ export default function ModerationClient({
 
   const canRemove = moderatorRole === "senior_moderator" || moderatorRole === "super_admin";
 
-  const [reports, setReports] = useState<any[]>([]);
-  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [reports, setReports] = useState<ReportRow[]>([]);
+  const [submissions, setSubmissions] = useState<ProofRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modal state
@@ -28,12 +48,10 @@ export default function ModerationClient({
   const [removeReason, setRemoveReason] = useState("");
   const [removing, setRemoving] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [tab]);
-
-  const loadData = async () => {
-    setLoading(true);
+  // Fetches rows for the current tab; state is applied in applyData so the
+  // effect only sets state from a promise callback.
+  type Loaded = { reports?: ReportRow[]; submissions?: ProofRow[] };
+  const fetchData = async (): Promise<Loaded> => {
     if (tab === "reports") {
       const { data, error } = await supabase
         .from("proof_reports")
@@ -58,7 +76,7 @@ export default function ModerationClient({
         .order("created_at", { ascending: false });
         
       if (!error && data) {
-        setReports(data.filter(r => !(r.proof_submissions as any)?.admin_removed));
+        return { reports: (data as unknown as ReportRow[]).filter(r => !r.proof_submissions?.admin_removed) };
       }
     } else {
       const { data, error } = await supabase
@@ -76,11 +94,28 @@ export default function ModerationClient({
         .limit(50);
         
       if (!error && data) {
-        setSubmissions(data);
+        return { submissions: data as unknown as ProofRow[] };
       }
     }
+    return {};
+  };
+
+  const applyData = (loaded: Loaded) => {
+    if (loaded.reports) setReports(loaded.reports);
+    if (loaded.submissions) setSubmissions(loaded.submissions);
     setLoading(false);
   };
+
+  const selectTab = (next: "reports" | "all") => {
+    if (next === tab) return;
+    setLoading(true);
+    setTab(next);
+  };
+
+  useEffect(() => {
+    fetchData().then(applyData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   const handleDismiss = async (reportId: string) => {
     await supabase.from("proof_reports").update({ status: "reviewed" }).eq("id", reportId);
@@ -108,7 +143,8 @@ export default function ModerationClient({
     setRemoveReportId(null);
     setRemoveReason("");
     setRemoving(false);
-    loadData();
+    setLoading(true);
+    applyData(await fetchData());
   };
 
   return (
@@ -126,13 +162,13 @@ export default function ModerationClient({
         <div className="flex gap-2 border-b border-outline-variant">
           <button 
             className={`px-4 py-2 type-body-md font-medium border-b-2 ${tab === "reports" ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"}`}
-            onClick={() => setTab("reports")}
+            onClick={() => selectTab("reports")}
           >
             Pending Reports
           </button>
           <button 
             className={`px-4 py-2 type-body-md font-medium border-b-2 ${tab === "all" ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"}`}
-            onClick={() => setTab("all")}
+            onClick={() => selectTab("all")}
           >
             All Proof
           </button>
@@ -159,10 +195,10 @@ export default function ModerationClient({
                   <div className="flex-1 space-y-2">
                     <p className="type-label-caps text-error">Report Reason: {report.reason}</p>
                     <p className="type-body-sm text-on-surface">
-                      <strong>Submitter:</strong> {(report.proof_submissions?.profiles as any)?.full_name || "Unknown"}
+                      <strong>Submitter:</strong> {report.proof_submissions?.profiles?.full_name || "Unknown"}
                     </p>
                     <p className="type-body-sm text-on-surface">
-                      <strong>Challenge:</strong> {(report.proof_submissions?.challenges as any)?.title || "Unknown"}
+                      <strong>Challenge:</strong> {report.proof_submissions?.challenges?.title || "Unknown"}
                     </p>
                     <p className="type-body-sm text-on-surface">
                       <strong>Caption:</strong> {report.proof_submissions?.caption}
@@ -212,10 +248,10 @@ export default function ModerationClient({
                 </div>
                 <div className="space-y-1">
                   <p className="type-body-sm text-on-surface line-clamp-1">
-                    <strong>Submitter:</strong> {(sub.profiles as any)?.full_name || "Unknown"}
+                    <strong>Submitter:</strong> {sub.profiles?.full_name || "Unknown"}
                   </p>
                   <p className="type-body-sm text-on-surface line-clamp-1">
-                    <strong>Challenge:</strong> {(sub.challenges as any)?.title || "Unknown"}
+                    <strong>Challenge:</strong> {sub.challenges?.title || "Unknown"}
                   </p>
                 </div>
                 {canRemove && !sub.admin_removed && (

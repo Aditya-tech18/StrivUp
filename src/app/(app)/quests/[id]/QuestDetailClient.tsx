@@ -51,7 +51,8 @@ export default function QuestDetailClient({
     rejection_reason: string | null;
     media_url: string | null;
   } | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Signed-out visitors have nothing to load.
+  const [loading, setLoading] = useState(!!currentUserId);
   const [joiningQuest, setJoiningQuest] = useState(false);
 
   // Proof submission state
@@ -65,10 +66,7 @@ export default function QuestDetailClient({
 
   // Load participation status
   useEffect(() => {
-    if (!currentUserId) {
-      setLoading(false);
-      return;
-    }
+    if (!currentUserId) return;
 
     (async () => {
       try {

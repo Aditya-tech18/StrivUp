@@ -28,7 +28,7 @@ export default function AboutPage() {
           </div>
           <div className="text-center">
             <h2 className="text-[22px] font-black text-on-surface tracking-[-0.02em]">STRIVUP</h2>
-            <p className="text-[13px] text-on-surface-variant mt-0.5">India's Platform for Growth</p>
+            <p className="text-[13px] text-on-surface-variant mt-0.5">India&apos;s Platform for Growth</p>
           </div>
           <div className="flex flex-wrap gap-2 justify-center">
             {["Challenges", "Quests", "Streaks", "Community"].map(tag => (

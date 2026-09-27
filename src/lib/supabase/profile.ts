@@ -110,11 +110,17 @@ export async function getMyProfile(): Promise<Profile | null> {
       .maybeSingle();
 
     if (ext) {
-      profile.is_deactivated       = Boolean((ext as any).is_deactivated ?? false);
-      profile.is_private            = Boolean((ext as any).is_private ?? false);
-      profile.gender                = ((ext as any).gender as string) ?? null;
-      profile.pinned_challenge_ids  = Array.isArray((ext as any).pinned_challenge_ids)
-        ? ((ext as any).pinned_challenge_ids as string[])
+      const row = ext as {
+        is_deactivated?: boolean | null;
+        is_private?: boolean | null;
+        gender?: string | null;
+        pinned_challenge_ids?: unknown;
+      };
+      profile.is_deactivated       = Boolean(row.is_deactivated ?? false);
+      profile.is_private            = Boolean(row.is_private ?? false);
+      profile.gender                = row.gender ?? null;
+      profile.pinned_challenge_ids  = Array.isArray(row.pinned_challenge_ids)
+        ? (row.pinned_challenge_ids as string[])
         : [];
     }
   } catch {
@@ -199,7 +205,7 @@ export async function getMyProfilePrivate(): Promise<ProfilePrivate | null> {
         .eq("id", user.id)
         .maybeSingle();
       if (!data) return null;
-      return { ...(data as any), gender: null } as ProfilePrivate;
+      return { ...(data as Omit<ProfilePrivate, "gender">), gender: null } as ProfilePrivate;
     } catch {
       return null;
     }
@@ -364,7 +370,7 @@ export async function getFollowers(
       .range(page * pageSize, (page + 1) * pageSize - 1);
     if (error) throw error;
     return (data ?? [])
-      .map((r: any) => r.profiles)
+      .map((r: { profiles: unknown }) => r.profiles)
       .filter(Boolean) as FollowerUser[];
   } catch { return []; }
 }
@@ -384,7 +390,7 @@ export async function getFollowing(
       .range(page * pageSize, (page + 1) * pageSize - 1);
     if (error) throw error;
     return (data ?? [])
-      .map((r: any) => r.profiles)
+      .map((r: { profiles: unknown }) => r.profiles)
       .filter(Boolean) as FollowerUser[];
   } catch { return []; }
 }

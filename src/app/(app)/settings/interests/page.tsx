@@ -129,7 +129,7 @@ export default function InterestsPage() {
         <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
           <p className="text-[13px] font-semibold text-secondary mb-1">Why does this matter?</p>
           <p className="text-[12px] text-on-surface-variant leading-relaxed">
-            Your interests power STRIVUP's recommendation engine — helping us surface challenges and quests that align with your goals, not just what's popular.
+            Your interests power STRIVUP&apos;s recommendation engine — helping us surface challenges and quests that align with your goals, not just what&apos;s popular.
           </p>
         </div>
       </div>

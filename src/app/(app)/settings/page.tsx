@@ -237,7 +237,7 @@ export default function SettingsPage() {
         </button>
 
         <p className="text-center text-[11px] text-on-surface-variant pb-2">
-          STRIVUP · India's Platform for Growth
+          STRIVUP · India&apos;s Platform for Growth
         </p>
       </div>
     </div>

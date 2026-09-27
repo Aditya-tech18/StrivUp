@@ -34,10 +34,11 @@ export default function BusinessQuestDetailClient({ quest, currentUserId }: Prop
   const supabase = createClient();
   const [hasJoined, setHasJoined] = useState(false);
   const [joining, setJoining] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // Signed-out visitors have nothing to load.
+  const [loading, setLoading] = useState(!!currentUserId);
 
   useEffect(() => {
-    if (!currentUserId) { setLoading(false); return; }
+    if (!currentUserId) return;
     supabase.from("quest_participants")
       .select("id")
       .eq("quest_id", quest.id)
