@@ -1,0 +1,16 @@
+-- Business verification application fields + a safe admin bootstrap.
+-- Applied to cxujipeulvhreiryaptr. Additive and idempotent.
+--
+-- The admin email is a SETUP input, never the security boundary: it names who
+-- MAY become an admin. platform_admin_grants holds the pending grant, a trigger
+-- claims it when that account first appears, and from then on authorisation
+-- reads ordinary database state through is_platform_admin(). Nothing in the
+-- application authorises by comparing an email at request time.
+--
+-- See the applied migration for the full body; this file documents the change
+-- set: business_profiles gains legal_name, business_type, cover_url,
+-- operating_hours, rep_* , declaration_accepted_at, email_verified,
+-- phone_verified; guard_business_profile_write additionally freezes the two
+-- contact-verified flags; platform_admin_grants + claim_platform_admin_grant()
+-- trigger; admin_list_business_applications() and admin_platform_stats(), both
+-- of which re-check is_platform_admin(auth.uid()) internally.

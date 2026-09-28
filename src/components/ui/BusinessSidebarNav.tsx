@@ -17,8 +17,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  BarChart3, Building2, Compass, LayoutDashboard, Lock, MapPin,
-  Plus, Receipt, Settings, ShieldCheck, Target, Trophy, Users,
+  BadgeCheck, BarChart3, Building2, Compass, LayoutDashboard, Lock, MapPin,
+  Plus, Receipt, Search, Settings, ShieldCheck, Target, Trophy, Users,
 } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
@@ -47,12 +47,13 @@ const CREATE: NavItem[] = [
 const VERIFY: NavItem[] = [
   { href: "/business/order-verification", icon: Receipt,     label: "Order Verification", gated: true },
   { href: "/business/proof-verification", icon: ShieldCheck, label: "Proof Verification", gated: true },
+  { href: "/business/verification",       icon: Search,      label: "Verify Customer",    gated: true },
 ];
 
 const MANAGE: NavItem[] = [
   { href: "/business/analytics",    icon: BarChart3,  label: "Analytics", gated: true },
   { href: "/explore",               icon: Compass,    label: "Explore Quests" },
-  { href: "/business/verification", icon: ShieldCheck, label: "Verify Business" },
+  { href: "/business/verify-business", icon: BadgeCheck, label: "Verify Business" },
   { href: "/business/profile",      icon: Building2,  label: "Business Profile" },
   { href: "/business/settings",     icon: Settings,   label: "Settings" },
 ];
@@ -93,7 +94,7 @@ export function BusinessSidebarNav() {
       return (
         <Link
           key={href}
-          href="/business/verification"
+          href="/business/verify-business"
           title="Verify your business to unlock this"
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-on-surface-variant/50 hover:bg-surface-container transition-colors"
         >
@@ -153,7 +154,7 @@ export function BusinessSidebarNav() {
 
       {canCreate === false && (
         <Link
-          href="/business/verification"
+          href="/business/verify-business"
           className="mt-4 mx-1 block rounded-xl border border-secondary/30 bg-secondary/5 px-3 py-3 hover:bg-secondary/10 transition-colors"
         >
           <p className="text-xs font-bold text-secondary">Verification required</p>
