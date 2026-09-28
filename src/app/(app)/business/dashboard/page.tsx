@@ -6,16 +6,29 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, ChevronRight, Clock, Edit2, Plus, ShieldCheck, Store, TrendingUp, Users, Zap } from "lucide-react";
+import {
+  Bell, BookOpen, CheckSquare, ChevronRight, Clock, Gift, HelpCircle,
+  Plus, Search, ShieldCheck, Store, TrendingUp, Users, Zap,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useUnreadCount } from "@/components/ui/AlertsContext";
 import { getMyBusinessProfile, getBusinessVerifications, getVerificationInsights, type BusinessProfile, type VerificationRequest } from "@/lib/data/business";
 
 function timeAgo(d: string) {
   const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
-  if (m < 60) return `${m} hour${m !== 1 ? "s" : ""} ago`;
+  if (m < 1) return "just now";
+  if (m < 60) return `${m} minute${m !== 1 ? "s" : ""} ago`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h} hour${h !== 1 ? "s" : ""} ago`;
   return `${Math.floor(h / 24)} day${Math.floor(h/24) !== 1 ? "s" : ""} ago`;
+}
+
+/** 950 -> "950", 1200 -> "1.2K", 12400 -> "12.4K", 1500000 -> "1.5M" */
+function compactNum(n: number) {
+  const fmt = (v: number, suffix: string) => `${v.toFixed(1).replace(/\.0$/, "")}${suffix}`;
+  if (n >= 1_000_000) return fmt(n / 1_000_000, "M");
+  if (n >= 1_000) return fmt(n / 1_000, "K");
+  return String(n);
 }
 
 function StatusBadge({ status }: { status: BusinessProfile["verification_status"] }) {
@@ -39,6 +52,7 @@ function StatusBadge({ status }: { status: BusinessProfile["verification_status"
 export default function BusinessDashboardPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { unreadCount } = useUnreadCount();
   const [loading, setLoading] = useState(true);
   const [bp, setBp] = useState<BusinessProfile | null>(null);
   const [verifs, setVerifs] = useState<VerificationRequest[]>([]);
@@ -106,6 +120,7 @@ export default function BusinessDashboardPage() {
       title: "Verification",
       desc: "Verify participant activities and business visits.",
       cta: { label: "Verify Participant →", href: "/business/verification", primary: true },
+      badge: 0,
     },
     {
       icon: <BookOpen size={22} className="text-gray-500" />,
@@ -113,63 +128,59 @@ export default function BusinessDashboardPage() {
       title: "Verification History",
       desc: "View all past verifications.",
       cta: { label: "View all", href: "/business/verification/history", primary: false },
+      badge: 0,
     },
     {
       icon: <Clock size={22} className="text-amber-500" />,
       bg: "bg-amber-50",
-      title: "Proof Review",
-      desc: "Approve or reject participant proof submissions.",
-      cta: { label: "Review Proofs", href: "/business/proof-verification", primary: false },
+      title: "Pending Requests",
+      desc: "Verification requests waiting for your approval.",
+      cta: { label: "Review now", href: "/business/verification?filter=pending", primary: false },
+      badge: insights.pending,
     },
     {
-      icon: <TrendingUp size={22} className="text-green-500" />,
-      bg: "bg-green-50",
-      title: "Analytics",
-      desc: "Track Quest performance and participant engagement.",
-      cta: { label: "View Analytics", href: "/business/analytics", primary: false },
-    },
-    {
-      icon: <Users size={22} className="text-purple-500" />,
+      icon: <HelpCircle size={22} className="text-purple-500" />,
       bg: "bg-purple-50",
-      title: "Participants",
-      desc: "See who's joined your Quests.",
-      cta: { label: "View All", href: "/business/participants", primary: false },
+      title: "How Verification Works",
+      desc: "Learn the step-by-step verification process.",
+      cta: { label: "Learn more", href: "/business/verification/how-it-works", primary: false },
+      badge: 0,
     },
-    {
-      icon: <BookOpen size={22} className="text-orange-500" />,
-      bg: "bg-orange-50",
-      title: "Rewards",
-      desc: "Manage reward eligibility and fulfillment.",
-      cta: { label: "Manage Rewards", href: "/business/rewards", primary: false },
-    },
+  ];
+
+  const QUICK_LINKS = [
+    { icon: <CheckSquare size={18} className="text-amber-500" />,  bg: "bg-amber-50",  label: "Proofs",       href: "/business/proof-verification" },
+    { icon: <TrendingUp size={18} className="text-green-500" />,   bg: "bg-green-50",  label: "Analytics",    href: "/business/analytics" },
+    { icon: <Users size={18} className="text-purple-500" />,       bg: "bg-purple-50", label: "Participants", href: "/business/participants" },
+    { icon: <Gift size={18} className="text-orange-500" />,        bg: "bg-orange-50", label: "Rewards",      href: "/business/rewards" },
+    { icon: <Zap size={18} className="text-blue-600" />,           bg: "bg-blue-50",   label: "Promote",      href: "/business/promote" },
   ];
 
   return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       {/* ── Top Nav ──────────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-2">
-          <Link href="/business/profile">
+      <div className="bg-white border-b border-gray-100 px-5 py-4 grid grid-cols-3 items-center sticky top-0 z-30">
+        <div className="flex items-center">
+          <Link href="/business/profile" aria-label="Business profile">
             {bp.logo_url
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={bp.logo_url} alt={bp.business_name ?? ""} className="w-8 h-8 rounded-xl object-cover border border-gray-200" />
               : <div className="w-8 h-8 rounded-xl bg-blue-50 border border-gray-200 flex items-center justify-center"><Store size={16} className="text-blue-600" /></div>
             }
           </Link>
-          <span className="font-black text-gray-900 text-[15px] tracking-tight truncate max-w-[140px]">
-            {bp.business_name ?? "STRIVUP BIZ"}
-          </span>
         </div>
-        <div className="flex items-center gap-2">
-          <Link href="/business/promote" title="Promote Quest">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
-              <Zap size={16} className="text-blue-600" />
-            </div>
+        <span className="text-center font-black text-gray-900 text-[17px] tracking-tight">STRIVUP</span>
+        <div className="flex items-center justify-end gap-2">
+          <Link href="/search" aria-label="Search"
+            className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
+            <Search size={16} className="text-gray-600" />
           </Link>
-          <Link href="/business/settings">
-            <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
-              <Edit2 size={16} className="text-gray-600" />
-            </div>
+          <Link href="/alerts" aria-label={unreadCount > 0 ? `Alerts, ${unreadCount} unread` : "Alerts"}
+            className="relative w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
+            <Bell size={16} className="text-gray-600" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
+            )}
           </Link>
         </div>
       </div>
@@ -208,8 +219,9 @@ export default function BusinessDashboardPage() {
                 )}
               </div>
               {bp.business_username && <p className="text-sm text-gray-500">@{bp.business_username}</p>}
-              {bp.category && <p className="text-sm text-gray-500">{bp.category}</p>}
-              {city && <p className="text-sm text-gray-400">{city}</p>}
+              {(bp.category || city) && (
+                <p className="text-sm text-gray-500 truncate">{[bp.category, city].filter(Boolean).join(" · ")}</p>
+              )}
             </div>
             <button onClick={() => router.push("/business/settings")}
               className="px-4 py-1.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 shrink-0">
@@ -220,9 +232,9 @@ export default function BusinessDashboardPage() {
           {/* ── Stats row ────────────────────────────────────────────── */}
           <div className="grid grid-cols-4 mt-5 border border-gray-100 rounded-xl overflow-hidden">
             {[
-              { label: "Customers",    value: bp.total_customers.toLocaleString() },
-              { label: "Challenges",   value: bp.total_challenges.toLocaleString() },
-              { label: "Participants", value: bp.total_participants.toLocaleString() },
+              { label: "Customers",    value: compactNum(bp.total_customers) },
+              { label: "Challenges",   value: compactNum(bp.total_challenges) },
+              { label: "Participants", value: compactNum(bp.total_participants) },
               { label: "Rating",       value: bp.rating > 0 ? `${bp.rating}★` : "—" },
             ].map((s, i) => (
               <div key={s.label} className={`flex flex-col items-center py-3 bg-gray-50/50 ${i > 0 ? "border-l border-gray-100" : ""}`}>
@@ -258,16 +270,23 @@ export default function BusinessDashboardPage() {
           <div className="grid grid-cols-2 gap-3">
             {TOOLS.map(tool => (
               <div key={tool.title} className="rounded-2xl border border-gray-100 p-4 flex flex-col gap-3">
-                <div className={`w-10 h-10 rounded-xl ${tool.bg} flex items-center justify-center`}>{tool.icon}</div>
-                <div>
+                <div className="flex items-start justify-between">
+                  <div className={`w-10 h-10 rounded-xl ${tool.bg} flex items-center justify-center`}>{tool.icon}</div>
+                  {tool.badge > 0 && (
+                    <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-amber-500 text-white text-[11px] font-bold flex items-center justify-center">
+                      {tool.badge > 99 ? "99+" : tool.badge}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1">
                   <p className="text-sm font-bold text-gray-900">{tool.title}</p>
                   <p className="text-xs text-gray-500 mt-0.5 leading-snug">{tool.desc}</p>
                 </div>
                 {tool.cta.primary ? (
                   <Link href={tool.cta.href}>
-                    <button className="w-full h-9 rounded-xl bg-blue-600 text-white text-xs font-bold">
+                    <span className="w-full h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center justify-center transition-colors">
                       {tool.cta.label}
-                    </button>
+                    </span>
                   </Link>
                 ) : (
                   <Link href={tool.cta.href} className="text-sm text-blue-600 font-semibold flex items-center gap-1">
@@ -275,6 +294,16 @@ export default function BusinessDashboardPage() {
                   </Link>
                 )}
               </div>
+            ))}
+          </div>
+
+          {/* ── More tools ───────────────────────────────────────────── */}
+          <div className="grid grid-cols-5 gap-2 mt-4 pt-4 border-t border-gray-100">
+            {QUICK_LINKS.map(q => (
+              <Link key={q.href} href={q.href} className="flex flex-col items-center gap-1.5 rounded-xl py-2 hover:bg-gray-50 transition-colors">
+                <div className={`w-9 h-9 rounded-xl ${q.bg} flex items-center justify-center`}>{q.icon}</div>
+                <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">{q.label}</span>
+              </Link>
             ))}
           </div>
         </div>

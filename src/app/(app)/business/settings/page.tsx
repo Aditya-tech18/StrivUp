@@ -173,7 +173,7 @@ export default function BusinessSettingsPage() {
         </button>
       </div>
 
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 px-5 py-4">
+      <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4">
         <button onClick={handleSave} disabled={saving}
           className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold text-[15px] transition-all">
           {saving ? "Saving…" : "Save Changes"}

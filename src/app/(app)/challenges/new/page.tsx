@@ -13,12 +13,17 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
+  BadgeCheck,
+  Briefcase,
   CloudUpload,
   GripVertical,
   Image as ImageIcon,
-  Lock,
   MapPin,
+  PenSquare,
+  Receipt,
+  Store,
   Plus,
   Rocket,
   Trash2,
@@ -27,6 +32,7 @@ import {
 } from "lucide-react";
 import { Badge, Button, Card, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { CreatorPlans } from "@/components/features/CreatorPlans";
 
 /* ── Zod schema ─────────────────────────────────────────────────────────── */
 const schema = z.object({
@@ -216,17 +222,70 @@ function LivePreviewCard({ title, orgName, duration, thumbnail }: {
   );
 }
 
-/* ── LockedTab ───────────────────────────────────────────────────────────── */
-function LockedTab({ label }: { label: string }) {
+/* ── Creation modes ──────────────────────────────────────────────────────── */
+type Mode = "basic" | "branding" | "business";
+
+const MODES: { key: Mode; label: string; icon: typeof PenSquare }[] = [
+  { key: "basic",    label: "Basic",             icon: PenSquare  },
+  { key: "branding", label: "Personal Branding", icon: BadgeCheck },
+  { key: "business", label: "Business",          icon: Briefcase  },
+];
+
+function BrandingPanel({ onBack }: { onBack: () => void }) {
   return (
-    <div className="relative group">
-      <button type="button" className="flex items-center gap-1.5 px-4 py-2.5 text-sm text-on-surface-variant/50 cursor-not-allowed select-none" aria-disabled="true" tabIndex={-1}>
-        <Lock size={13} aria-hidden="true" />{label}
-      </button>
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block z-50 pointer-events-none">
-        <div className="bg-on-surface text-surface text-xs rounded px-2 py-1 whitespace-nowrap shadow-lg">Coming soon</div>
-        <div className="w-2 h-2 bg-on-surface rotate-45 mx-auto -mt-1" />
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+      <div>
+        <h2 className="type-headline-sm text-on-surface font-semibold">Personal Branding</h2>
+        <p className="text-sm text-on-surface-variant mt-1">
+          Promote your challenge and build your personal brand with professional visibility tools.
+        </p>
       </div>
+      <CreatorPlans />
+      <button type="button" onClick={onBack}
+        className="w-full h-12 rounded-xl bg-primary text-on-primary text-sm font-bold">
+        Continue with a free Basic challenge →
+      </button>
+    </div>
+  );
+}
+
+const BUSINESS_STEPS = [
+  { icon: Store,      title: "Set up your business page", desc: "Logo, location, category and contact details." },
+  { icon: PenSquare,  title: "Create a quest",            desc: "e.g. “Dine 3 times this month → free dessert”." },
+  { icon: Receipt,    title: "Verify real visits",        desc: "Confirm customers actually visited before progress counts." },
+  { icon: BadgeCheck, title: "Reward & measure",          desc: "Rewards unlock automatically; track visits and repeat customers." },
+];
+
+function BusinessPanel() {
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+      <div>
+        <h2 className="type-headline-sm text-on-surface font-semibold">Business Quests</h2>
+        <p className="text-sm font-semibold text-secondary mt-1">Don&apos;t just advertise. Give people a reason to visit, act and return.</p>
+        <p className="text-sm text-on-surface-variant mt-1">
+          Businesses create Quests — real-world actions at your store, café, gym or restaurant that customers complete for a reward.
+        </p>
+      </div>
+      <ol className="rounded-2xl border border-outline-variant bg-surface-container-lowest divide-y divide-outline-variant">
+        {BUSINESS_STEPS.map(({ icon: Icon, title, desc }, i) => (
+          <li key={title} className="flex items-start gap-3 p-4">
+            <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
+              <Icon size={18} className="text-secondary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-on-surface">{i + 1}. {title}</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">{desc}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <Link href="/business"
+        className="flex w-full h-12 items-center justify-center rounded-xl bg-primary text-on-primary text-sm font-bold">
+        Continue as Business →
+      </Link>
+      <p className="text-center text-xs text-on-surface-variant">
+        Takes you to business setup. Existing business accounts go straight to their dashboard.
+      </p>
     </div>
   );
 }
@@ -247,6 +306,7 @@ export default function CreateChallengePage() {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customInput, setCustomInput]         = useState("");
   const [submitError, setSubmitError]         = useState<string | null>(null);
+  const [mode, setMode]                       = useState<Mode>("basic");
 
   /* ── Task rows state ─────────────────────────────────────────────────── */
   const [tasks, setTasks] = useState<TaskRow[]>([]);
@@ -440,18 +500,34 @@ export default function CreateChallengePage() {
               Save Draft
             </button>
           </div>
-          <div className="flex border-b border-outline-variant -mx-4 px-4">
-            <button type="button" className="px-4 py-2.5 text-sm font-semibold text-secondary border-b-2 border-secondary">
-              Basic
-            </button>
-            <LockedTab label="Personal Branding" />
-            <LockedTab label="Business" />
+          <div role="tablist" aria-label="Challenge type" className="flex -mx-4">
+            {MODES.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={mode === key}
+                onClick={() => setMode(key)}
+                className={[
+                  "flex-1 flex flex-col items-center gap-1 pt-2 pb-2.5 text-xs font-semibold border-b-2 transition-colors",
+                  mode === key
+                    ? "text-secondary border-secondary"
+                    : "text-on-surface-variant border-transparent hover:text-on-surface",
+                ].join(" ")}
+              >
+                <Icon size={18} aria-hidden="true" />
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </header>
 
+      {mode === "branding" && <BrandingPanel onBack={() => setMode("basic")} />}
+      {mode === "business" && <BusinessPanel />}
+
       {/* ── Form ──────────────────────────────────────────────────────── */}
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate hidden={mode !== "basic"}>
         <div className="max-w-2xl mx-auto px-4 py-6 space-y-8 pb-48 md:pb-32">
 
           {/* Submit error banner */}
@@ -731,7 +807,7 @@ export default function CreateChallengePage() {
         </div>
 
         {/* ── Sticky bottom action bar ─────────────────────────────────── */}
-        <div className="fixed bottom-16 md:bottom-0 left-0 md:left-64 right-0 z-30 bg-surface/95 backdrop-blur-sm border-t border-outline-variant px-4 py-3">
+        <div className="fixed above-bottom-nav z-30 bg-surface/95 backdrop-blur-sm border-t border-outline-variant px-4 py-3">
           <div className="max-w-2xl mx-auto flex gap-3">
             <Button type="button" variant="outline" onClick={() => router.back()} className="flex-shrink-0">Back</Button>
             <Button

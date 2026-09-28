@@ -200,9 +200,10 @@ function TrendingRow({
 export interface ExploreClientProps {
   featured: FeaturedChallenge[];
   trending: TrendingChallenge[];
+  quests?: import("./page").FeaturedQuest[];
 }
 
-export function ExploreClient({ featured, trending }: ExploreClientProps) {
+export function ExploreClient({ featured, trending, quests = [] }: ExploreClientProps) {
   const [activeChip, setActiveChip] = useState<FilterChip>("Trending");
   const [privateToast, setPrivateToast] = useState(false);
 
@@ -310,6 +311,42 @@ export function ExploreClient({ featured, trending }: ExploreClientProps) {
           <p className="text-on-surface-variant text-sm">No challenges found. Be the first to create one!</p>
         )}
       </section>
+
+      {/* ── Active Business Quests ────────────────────────────────── */}
+      {quests.length > 0 && (
+        <section aria-label="Active Quests">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="type-headline-sm text-on-surface font-semibold">Business Quests</h2>
+            <Link href="/quests" className="text-xs text-secondary font-semibold">View all</Link>
+          </div>
+          <div className="no-scrollbar flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+            {quests.map(q => (
+              <Link key={q.id} href={`/quests/${q.id}`} className="flex-shrink-0 w-[200px]">
+                <div className="bg-surface-container-low border border-outline-variant rounded-2xl overflow-hidden hover:bg-surface-container transition-colors">
+                  <div className="relative w-full h-28 bg-surface-variant overflow-hidden">
+                    {(q.cover_url || q.thumbnail_url)
+                      ? <Image src={q.cover_url ?? q.thumbnail_url ?? ""} alt={q.title} fill className="object-cover" sizes="200px" />
+                      : <div className="w-full h-full flex items-center justify-center text-4xl">🎯</div>
+                    }
+                    {q.rewards && (
+                      <div className="absolute top-2 right-2 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                        🏆 Reward
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 space-y-1">
+                    <p className="text-[13px] font-bold text-on-surface leading-tight line-clamp-2">{q.title}</p>
+                    {q.business_name && <p className="text-[11px] text-on-surface-variant">by {q.business_name}</p>}
+                    <div className="flex items-center gap-1 text-[11px] text-on-surface-variant">
+                      <Users size={11} />{q.participant_count} joined
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="h-4" aria-hidden="true" />
     </div>

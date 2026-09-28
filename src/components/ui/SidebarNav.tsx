@@ -7,7 +7,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Compass, Home, MapPin, PlusSquare, User } from "lucide-react";
+import { Bell, Compass, Home, MapPin, PlusSquare, Search, Trophy, User } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
 import { useUnreadCount } from "./AlertsContext";
@@ -22,8 +22,10 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: "/feed",           icon: Home,       label: "Home"    },
   { href: "/explore",        icon: Compass,    label: "Explore" },
+  { href: "/search",         icon: Search,     label: "Search"  },
   { href: "/quests",         icon: MapPin,     label: "Quests"  },
   { href: "/challenges/new", icon: PlusSquare, label: "Create"  },
+  { href: "/creator/challenges", icon: Trophy, label: "My Challenges" },
   { href: "/alerts",         icon: Bell,       label: "Alerts", showBadge: true },
   { href: "/profile",        icon: User,       label: "Profile" },
 ];
