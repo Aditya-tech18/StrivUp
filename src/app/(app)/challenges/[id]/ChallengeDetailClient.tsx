@@ -772,7 +772,7 @@ export function ChallengeDetailClient({
   return (
     <div className="min-h-screen bg-surface">
       {/* ── TopAppBar ────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
+      <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
         <div className="flex items-center justify-between px-4 h-14 max-w-2xl mx-auto">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-primary-container flex items-center justify-center">

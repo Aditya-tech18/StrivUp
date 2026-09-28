@@ -69,13 +69,21 @@ export const metadata: Metadata = {
  * globals.css currently defines no dark-mode tokens; a media-query array here
  * would promise a dark theme the stylesheet cannot deliver.
  *
- * `viewportFit: "cover"` is deliberately NOT set yet — it requires
- * env(safe-area-inset-*) padding on BottomNav first, or the nav slides under
- * the iPhone home indicator. Both land together in the PWA phase.
+ * `viewportFit: "cover"` lets the app paint into the notch and home-indicator
+ * areas, which is what makes it read as an installed app rather than a page in
+ * a browser. It is only safe because the shell already accounts for the insets:
+ * BottomNav carries `pb-safe`, page content carries `pb-bottom-nav`, and
+ * `--bottom-nav-h` folds `env(safe-area-inset-bottom)` into the nav height.
+ * Without those three, the nav would sit under the home indicator.
+ *
+ * `userScalable` is deliberately left at its default (true). Locking zoom would
+ * look more "native" but breaks pinch-to-zoom for low-vision users, and that is
+ * not a trade worth making.
  */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
   themeColor: "#fbf9f9",
 };
 

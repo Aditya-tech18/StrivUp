@@ -188,7 +188,7 @@ export default function CreateQuestPage() {
   return (
     <div className="min-h-screen bg-surface pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-surface-container-low border-b border-outline-variant px-4 py-3 flex items-center gap-2">
+      <div className="sticky top-0 pt-safe z-40 bg-surface-container-low border-b border-outline-variant px-4 py-3 flex items-center gap-2">
         <button
           type="button"
           onClick={() => router.back()}

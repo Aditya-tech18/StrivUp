@@ -71,7 +71,7 @@ export default function BusinessQuestDetailClient({ quest, currentUserId }: Prop
   return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
+      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 pt-safe z-30">
         <button onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
           <ArrowLeft size={20} className="text-gray-600" />
         </button>

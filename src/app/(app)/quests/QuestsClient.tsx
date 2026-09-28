@@ -136,7 +136,7 @@ export default function QuestsClient({
             <h2 className="type-label-caps text-on-surface-variant mb-3">
               Hot Right Now
             </h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 snap-x snap-mandatory">
               {initialHotQuests.map((quest) => (
                 <Link
                   key={quest.id}
@@ -180,7 +180,7 @@ export default function QuestsClient({
 
         {/* Filter Chips */}
         <div>
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
             {filterChips.map((chip) => (
               <button
                 key={chip.id}

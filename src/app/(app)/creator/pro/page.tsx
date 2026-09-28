@@ -16,7 +16,7 @@ const BENEFITS = [
 export default function CreatorProPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FC]">
-      <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-gray-100 bg-white px-4 py-3">
+      <header className="sticky top-0 pt-safe z-30 flex items-center gap-3 border-b border-gray-100 bg-white px-4 py-3">
         <Link href="/creator/challenges" aria-label="Back"
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100">
           <ArrowLeft size={20} className="text-gray-600" />
