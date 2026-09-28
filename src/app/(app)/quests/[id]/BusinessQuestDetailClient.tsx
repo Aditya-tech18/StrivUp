@@ -16,10 +16,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Bookmark, Calendar, Check, CheckCircle2, ChevronRight,
-  Clock, ImageIcon, Loader2, MapPin, Share2, ShieldCheck, Upload, Users,
+  Clock, ExternalLink, ImageIcon, Loader2, MapPin, PlayCircle, Share2,
+  ShieldCheck, Trophy, Upload, Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import type { BusinessQuestDetail } from "@/lib/data/quests";
+import type { BusinessQuestDetail, OrderPlatformLink } from "@/lib/data/quests";
 import {
   getQuestLeaderboard, getVerificationsByTask,
   type LeaderboardRow, type OrderVerification,
@@ -82,6 +83,18 @@ function formatDate(d: string | null): string | null {
   return new Date(d).toLocaleDateString("en-IN", {
     day: "numeric", month: "short", year: "numeric",
   });
+}
+
+function formatShort(d: string): string {
+  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+}
+
+/** Whole days from now until the end date; negative once it has passed. */
+function daysRemaining(end: string | null): number | null {
+  if (!end) return null;
+  const ms = new Date(end).getTime() - Date.now();
+  if (!Number.isFinite(ms)) return null;
+  return Math.ceil(ms / 86_400_000);
 }
 
 function durationDays(start: string | null, end: string | null): number | null {
@@ -157,6 +170,7 @@ export default function BusinessQuestDetailClient({
   const reward = useMemo(() => summariseRewards(quest.rewards), [quest.rewards]);
   const hasLeaderboard = quest.rewards.some((r) => r.is_leaderboard);
   const days = durationDays(quest.start_date, quest.end_date);
+  const daysLeft = daysRemaining(quest.end_date);
   const isVerifiedBiz = quest.business_verification === "verified";
   const isEnded = quest.quest_status === "completed" || quest.quest_status === "expired";
   const businessName = quest.business?.business_name ?? quest.business_name ?? "Business";
@@ -391,6 +405,59 @@ export default function BusinessQuestDetailClient({
               </div>
             </section>
 
+            {/* At-a-glance stats — the three numbers that decide whether to join */}
+            <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {reward && (
+                <StatPill
+                  icon={Trophy} tone="amber"
+                  value={reward.perWinner ?? reward.headline}
+                  label={reward.subline ?? "Reward"}
+                />
+              )}
+              <StatPill
+                icon={Users} tone="blue"
+                value={quest.participant_count.toLocaleString("en-IN")}
+                label="Participants"
+              />
+              <StatPill
+                icon={Calendar} tone="violet"
+                value={
+                  quest.start_date && quest.end_date
+                    ? `${formatShort(quest.start_date)} – ${formatShort(quest.end_date)}`
+                    : days != null ? `${days} Days` : "—"
+                }
+                label={
+                  daysLeft != null
+                    ? daysLeft > 0 ? `Ends in ${daysLeft} days` : "Ended"
+                    : "Duration"
+                }
+              />
+            </section>
+
+            {/* Progress — always visible, not buried in the right rail */}
+            {totalTasks > 0 && (
+              <Link
+                href={hasJoined ? `/quests/${quest.id}/tasks` : `#tasks`}
+                className="bg-white rounded-2xl border border-gray-200 px-5 py-4 flex items-center gap-4 hover:border-gray-300 transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-bold text-gray-900">Your Progress</p>
+                    <p className="text-sm font-bold text-gray-900 shrink-0">
+                      {completedCount}/{totalTasks} Tasks
+                    </p>
+                  </div>
+                  <div className="mt-2 h-2 rounded-full bg-gray-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-blue-600 transition-[width] duration-500"
+                      style={{ width: `${totalTasks ? (completedCount / totalTasks) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+                <ChevronRight size={18} className="text-gray-300 shrink-0" aria-hidden="true" />
+              </Link>
+            )}
+
             {/* Tabs */}
             <nav
               aria-label="Quest sections"
@@ -428,6 +495,7 @@ export default function BusinessQuestDetailClient({
                   onProof={openProof}
                   loading={loading}
                   joined={hasJoined}
+                  platforms={quest.order_platforms}
                 />
                 <VerificationStepper />
               </>
@@ -443,6 +511,7 @@ export default function BusinessQuestDetailClient({
                   onProof={openProof}
                   loading={loading}
                   joined={hasJoined}
+                  platforms={quest.order_platforms}
                 />
                 <VerificationStepper />
               </>
@@ -581,6 +650,34 @@ export default function BusinessQuestDetailClient({
   );
 }
 
+/* ── Stat pill ─────────────────────────────────────────────────────────── */
+
+const PILL_TONE = {
+  amber:  { wrap: "bg-amber-50 border-amber-100",   icon: "text-amber-500" },
+  blue:   { wrap: "bg-blue-50 border-blue-100",     icon: "text-blue-600" },
+  violet: { wrap: "bg-violet-50 border-violet-100", icon: "text-violet-600" },
+} as const;
+
+function StatPill({
+  icon: Icon, value, label, tone,
+}: {
+  icon: typeof Trophy;
+  value: string;
+  label: string;
+  tone: keyof typeof PILL_TONE;
+}) {
+  const t = PILL_TONE[tone];
+  return (
+    <div className={`rounded-2xl border px-4 py-3.5 flex items-center gap-3 ${t.wrap}`}>
+      <Icon size={20} className={`${t.icon} shrink-0`} aria-hidden="true" />
+      <div className="min-w-0">
+        <p className="text-[15px] font-bold text-gray-900 leading-tight truncate">{value}</p>
+        <p className="text-[11px] text-gray-500 truncate">{label}</p>
+      </div>
+    </div>
+  );
+}
+
 /* ── About this Quest ──────────────────────────────────────────────────── */
 
 function AboutQuestCard({
@@ -655,7 +752,7 @@ function AboutQuestCard({
 /* ── Task list ─────────────────────────────────────────────────────────── */
 
 function TaskSection({
-  tasks, completedTaskIds, verifications, onProof, loading, joined,
+  tasks, completedTaskIds, verifications, onProof, loading, joined, platforms,
 }: {
   tasks: BusinessQuestDetail["tasks"];
   completedTaskIds: Set<string>;
@@ -663,17 +760,28 @@ function TaskSection({
   onProof: (t: BusinessQuestDetail["tasks"][number]) => void;
   loading: boolean;
   joined: boolean;
+  platforms: OrderPlatformLink[] | null;
 }) {
   if (tasks.length === 0) return null;
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 p-6">
-      <h2 className="text-[17px] font-bold text-gray-900">
-        Tasks ({tasks.length})
-      </h2>
-      <p className="text-sm text-gray-500 mt-0.5">
-        Complete the required tasks to finish the Quest. Every task must be verified.
-      </p>
+    <section id="tasks" className="bg-white rounded-2xl border border-gray-200 p-6 scroll-mt-20">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-[17px] font-bold text-gray-900">
+            Tasks ({tasks.length})
+          </h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Complete the required tasks to finish the Quest. Every task must be verified.
+          </p>
+        </div>
+        <a
+          href="#how-verification-works"
+          className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-blue-50 border border-blue-100 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
+        >
+          <PlayCircle size={13} /> How It Works?
+        </a>
+      </div>
 
       <ul className="flex flex-col gap-3 mt-5">
         {tasks.map((task, i) => (
@@ -686,6 +794,7 @@ function TaskSection({
             onProof={() => onProof(task)}
             loading={loading}
             joined={joined}
+            platforms={platforms}
           />
         ))}
       </ul>
@@ -694,7 +803,7 @@ function TaskSection({
 }
 
 function TaskCard({
-  task, index, completed, verification, onProof, loading, joined,
+  task, index, completed, verification, onProof, loading, joined, platforms,
 }: {
   task: BusinessQuestDetail["tasks"][number];
   index: number;
@@ -703,8 +812,12 @@ function TaskCard({
   onProof: () => void;
   loading: boolean;
   joined: boolean;
+  platforms: OrderPlatformLink[] | null;
 }) {
   const proofLabel = PROOF_LABEL[task.proof_type] ?? task.proof_type;
+  // Only order_verification tasks are fulfilled through an ordering platform.
+  const showPlatforms =
+    task.proof_type === "order_verification" && (platforms?.length ?? 0) > 0;
 
   // The status line reflects where this task actually stands, so a user who
   // walks away mid-flow can see what is waiting on whom.
@@ -760,6 +873,27 @@ function TaskCard({
             <span className="text-[11px] font-medium text-gray-400">
               Proof Type: <span className="text-gray-600">{proofLabel}</span>
             </span>
+            {showPlatforms && platforms!.map((p) => (
+              p.url ? (
+                <a
+                  key={p.platform}
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  {p.label} <ExternalLink size={9} />
+                </a>
+              ) : (
+                <span
+                  key={p.platform}
+                  className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600"
+                >
+                  {p.label}
+                </span>
+              )
+            ))}
             {state && (
               <span
                 className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${state.cls}`}

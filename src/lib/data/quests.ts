@@ -583,6 +583,12 @@ export async function markQuestVisited(
 
 /* ── Business Quest Detail (supports quest_status column) ─────────────── */
 
+export interface OrderPlatformLink {
+  platform: string;
+  label: string;
+  url: string | null;
+}
+
 export interface BusinessQuestDetail {
   id: string;
   title: string;
@@ -594,6 +600,12 @@ export interface BusinessQuestDetail {
   thumbnail_url: string | null;
   location_name: string | null;
   destination_link: string | null;
+  /**
+   * Ordering channels for order_verification tasks:
+   * [{platform,label,url}]. Labels and outbound links only — STRIVUP has no
+   * integration with any ordering platform.
+   */
+  order_platforms: OrderPlatformLink[] | null;
   start_date: string | null;
   end_date: string | null;
   visibility: string;
@@ -672,7 +684,7 @@ export async function getBusinessQuestDetail(
     .from("quests")
     .select(`
       id, title, description, category, business_name, business_id,
-      cover_url, thumbnail_url, location_name, destination_link,
+      cover_url, thumbnail_url, location_name, destination_link, order_platforms,
       start_date, end_date, visibility, quest_status, rules, eligibility,
       participant_count, view_count, completion_count, creator_id, created_at
     `)
