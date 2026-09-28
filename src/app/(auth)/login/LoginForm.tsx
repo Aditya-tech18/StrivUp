@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Flame, Loader2, Smartphone } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { homeFor } from "@/lib/auth/roles";
 
 /* ── Zod v4 schema ────────────────────────────────────────────────────── */
 const loginSchema = z.object({
@@ -75,7 +76,7 @@ export function LoginForm() {
   const onSubmit = async (data: LoginValues) => {
     setAuthError(null);
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: auth, error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
     });
@@ -85,7 +86,8 @@ export function LoginForm() {
       return;
     }
 
-    router.push("/feed");
+    // User → feed, business → business dashboard, admin → admin console.
+    router.push(auth.user ? await homeFor(supabase, auth.user.id) : "/feed");
     router.refresh(); // flush Supabase session into server components
   };
 

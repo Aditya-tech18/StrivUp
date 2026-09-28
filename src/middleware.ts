@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Protected app routes
+  // Protected routes (user app, business dashboard, admin console)
   const isAppRoute =
     pathname.startsWith("/feed") ||
     pathname.startsWith("/explore") ||
@@ -45,46 +45,33 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/profile") ||
     pathname.startsWith("/settings") ||
     pathname.startsWith("/alerts") ||
-    pathname.startsWith("/creator");
+    pathname.startsWith("/creator") ||
+    pathname.startsWith("/business") ||
+    pathname.startsWith("/admin");
 
   // Unauthenticated → login
   if (!user && isAppRoute) {
     return NextResponse.redirect(new URL("/login", origin));
   }
 
-  // Deactivation check — only if column exists (fails silently if migration not run)
-  if (user && isAppRoute && pathname !== "/deactivated") {
+  // Account state: self-deactivation (is_deactivated) or admin enforcement
+  // (account_status). account_status arrives with the roles migration; if it
+  // isn't applied yet, fall back to the self-deactivation check alone.
+  if (user && (isAppRoute || pathname === "/deactivated")) {
+    let blocked = false;
     try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("is_deactivated")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (profile?.is_deactivated === true) {
-        return NextResponse.redirect(new URL("/deactivated", origin));
-      }
+      const first = await supabase
+        .from("profiles").select("is_deactivated, account_status").eq("id", user.id).maybeSingle();
+      const profile = first.error
+        ? (await supabase.from("profiles").select("is_deactivated").eq("id", user.id).maybeSingle()).data
+        : first.data;
+      const p = profile as { is_deactivated?: boolean; account_status?: string } | null;
+      blocked = p?.is_deactivated === true || (!!p?.account_status && p.account_status !== "active");
     } catch {
-      // Column not yet added — skip check, allow access
+      blocked = false;
     }
-  }
-
-  // If deactivated page accessed by active user → redirect home
-  if (user && pathname === "/deactivated") {
-    try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("is_deactivated")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (profile && profile.is_deactivated !== true) {
-        return NextResponse.redirect(new URL("/feed", origin));
-      }
-    } catch {
-      // Column missing — redirect to feed
-      return NextResponse.redirect(new URL("/feed", origin));
-    }
+    if (blocked && pathname !== "/deactivated") return NextResponse.redirect(new URL("/deactivated", origin));
+    if (!blocked && pathname === "/deactivated") return NextResponse.redirect(new URL("/feed", origin));
   }
 
   return supabaseResponse;
