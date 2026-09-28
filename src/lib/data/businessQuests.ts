@@ -6,7 +6,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type QuestStatus = "draft"|"pending_review"|"published"|"active"|"paused"|"completed"|"expired"|"rejected"|"cancelled"|"archived";
-export type ProofType = "photo"|"video"|"screenshot"|"photo_text"|"qr"|"bill_document"|"location"|"manual"|"none";
+export type ProofType = "photo"|"video"|"screenshot"|"photo_text"|"qr"|"bill_document"|"location"|"manual"|"none"|"order_verification";
 export type RewardType = "cash"|"coupon"|"gift_card"|"discount"|"product"|"subscription"|"voucher"|"certificate"|"internship"|"custom"|"other";
 
 export interface QuestTask {
@@ -18,6 +18,8 @@ export interface QuestTask {
   is_required: boolean;
   sort_order: number;
   instructions: string | null;
+  /** Per-task thumbnail shown on the Quest detail page. */
+  image_url: string | null;
   created_at: string;
 }
 
@@ -98,6 +100,10 @@ export const PROOF_TYPES: { value: ProofType; label: string }[] = [
   { value: "location",      label: "📍 Location" },
   { value: "manual",        label: "✋ Manual Verification" },
   { value: "none",          label: "✅ No Proof Required" },
+  // Runs the two-code order loop: STRIVUP issues an order code the participant
+  // puts in their delivery-app order description, the business verifies it at
+  // the counter, and the bill code it mints closes the task.
+  { value: "order_verification", label: "🧾 Order Verification (STRIVUP OTP)" },
 ];
 
 export const REWARD_TYPES: { value: RewardType; label: string }[] = [

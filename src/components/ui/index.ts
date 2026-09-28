@@ -18,4 +18,8 @@ export { BottomNav } from "./BottomNav";
 
 export { SidebarNav } from "./SidebarNav";
 
+export { BusinessSidebarNav } from "./BusinessSidebarNav";
+
+export { AppSidebar } from "./AppSidebar";
+
 export { AlertsProvider, useUnreadCount } from "./AlertsContext";
