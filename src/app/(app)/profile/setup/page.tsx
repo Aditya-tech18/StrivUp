@@ -411,7 +411,7 @@ export default function ProfilePage() {
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-sm bg-surface-container-lowest rounded-xl p-5">
-            <h2 className="type-headline-sm text-on-surface mb-2">Delete your STRIV account?</h2>
+            <h2 className="type-headline-sm text-on-surface mb-2">Delete your StrivUp account?</h2>
             <p className="type-body-md text-on-surface-variant mb-4">
               This permanently removes your profile and account data. This action cannot be undone.
             </p>

@@ -36,7 +36,7 @@ export default function PrivacyPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
+    <div className="min-h-screen bg-surface flex items-center justify-center">
       <div className="w-6 h-6 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
     </div>
   );
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
   const isPrivate = profile?.is_private ?? false;
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+    <div className="min-h-screen bg-surface pb-28">
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-5 py-3.5">
           <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">

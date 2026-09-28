@@ -11,7 +11,7 @@
  *
  * Tapping a row marks it read (is_read = true) then navigates:
  *  - related_challenge_id → /challenges/[id]
- *  - related_user_id (no challenge) → /profile/[id]
+ *  - related_user_id (no challenge) → /u/[id]  (public profile route)
  *  - neither → no navigation, just mark read
  *
  * "Mark all as read" button updates both the DB and the global unread badge.
@@ -139,7 +139,11 @@ export default function AlertsPage() {
       if (notif.related_challenge_id) {
         router.push(`/challenges/${notif.related_challenge_id}`);
       } else if (notif.related_user_id) {
-        router.push(`/profile/${notif.related_user_id}`);
+        // /u/[handle] accepts a UUID as well as a username, which matters
+        // here because related_user_id is always a UUID. The old
+        // /profile/[id] target never existed — every follow notification
+        // tap 404'd.
+        router.push(`/u/${notif.related_user_id}`);
       }
     },
     [markOneRead, router, supabase]

@@ -77,7 +77,7 @@ export default function AccountDetailsPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
+    <div className="min-h-screen bg-surface flex items-center justify-center">
       <div className="w-6 h-6 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
     </div>
   );
@@ -85,7 +85,7 @@ export default function AccountDetailsPage() {
   const inputCls = "w-full h-11 rounded-xl border border-outline-variant bg-white px-3.5 text-[14px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors";
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+    <div className="min-h-screen bg-surface pb-28">
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">

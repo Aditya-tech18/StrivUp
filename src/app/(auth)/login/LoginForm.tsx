@@ -5,10 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Flame, Loader2, Smartphone } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { safeRedirect } from "@/lib/safeRedirect";
 
 /* ── Zod v4 schema ────────────────────────────────────────────────────── */
 const loginSchema = z.object({
@@ -59,6 +60,9 @@ function passwordFieldCls(hasError: boolean) {
 /* ── Component ──────────────────────────────────────────────────────────── */
 export function LoginForm() {
   const router = useRouter();
+  // Where to land after auth. Comes from ?redirectTo (set by proxy.ts when it
+  // bounces a signed-out visitor) and is validated to a same-origin path.
+  const destination = safeRedirect(useSearchParams().get("redirectTo"));
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -85,7 +89,7 @@ export function LoginForm() {
       return;
     }
 
-    router.push("/feed");
+    router.push(destination);
     router.refresh(); // flush Supabase session into server components
   };
 
@@ -99,7 +103,9 @@ export function LoginForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        // Forward the destination through OAuth so /auth/callback can
+        // deliver the person to the page they originally asked for.
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(destination)}`,
       },
     });
 
@@ -119,7 +125,7 @@ export function LoginForm() {
         <div className="w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center">
           <Flame size={28} className="text-on-primary" aria-hidden="true" />
         </div>
-        <p className="type-label-caps text-secondary tracking-widest">STRIV</p>
+        <p className="type-label-caps text-secondary tracking-widest">STRIVUP</p>
       </div>
 
       {/* ── Headline ─────────────────────────────────────────────────── */}

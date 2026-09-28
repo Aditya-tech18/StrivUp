@@ -10,6 +10,10 @@ export { Card, CardHeader, CardFooter } from "./Card";
 
 export { Badge } from "./Badge";
 
+export { ErrorState } from "./ErrorState";
+
+export { Skeleton } from "./Skeleton";
+
 export { BottomNav } from "./BottomNav";
 
 export { SidebarNav } from "./SidebarNav";

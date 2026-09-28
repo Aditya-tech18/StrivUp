@@ -19,12 +19,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Silence known safe build warnings
+  // Fail the build on type errors — keep this honest.
   typescript: {
     ignoreBuildErrors: false,
-  },
-  eslint: {
-    ignoreDuringBuilds: false,
   },
 };
 

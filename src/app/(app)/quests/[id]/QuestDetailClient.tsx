@@ -51,7 +51,10 @@ export default function QuestDetailClient({
     rejection_reason: string | null;
     media_url: string | null;
   } | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Derived from the prop rather than set inside the effect: a signed-out
+  // viewer has nothing to load, so starting at `false` avoids a synchronous
+  // setState in the effect below (which would cascade a second render).
+  const [loading, setLoading] = useState(Boolean(currentUserId));
   const [joiningQuest, setJoiningQuest] = useState(false);
 
   // Proof submission state
@@ -65,10 +68,7 @@ export default function QuestDetailClient({
 
   // Load participation status
   useEffect(() => {
-    if (!currentUserId) {
-      setLoading(false);
-      return;
-    }
+    if (!currentUserId) return;
 
     (async () => {
       try {

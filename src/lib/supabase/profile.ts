@@ -119,7 +119,7 @@ export async function getMyProfile(): Promise<Profile | null> {
   if (error) throw error;
   if (!data) return null;
 
-  const profile = toProfile(data as Record<string, unknown>);
+  const profile = toProfile(data as unknown as Record<string, unknown>);
 
   // Extended columns — only available after 20260909 migration
   try {
@@ -210,7 +210,10 @@ export async function getMyProfilePrivate(): Promise<ProfilePrivate | null> {
         .eq("id", user.id)
         .maybeSingle();
       if (!data) return null;
-      return { ...(data as any), gender: null } as ProfilePrivate;
+      return {
+        ...(data as Omit<ProfilePrivate, "gender">),
+        gender: null,
+      } satisfies ProfilePrivate;
     } catch {
       return null;
     }
@@ -321,13 +324,20 @@ export async function deleteMySocialLink(id: string): Promise<void> {
 
 // ── Followers / Following ──────────────────────────────────────────────────
 
+// `followers.request_status` is 'pending' | 'accepted' | 'rejected'. Counts and
+// lists must include ACCEPTED rows only — a pending request to a private account
+// is not a follow, and counting it would both inflate the number and leak that
+// a request exists.
+const ACCEPTED = "accepted";
+
 export async function getFollowerCount(userId: string): Promise<number> {
   const supabase = createClient();
   try {
     const { count, error } = await supabase
       .from("followers")
       .select("*", { count: "exact", head: true })
-      .eq("followed_id", userId);
+      .eq("followed_id", userId)
+      .eq("request_status", ACCEPTED);
     if (error) throw error;
     return count ?? 0;
   } catch { return 0; }
@@ -339,7 +349,8 @@ export async function getFollowingCount(userId: string): Promise<number> {
     const { count, error } = await supabase
       .from("followers")
       .select("*", { count: "exact", head: true })
-      .eq("follower_id", userId);
+      .eq("follower_id", userId)
+      .eq("request_status", ACCEPTED);
     if (error) throw error;
     return count ?? 0;
   } catch { return 0; }
@@ -352,11 +363,85 @@ export async function getFollowers(userId: string, page = 0, pageSize = 20): Pro
       .from("followers")
       .select("profiles!follower_id(id,username,full_name,avatar_url,verification_status)")
       .eq("followed_id", userId)
+      .eq("request_status", ACCEPTED)
       .order("created_at", { ascending: false })
       .range(page * pageSize, (page + 1) * pageSize - 1);
     if (error) throw error;
-    return (data ?? []).map((r: any) => r.profiles).filter(Boolean) as FollowerUser[];
+    return (data ?? [])
+      .map((r) => (r as unknown as { profiles: FollowerUser | null }).profiles)
+      .filter((p): p is FollowerUser => p !== null);
   } catch { return []; }
+}
+
+// ── Follow actions ───────────────────────────────────────────────────
+
+/** Result of a follow attempt: 'following' for a public account, 'requested'
+ *  when the target is private and the request awaits approval. */
+export type FollowResult = "following" | "requested";
+
+/**
+ * Follow a user, or send a follow request if their account is private.
+ *
+ * `request_status` is decided by a BEFORE INSERT trigger on `followers`, not
+ * here — a client-supplied value could be used to self-accept into a private
+ * account. This function therefore inserts without it and reads back what the
+ * database decided.
+ *
+ * `followers` is PRIMARY KEY (follower_id, followed_id) with
+ * CHECK (follower_id <> followed_id), so double-follows and self-follows are
+ * rejected by the schema. The existing INSERT policy already scopes writes to
+ * `follower_id = auth.uid()`.
+ */
+export async function followUser(targetUserId: string): Promise<FollowResult> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  if (user.id === targetUserId) throw new Error("You cannot follow yourself");
+
+  const { data, error } = await supabase
+    .from("followers")
+    .insert({ follower_id: user.id, followed_id: targetUserId })
+    .select("request_status")
+    .single();
+
+  if (error) {
+    // 23505 = unique_violation: already following or already requested.
+    if ((error as { code?: string }).code === "23505") {
+      const { data: existing } = await supabase
+        .from("followers")
+        .select("request_status")
+        .eq("follower_id", user.id)
+        .eq("followed_id", targetUserId)
+        .maybeSingle();
+      return (existing as { request_status?: string })?.request_status === "pending"
+        ? "requested"
+        : "following";
+    }
+    throw error;
+  }
+
+  return (data as { request_status?: string })?.request_status === "pending"
+    ? "requested"
+    : "following";
+}
+
+/**
+ * Unfollow a user, or withdraw a pending follow request — both are the same
+ * row, so one delete covers both. Idempotent: deleting a row that is not there
+ * is not an error.
+ */
+export async function unfollowUser(targetUserId: string): Promise<void> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("followers")
+    .delete()
+    .eq("follower_id", user.id)
+    .eq("followed_id", targetUserId);
+
+  if (error) throw error;
 }
 
 export async function getFollowing(userId: string, page = 0, pageSize = 20): Promise<FollowerUser[]> {
@@ -366,10 +451,13 @@ export async function getFollowing(userId: string, page = 0, pageSize = 20): Pro
       .from("followers")
       .select("profiles!followed_id(id,username,full_name,avatar_url,verification_status)")
       .eq("follower_id", userId)
+      .eq("request_status", ACCEPTED)
       .order("created_at", { ascending: false })
       .range(page * pageSize, (page + 1) * pageSize - 1);
     if (error) throw error;
-    return (data ?? []).map((r: any) => r.profiles).filter(Boolean) as FollowerUser[];
+    return (data ?? [])
+      .map((r) => (r as unknown as { profiles: FollowerUser | null }).profiles)
+      .filter((p): p is FollowerUser => p !== null);
   } catch { return []; }
 }
 
@@ -439,7 +527,8 @@ export async function deleteMyAccount(): Promise<void> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(
-      (body as any).error ?? "Failed to delete account. Please contact support."
+      (body as { error?: string }).error ??
+        "Failed to delete account. Please contact support."
     );
   }
   await supabase.auth.signOut();

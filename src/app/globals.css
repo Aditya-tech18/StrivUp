@@ -1,89 +1,178 @@
-/* ─── Google Fonts: Material Symbols Outlined (variable icon font) ─────── */
-/* Must come before @import "tailwindcss" per CSS spec                       */
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block");
-
 @import "tailwindcss";
 
-/* ─── Design System Tokens via Tailwind v4 @theme ─────────────────────── */
-/* All tokens are defined here as CSS custom properties inside @theme so     */
-/* Tailwind generates utility classes like bg-primary, text-on-primary, etc. */
+/* ═══════════════════════════════════════════════════════════════════════════
+   StrivUp design system — Tailwind v4 @theme
+   ───────────────────────────────────────────────────────────────────────────
+   Token values are the canonical StrivUp design spec. Reconciled against the
+   reference mockups; where the old values drifted (surface was #fbf9fb, now
+   #fbf9f9; primary-container was navy #0d1c32, now near-black #1b1b1b) the
+   spec wins.
+
+   Namespaces matter in v4 — they are what generates utilities:
+     --color-*    -> bg-*, text-*, border-*
+     --text-*     -> text-* font sizes, with --line-height / --letter-spacing /
+                     --font-weight modifiers folded into the same utility
+     --spacing-*  -> p-*, m-*, gap-*
+     --radius-*   -> rounded-*
+     --font-*     -> font-*
+
+   NOTE: the previous version of this file used `--font-size-*`, which is NOT a
+   v4 namespace, so it generated nothing and every text style had to be
+   hand-rolled as a `.type-*` class. Using `--text-*` means `text-body-md` now
+   carries size + line-height + weight + tracking on its own.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 @theme {
-  /* ── Fonts ──────────────────────────────────────────────────────────── */
+  /* ── Font family ─────────────────────────────────────────────────────── */
   --font-sans: var(--font-inter), system-ui, sans-serif;
 
-  /* ── Colors ─────────────────────────────────────────────────────────── */
+  /* ── Primary (near-black; StrivUp's ink) ─────────────────────────────── */
+  --color-primary: #000000;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #1b1b1b;
+  --color-on-primary-container: #848484;
+  --color-primary-fixed: #e2e2e2;
+  --color-primary-fixed-dim: #c6c6c6;
+  --color-on-primary-fixed: #1b1b1b;
+  --color-on-primary-fixed-variant: #474747;
+  --color-inverse-primary: #c6c6c6;
 
-  /* Primary */
-  --color-primary:                  #000000;
-  --color-on-primary:               #ffffff;
-  --color-primary-container:        #0d1c32;
-  --color-on-primary-container:     #76849f;
-  --color-primary-fixed:            #d6e3ff;
-  --color-primary-fixed-dim:        #b9c7e4;
+  /* ── Secondary (electric blue; the action colour) ────────────────────── */
+  --color-secondary: #1d4ed8;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #4069f2;
+  --color-on-secondary-container: #fffbff;
+  --color-secondary-fixed: #dce1ff;
+  --color-secondary-fixed-dim: #b7c4ff;
+  --color-on-secondary-fixed: #001551;
+  --color-on-secondary-fixed-variant: #0039b5;
 
-  /* Secondary */
-  --color-secondary:                #1d4ed8;
-  --color-on-secondary:             #ffffff;
-  --color-secondary-container:      #4069f2;
-  --color-on-secondary-container:   #fffbff;
-  --color-secondary-fixed:          #dce1ff;
-  --color-secondary-fixed-dim:      #b7c4ff;
+  /* ── Tertiary (green; reserved for verified / success states) ─────────── */
+  --color-tertiary: #000000;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #002114;
+  --color-on-tertiary-container: #019668;
+  --color-tertiary-fixed: #84f9c3;
+  --color-tertiary-fixed-dim: #67dca8;
+  --color-on-tertiary-fixed: #002114;
+  --color-on-tertiary-fixed-variant: #005237;
 
-  /* Background / Surface */
-  --color-background:               #fbf9fb;
-  --color-on-background:            #1b1b1d;
-  --color-surface:                  #fbf9fb;
-  --color-on-surface:               #1b1b1d;
-  --color-surface-variant:          #e4e2e4;
-  --color-on-surface-variant:       #44474d;
+  /* ── Background / surface ────────────────────────────────────────────── */
+  --color-background: #fbf9f9;
+  --color-on-background: #1b1c1c;
+  --color-surface: #fbf9f9;
+  --color-on-surface: #1b1c1c;
+  --color-surface-variant: #e3e2e2;
+  --color-on-surface-variant: #4c4546;
+  --color-surface-bright: #fbf9f9;
+  --color-surface-dim: #dbdad9;
+  --color-surface-tint: #5e5e5e;
 
-  /* Surface containers */
-  --color-surface-container-lowest:  #ffffff;
-  --color-surface-container-low:     #f5f3f5;
-  --color-surface-container:         #efedef;
-  --color-surface-container-high:    #eae7ea;
-  --color-surface-container-highest: #e4e2e4;
-  --color-surface-dim:               #dbd9db;
-  --color-surface-bright:            #fbf9fb;
+  /* Elevation ladder — lowest is pure white (cards sit on tinted surface) */
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f5f3f3;
+  --color-surface-container: #efeded;
+  --color-surface-container-high: #e9e8e7;
+  --color-surface-container-highest: #e3e2e2;
 
-  /* Outline */
-  --color-outline:                  #75777e;
-  --color-outline-variant:          #c5c6cd;
+  /* ── Inverse (toasts, snackbars) ─────────────────────────────────────── */
+  --color-inverse-surface: #303031;
+  --color-inverse-on-surface: #f2f0f0;
 
-  /* Tertiary */
-  --color-tertiary-fixed:           #6ffbbe;
-  --color-on-tertiary-container:    #009668;
+  /* ── Outline ─────────────────────────────────────────────────────────── */
+  --color-outline: #7e7576;
+  --color-outline-variant: #cfc4c5;
 
-  /* Error */
-  --color-error:                    #ba1a1a;
-  --color-error-container:          #ffdad6;
+  /* ── Error ───────────────────────────────────────────────────────────── */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
 
-  /* ── Typography — font sizes with line-heights ───────────────────────── */
-  --font-size-display-lg:   2rem;       /* 32px */
-  --font-size-headline-md:  1.5rem;     /* 24px */
-  --font-size-headline-sm:  1.25rem;    /* 20px */
-  --font-size-body-lg:      1rem;       /* 16px */
-  --font-size-body-md:      0.875rem;   /* 14px */
-  --font-size-label-caps:   0.75rem;    /* 12px */
-  --font-size-stat-value:   1.75rem;    /* 28px */
+  /* ── Type scale ──────────────────────────────────────────────────────────
+     Each entry carries line-height, tracking and weight, so a single
+     `text-headline-sm` is the complete style. The `-mobile` variants are
+     tighter display sizes used on narrow viewports.                        */
 
-  /* ── Border radius ───────────────────────────────────────────────────── */
-  --radius-DEFAULT: 0.25rem;    /* 4px  */
-  --radius-lg:      0.5rem;     /* 8px  */
-  --radius-xl:      0.75rem;    /* 12px */
-  --radius-full:    9999px;
+  --text-display: 40px;
+  --text-display--line-height: 48px;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 800;
 
-  /* ── Spacing ─────────────────────────────────────────────────────────── */
-  --spacing-unit:               0.25rem;  /* 4px  — base unit */
-  --spacing-stack-gap-sm:       0.5rem;   /* 8px  */
-  --spacing-stack-gap-md:       1rem;     /* 16px */
-  --spacing-stack-gap-lg:       1.5rem;   /* 24px */
-  --spacing-container-padding:  1.25rem;  /* 20px */
-  --spacing-section-margin:     2rem;     /* 32px */
+  --text-display-mobile: 32px;
+  --text-display-mobile--line-height: 40px;
+  --text-display-mobile--letter-spacing: -0.015em;
+  --text-display-mobile--font-weight: 800;
+
+  --text-headline-lg: 30px;
+  --text-headline-lg--line-height: 38px;
+  --text-headline-lg--letter-spacing: -0.015em;
+  --text-headline-lg--font-weight: 700;
+
+  --text-headline-lg-mobile: 24px;
+  --text-headline-lg-mobile--line-height: 32px;
+  --text-headline-lg-mobile--letter-spacing: -0.01em;
+  --text-headline-lg-mobile--font-weight: 700;
+
+  --text-headline-md: 20px;
+  --text-headline-md--line-height: 28px;
+  --text-headline-md--letter-spacing: -0.01em;
+  --text-headline-md--font-weight: 600;
+
+  --text-headline-sm: 16px;
+  --text-headline-sm--line-height: 24px;
+  --text-headline-sm--font-weight: 600;
+
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 26px;
+  --text-body-lg--font-weight: 400;
+
+  --text-body-md: 14px;
+  --text-body-md--line-height: 22px;
+  --text-body-md--font-weight: 400;
+
+  --text-body-sm: 12px;
+  --text-body-sm--line-height: 18px;
+  --text-body-sm--font-weight: 400;
+
+  --text-label-lg: 14px;
+  --text-label-lg--line-height: 20px;
+  --text-label-lg--letter-spacing: 0.01em;
+  --text-label-lg--font-weight: 600;
+
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--letter-spacing: 0.02em;
+  --text-label-md--font-weight: 500;
+
+  --text-label-sm: 11px;
+  --text-label-sm--line-height: 14px;
+  --text-label-sm--letter-spacing: 0.03em;
+  --text-label-sm--font-weight: 500;
+
+  /* ── Radius ──────────────────────────────────────────────────────────── */
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+
+  /* ── Spacing ─────────────────────────────────────────────────────────────
+     `gutter` is the screen edge inset — use px-gutter on every page shell so
+     horizontal rhythm stays identical across screens.                      */
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2rem;
+  --spacing-gutter: 1rem;
+  --spacing-gutter-md: 1.5rem;
+  --spacing-gutter-lg: 2rem;
+  --spacing-margin: 1rem;
+  --spacing-margin-md: 2rem;
+  --spacing-margin-lg: 3rem;
 }
 
-/* ─── Base styles ────────────────────────────────────────────────────────── */
+/* ─── Base ──────────────────────────────────────────────────────────────── */
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -93,66 +182,74 @@ body {
   background-color: var(--color-background);
   color: var(--color-on-background);
   font-family: var(--font-sans);
-  font-size: var(--font-size-body-lg);
-  line-height: 1.5rem; /* 24px */
+  /* Matches --text-body-md so unstyled text is never larger than the scale. */
+  font-size: 14px;
+  line-height: 22px;
+  /* Stops the whole page rubber-banding on iOS when a child list scrolls. */
+  overscroll-behavior: none;
 }
 
-/* ─── Typography utility classes ─────────────────────────────────────────── */
-/* These provide the full spec (size + line-height + weight + tracking)       */
-/* Usage: className="type-display-lg"                                         */
+/* ─── Safe-area helpers ─────────────────────────────────────────────────────
+   Needed once the viewport uses viewportFit: "cover", or fixed headers and
+   bottom nav sit under the notch and the home indicator.                    */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
 
+/* ─── Legacy type utilities ─────────────────────────────────────────────────
+   Superseded by the `text-*` scale above. Kept as thin aliases so the ~60
+   existing components keep rendering while screens migrate incrementally.
+   Do not use these in new code; delete once no references remain.          */
 .type-display-lg {
-  font-size: var(--font-size-display-lg);
-  line-height: 2.5rem;        /* 40px */
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: var(--text-display-mobile);
+  line-height: var(--text-display-mobile--line-height);
+  letter-spacing: var(--text-display-mobile--letter-spacing);
+  font-weight: var(--text-display-mobile--font-weight);
 }
-
 .type-headline-md {
-  font-size: var(--font-size-headline-md);
-  line-height: 2rem;          /* 32px */
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: var(--text-headline-lg-mobile);
+  line-height: var(--text-headline-lg-mobile--line-height);
+  letter-spacing: var(--text-headline-lg-mobile--letter-spacing);
+  font-weight: var(--text-headline-lg-mobile--font-weight);
 }
-
 .type-headline-sm {
-  font-size: var(--font-size-headline-sm);
-  line-height: 1.75rem;       /* 28px */
-  font-weight: 600;
+  font-size: var(--text-headline-md);
+  line-height: var(--text-headline-md--line-height);
+  letter-spacing: var(--text-headline-md--letter-spacing);
+  font-weight: var(--text-headline-md--font-weight);
 }
-
 .type-body-lg {
-  font-size: var(--font-size-body-lg);
-  line-height: 1.5rem;        /* 24px */
-  font-weight: 400;
+  font-size: var(--text-body-lg);
+  line-height: var(--text-body-lg--line-height);
+  font-weight: var(--text-body-lg--font-weight);
 }
-
 .type-body-md {
-  font-size: var(--font-size-body-md);
-  line-height: 1.25rem;       /* 20px */
-  font-weight: 400;
+  font-size: var(--text-body-md);
+  line-height: var(--text-body-md--line-height);
+  font-weight: var(--text-body-md--font-weight);
 }
-
 .type-label-caps {
-  font-size: var(--font-size-label-caps);
-  line-height: 1rem;          /* 16px */
+  font-size: var(--text-label-md);
+  line-height: var(--text-label-md--line-height);
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
-
 .type-stat-value {
-  font-size: var(--font-size-stat-value);
-  line-height: 2rem;          /* 32px */
+  font-size: 28px;
+  line-height: 2rem;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
-/* ─── Utility: hide scrollbar while keeping scrollability ──────────────── */
+/* ─── Utility: hide scrollbar while keeping scrollability ───────────────── */
 .no-scrollbar::-webkit-scrollbar {
-  display: none;        /* Chrome, Safari, Edge */
+  display: none;
 }
 .no-scrollbar {
-  -ms-overflow-style: none;   /* IE 10+ */
-  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

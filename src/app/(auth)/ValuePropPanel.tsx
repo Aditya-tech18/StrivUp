@@ -2,7 +2,7 @@
  * ValuePropPanel — desktop-only right panel shared by /login and /signup.
  *
  * Hidden on mobile (lg:flex). Dark navy background with stat cards that
- * reinforce STRIV's value proposition.
+ * reinforce StrivUp's value proposition.
  */
 
 import { Flame, TrendingUp, Users, Zap } from "lucide-react";
@@ -38,7 +38,7 @@ export function ValuePropPanel() {
   return (
     <aside
       className="hidden lg:flex lg:w-1/2 bg-primary-container flex-col items-center justify-center p-12"
-      aria-label="STRIV value proposition"
+      aria-label="StrivUp value proposition"
     >
       <div className="max-w-xs w-full space-y-8">
         {/* Logo mark + headline */}
@@ -75,7 +75,7 @@ export function ValuePropPanel() {
 
         {/* Footer tagline */}
         <p className="type-label-caps text-on-primary-container/60 text-center tracking-widest">
-          STRIV · Build. Grow. Dominate.
+          STRIVUP · Build Better. Every Day.
         </p>
       </div>
     </aside>

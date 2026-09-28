@@ -10,10 +10,22 @@ import { createClient } from "@/lib/supabase/server";
  * Business Google OAuth passes:  redirectTo = /auth/callback?next=/business
  * User Google OAuth passes:      redirectTo = /auth/callback  (defaults to /feed)
  */
+/**
+ * `next` arrives from the query string, so it is attacker-controllable.
+ * Only same-origin absolute paths are allowed: it must start with a single "/"
+ * (a leading "//" or "/\" is protocol-relative and would send the user
+ * off-site once the browser normalises `${origin}${next}`).
+ */
+function safeNext(raw: string | null): string {
+  if (!raw || !raw.startsWith("/")) return "/feed";
+  if (raw.startsWith("//") || raw.startsWith("/\\")) return "/feed";
+  return raw;
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/feed";
+  const next = safeNext(searchParams.get("next"));
 
   if (code) {
     const supabase = await createClient();

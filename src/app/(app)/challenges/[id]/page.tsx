@@ -29,7 +29,9 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
   const supabase = await createClient();
 
   // Get current user (nullable — works for unauthenticated visits too)
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Fetch everything in parallel for speed
   const [baseDetail, stats, leaderboard, feed, joinedAt, tasks] = await Promise.all([
@@ -46,11 +48,22 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
   // isParticipant: user has a challenge_participants row for this challenge
   const isParticipant = joinedAt !== null;
 
+  // isCreator gates the invite / manage-tasks / review controls. Resolved here
+  // rather than in the client, which previously had no creator id at all and
+  // showed those links to every signed-in viewer.
+  let isCreator = false;
+  if (user) {
+    const { data: ownerRow } = await supabase
+      .from("challenges")
+      .select("creator_id")
+      .eq("id", id)
+      .maybeSingle();
+    isCreator = (ownerRow as { creator_id?: string } | null)?.creator_id === user.id;
+  }
+
   // Fetch this user's submissions only if they are a participant
   const userSubmissions =
-    user && isParticipant
-      ? await getUserTaskSubmissions(supabase, id, user.id)
-      : [];
+    user && isParticipant ? await getUserTaskSubmissions(supabase, id, user.id) : [];
 
   // Merge stats into the full ChallengeDetail shape
   const challenge = {
@@ -69,6 +82,7 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
       userId={user?.id ?? null}
       joinedAt={joinedAt}
       isParticipant={isParticipant}
+      isCreator={isCreator}
       tasks={tasks}
       userSubmissions={userSubmissions}
     />

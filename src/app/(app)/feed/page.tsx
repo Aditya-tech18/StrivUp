@@ -1,121 +1,292 @@
 /**
- * app/(app)/feed/page.tsx — STRIV Growth Feed
+ * app/(app)/feed/page.tsx — Home Feed
  *
- * Server component: fetches approved proof_submissions joined with profiles
- * and challenges, ordered by submitted_at desc, limit 20.
+ * Server component. Three stacked sections, in deliberate order:
  *
- * To paginate: add a `page` searchParam and pass offset to getFeedPosts.
+ *   1. Today's Tasks    — what YOU owe today, with a closing meter.
+ *   2. Active Challenges — a swipeable carousel of your in-flight sprints.
+ *   3. Live Cohort Proof — what everyone else is shipping.
+ *
+ * The order is the product thesis: the home screen is a to-do list first and a
+ * social feed second. A passive wall of other people's proofs gives nobody a
+ * reason to open the app on day 9; an unfinished checklist does.
+ *
+ * All counts are real. Where the design mockups showed large placeholder
+ * figures ("4,821 builders grinding"), this renders actual data and leans on
+ * early-adopter framing when the numbers are small.
  */
 
 import Link from "next/link";
-import { CirclePlus, Flame, Settings, SquarePlus } from "lucide-react";
-import { Badge } from "@/components/ui";
+import { Bell, ChevronRight, Flame, Trophy, User } from "lucide-react";
 import { FeedCard } from "@/components/features/FeedCard";
+import { TodaysTasks } from "@/components/features/TodaysTasks";
 import { createClient } from "@/lib/supabase/server";
 import { getFeedPosts } from "@/lib/data/feed";
+import { getTodaysTasks, type TodayTask } from "@/lib/data/today";
+
+/** "Thursday, 24 May" — matches the design's date eyebrow. */
+function todayLabel(): string {
+  return new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+}
+
+/**
+ * Greeting keyed to progress rather than time of day. "Good morning" is filler;
+ * "2 left today" is information.
+ */
+function greeting(completed: number, total: number): string {
+  if (total === 0) return "Start Something";
+  if (completed === total) return "Fully Locked In";
+  if (completed === 0) return "Stay Locked In";
+  return `${total - completed} Left Today`;
+}
+
+/* ── Active challenge card (carousel item) ───────────────────────────────── */
+function ChallengeCard({ task }: { task: TodayTask }) {
+  const progress =
+    task.durationDays && task.durationDays > 0
+      ? Math.min(100, Math.round((task.dayNumber / task.durationDays) * 100))
+      : 0;
+
+  return (
+    <Link
+      href={`/challenges/${task.challengeId}`}
+      className="relative flex w-[280px] shrink-0 snap-start flex-col justify-between gap-space-md overflow-hidden rounded-xl bg-surface-container-lowest p-space-md shadow-sm"
+    >
+      <div
+        className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-bl-full bg-secondary/5"
+        aria-hidden="true"
+      />
+
+      <div className="flex flex-col gap-space-sm">
+        <span className="flex w-fit items-center gap-1 rounded-full bg-surface-container-high px-2 py-0.5 text-label-sm font-medium text-on-surface">
+          <span className="h-1.5 w-1.5 rounded-full bg-secondary" aria-hidden="true" />
+          Challenge
+        </span>
+        <h4 className="text-headline-sm text-on-surface">{task.challengeTitle}</h4>
+      </div>
+
+      <div className="flex flex-col gap-2 pt-space-xs">
+        <div className="flex items-baseline justify-between text-label-sm">
+          <span className="font-semibold text-on-surface">
+            Day {task.dayNumber}
+            {task.durationDays ? (
+              <span className="font-normal text-on-surface-variant">/{task.durationDays}</span>
+            ) : null}
+          </span>
+          <span
+            className={
+              task.state === "done"
+                ? "font-semibold text-on-tertiary-container"
+                : "font-medium text-on-surface-variant"
+            }
+          >
+            {task.state === "done"
+              ? "Logged today"
+              : task.state === "pending"
+                ? "Verifying"
+                : "Not logged yet"}
+          </span>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container">
+          <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 export default async function FeedPage() {
   const supabase = await createClient();
-  const posts = await getFeedPosts(supabase, { limit: 20 });
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // proxy.ts guards this route, so `user` is present in practice; the fallback
+  // keeps the page renderable rather than throwing if that ever changes.
+  const [today, posts] = await Promise.all([
+    user
+      ? getTodaysTasks(supabase, user.id)
+      : Promise.resolve({
+          tasks: [],
+          completed: 0,
+          total: 0,
+          percent: 0,
+          resetsInMs: 0,
+          bestStreak: 0,
+          justCompleted: 0,
+        }),
+    getFeedPosts(supabase, { limit: 20 }),
+  ]);
+
+  // One card per challenge, not per task.
+  const activeChallenges = Array.from(
+    new Map(today.tasks.map((t) => [t.challengeId, t])).values()
+  );
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* ── Sticky top bar ───────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
-        <div className="flex items-center justify-between px-4 h-14 max-w-2xl mx-auto">
-          {/* Brand */}
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary-container flex items-center justify-center">
-              <Flame size={16} className="text-on-primary" aria-hidden="true" />
+      {/* ── Sticky header ────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 bg-surface/80 pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-gutter">
+          <div className="flex items-center gap-space-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+              <Flame size={20} className="text-secondary" aria-hidden="true" />
             </div>
-            <span className="type-label-caps text-secondary tracking-widest font-semibold">
-              STRIV
-            </span>
+            <div className="flex flex-col">
+              <span className="text-headline-sm tracking-tight text-on-surface">StrivUp</span>
+              <span className="text-label-sm font-medium text-on-surface-variant">Home Feed</span>
+            </div>
           </div>
-          {/* Settings */}
-          <Link
-            href="/settings"
-            aria-label="Settings"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors duration-150"
-          >
-            <Settings size={20} strokeWidth={1.75} aria-hidden="true" />
-          </Link>
+
+          <div className="flex items-center gap-space-xs">
+            <Link
+              href="/alerts"
+              aria-label="Alerts"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:text-on-surface"
+            >
+              <Bell size={22} strokeWidth={1.75} aria-hidden="true" />
+            </Link>
+            <Link
+              href="/profile"
+              aria-label="Profile"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:text-on-surface"
+            >
+              <User size={22} strokeWidth={1.75} aria-hidden="true" />
+            </Link>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-5 space-y-6">
-
-        {/* ── Hero action row ───────────────────────────────────────── */}
-        <section aria-label="Quick actions" className="grid grid-cols-2 gap-3">
-          <Link
-            href="/explore"
-            className={[
-              "flex items-center justify-center gap-2",
-              "h-12 rounded-xl px-4",
-              "bg-primary text-on-primary",
-              "hover:opacity-90 active:opacity-80",
-              "transition-opacity duration-150",
-              "type-body-lg font-semibold text-sm",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
-            ].join(" ")}
-          >
-            <CirclePlus size={18} strokeWidth={2} aria-hidden="true" />
-            Join a Challenge
-          </Link>
-          <Link
-            href="/challenges/new"
-            className={[
-              "flex items-center justify-center gap-2",
-              "h-12 rounded-xl px-4",
-              "bg-secondary text-on-secondary",
-              "hover:opacity-90 active:opacity-80",
-              "transition-opacity duration-150",
-              "type-body-lg font-semibold text-sm",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
-            ].join(" ")}
-          >
-            <SquarePlus size={18} strokeWidth={2} aria-hidden="true" />
-            Create Challenges
-          </Link>
-        </section>
-
-        {/* ── Feed section header ───────────────────────────────────── */}
-        <section aria-label="Growth Feed">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="type-headline-sm text-on-surface font-semibold">
-                Growth Feed
-              </h2>
-              <p className="type-label-caps text-on-surface-variant text-[10px] mt-0.5">
-                RECENT ACTIVITY
-              </p>
-            </div>
-            <Badge variant="secondary">Live</Badge>
+      <div className="mx-auto flex max-w-2xl flex-col gap-space-lg px-gutter pb-space-xl">
+        {/* ── Date + streak pill ─────────────────────────────────────── */}
+        <div className="flex items-center justify-between pt-space-sm">
+          <div className="flex flex-col">
+            <span className="text-label-sm uppercase tracking-wider text-on-surface-variant">
+              {todayLabel()}
+            </span>
+            <h2 className="text-headline-lg-mobile text-on-surface">
+              {greeting(today.completed, today.total)}
+            </h2>
           </div>
 
-          {/* ── Feed cards / empty state ──────────────────────────── */}
+          {today.bestStreak > 0 ? (
+            <div className="flex shrink-0 items-center gap-space-xs rounded-full bg-surface-container-high px-space-md py-1.5 shadow-sm">
+              <Flame size={15} className="text-secondary" aria-hidden="true" />
+              <span className="text-label-md font-bold text-on-surface">
+                {today.bestStreak} {today.bestStreak === 1 ? "Day" : "Days"}
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        {/* ── Completion celebration ─────────────────────────────────────
+            Shown once, on the first visit after a challenge finishes. This is
+            the payoff the product had no way of delivering before — and the
+            moment most likely to make someone tell a friend. */}
+        {today.justCompleted > 0 ? (
+          <section
+            aria-label="Challenge completed"
+            className="flex items-center gap-space-md rounded-xl bg-primary p-space-md text-on-primary shadow-sm"
+          >
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-on-tertiary-container/20">
+              <Trophy size={22} className="text-tertiary-fixed" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-label-lg font-bold">
+                You finished{" "}
+                {today.justCompleted === 1
+                  ? "a challenge"
+                  : `${today.justCompleted} challenges`}
+                .
+              </p>
+              <p className="text-body-sm text-primary-fixed-dim">
+                Every day of it is on your profile. Go and look.
+              </p>
+            </div>
+            <Link
+              href="/profile"
+              className="ml-auto shrink-0 rounded-lg bg-on-primary px-space-md py-2 text-label-md font-semibold text-primary"
+            >
+              View
+            </Link>
+          </section>
+        ) : null}
+
+        {/* ── 1. Today's Tasks ───────────────────────────────────────── */}
+        <TodaysTasks summary={today} />
+
+        {/* ── 2. Active challenges ───────────────────────────────────── */}
+        {activeChallenges.length > 0 ? (
+          <section className="flex flex-col gap-space-sm" aria-label="Active challenges">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-space-xs">
+                <h3 className="text-headline-sm text-on-surface">Active Challenges</h3>
+                <span className="text-label-sm font-medium text-on-surface-variant">
+                  ({activeChallenges.length})
+                </span>
+              </div>
+              <Link
+                href="/explore"
+                className="flex items-center text-label-md font-medium text-secondary hover:underline"
+              >
+                Explore
+                <ChevronRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
+
+            <div className="no-scrollbar -mx-gutter flex snap-x snap-mandatory gap-space-md overflow-x-auto px-gutter pb-2">
+              {activeChallenges.map((task) => (
+                <ChallengeCard key={task.challengeId} task={task} />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {/* ── 3. Live cohort proof ───────────────────────────────────── */}
+        <section className="flex flex-col gap-space-sm" aria-label="Community proof feed">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-space-xs">
+              <span
+                className="h-2 w-2 rounded-full bg-on-tertiary-container"
+                aria-hidden="true"
+              />
+              <h3 className="text-headline-sm text-on-surface">Live Cohort Proof</h3>
+            </div>
+            {posts.length > 0 ? (
+              <span className="text-label-sm text-on-surface-variant">
+                {posts.length} verified {posts.length === 1 ? "proof" : "proofs"}
+              </span>
+            ) : null}
+          </div>
+
           {posts.length > 0 ? (
-            <div className="space-y-4">
+            <div className="flex flex-col gap-space-md">
               {posts.map((post) => (
                 <FeedCard key={post.id} post={post} />
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-outline-variant bg-surface-container-lowest px-6 py-10 text-center">
-              <p className="type-headline-sm text-on-surface font-semibold mb-1">
-                No posts yet
+            <div className="rounded-xl bg-surface-container-lowest px-space-md py-space-xl text-center shadow-sm">
+              <p className="text-headline-sm text-on-surface">No proof posted yet</p>
+              <p className="mx-auto mt-1 max-w-xs text-body-sm text-on-surface-variant">
+                This is where verified proof from everyone in your challenges shows up. Be
+                the first to put something here.
               </p>
-              <p className="type-body-md text-on-surface-variant text-sm">
-                Approved proof submissions will appear here.
-                Join a challenge and upload your first proof!
-              </p>
+              <Link
+                href="/explore"
+                className="mt-space-md inline-flex h-11 items-center justify-center rounded-lg bg-primary px-space-lg text-label-lg text-on-primary shadow-sm transition-transform active:scale-[0.99]"
+              >
+                Browse challenges
+              </Link>
             </div>
           )}
         </section>
-
-        {/* ── End-of-feed spacer for bottom nav clearance ──────────── */}
-        <div className="h-4" aria-hidden="true" />
       </div>
     </div>
   );

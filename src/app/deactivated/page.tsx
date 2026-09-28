@@ -35,7 +35,7 @@ export default function DeactivatedPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center px-5">
+    <div className="min-h-screen bg-surface flex items-center justify-center px-5">
       <div className="max-w-sm w-full flex flex-col items-center gap-6 text-center py-10">
         <div className="w-20 h-20 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
           <Clock size={36} className="text-amber-500" strokeWidth={1.5} />

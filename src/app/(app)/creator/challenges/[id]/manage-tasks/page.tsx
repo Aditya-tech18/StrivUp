@@ -11,7 +11,7 @@
  */
 
 import { notFound, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { ArrowLeft, GripVertical, Plus, Rocket, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { replaceChallengeTasks, getChallengeTasks } from "@/lib/data/tasks";
@@ -118,7 +118,11 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const supabase = useRef(createClient()).current;
+  // createBrowserClient memoises per-params in the browser, so calling this in
+  // render returns the same instance. Reading a ref during render is what the
+  // react-hooks/refs rule flags; this also matches how every other client
+  // component in the app obtains its client.
+  const supabase = createClient();
 
   // Resolve params and auth-check on mount
   useEffect(() => {

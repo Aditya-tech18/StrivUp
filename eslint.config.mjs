@@ -13,6 +13,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Supabase Edge Functions run on Deno, not Next/Node: they use jsr:
+    // specifiers and the Deno global, which this config cannot resolve.
+    // They are linted by `deno lint` and are already excluded in tsconfig.json.
+    "supabase/functions/**",
   ]),
   // Must be last — disables ESLint formatting rules that conflict with Prettier.
   prettier,

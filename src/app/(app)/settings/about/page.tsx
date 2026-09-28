@@ -7,7 +7,7 @@ const SUPPORT_EMAIL = "strivup.officialteam@gmail.com";
 export default function AboutPage() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+    <div className="min-h-screen bg-surface pb-28">
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-5 py-3.5">
           <button
@@ -28,7 +28,7 @@ export default function AboutPage() {
           </div>
           <div className="text-center">
             <h2 className="text-[22px] font-black text-on-surface tracking-[-0.02em]">STRIVUP</h2>
-            <p className="text-[13px] text-on-surface-variant mt-0.5">India's Platform for Growth</p>
+            <p className="text-[13px] text-on-surface-variant mt-0.5">India&apos;s Platform for Growth</p>
           </div>
           <div className="flex flex-wrap gap-2 justify-center">
             {["Challenges", "Quests", "Streaks", "Community"].map(tag => (

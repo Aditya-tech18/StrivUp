@@ -1,0 +1,229 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  BookOpen,
+  Camera,
+  Check,
+  CheckCircle2,
+  Clock,
+  RotateCcw,
+  Upload,
+} from "lucide-react";
+import type { TodaySummary, TodayTask } from "@/lib/data/today";
+
+/**
+ * TodaysTasks — the daily-return surface.
+ *
+ * A client component only because of the live "resets in" countdown; the data
+ * itself is fetched on the server and passed in. The countdown is seeded from
+ * the server's `resetsInMs` and then ticks locally, so there is no hydration
+ * mismatch from calling Date.now() during render.
+ *
+ * Tapping a row goes to the challenge page, which owns the upload flow — this
+ * component never uploads, so there is one proof-submission path in the app.
+ */
+
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return "now";
+  const totalMinutes = Math.floor(ms / 60_000);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  if (h === 0) return `${m}m`;
+  return `${h}h ${m}m`;
+}
+
+/** Leading icon per state. Rejected reads as "try again", not as failure. */
+function StateIcon({ state, proofType }: { state: TodayTask["state"]; proofType: TodayTask["proofType"] }) {
+  if (state === "done") {
+    return <CheckCircle2 size={18} className="text-on-tertiary-container" aria-hidden="true" />;
+  }
+  if (state === "pending") {
+    return <Clock size={18} className="text-secondary" aria-hidden="true" />;
+  }
+  if (state === "rejected") {
+    return <RotateCcw size={18} className="text-error" aria-hidden="true" />;
+  }
+  if (proofType === "photo") {
+    return <Camera size={18} className="text-on-surface-variant" aria-hidden="true" />;
+  }
+  return <BookOpen size={18} className="text-on-surface-variant" aria-hidden="true" />;
+}
+
+function TaskRow({ task }: { task: TodayTask }) {
+  const isDone = task.state === "done";
+
+  return (
+    <Link
+      href={`/challenges/${task.challengeId}`}
+      className="flex items-center justify-between gap-space-sm rounded-lg bg-surface-container-low p-space-sm transition-transform active:scale-[0.99]"
+    >
+      <div className="flex min-w-0 items-center gap-space-sm">
+        <div
+          className={[
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+            isDone
+              ? "bg-on-tertiary-container/10"
+              : task.state === "pending"
+                ? "bg-secondary/10"
+                : task.state === "rejected"
+                  ? "bg-error-container"
+                  : "bg-surface-container",
+          ].join(" ")}
+        >
+          <StateIcon state={task.state} proofType={task.proofType} />
+        </div>
+
+        <div className="flex min-w-0 flex-col">
+          <span
+            className={[
+              "truncate text-body-md font-medium",
+              isDone ? "text-on-surface-variant" : "text-on-surface",
+            ].join(" ")}
+          >
+            {task.title}
+          </span>
+          <span className="truncate text-label-sm text-on-surface-variant">
+            {task.taskId ? `${task.dayLabel}` : `${task.challengeTitle} · ${task.dayLabel}`}
+          </span>
+        </div>
+      </div>
+
+      {/* Trailing affordance — states read differently at a glance */}
+      {isDone ? (
+        <span className="flex shrink-0 items-center gap-1 rounded-full bg-on-tertiary-container/10 px-2.5 py-1 text-label-sm font-semibold text-on-tertiary-container">
+          <Check size={13} aria-hidden="true" />
+          Done
+        </span>
+      ) : task.state === "pending" ? (
+        <span className="shrink-0 rounded-full bg-secondary/10 px-2.5 py-1 text-label-sm font-semibold text-secondary">
+          Verifying
+        </span>
+      ) : (
+        <span
+          className={[
+            "flex shrink-0 items-center gap-1 rounded-lg px-3 py-1.5 text-label-sm font-semibold shadow-sm",
+            task.state === "rejected"
+              ? "bg-error-container text-on-error-container"
+              : "bg-surface-container-lowest text-secondary",
+          ].join(" ")}
+        >
+          <Upload size={14} aria-hidden="true" />
+          {task.state === "rejected" ? "Retry" : "Upload"}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+export function TodaysTasks({ summary }: { summary: TodaySummary }) {
+  // Initial value comes from the server so first paint matches the markup and
+  // there is no hydration mismatch from calling Date.now() during render.
+  // The interval then recomputes from the real clock rather than decrementing,
+  // so it cannot drift and does not need to re-seed from props — which would
+  // mean setting state synchronously inside an effect.
+  const [remaining, setRemaining] = useState(summary.resetsInMs);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      setRemaining(Math.max(0, midnight.getTime() - now.getTime()));
+    }, 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Nothing joined yet — this is the activation moment, so make it a CTA
+  // rather than an apology.
+  if (summary.total === 0) {
+    return (
+      <section className="flex flex-col gap-space-sm" aria-label="Today's tasks">
+        <h3 className="text-headline-sm text-on-surface">Today&apos;s Tasks</h3>
+        <div className="rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
+          <p className="text-body-md text-on-surface">
+            You have nothing due today.
+          </p>
+          <p className="mt-1 text-body-sm text-on-surface-variant">
+            Join a challenge and it&apos;ll show up here every day until you finish it.
+          </p>
+          <Link
+            href="/explore"
+            className="mt-space-md inline-flex h-11 items-center justify-center gap-space-xs rounded-lg bg-primary px-space-md text-label-lg text-on-primary shadow-sm transition-transform active:scale-[0.99]"
+          >
+            Find a challenge
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  const allDone = summary.completed === summary.total;
+
+  return (
+    <section className="flex flex-col gap-space-sm" aria-label="Today's tasks">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-space-xs">
+          <h3 className="text-headline-sm text-on-surface">Today&apos;s Tasks</h3>
+          <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-label-sm font-semibold text-secondary">
+            {summary.completed} of {summary.total}
+          </span>
+        </div>
+        <span className="text-label-sm text-on-surface-variant">
+          Resets in {formatCountdown(remaining)}
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-space-md rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
+        {/* ── Discipline Index ─────────────────────────────────────────── */}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between text-label-sm text-on-surface-variant">
+            <span>Daily Discipline Index</span>
+            <span className="font-bold text-on-surface">
+              {allDone ? "Complete" : `${summary.percent}%`}
+            </span>
+          </div>
+
+          {/* One segment per task, so the bar is legible at any count. */}
+          <div
+            className="flex w-full gap-1.5"
+            role="progressbar"
+            aria-valuenow={summary.completed}
+            aria-valuemin={0}
+            aria-valuemax={summary.total}
+            aria-label={`${summary.completed} of ${summary.total} tasks complete`}
+          >
+            {summary.tasks.map((t) => (
+              <div
+                key={t.key}
+                className={[
+                  "h-2 flex-1 rounded-full",
+                  t.state === "done"
+                    ? "bg-primary"
+                    : t.state === "pending"
+                      ? "bg-secondary animate-pulse"
+                      : "bg-surface-container-highest",
+                ].join(" ")}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* ── Task rows ────────────────────────────────────────────────── */}
+        <div className="flex flex-col gap-space-sm">
+          {summary.tasks.map((task) => (
+            <TaskRow key={task.key} task={task} />
+          ))}
+        </div>
+
+        {allDone ? (
+          <p className="flex items-center justify-center gap-1.5 text-label-md font-semibold text-on-tertiary-container">
+            <CheckCircle2 size={16} aria-hidden="true" />
+            Everything logged today. Streak protected.
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}

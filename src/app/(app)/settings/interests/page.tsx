@@ -51,13 +51,13 @@ export default function InterestsPage() {
   const filtered = all.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
 
   if (loading) return (
-    <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
+    <div className="min-h-screen bg-surface flex items-center justify-center">
       <div className="w-6 h-6 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] flex flex-col">
+    <div className="min-h-screen bg-surface flex flex-col">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
@@ -129,7 +129,7 @@ export default function InterestsPage() {
         <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
           <p className="text-[13px] font-semibold text-secondary mb-1">Why does this matter?</p>
           <p className="text-[12px] text-on-surface-variant leading-relaxed">
-            Your interests power STRIVUP's recommendation engine — helping us surface challenges and quests that align with your goals, not just what's popular.
+            Your interests power STRIVUP&apos;s recommendation engine — helping us surface challenges and quests that align with your goals, not just what&apos;s popular.
           </p>
         </div>
       </div>

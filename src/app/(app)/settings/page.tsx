@@ -166,7 +166,7 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="w-6 h-6 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
       </div>
     );
@@ -175,7 +175,7 @@ export default function SettingsPage() {
   const initial = (profile?.full_name ?? profile?.username ?? "?").charAt(0).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+    <div className="min-h-screen bg-surface pb-28">
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-5 py-3.5">
@@ -237,7 +237,7 @@ export default function SettingsPage() {
         </button>
 
         <p className="text-center text-[11px] text-on-surface-variant pb-2">
-          STRIVUP · India's Platform for Growth
+          STRIVUP · India&apos;s Platform for Growth
         </p>
       </div>
     </div>

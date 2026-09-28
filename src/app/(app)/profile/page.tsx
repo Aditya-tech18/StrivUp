@@ -196,15 +196,31 @@ function FollowModal({
   const [busy, setBusy]   = useState(true);
   const [more, setMore]   = useState(true);
 
+  // Appends a page. Only ever called from the "Load more" click handler, which
+  // owns the `busy` flag — keeping setState out of the effect below.
   const load = useCallback(async (pg: number) => {
-    setBusy(true);
     const data = await fetchFn(userId, pg);
     setUsers(prev => pg === 0 ? data : [...prev, ...data]);
     setMore(data.length === PAGE);
     setBusy(false);
   }, [userId, fetchFn]);
 
-  useEffect(() => { load(0); }, [load]);
+  // The first page is fetched inline rather than through `load`, so every state
+  // write provably happens after an await. Calling an async helper that writes
+  // state trips react-hooks/set-state-in-effect, which cannot see past the
+  // async boundary. The cancelled flag also drops a stale response if the modal
+  // is reopened for a different user mid-flight.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const data = await fetchFn(userId, 0);
+      if (cancelled) return;
+      setUsers(data);
+      setMore(data.length === PAGE);
+      setBusy(false);
+    })();
+    return () => { cancelled = true; };
+  }, [userId, fetchFn]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm px-4">
@@ -254,7 +270,7 @@ function FollowModal({
               {more && (
                 <div className="py-4 flex justify-center">
                   <button
-                    onClick={() => { const next = page + 1; setPage(next); load(next); }}
+                    onClick={() => { const next = page + 1; setPage(next); setBusy(true); load(next); }}
                     disabled={busy}
                     className="text-[13px] text-secondary font-semibold disabled:opacity-40"
                   >
@@ -409,7 +425,7 @@ export default function ProfilePage() {
       setAllStats(stats);
       setAchievements(stats.filter(s => s.status === "completed"));
 
-      const pinned: string[] = (p as any)?.pinned_challenge_ids ?? [];
+      const pinned: string[] = p?.pinned_challenge_ids ?? [];
       setPinnedIds(pinned);
 
       const active = pinned.length > 0
@@ -522,7 +538,7 @@ export default function ProfilePage() {
 
   // ── Loading skeleton ───────────────────────────────────────────────────
   if (loading) return (
-    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+    <div className="min-h-screen bg-surface pb-28">
       <div className="flex items-center justify-between px-5 py-3.5 bg-white border-b border-outline-variant">
         <Sk className="h-5 w-24" />
         <div className="flex gap-2"><Sk className="w-9 h-9 rounded-xl" /><Sk className="w-9 h-9 rounded-xl" /></div>
@@ -555,7 +571,7 @@ export default function ProfilePage() {
   const isVerified  = profile?.verification_status === "approved";
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+    <div className="min-h-screen bg-surface pb-28">
 
       {/* ── Sticky header ───────────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-outline-variant">
