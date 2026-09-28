@@ -1,26 +1,10 @@
-import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireModerator } from "@/lib/auth/requireRole";
 import ModerationClient from "./ModerationClient";
 
 export default async function ModerationPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    notFound();
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("moderator_role")
-    .eq("id", user.id)
-    .single();
-
-  const role = (profile as { moderator_role?: string })?.moderator_role || "none";
-
-  if (role === "none") {
-    notFound();
-  }
-
-  return <ModerationClient moderatorRole={role} currentUserId={user.id} />;
+  const { supabase, user, role } = await requireModerator();
+  const { data } = await supabase.from("profiles").select("moderator_role").eq("id", user.id).maybeSingle();
+  const tier = (data as { moderator_role?: string } | null)?.moderator_role ?? "none";
+  // Admins get the top moderator tier (can remove content); moderators keep theirs.
+  return <ModerationClient moderatorRole={role.isAdmin && tier === "none" ? "super_admin" : tier} currentUserId={user.id} />;
 }
