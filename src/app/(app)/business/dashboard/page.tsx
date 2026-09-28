@@ -36,8 +36,9 @@ function StatusBadge({ status }: { status: BusinessProfile["verification_status"
     verified:     { icon: "✓", label: "Verified",     cls: "text-green-700 bg-green-50 border-green-200" },
     submitted:    { icon: "⏳", label: "Under Review", cls: "text-blue-700 bg-blue-50 border-blue-200" },
     under_review: { icon: "⏳", label: "Under Review", cls: "text-blue-700 bg-blue-50 border-blue-200" },
-    incomplete:   { icon: "⚠",  label: "Incomplete",  cls: "text-amber-700 bg-amber-50 border-amber-200" },
-    draft:        { icon: "○",  label: "Draft",        cls: "text-gray-500 bg-gray-50 border-gray-200" },
+    needs_more_info: { icon: "?", label: "Needs Info", cls: "text-blue-800 bg-blue-50 border-blue-200" },
+    incomplete:   { icon: "○",  label: "Not Verified", cls: "text-gray-700 bg-gray-50 border-gray-200" },
+    draft:        { icon: "○",  label: "Not Verified", cls: "text-gray-700 bg-gray-50 border-gray-200" },
     rejected:     { icon: "✕",  label: "Rejected",     cls: "text-red-700 bg-red-50 border-red-200" },
     suspended:    { icon: "✕",  label: "Suspended",    cls: "text-red-700 bg-red-50 border-red-200" },
   };
@@ -244,11 +245,17 @@ export default function BusinessDashboardPage() {
             ))}
           </div>
 
-          {/* Verification status */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-            <span className="text-sm text-gray-500">Business Verification</span>
-            <StatusBadge status={bp.verification_status} />
-          </div>
+          {/* Verification status → blue tick request */}
+          <Link href="/business/verify-business"
+            className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-100 min-h-11 hover:opacity-80">
+            <span className="text-sm text-gray-700">Business Verification</span>
+            <span className="flex items-center gap-2">
+              <StatusBadge status={bp.verification_status} />
+              {["draft", "incomplete", "rejected", "needs_more_info"].includes(bp.verification_status) && (
+                <span className="text-sm font-semibold text-blue-700">Verify now →</span>
+              )}
+            </span>
+          </Link>
         </div>
 
         {/* ── Quick Actions ─────────────────────────────────────────── */}

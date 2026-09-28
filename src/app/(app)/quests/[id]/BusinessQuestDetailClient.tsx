@@ -14,7 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft, BadgeCheck, Calendar, CheckCircle2, ChevronRight, Clock, ExternalLink, Globe,
+  ArrowLeft, BadgeCheck, Calendar, CheckCircle2, ChevronRight, Clock, Copy, ExternalLink, Globe,
   ListChecks, MapPin, Navigation, Phone, Receipt, Share2, ShieldCheck, Store, Tag, Trophy,
   Upload, Users,
 } from "lucide-react";
@@ -29,6 +29,8 @@ interface Props {
   quest: BusinessQuestDetail;
   currentUserId: string | null;
   currentUserName: string | null;
+  /** Viewer is a business looking at another business's Quest. */
+  canCreateSimilar?: boolean;
 }
 
 type Task = BusinessQuestDetail["tasks"][number];
@@ -96,7 +98,7 @@ function ProgressRing({ done, total }: { done: number; total: number }) {
   );
 }
 
-export default function BusinessQuestDetailClient({ quest, currentUserId, currentUserName }: Props) {
+export default function BusinessQuestDetailClient({ quest, currentUserId, currentUserName, canCreateSimilar = false }: Props) {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   const [hasJoined, setHasJoined] = useState(false);
@@ -578,6 +580,13 @@ export default function BusinessQuestDetailClient({ quest, currentUserId, curren
             )}
 
             <div className="hidden lg:block">{joinButton}</div>
+
+            {canCreateSimilar && (
+              <Link href={`/business/quests/new?template=${quest.id}`}
+                className="flex h-11 items-center justify-center gap-2 rounded-xl border-2 border-blue-600 bg-white text-sm font-bold text-blue-700 hover:bg-blue-50">
+                <Copy size={15} aria-hidden="true" /> Create Similar Quest
+              </Link>
+            )}
 
             {/* Business information */}
             <div className={`${card} p-5`}>

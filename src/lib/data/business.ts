@@ -26,7 +26,7 @@ export interface BusinessProfile {
   country: string;
   latitude: number | null;
   longitude: number | null;
-  verification_status: "draft" | "incomplete" | "submitted" | "under_review" | "verified" | "rejected" | "suspended";
+  verification_status: "draft" | "incomplete" | "submitted" | "under_review" | "needs_more_info" | "verified" | "rejected" | "suspended";
   rejection_reason: string | null;
   onboarding_step: number;
   onboarding_done: boolean;

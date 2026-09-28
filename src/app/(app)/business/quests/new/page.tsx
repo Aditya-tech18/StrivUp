@@ -52,6 +52,9 @@ function CreateQuestContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
+  // "Create Similar Quest": copy another Quest's public structure into a fresh draft.
+  const templateId = editId ? null : searchParams.get("template");
+  const [templateSource, setTemplateSource] = useState<string | null>(null);
   const supabase = createClient();
 
   const [loading, setLoading] = useState(true);
@@ -116,6 +119,30 @@ function CreateQuestContent() {
         }
         if (t.length > 0) setTasks(t);
         if (r.length > 0) { setRewards(r); setIsLeaderboard(r.some(rw => rw.is_leaderboard)); }
+      } else if (templateId) {
+        // Only the public structure is reused. Title, copy, images, location,
+        // dates, rules and order links stay blank — they belong to the other
+        // business — and the new draft is owned by this business.
+        const [q, t, r] = await Promise.all([
+          getQuestById(supabase, templateId),
+          getQuestTasks(supabase, templateId),
+          getQuestRewards(supabase, templateId),
+        ]);
+        if (q && q.quest_status !== "draft") {
+          setTemplateSource(q.title);
+          setCategory(q.category ?? "");
+          if (t.length > 0) setTasks(t.map((task, i) => ({
+            title: task.title, description: task.description ?? "", proof_type: task.proof_type,
+            is_required: task.is_required, instructions: task.instructions ?? "", sort_order: i,
+          })));
+          if (r.length > 0) {
+            setRewards(r.map(rw => ({
+              reward_type: rw.reward_type, title: rw.title, value: rw.value, description: rw.description,
+              rank_from: rw.rank_from, rank_to: rw.rank_to, is_leaderboard: rw.is_leaderboard,
+            })));
+            setIsLeaderboard(r.some(rw => rw.is_leaderboard));
+          }
+        }
       }
       setLoading(false);
     })();
@@ -257,6 +284,12 @@ function CreateQuestContent() {
       onBack={() => router.push("/business/quests")}
       onNext={saveBasicInfo} nextDisabled={!title.trim()} saving={saving}>
       {error && <p role="alert" className="text-red-600 text-sm mb-4 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
+      {templateSource && (
+        <p className="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-950">
+          Started from the structure of <span className="font-semibold">“{templateSource}”</span>. Its tasks and reward
+          structure are pre-filled — add your own title, description, images and details. The original Quest isn&apos;t changed.
+        </p>
+      )}
       <div className="flex flex-col gap-4">
         {/* Cover upload */}
         <div className="flex flex-col gap-2">

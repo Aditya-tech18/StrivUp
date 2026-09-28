@@ -25,11 +25,14 @@ export default async function QuestDetailPage({ params }: Props) {
   const bizQuest = await getBusinessQuestDetail(supabase, id);
   if (bizQuest && bizQuest.tasks.length > 0) {
     let currentUserName: string | null = null;
+    let viewerIsOtherBusiness = false;
     if (user) {
-      const { data: me } = await supabase.from("profiles").select("full_name, username").eq("id", user.id).maybeSingle();
+      const { data: me } = await supabase.from("profiles").select("full_name, username, account_type").eq("id", user.id).maybeSingle();
       currentUserName = (me?.full_name as string | null)?.split(" ")[0] ?? (me?.username as string | null) ?? null;
+      viewerIsOtherBusiness = me?.account_type === "business" && user.id !== bizQuest.creator_id;
     }
-    return <BusinessQuestDetailClient quest={bizQuest} currentUserId={user?.id ?? null} currentUserName={currentUserName} />;
+    return <BusinessQuestDetailClient quest={bizQuest} currentUserId={user?.id ?? null} currentUserName={currentUserName}
+      canCreateSimilar={viewerIsOtherBusiness} />;
   }
 
   // Fallback to legacy quest
