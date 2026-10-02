@@ -5,6 +5,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { rejectOrder, verifyOrder } from "./orderVerification";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 
@@ -46,7 +47,8 @@ export interface VerificationRequest {
   quest_id: string | null;
   verification_type: string;
   activity_day: number | null;
-  status: "pending" | "approved" | "rejected" | "expired";
+  /** pending → awaiting business · approved → bill code issued · completed → bill code redeemed */
+  status: "pending" | "approved" | "rejected" | "expired" | "completed";
   rejection_reason: string | null;
   bill_code: string | null;
   bill_code_expires_at: string | null;
@@ -58,6 +60,9 @@ export interface VerificationRequest {
   participant?: { full_name: string | null; avatar_url: string | null; username: string | null };
   challenge?: { title: string } | null;
   quest?: { title: string } | null;
+  task_id?: string | null;
+  task?: { title: string } | null;
+  business_verified_at?: string | null;
 }
 
 export const BUSINESS_CATEGORIES = [
@@ -145,115 +150,53 @@ export async function uploadBusinessLogo(
 /* ── Verification requests ───────────────────────────────────────────────── */
 
 /**
- * Business searches by SV code. Returns the request with participant info.
+ * Business searches by the participant's order code (OTP 1). Accepts
+ * "SV-123456", "sv123456" or "123456". Returns only what's needed to verify:
+ * display name, Quest, task and timing.
  */
 export async function findVerificationBySvCode(
   supabase: SupabaseClient,
   svCode: string,
   businessId: string
 ): Promise<VerificationRequest | null> {
-  const code = svCode.trim().toUpperCase();
+  const raw = svCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const digits = raw.startsWith("SV") ? raw.slice(2) : raw;
+  const code = `SV-${digits}`;
 
-  const { data, error } = await supabase
-    .from("business_verification_requests")
-    .select(`
-      *,
-      participant:profiles!participant_id ( full_name, avatar_url, username ),
-      challenge:challenges!challenge_id ( title ),
-      quest:quests!quest_id ( title )
-    `)
-    .eq("sv_code", code)
-    .eq("business_id", businessId)
-    .maybeSingle();
+  const base = `*, participant:profiles!participant_id ( full_name, avatar_url, username ),
+      challenge:challenges!challenge_id ( title ), quest:quests!quest_id ( title )`;
+  const run = (select: string) => supabase
+    .from("business_verification_requests").select(select)
+    .eq("sv_code", code).eq("business_id", businessId).maybeSingle();
 
+  let { data, error } = await run(`${base}, task:quest_tasks!task_id ( title )`);
+  if (error) ({ data, error } = await run(base)); // before the order-verification migration there is no task_id
   if (error) { console.error("[findVerificationBySvCode]", error.message); return null; }
-  return data as VerificationRequest | null;
+  return data as unknown as VerificationRequest | null;
 }
 
 /**
- * Business approves a verification request.
- * Generates a one-time bill code (STRIV-XXXX), valid 30 minutes.
+ * Business verifies the order → STRIVUP issues the Bill Verification code
+ * (OTP 2) to write on the customer's bill. The code is never sent to the
+ * participant directly.
  */
 export async function approveVerificationRequest(
   supabase: SupabaseClient,
-  requestId: string,
-  businessId: string
-): Promise<{ billCode: string }> {
-  // Generate bill code via DB function
-  const { data: codeData, error: codeErr } = await supabase
-    .rpc("generate_bill_code");
-  if (codeErr || !codeData) throw new Error("Failed to generate bill code");
-
-  const billCode = codeData as string;
-  const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-
-  const { error } = await supabase
-    .from("business_verification_requests")
-    .update({
-      status: "approved",
-      bill_code: billCode,
-      bill_code_expires_at: expiresAt,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", requestId)
-    .eq("business_id", businessId);
-
-  if (error) throw new Error(error.message);
-
-  // Notify the participant
-  const { data: req } = await supabase
-    .from("business_verification_requests")
-    .select("participant_id")
-    .eq("id", requestId)
-    .single();
-
-  if (req?.participant_id) {
-    await supabase.from("notifications").insert({
-      user_id: req.participant_id,
-      title: "Verification Approved!",
-      body: `Your verification was approved. Bill code: ${billCode}. Write it on your receipt.`,
-      is_read: false,
-    });
-  }
-
-  return { billCode };
+  svCode: string
+): Promise<{ billCode: string; expiresAt: string }> {
+  const res = await verifyOrder(supabase, svCode);
+  if (!res.ok) throw new Error(res.message);
+  return { billCode: res.bill_code, expiresAt: res.expires_at };
 }
 
-/**
- * Business rejects a verification request.
- */
+/** Business rejects the order; the reason is shown to the participant. */
 export async function rejectVerificationRequest(
   supabase: SupabaseClient,
   requestId: string,
-  businessId: string,
   reason?: string
 ): Promise<void> {
-  const { error } = await supabase
-    .from("business_verification_requests")
-    .update({
-      status: "rejected",
-      rejection_reason: reason ?? null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", requestId)
-    .eq("business_id", businessId);
-
-  if (error) throw new Error(error.message);
-
-  const { data: req } = await supabase
-    .from("business_verification_requests")
-    .select("participant_id")
-    .eq("id", requestId)
-    .single();
-
-  if (req?.participant_id) {
-    await supabase.from("notifications").insert({
-      user_id: req.participant_id,
-      title: "Verification Rejected",
-      body: reason ? `Verification rejected: ${reason}` : "Your verification request was rejected.",
-      is_read: false,
-    });
-  }
+  const res = await rejectOrder(supabase, requestId, reason);
+  if (!res.ok) throw new Error(res.message);
 }
 
 /**
@@ -309,44 +252,8 @@ export async function getVerificationInsights(
   if (error || !data) return { total: 0, approved: 0, pending: 0, rejected: 0 };
 
   const total = data.length;
-  const approved = data.filter(r => r.status === "approved").length;
+  const approved = data.filter(r => r.status === "approved" || r.status === "completed").length;
   const pending = data.filter(r => r.status === "pending").length;
   const rejected = data.filter(r => r.status === "rejected").length;
   return { total, approved, pending, rejected };
-}
-
-/**
- * Participant creates a verification request (SV code).
- * Called from the user/participant side.
- */
-export async function createVerificationRequest(
-  supabase: SupabaseClient,
-  params: {
-    businessId: string;
-    challengeId?: string;
-    questId?: string;
-    verificationType?: string;
-    activityDay?: number;
-  }
-): Promise<{ svCode: string }> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const { data: codeData, error: codeErr } = await supabase.rpc("generate_sv_code");
-  if (codeErr || !codeData) throw new Error("Failed to generate SV code");
-
-  const { error } = await supabase
-    .from("business_verification_requests")
-    .insert({
-      sv_code: codeData,
-      participant_id: user.id,
-      business_id: params.businessId,
-      challenge_id: params.challengeId ?? null,
-      quest_id: params.questId ?? null,
-      verification_type: params.verificationType ?? "business_visit",
-      activity_day: params.activityDay ?? null,
-    });
-
-  if (error) throw new Error(error.message);
-  return { svCode: codeData as string };
 }
