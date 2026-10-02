@@ -24,27 +24,6 @@ export interface FeaturedChallenge {
   verified: boolean;
 }
 
-/**
- * A business quest shown in the Explore strip.
- *
- * ExploreClient already referenced `import("./page").FeaturedQuest` but the type
- * was never declared here, so the project did not type-check and `next build`
- * failed — i.e. main could not deploy. Declared from the fields ExploreClient
- * actually reads; nothing passes `quests` yet, so the strip stays unrendered
- * until the business side is switched on.
- */
-export interface FeaturedQuest {
-  id: string;
-  title: string;
-  cover_url?: string | null;
-  thumbnail_url?: string | null;
-  business_name?: string | null;
-  /** Presence drives the "Reward" ribbon. Array-typed (not `unknown`) so the
-   *  `{q.rewards && …}` guard narrows to a renderable node. */
-  rewards?: unknown[] | null;
-  participant_count: number;
-}
-
 export interface TrendingChallenge {
   id: string;
   title: string;
