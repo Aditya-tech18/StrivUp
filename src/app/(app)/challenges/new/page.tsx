@@ -477,7 +477,7 @@ export default function CreateChallengePage() {
     <div className="min-h-screen bg-surface">
 
       {/* ── Sticky header ─────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
+      <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
         <div className="max-w-2xl mx-auto px-4">
           <div className="flex items-center justify-between h-14">
             <button

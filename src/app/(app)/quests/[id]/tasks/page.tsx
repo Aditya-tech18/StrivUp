@@ -268,7 +268,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
+      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 pt-safe z-30">
         <Link href={`/quests/${questId}`}><ArrowLeft size={22} className="text-gray-600" /></Link>
         <div className="flex-1 min-w-0">
           <p className="text-xs text-gray-400 font-medium">{quest.business_name ?? "Quest"}</p>

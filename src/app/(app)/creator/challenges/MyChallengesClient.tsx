@@ -117,7 +117,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
 
   return (
     <div className="min-h-screen bg-[#F8F9FC]">
-      <header className="sticky top-0 z-30 border-b border-gray-100 bg-white px-4 pt-3">
+      <header className="sticky top-0 pt-safe z-30 border-b border-gray-100 bg-white px-4 pt-3">
         <div className="flex items-center justify-between">
           <h1 className="text-[18px] font-black text-gray-900">My Challenges</h1>
           <Link href="/creator/pro"

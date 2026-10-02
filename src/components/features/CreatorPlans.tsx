@@ -112,7 +112,7 @@ export function CreatorPlans({ showComparison = true }: { showComparison?: boole
       {showComparison && (
         <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
           <p className="px-4 pt-4 text-[15px] font-black text-gray-900">Plan comparison</p>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto no-scrollbar">
             <table className="mt-3 w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 text-left text-xs text-gray-500">

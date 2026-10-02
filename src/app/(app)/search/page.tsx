@@ -102,7 +102,7 @@ export default function SearchPage() {
   return (
     <div className="min-h-screen bg-[#F5F5F7] pb-28">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-white border-b border-outline-variant">
         <div className="max-w-lg mx-auto px-5 py-3">
           <div className="flex items-center gap-2 bg-surface-container rounded-xl border border-outline-variant px-4 h-11">
             <Search size={18} className="text-on-surface-variant shrink-0" />
