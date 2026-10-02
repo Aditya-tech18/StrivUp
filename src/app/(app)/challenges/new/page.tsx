@@ -141,7 +141,7 @@ function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhys
 
       {/* Title */}
       <div>
-        <input
+        <input aria-label="Task title (required)"
           type="text"
           value={task.title}
           onChange={(e) => onChange({ ...task, title: e.target.value })}
@@ -150,14 +150,14 @@ function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhys
           className={[
             "w-full h-9 px-3 rounded border border-outline-variant",
             "bg-surface text-on-surface text-sm",
-            "placeholder:text-on-surface-variant/50",
+            "placeholder:text-on-surface-variant/80",
             "focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors",
           ].join(" ")}
         />
       </div>
 
       {/* Description */}
-      <textarea
+      <textarea aria-label="Description (optional)"
         value={task.description}
         onChange={(e) => onChange({ ...task, description: e.target.value })}
         placeholder="Description (optional)"
@@ -165,7 +165,7 @@ function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhys
         className={[
           "w-full px-3 py-2 rounded border border-outline-variant",
           "bg-surface text-on-surface text-sm resize-none",
-          "placeholder:text-on-surface-variant/50",
+          "placeholder:text-on-surface-variant/80",
           "focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors",
         ].join(" ")}
       />
@@ -174,7 +174,7 @@ function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhys
         {/* Proof type select */}
         <div className="flex items-center gap-2 flex-1 min-w-32">
           <label className="text-xs text-on-surface-variant whitespace-nowrap">Proof type</label>
-          <select
+          <select aria-label="Proof type"
             value={task.proofType}
             onChange={(e) => onChange({ ...task, proofType: e.target.value })}
             className="flex-1 h-8 px-2 rounded border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
@@ -227,7 +227,7 @@ function LivePreviewCard({ title, orgName, duration, thumbnail }: {
       </div>
       <div className="p-3 space-y-2">
         <h3 className="type-headline-sm text-on-surface font-semibold leading-snug line-clamp-2">
-          {title || <span className="text-on-surface-variant/50 italic font-normal">Your challenge title…</span>}
+          {title || <span className="text-on-surface-variant italic font-normal">Your challenge title…</span>}
         </h3>
         <p className="text-xs text-on-surface-variant">by {orgName || "Your organisation"}</p>
         <div className="flex items-center justify-between pt-1">
@@ -540,7 +540,7 @@ export default function CreateChallengePage() {
     <div className="min-h-screen bg-surface">
 
       {/* ── Sticky header ─────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
+      <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
         <div className="max-w-2xl mx-auto px-4">
           <div className="flex items-center justify-between h-14">
             <button
@@ -645,7 +645,7 @@ export default function CreateChallengePage() {
                       <CloudUpload size={32} className="text-on-surface-variant/50" aria-hidden="true" />
                       <div className="text-center">
                         <p className="type-body-md text-on-surface-variant text-sm">Click to upload or drag and drop</p>
-                        <p className="text-xs text-on-surface-variant/60 mt-0.5">High-resolution PNG or JPG recommended</p>
+                        <p className="text-xs text-on-surface-variant mt-0.5">High-resolution PNG or JPG recommended</p>
                       </div>
                     </>
                   )}

@@ -20,14 +20,18 @@ interface Analytics {
   rejectedProofs: number;
   approvalRate: number;
   eventTimeline: { event_type: string; created_at: string }[];
+  orderCodesGenerated: number;
+  ordersVerified: number;
+  billCodesEntered: number;
+  ordersRejected: number;
 }
 
 function MetricCard({ label, value, sub, color = "text-gray-900" }: { label: string; value: string | number; sub?: string; color?: string }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-4">
-      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-xs text-gray-600 font-semibold uppercase tracking-wider mb-1">{label}</p>
       <p className={`text-2xl font-black ${color}`}>{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-gray-600 mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -44,7 +48,7 @@ function FunnelBar({ label, value, max, color }: { label: string; value: number;
         </div>
       </div>
       {pct <= 15 && <span className="text-sm font-bold text-gray-700 w-8 shrink-0">{value}</span>}
-      <span className="text-xs text-gray-400 w-10 shrink-0 text-right">{pct}%</span>
+      <span className="text-xs text-gray-600 w-10 shrink-0 text-right">{pct}%</span>
     </div>
   );
 }
@@ -102,7 +106,7 @@ export default function AnalyticsPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
         <h1 className="text-[17px] font-black text-gray-900 flex-1">Analytics</h1>
       </div>
 
@@ -111,7 +115,7 @@ export default function AnalyticsPage() {
         {quests.length > 0 ? (
           <>
             <div className="relative">
-              <select value={selectedQuestId ?? ""} onChange={e => handleQuestChange(e.target.value)}
+              <select aria-label="Quest" value={selectedQuestId ?? ""} onChange={e => handleQuestChange(e.target.value)}
                 className="w-full h-11 rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm font-semibold text-gray-900 focus:outline-none focus:border-blue-500 appearance-none">
                 {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
               </select>
@@ -147,13 +151,20 @@ export default function AnalyticsPage() {
                     <h3 className="text-[15px] font-black text-gray-900">Quest Funnel</h3>
                   </div>
                   <div className="flex flex-col gap-3">
-                    {[
+                    {(analytics.orderCodesGenerated > 0 ? [
+                      { label: "Views",                 value: analytics.views,               color: "bg-blue-400" },
+                      { label: "Joins",                 value: analytics.joins,               color: "bg-blue-500" },
+                      { label: "Proof codes generated", value: analytics.orderCodesGenerated, color: "bg-indigo-500" },
+                      { label: "Orders verified",       value: analytics.ordersVerified,      color: "bg-amber-500" },
+                      { label: "Bill codes entered",    value: analytics.billCodesEntered,    color: "bg-green-500" },
+                      { label: "Quest completions",     value: analytics.completions,         color: "bg-purple-500" },
+                    ] : [
                       { label: "Views",          value: analytics.views,                  color: "bg-blue-400" },
                       { label: "Joins",          value: analytics.joins,                  color: "bg-blue-500" },
                       { label: "Proofs Submitted",value: analytics.approvedProofs + analytics.rejectedProofs + analytics.pendingProofs, color: "bg-indigo-500" },
                       { label: "Proofs Approved",value: analytics.approvedProofs,         color: "bg-green-500" },
                       { label: "Completions",    value: analytics.completions,            color: "bg-purple-500" },
-                    ].map(row => (
+                    ]).map(row => (
                       <FunnelBar key={row.label} label={row.label} value={row.value} max={Math.max(analytics.views, 1)} color={row.color} />
                     ))}
                   </div>
@@ -191,7 +202,7 @@ export default function AnalyticsPage() {
                         ...(selectedQuest.end_date ? [{ label: "Ends", value: new Date(selectedQuest.end_date).toLocaleDateString("en-IN") }] : []),
                       ].map(row => (
                         <div key={row.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                          <span className="text-sm text-gray-400">{row.label}</span>
+                          <span className="text-sm text-gray-600">{row.label}</span>
                           <span className="text-sm font-semibold text-gray-800 capitalize">{row.value}</span>
                         </div>
                       ))}
@@ -205,7 +216,7 @@ export default function AnalyticsPage() {
           <div className="flex flex-col items-center gap-4 py-20 text-center bg-white rounded-2xl border border-gray-100">
             <BarChart2 size={36} className="text-gray-200" />
             <p className="text-[17px] font-black text-gray-900">No Analytics Yet</p>
-            <p className="text-sm text-gray-400 max-w-xs">Analytics will appear once people start interacting with your Quest.</p>
+            <p className="text-sm text-gray-600 max-w-xs">Analytics will appear once people start interacting with your Quest.</p>
             <button onClick={() => router.push("/business/quests/new")}
               className="h-10 px-5 rounded-xl bg-blue-600 text-white text-sm font-bold">
               Create a Quest

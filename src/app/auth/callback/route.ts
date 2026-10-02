@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { homeFor } from "@/lib/auth/roles";
 
 /**
  * GET /auth/callback
@@ -72,7 +73,9 @@ export async function GET(request: Request) {
         return response;
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      // Default landing depends on the account's role (admin / business / user).
+      const dest = searchParams.get("next") ? next : await homeFor(supabase, data.user.id);
+      return NextResponse.redirect(`${origin}${dest}`);
     }
   }
 

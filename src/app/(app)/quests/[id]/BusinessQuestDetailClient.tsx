@@ -293,7 +293,7 @@ export default function BusinessQuestDetailClient({
     <div className="min-h-screen bg-[#F7F8FA] pb-24">
 
       {/* ── Top bar ─────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-200">
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-200 pt-safe">
         <div className="max-w-[1400px] mx-auto px-5 lg:px-8 h-14 flex items-center gap-3">
           <button
             onClick={() => router.back()}

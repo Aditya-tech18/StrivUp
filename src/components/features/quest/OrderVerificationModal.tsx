@@ -17,7 +17,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AlertCircle, ArrowLeft, Check, CheckCircle2, ClipboardCheck,
+  AlertCircle, ArrowLeft, Check, CheckCircle2, ClipboardCheck, Clock,
   Copy, Loader2, Receipt, ShieldCheck, X,
 } from "lucide-react";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -26,7 +26,7 @@ import {
   type OrderVerification,
 } from "@/lib/data/questOrderVerification";
 
-type Step = "ask" | "not_yet" | "code" | "waiting" | "bill" | "done";
+type Step = "ask" | "not_yet" | "codes" | "done";
 
 interface Props {
   open: boolean;
@@ -47,8 +47,10 @@ interface Props {
 function stepFor(row: OrderVerification | null): Step {
   if (!row) return "ask";
   if (row.status === "completed") return "done";
-  if (row.status === "order_verified") return "bill";
-  if (row.status === "code_issued") return "code";
+  // Both an issued code and a verified order land on the same screen: the two
+  // OTP sections are always shown together, with the second one locked until
+  // the business has verified.
+  if (row.status === "order_verified" || row.status === "code_issued") return "codes";
   return "ask";
 }
 
@@ -92,7 +94,7 @@ export default function OrderVerificationModal({
     if (!res.ok) { setError(res.error); return; }
     setRow(res.data);
     onIssued(res.data);
-    setStep(res.data.status === "order_verified" ? "bill" : "code");
+    setStep("codes");
   }, [supabase, questId, taskId, onIssued]);
 
   const handleCopy = useCallback(async () => {
@@ -125,9 +127,7 @@ export default function OrderVerificationModal({
     switch (step) {
       case "ask":     return "Order verification";
       case "not_yet": return "No problem";
-      case "code":    return "Your STRIVUP code";
-      case "waiting": return "Waiting for the business";
-      case "bill":    return "Final bill verification";
+      case "codes":   return "Order verification";
       case "done":    return "Task completed";
     }
   }, [step]);
@@ -146,9 +146,9 @@ export default function OrderVerificationModal({
 
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 rounded-t-3xl sm:rounded-t-2xl">
-          {(step === "not_yet" || step === "waiting") && (
+          {step === "not_yet" && (
             <button
-              onClick={() => setStep(step === "not_yet" ? "ask" : "code")}
+              onClick={() => setStep("ask")}
               aria-label="Back"
               className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center shrink-0"
             >
@@ -234,119 +234,133 @@ export default function OrderVerificationModal({
             </>
           )}
 
-          {/* ── Step: code ────────────────────────────────────────────── */}
-          {(step === "code" || step === "waiting") && row && (
+          {/* ── Step: codes ───────────────────────────────────────────── */}
+          {/* Both OTP sections live on one screen. Section 2 is visible from
+              the start but locked until the business verifies, so the whole
+              two code journey is legible at a glance instead of appearing one
+              step at a time. */}
+          {step === "codes" && row && (
             <>
-              <p className="text-[17px] font-bold text-gray-900">
-                Great! Let&apos;s verify your order.
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Your unique STRIVUP verification code is:
-              </p>
+              {(() => {
+                const verified = row.status === "order_verified";
+                return (
+                  <>
+                    {/* ── Section 1: the code STRIVUP generated ─────────── */}
+                    <section aria-labelledby="otp-1-heading">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">
+                          1
+                        </span>
+                        <h3 id="otp-1-heading" className="text-sm font-bold text-gray-900">
+                          Your STRIVUP order code
+                        </h3>
+                        <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 bg-green-50 text-green-700">
+                          Generated
+                        </span>
+                      </div>
 
-              <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50/60 px-5 py-5 text-center">
-                <p className="text-[34px] leading-none font-bold tracking-[0.18em] text-blue-700 select-all">
-                  {row.order_code}
-                </p>
-                <button
-                  onClick={handleCopy}
-                  className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-colors"
-                >
-                  {copied
-                    ? <><Check size={15} /> COPIED</>
-                    : <><Copy size={15} /> COPY OTP</>}
-                </button>
-              </div>
+                      <div className="mt-2.5 rounded-2xl border border-blue-200 bg-blue-50/60 px-5 py-5 text-center">
+                        <p className="text-[34px] leading-none font-bold tracking-[0.18em] text-blue-700 select-all">
+                          {row.order_code}
+                        </p>
+                        <button
+                          onClick={handleCopy}
+                          className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-colors"
+                        >
+                          {copied
+                            ? <><Check size={15} /> COPIED</>
+                            : <><Copy size={15} /> COPY OTP</>}
+                        </button>
+                      </div>
 
-              <p className="text-sm text-gray-600 leading-relaxed mt-4">
-                Add this code to the order description / instructions on Zomato
-                or Swiggy <span className="font-semibold text-gray-900">before</span>{" "}
-                placing your order.
-              </p>
+                      <p className="text-sm text-gray-600 leading-relaxed mt-3">
+                        Add this code to the order description on Zomato or Swiggy{" "}
+                        <span className="font-semibold text-gray-900">before</span> placing
+                        your order.
+                      </p>
+                    </section>
 
-              <ol className="mt-4 flex flex-col gap-2.5">
-                {ORDER_STEPS.map((text, i) => (
-                  <li key={text} className="flex gap-3 items-start">
-                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                      {i + 1}
-                    </span>
-                    <span className="text-sm text-gray-600 leading-relaxed">{text}</span>
-                  </li>
-                ))}
-              </ol>
+                    {/* ── Section 2: the code the business writes on the bill ─ */}
+                    <section aria-labelledby="otp-2-heading" className="mt-6 pt-5 border-t border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
+                          verified ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"}`}>
+                          2
+                        </span>
+                        <h3 id="otp-2-heading" className={`text-sm font-bold ${
+                          verified ? "text-gray-900" : "text-gray-400"}`}>
+                          Bill verification code
+                        </h3>
+                        <span className={`ml-auto inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                          verified
+                            ? "border-green-200 bg-green-50 text-green-700"
+                            : "border-amber-200 bg-amber-50 text-amber-700"}`}>
+                          {verified
+                            ? <><CheckCircle2 size={10} /> Order verified</>
+                            : <><Clock size={10} /> Awaiting business</>}
+                        </span>
+                      </div>
 
-              <p className="mt-4 text-xs text-gray-400 leading-relaxed bg-gray-50 border border-gray-100 rounded-xl px-3.5 py-3">
-                Your STRIVUP order verification code is valid for this task
-                attempt and is limited according to the Quest verification rules.
-              </p>
+                      <label htmlFor="bill-code" className="sr-only">
+                        Bill verification code
+                      </label>
+                      <div className={`mt-2.5 flex items-center gap-2 rounded-xl border-2 px-4 h-14 transition-colors ${
+                        verified
+                          ? "border-gray-200 focus-within:border-blue-500 bg-white"
+                          : "border-gray-150 bg-gray-50"}`}>
+                        <Receipt size={18} className="text-gray-400 shrink-0" />
+                        <input
+                          id="bill-code"
+                          value={billInput}
+                          disabled={!verified}
+                          onChange={(e) => { setBillInput(e.target.value.toUpperCase()); setError(null); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") handleBillSubmit(); }}
+                          placeholder={verified ? "SV____" : "Locked until verified"}
+                          maxLength={10}
+                          autoComplete="off"
+                          spellCheck={false}
+                          className="flex-1 min-w-0 bg-transparent text-xl font-bold tracking-[0.18em] text-gray-900 placeholder:text-gray-300 placeholder:text-base placeholder:tracking-normal focus:outline-none disabled:cursor-not-allowed"
+                        />
+                      </div>
 
-              {error && <ErrorNote message={error} />}
+                      <p className="text-xs text-gray-400 leading-relaxed mt-2">
+                        {verified
+                          ? "Enter the code the business wrote on your bill."
+                          : "The business writes this on your bill once it has verified your order. Come back then."}
+                      </p>
 
-              <div className="mt-5 flex flex-col gap-2.5">
-                <button
-                  onClick={onClose}
-                  className="h-11 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-sm transition-colors"
-                >
-                  Done — I&apos;ve added the code
-                </button>
-                <p className="text-center text-xs text-gray-400">
-                  Come back here once the business has verified your order.
-                </p>
-              </div>
-            </>
-          )}
+                      {verified && (
+                        <button
+                          onClick={handleBillSubmit}
+                          disabled={busy || !billInput.trim()}
+                          className="mt-3 w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+                        >
+                          {busy
+                            ? <><Loader2 size={16} className="animate-spin" /> Verifying...</>
+                            : <><ShieldCheck size={16} /> Verify and Complete Task</>}
+                        </button>
+                      )}
+                    </section>
 
-          {/* ── Step: bill ────────────────────────────────────────────── */}
-          {step === "bill" && row && (
-            <>
-              <div className="flex items-center gap-2.5 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
-                <CheckCircle2 size={18} className="text-green-600 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-green-800">Order Verified</p>
-                  <p className="text-xs text-green-700">
-                    Your business verification is complete.
-                  </p>
-                </div>
-              </div>
+                    {error && <ErrorNote message={error} />}
 
-              <p className="text-sm text-gray-600 leading-relaxed mt-4">
-                Enter the verification code written on your bill.
-              </p>
+                    <p className="mt-5 text-xs text-gray-400 leading-relaxed bg-gray-50 border border-gray-100 rounded-xl px-3.5 py-3">
+                      One code per task. This is your code for this task and it
+                      stays the same every time you come back, for as long as the
+                      Quest is running.
+                    </p>
 
-              <label htmlFor="bill-code" className="sr-only">
-                Bill verification code
-              </label>
-              <div className="mt-3 flex items-center gap-2 rounded-xl border-2 border-gray-200 focus-within:border-blue-500 bg-white px-4 h-14 transition-colors">
-                <Receipt size={18} className="text-gray-400 shrink-0" />
-                <input
-                  id="bill-code"
-                  value={billInput}
-                  onChange={(e) => { setBillInput(e.target.value.toUpperCase()); setError(null); }}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleBillSubmit(); }}
-                  placeholder="SV____"
-                  maxLength={10}
-                  autoComplete="off"
-                  spellCheck={false}
-                  className="flex-1 min-w-0 bg-transparent text-xl font-bold tracking-[0.18em] text-gray-900 placeholder:text-gray-300 placeholder:tracking-[0.18em] focus:outline-none"
-                />
-              </div>
-
-              {error && <ErrorNote message={error} />}
-
-              <button
-                onClick={handleBillSubmit}
-                disabled={busy || !billInput.trim()}
-                className="mt-4 w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
-              >
-                {busy
-                  ? <><Loader2 size={16} className="animate-spin" /> Verifying…</>
-                  : <><ShieldCheck size={16} /> Verify &amp; Complete Task</>}
-              </button>
-
-              <p className="mt-3 text-xs text-gray-400 text-center leading-relaxed">
-                The business writes this code on your bill after verifying your
-                order in STRIVUP.
-              </p>
+                    {!verified && (
+                      <button
+                        onClick={onClose}
+                        className="mt-4 w-full h-11 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-sm transition-colors"
+                      >
+                        Done, I have added the code
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
             </>
           )}
 

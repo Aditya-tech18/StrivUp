@@ -15,15 +15,15 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  AlertCircle, ArrowLeft, Check, CheckCircle2, Clock, Copy,
-  Loader2, Receipt, RefreshCw, Search, ShieldCheck,
+  AlertCircle, ArrowLeft, CalendarDays, Check, CheckCircle2, Clock, Copy,
+  Loader2, Receipt, RefreshCw, Search, ShieldCheck, Trophy, User, XCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests } from "@/lib/data/businessQuests";
 import {
-  getPendingVerifications, lookupOrderCode, verifyOrderCode,
-  type OrderCodeLookup,
+  getPendingVerifications, lookupOrderDetail, rejectOrderCode, verifyOrderCode,
+  type OrderCodeDetail, type OrderCodeLookup,
 } from "@/lib/data/questOrderVerification";
 
 function timeAgo(iso: string): string {
@@ -33,6 +33,26 @@ function timeAgo(iso: string): string {
   const h = Math.floor(mins / 60);
   if (h < 24) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
+}
+
+function ProfileStat({
+  icon: Icon, value, label,
+}: {
+  icon: typeof Trophy;
+  value: string;
+  label: string;
+}) {
+  return (
+    <div className="rounded-xl bg-white border border-gray-200 px-2.5 py-2">
+      <div className="flex items-center gap-1.5">
+        <Icon size={11} className="text-gray-400 shrink-0" aria-hidden="true" />
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 truncate">
+          {label}
+        </p>
+      </div>
+      <p className="text-sm font-bold text-gray-900 mt-0.5 truncate">{value}</p>
+    </div>
+  );
 }
 
 export default function BusinessOrderVerificationPage() {
@@ -47,7 +67,10 @@ export default function BusinessOrderVerificationPage() {
   const [searching, setSearching] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [match, setMatch] = useState<OrderCodeLookup | null>(null);
+  const [match, setMatch] = useState<OrderCodeDetail | null>(null);
+  const [rejecting, setRejecting] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [showReject, setShowReject] = useState(false);
   const [billCode, setBillCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -81,7 +104,7 @@ export default function BusinessOrderVerificationPage() {
     setMatch(null);
     setBillCode(null);
 
-    const res = await lookupOrderCode(supabase, query);
+    const res = await lookupOrderDetail(supabase, query);
     setSearching(false);
 
     if (!res.ok) { setError(res.error); return; }
@@ -112,6 +135,22 @@ export default function BusinessOrderVerificationPage() {
     void loadQueue(questIds);
   }, [match, supabase, questIds, loadQueue]);
 
+  const handleReject = useCallback(async () => {
+    if (!match) return;
+    setRejecting(true);
+    setError(null);
+
+    const res = await rejectOrderCode(supabase, match.order_code, rejectReason.trim() || undefined);
+    setRejecting(false);
+
+    if (!res.ok) { setError(res.error); return; }
+
+    setShowReject(false);
+    setRejectReason("");
+    setMatch({ ...match, status: res.data.status });
+    void loadQueue(questIds);
+  }, [match, rejectReason, supabase, questIds, loadQueue]);
+
   const handleCopyBill = useCallback(async () => {
     if (!billCode) return;
     try {
@@ -125,6 +164,7 @@ export default function BusinessOrderVerificationPage() {
 
   const reset = () => {
     setCode(""); setMatch(null); setBillCode(null); setError(null);
+    setShowReject(false); setRejectReason("");
   };
 
   if (loading) {
@@ -209,22 +249,57 @@ export default function BusinessOrderVerificationPage() {
           {/* ── Match ──────────────────────────────────────────────── */}
           {match && (
             <div className="mt-5 rounded-2xl border border-gray-200 overflow-hidden">
+              {/* Who is asking. Public identity and their progress on THIS
+                  quest only: enough to judge whether the order is genuine,
+                  without handing over a profile dossier. */}
               <div className="px-5 py-4 bg-gray-50 border-b border-gray-200">
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="min-w-0">
-                    <p className="text-[15px] font-bold text-gray-900">
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 rounded-full bg-white border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
+                    {match.participant_avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={match.participant_avatar} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={20} className="text-gray-300" aria-hidden="true" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-bold text-gray-900 truncate">
                       {match.participant_name ?? "Participant"}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    {match.participant_username && (
+                      <p className="text-xs text-gray-500">@{match.participant_username}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-0.5 truncate">
                       {match.quest_title} · {match.task_title}
                     </p>
                   </div>
+
                   <span className="text-lg font-bold tracking-[0.15em] text-gray-900 shrink-0">
                     {match.order_code}
                   </span>
                 </div>
-                <p className="text-[11px] text-gray-400 mt-2">
-                  Issued {timeAgo(match.created_at)} · expires{" "}
+
+                <div className="grid grid-cols-3 gap-2 mt-3">
+                  <ProfileStat
+                    icon={Trophy}
+                    value={`${match.tasks_completed_here}/${match.tasks_total_here}`}
+                    label="Tasks done"
+                  />
+                  <ProfileStat
+                    icon={CheckCircle2}
+                    value={String(match.verified_orders_here)}
+                    label="Verified orders"
+                  />
+                  <ProfileStat
+                    icon={CalendarDays}
+                    value={match.joined_quest_at ? timeAgo(match.joined_quest_at) : "Not joined"}
+                    label="Joined quest"
+                  />
+                </div>
+
+                <p className="text-[11px] text-gray-400 mt-2.5">
+                  Code issued {timeAgo(match.created_at)} · expires{" "}
                   {new Date(match.expires_at).toLocaleString("en-IN", {
                     day: "numeric", month: "short", hour: "numeric", minute: "2-digit",
                   })}
@@ -271,19 +346,69 @@ export default function BusinessOrderVerificationPage() {
                   </>
                 ) : (
                   <>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      Confirm this order actually arrived before verifying. STRIVUP
-                      will then generate the bill code to write on the bill.
-                    </p>
-                    <button
-                      onClick={handleVerify}
-                      disabled={verifying}
-                      className="mt-4 w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
-                    >
-                      {verifying
-                        ? <><Loader2 size={16} className="animate-spin" /> Verifying…</>
-                        : <><ShieldCheck size={16} /> Verify Order</>}
-                    </button>
+                    {match.status === "cancelled" || match.status === "expired" ? (
+                      // A closed code must not offer Verify. Showing an error
+                      // banner above a live Verify button is how you end up
+                      // clicking it and getting the same error again.
+                      <div className="flex items-center gap-2.5 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
+                        <XCircle size={18} className="text-red-500 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-red-800">
+                            {match.status === "expired" ? "Code no longer valid" : "Order rejected"}
+                          </p>
+                          <p className="text-xs text-red-700">
+                            {match.status === "expired"
+                              ? "This Quest has ended, so the code can no longer be verified."
+                              : "The participant can request a new code for this task."}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          Confirm this order actually arrived before verifying. STRIVUP
+                          will then generate the bill code to write on the bill.
+                        </p>
+
+                        {showReject && (
+                          <div className="mt-4">
+                            <label htmlFor="reject-reason" className="sr-only">
+                              Reason for rejecting
+                            </label>
+                            <textarea
+                              id="reject-reason"
+                              value={rejectReason}
+                              onChange={(e) => setRejectReason(e.target.value)}
+                              rows={2}
+                              placeholder="Reason (optional), for example: no matching order received"
+                              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500 resize-none transition-colors"
+                            />
+                          </div>
+                        )}
+
+                        <div className="flex gap-2 mt-4">
+                          <button
+                            onClick={() => (showReject ? void handleReject() : setShowReject(true))}
+                            disabled={rejecting || verifying}
+                            className="h-12 px-4 rounded-xl border-2 border-red-200 hover:bg-red-50 disabled:opacity-40 text-red-600 font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+                          >
+                            {rejecting
+                              ? <Loader2 size={16} className="animate-spin" />
+                              : <XCircle size={16} />}
+                            {showReject ? "Confirm reject" : "Reject"}
+                          </button>
+                          <button
+                            onClick={handleVerify}
+                            disabled={verifying || rejecting}
+                            className="flex-1 h-12 rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+                          >
+                            {verifying
+                              ? <><Loader2 size={16} className="animate-spin" /> Verifying...</>
+                              : <><ShieldCheck size={16} /> Verify Order</>}
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </>
                 )}
               </div>

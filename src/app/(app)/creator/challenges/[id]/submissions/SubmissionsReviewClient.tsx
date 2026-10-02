@@ -157,7 +157,7 @@ function SubmissionRow({
           {/* Reject form */}
           {showRejectForm && (
             <div className="space-y-2">
-              <textarea
+              <textarea aria-label="Rejection reason (required)"
                 id={`reject-reason-${submission.submissionId}`}
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
@@ -224,7 +224,7 @@ function SubmissionRow({
           </button>
           {showRejectForm && (
             <div className="mt-2 space-y-2">
-              <textarea
+              <textarea aria-label="Reason for overriding approval"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="Reason for overriding approval…"

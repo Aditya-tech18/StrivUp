@@ -274,11 +274,14 @@ export async function reviewSubmission(
 
 /* ── Analytics ───────────────────────────────────────────────────── */
 export async function getQuestAnalytics(supabase: SupabaseClient, questId: string) {
-  const [questRes, eventsRes, participantsRes, submissionsRes] = await Promise.all([
+  const [questRes, eventsRes, participantsRes, submissionsRes, otpRes] = await Promise.all([
     supabase.from("quests").select("view_count,participant_count,completion_count").eq("id", questId).single(),
     supabase.from("quest_events").select("event_type, created_at").eq("quest_id", questId),
     supabase.from("quest_participants").select("verification_status, joined_at, completed_at").eq("quest_id", questId),
     supabase.from("quest_task_submissions").select("verification_status, task_id").eq("quest_id", questId),
+    // Funnel for the two code order verification loop. Readable by the quest
+    // owner through the qov_business_read policy.
+    supabase.from("quest_order_verifications").select("status").eq("quest_id", questId),
   ]);
   const quest = questRes.data;
   const events = eventsRes.data ?? [];
@@ -289,6 +292,15 @@ export async function getQuestAnalytics(supabase: SupabaseClient, questId: strin
   const pending = submissions.filter((s: { verification_status: string }) => s.verification_status === "pending").length;
   const approved = submissions.filter((s: { verification_status: string }) => s.verification_status === "approved").length;
   const rejected = submissions.filter((s: { verification_status: string }) => s.verification_status === "rejected").length;
+
+  // Each stage is cumulative: a completed verification also passed through
+  // being generated and verified, so later stages count earlier ones too.
+  const otp = (otpRes.data ?? []) as { status: string }[];
+  const orderCodesGenerated = otp.length;
+  const ordersVerified = otp.filter((o) => o.status === "order_verified" || o.status === "completed").length;
+  const billCodesEntered = otp.filter((o) => o.status === "completed").length;
+  const ordersRejected = otp.filter((o) => o.status === "cancelled").length;
+
   return {
     views: quest?.view_count ?? 0,
     joins: totalJoins,
@@ -299,5 +311,9 @@ export async function getQuestAnalytics(supabase: SupabaseClient, questId: strin
     rejectedProofs: rejected,
     approvalRate: (approved+rejected) > 0 ? Math.round((approved/(approved+rejected))*100) : 0,
     eventTimeline: events,
+    orderCodesGenerated,
+    ordersVerified,
+    billCodesEntered,
+    ordersRejected,
   };
 }

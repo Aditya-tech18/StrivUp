@@ -86,10 +86,10 @@ export default function AccountDetailsPage() {
 
   return (
     <div className="min-h-screen bg-surface pb-28">
-      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+            <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
               <ArrowLeft size={19} className="text-on-surface" />
             </button>
             <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Account Details</h1>
@@ -104,9 +104,9 @@ export default function AccountDetailsPage() {
 
       <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-5">
         {error && (
-          <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-error-container border border-error/20">
+          <div role="alert" className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-error-container border border-error/20">
             <p className="text-[13px] text-error flex-1">{error}</p>
-            <button onClick={() => setError(null)}><X size={14} className="text-error" /></button>
+            <button aria-label="Dismiss error" onClick={() => setError(null)}><X size={14} className="text-error" /></button>
           </div>
         )}
 
@@ -151,12 +151,12 @@ export default function AccountDetailsPage() {
           <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Personal Information</p>
           <div className="flex flex-col gap-1.5">
             <label className="text-[12px] font-medium text-on-surface-variant">Age</label>
-            <input type="number" value={age} onChange={e => setAge(e.target.value)} min={13} max={120} placeholder="Your age" className={inputCls} />
+            <input aria-label="Age" type="number" value={age} onChange={e => setAge(e.target.value)} min={13} max={120} placeholder="Your age" className={inputCls} />
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-[12px] font-medium text-on-surface-variant">Gender</label>
             <div className="relative">
-              <select value={gender} onChange={e => setGender(e.target.value)}
+              <select aria-label="Gender" value={gender} onChange={e => setGender(e.target.value)}
                 className={inputCls + " appearance-none pr-9"}>
                 <option value="">Select gender</option>
                 {GENDERS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}

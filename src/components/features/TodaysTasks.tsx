@@ -8,6 +8,8 @@ import {
   Check,
   CheckCircle2,
   Clock,
+  Compass,
+  Plus,
   RotateCcw,
   Upload,
 } from "lucide-react";
@@ -84,8 +86,11 @@ function TaskRow({ task }: { task: TodayTask }) {
           >
             {task.title}
           </span>
+          {/* When there is no task breakdown the title IS the challenge name,
+              so repeating it here just prints it twice. Only a named task needs
+              the challenge for context. */}
           <span className="truncate text-label-sm text-on-surface-variant">
-            {task.taskId ? `${task.dayLabel}` : `${task.challengeTitle} · ${task.dayLabel}`}
+            {task.taskId ? `${task.challengeTitle} · ${task.dayLabel}` : task.dayLabel}
           </span>
         </div>
       </div>
@@ -142,18 +147,30 @@ export function TodaysTasks({ summary }: { summary: TodaySummary }) {
       <section className="flex flex-col gap-space-sm" aria-label="Today's tasks">
         <h3 className="text-headline-sm text-on-surface">Today&apos;s Tasks</h3>
         <div className="rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
-          <p className="text-body-md text-on-surface">
-            You have nothing due today.
-          </p>
+          <p className="text-body-md text-on-surface">You have nothing due today.</p>
           <p className="mt-1 text-body-sm text-on-surface-variant">
             Join a challenge and it&apos;ll show up here every day until you finish it.
           </p>
-          <Link
-            href="/explore"
-            className="mt-space-md inline-flex h-11 items-center justify-center gap-space-xs rounded-lg bg-primary px-space-md text-label-lg text-on-primary shadow-sm transition-transform active:scale-[0.99]"
-          >
-            Find a challenge
-          </Link>
+
+          {/* Both paths out of an empty state: join something that exists, or
+              start your own and invite people. Ranked rather than two equal
+              slabs — most first-time users should join, not create. */}
+          <div className="mt-space-md grid grid-cols-2 gap-space-sm">
+            <Link
+              href="/explore"
+              className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-primary px-space-sm text-label-lg text-on-primary shadow-sm transition-transform active:scale-[0.99]"
+            >
+              <Compass size={16} aria-hidden="true" />
+              Browse
+            </Link>
+            <Link
+              href="/challenges/new"
+              className="flex h-11 items-center justify-center gap-1.5 rounded-lg border border-outline bg-surface-container-lowest px-space-sm text-label-lg text-on-surface transition-colors active:bg-surface-container"
+            >
+              <Plus size={16} aria-hidden="true" />
+              Create
+            </Link>
+          </div>
         </div>
       </section>
     );
