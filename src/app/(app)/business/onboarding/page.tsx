@@ -340,7 +340,8 @@ export default function BusinessOnboardingPage() {
         <button onClick={async () => {
           setSaving(true); setError(null);
           try {
-            await upsertBusinessProfile(supabase, { onboarding_step: 7, onboarding_done: true, verification_status: "submitted" });
+            // Finishing onboarding doesn't submit for verification; that happens on /business/verify-business with documents.
+            await upsertBusinessProfile(supabase, { onboarding_step: 7, onboarding_done: true });
             router.push("/business/dashboard");
           } catch(e) { setError(e instanceof Error ? e.message : "Failed"); setSaving(false); }
         }} disabled={saving}

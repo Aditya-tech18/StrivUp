@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { Building2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { getViewerRole } from "@/lib/auth/roles";
 
 const schema = z.object({
   email: z.string().min(1, "Email is required.").email("Please enter a valid email."),
@@ -57,6 +58,11 @@ export function BusinessLoginForm() {
   /** After successful auth, smartly route based on business profile state */
   async function routeAfterAuth(userId: string) {
     const supabase = createClient();
+
+    // Roles come from the database; the admin console re-checks server-side.
+    const role = await getViewerRole(supabase, userId);
+    if (role.accountStatus !== "active") { router.push("/deactivated"); router.refresh(); return; }
+    if (role.isModerator) { router.push("/admin"); router.refresh(); return; }
 
     // Ensure account_type = business on profiles
     await supabase.from("profiles").update({ account_type: "business" }).eq("id", userId);
