@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# The android/ project itself is committed so the manifest customisations
+# (stripped health permissions, Health Connect rationale filters) are tracked.
+# Only build output and local SDK paths are ignored.
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/res/xml/config.xml
