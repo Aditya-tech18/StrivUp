@@ -345,8 +345,9 @@ export default function OrderVerificationModal({
                     {error && <ErrorNote message={error} />}
 
                     <p className="mt-5 text-xs text-gray-400 leading-relaxed bg-gray-50 border border-gray-100 rounded-xl px-3.5 py-3">
-                      Your STRIVUP order code is valid for this task attempt and is
-                      limited according to the Quest verification rules.
+                      One code per task. This is your code for this task and it
+                      stays the same every time you come back, for as long as the
+                      Quest is running.
                     </p>
 
                     {!verified && (

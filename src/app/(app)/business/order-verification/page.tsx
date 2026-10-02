@@ -346,13 +346,20 @@ export default function BusinessOrderVerificationPage() {
                   </>
                 ) : (
                   <>
-                    {match.status === "cancelled" ? (
+                    {match.status === "cancelled" || match.status === "expired" ? (
+                      // A closed code must not offer Verify. Showing an error
+                      // banner above a live Verify button is how you end up
+                      // clicking it and getting the same error again.
                       <div className="flex items-center gap-2.5 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
                         <XCircle size={18} className="text-red-500 shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-red-800">Order rejected</p>
+                          <p className="text-sm font-bold text-red-800">
+                            {match.status === "expired" ? "Code no longer valid" : "Order rejected"}
+                          </p>
                           <p className="text-xs text-red-700">
-                            The participant can request a new code today.
+                            {match.status === "expired"
+                              ? "This Quest has ended, so the code can no longer be verified."
+                              : "The participant can request a new code for this task."}
                           </p>
                         </div>
                       </div>
