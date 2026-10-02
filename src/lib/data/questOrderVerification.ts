@@ -59,6 +59,23 @@ export interface OrderCodeLookup {
   created_at: string;
 }
 
+/**
+ * What the verifying business sees when it searches a code.
+ *
+ * Public identity plus this participant's progress on this quest, and nothing
+ * else. No email, no phone, no activity from any other quest: the business
+ * needs enough to judge whether an order is genuine, not a profile dossier.
+ */
+export interface OrderCodeDetail extends OrderCodeLookup {
+  participant_username: string | null;
+  participant_avatar: string | null;
+  participant_since: string | null;
+  tasks_completed_here: number;
+  tasks_total_here: number;
+  verified_orders_here: number;
+  joined_quest_at: string | null;
+}
+
 export interface LeaderboardRow {
   user_id: string;
   full_name: string | null;
@@ -190,6 +207,50 @@ export async function completeTaskWithBillCode(
 }
 
 /* ── Business side ─────────────────────────────────────────────────────── */
+
+/**
+ * Search an order code and return the participant profile with it.
+ *
+ * Read only. The function re-checks that the caller owns the quest, so a
+ * business can only ever resolve codes issued against its own quests.
+ */
+export async function lookupOrderDetail(
+  supabase: SupabaseClient,
+  code: string
+): Promise<Result<OrderCodeDetail[]>> {
+  const { data, error } = await supabase.rpc("business_lookup_order_detail", {
+    p_code: code,
+  });
+
+  if (error) {
+    return { ok: false, error: toMessage(error, "Could not search that code.") };
+  }
+  return { ok: true, data: (data ?? []) as OrderCodeDetail[] };
+}
+
+/**
+ * Reject a code the business does not recognise.
+ *
+ * Cancelling frees the participant's daily slot, so somebody rejected in error
+ * can request a fresh code the same day instead of being locked out until
+ * tomorrow. An order that was already verified cannot be rejected: the bill
+ * code is out in the world by then.
+ */
+export async function rejectOrderCode(
+  supabase: SupabaseClient,
+  code: string,
+  reason?: string
+): Promise<Result<OrderVerification>> {
+  const { data, error } = await supabase.rpc("business_reject_order_code", {
+    p_code: code,
+    p_reason: reason ?? null,
+  });
+
+  if (error) {
+    return { ok: false, error: toMessage(error, "Could not reject that order.") };
+  }
+  return { ok: true, data: data as OrderVerification };
+}
 
 /** Search an order code without changing anything. */
 export async function lookupOrderCode(
