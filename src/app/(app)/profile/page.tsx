@@ -95,7 +95,7 @@ function ConsistencyHeatmap({
     n === 3 ? "bg-secondary/70" : "bg-secondary";
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto no-scrollbar">
       <div className="min-w-[480px]">
         {/* Month labels */}
         <div className="relative flex h-4 mb-1 ml-7">
@@ -574,7 +574,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-surface pb-28">
 
       {/* ── Sticky header ───────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-30 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
           <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">My Profile</h1>
           <div className="flex items-center gap-2">

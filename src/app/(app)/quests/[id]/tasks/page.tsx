@@ -8,6 +8,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, CheckCircle2, Clock, Lock, Upload, X, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { PhysicalTaskCard } from "@/components/features/activity";
+import {
+  currentPeriodProgress,
+  getQuestActivityConfigs,
+  getQuestActivityProgress,
+  hasConnectedProvider,
+} from "@/lib/data/activity";
+import type { PhysicalActivityConfig, QuestActivityProgress } from "@/lib/activity/types";
 
 interface QuestTask {
   id: string;
@@ -56,6 +64,7 @@ const PROOF_LABEL: Record<string, string> = {
   location: "Location check-in",
   manual: "Manual verification required",
   none: "No proof required",
+  physical_activity: "Verified automatically from your activity",
 };
 
 export default function QuestTasksPage({ params }: { params: Promise<{ id: string }> }) {
@@ -69,6 +78,12 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
   const [submissions, setSubmissions] = useState<Map<string, TaskSubmission>>(new Map());
   const [isParticipant, setIsParticipant] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+
+  // Physical activity: per-task config, the user's progress rows, and whether
+  // they have a provider connected at all.
+  const [activityConfigs, setActivityConfigs] = useState<Map<string, PhysicalActivityConfig>>(new Map());
+  const [activityProgress, setActivityProgress] = useState<QuestActivityProgress[]>([]);
+  const [activityConnected, setActivityConnected] = useState(false);
 
   // Upload state per task
   const [uploading, setUploading] = useState<string | null>(null);
@@ -101,6 +116,18 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
         subMap.set(s.task_id, s as TaskSubmission);
       }
       setSubmissions(subMap);
+
+      // Physical activity is additive: a quest with no physical task simply
+      // gets three empty results and renders exactly as it did before.
+      const [configs, progress, connected] = await Promise.all([
+        getQuestActivityConfigs(supabase, questId),
+        getQuestActivityProgress(supabase, questId, user.id),
+        hasConnectedProvider(supabase, user.id),
+      ]);
+      setActivityConfigs(configs);
+      setActivityProgress(progress);
+      setActivityConnected(connected);
+
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -241,7 +268,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
+      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 pt-safe z-30">
         <Link href={`/quests/${questId}`}><ArrowLeft size={22} className="text-gray-600" /></Link>
         <div className="flex-1 min-w-0">
           <p className="text-xs text-gray-400 font-medium">{quest.business_name ?? "Quest"}</p>
@@ -277,6 +304,27 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
         )}
 
         {tasks.map((task, index) => {
+          // Physical activity tasks own their whole card: there is no upload
+          // control, because the value is read from the provider and asserted
+          // server-side. Falls through to the normal card if a task is marked
+          // physical but has no config yet (a half-finished quest draft).
+          const activityConfig = activityConfigs.get(task.id);
+          if (task.proof_type === "physical_activity" && activityConfig) {
+            const todayIso = new Date().toLocaleDateString("en-CA", { timeZone: activityConfig.timezone || "Asia/Kolkata" });
+            return (
+              <PhysicalTaskCard
+                key={task.id}
+                taskTitle={task.title}
+                taskDescription={task.description}
+                config={activityConfig}
+                progress={currentPeriodProgress(activityProgress, task.id, todayIso)}
+                isConnected={activityConnected}
+                questTitle={quest?.title}
+                businessName={quest?.business_name}
+              />
+            );
+          }
+
           const sub = submissions.get(task.id);
           const sc = sub ? STATUS_CFG[sub.verification_status] : null;
           const isSubmitting = uploading === task.id;

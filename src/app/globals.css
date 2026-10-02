@@ -238,11 +238,92 @@ body {
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
+.type-body-sm {
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  font-weight: var(--text-body-sm--font-weight);
+}
+.type-title-lg {
+  font-size: var(--text-headline-md);
+  line-height: var(--text-headline-md--line-height);
+  letter-spacing: var(--text-headline-md--letter-spacing);
+  font-weight: var(--text-headline-md--font-weight);
+}
 .type-stat-value {
   font-size: 28px;
   line-height: 2rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+}
+
+/* ─── StrivCoin earn flourish ───────────────────────────────────────────────
+   The "+N" that floats off the coin pill on the first visit of the day. Pure
+   CSS so it needs no state, and so prefers-reduced-motion is honoured without
+   a hand-rolled matchMedia check. Ends at opacity 0 via fill-mode: forwards. */
+@keyframes coin-float {
+  0%   { opacity: 0; transform: translateY(4px) scale(0.9); }
+  20%  { opacity: 1; transform: translateY(-2px) scale(1); }
+  70%  { opacity: 1; transform: translateY(-6px); }
+  100% { opacity: 0; transform: translateY(-12px); }
+}
+
+.animate-coin-float {
+  animation: coin-float 2.2s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-coin-float {
+    /* Still shown, just held still and faded out without travel. */
+    animation: none;
+    opacity: 0;
+  }
+}
+
+
+/* ─── Native-app feel on touch devices ──────────────────────────────────────
+   These are the details that separate "a website in a browser" from "an app".
+   Each one is here for a specific reason, not as boilerplate.              */
+
+/* The grey/blue flash Android and iOS paint over a tapped element. Nothing
+   native does this, and it is the single biggest tell that a UI is a web page.
+   Every interactive element in the app has its own :active state instead.   */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Removes the legacy 300ms click delay and stops double-tap-to-zoom on
+   controls, so buttons respond on touch rather than a beat later.           */
+button,
+a,
+[role="button"],
+label,
+summary {
+  touch-action: manipulation;
+}
+
+/* iOS Safari zooms the whole page when focusing an input whose font-size is
+   under 16px — and the app's body scale is 14px, so every text field would
+   trigger it. Forcing 16px on touch-primary devices keeps typing steady,
+   while pointer devices keep the designed 14px.                             */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Chrome/Android paint a scroll shadow and rubber-band the page behind fixed
+   chrome. Containing it keeps the bottom nav and header visually anchored.  */
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* Sticky headers and the bottom nav sit on top of scrolling content; without
+   this they can flicker during momentum scroll on some Android builds.      */
+.sticky,
+.fixed {
+  will-change: transform;
 }
 
 /* ─── Utility: hide scrollbar while keeping scrollability ───────────────── */
@@ -271,10 +352,19 @@ body {
   right: 0;
 }
 
-/* The nav itself pads its content away from the home indicator. */
-.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
 @media (min-width: 768px) {
   .pb-bottom-nav { padding-bottom: 0; }
   .above-bottom-nav { bottom: 0; left: 16rem; }
+}
+
+/* ─── Focus visibility (WCAG 2.4.7) ───────────────────────────────────────── */
+/* Every interactive element shows a 2px brand-blue ring on keyboard focus.   */
+/* In the base layer so components that draw their own focus ring (via       */
+/* focus:ring / focus-visible:ring utilities) still take precedence.          */
+@layer base {
+  :where(a, button, input, select, textarea, summary, [tabindex], [role="button"], [role="tab"], [role="switch"]):focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+  }
 }

@@ -25,7 +25,7 @@ const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
   completed:      { label: "Completed",      cls: "bg-purple-100 text-purple-700" },
   expired:        { label: "Expired",        cls: "bg-gray-100 text-gray-500" },
   rejected:       { label: "Rejected",       cls: "bg-red-100 text-red-600" },
-  archived:       { label: "Archived",       cls: "bg-gray-100 text-gray-400" },
+  archived:       { label: "Archived",       cls: "bg-gray-100 text-gray-600" },
 };
 
 function formatDate(d: string | null) {
@@ -73,7 +73,7 @@ export default function BusinessQuestsPage() {
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
         <h1 className="text-[17px] font-black text-gray-900 flex-1">My Quests</h1>
         <button onClick={() => router.push("/business/quests/new")}
           className="flex items-center gap-1.5 h-9 px-4 rounded-xl bg-blue-600 text-white text-sm font-bold">
@@ -86,10 +86,10 @@ export default function BusinessQuestsPage() {
         {TABS.map(t => (
           <button key={t.value} onClick={() => setTab(t.value)}
             className={`shrink-0 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
-              tab === t.value ? "border-blue-600 text-blue-600" : "border-transparent text-gray-400 hover:text-gray-600"
+              tab === t.value ? "border-blue-600 text-blue-600" : "border-transparent text-gray-600 hover:text-gray-600"
             }`}>
             {t.label}
-            <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${tab === t.value ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-400"}`}>
+            <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${tab === t.value ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-600"}`}>
               {t.value === "all" ? quests.length : quests.filter(q => q.quest_status === t.value).length}
             </span>
           </button>
@@ -131,8 +131,8 @@ export default function BusinessQuestsPage() {
                       <h3 className="text-[15px] font-bold text-gray-900 leading-tight line-clamp-2">{quest.title}</h3>
                       <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${sc.cls}`}>{sc.label}</span>
                     </div>
-                    {quest.category && <p className="text-xs text-gray-400 mb-2">{quest.category}</p>}
-                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                    {quest.category && <p className="text-xs text-gray-600 mb-2">{quest.category}</p>}
+                    <div className="flex items-center gap-4 text-xs text-gray-600">
                       <span className="flex items-center gap-1"><Users size={12} />{quest.participant_count}</span>
                       <span className="flex items-center gap-1"><Eye size={12} />{quest.view_count}</span>
                       {quest.end_date && <span className="flex items-center gap-1"><Clock size={12} />Ends {formatDate(quest.end_date)}</span>}

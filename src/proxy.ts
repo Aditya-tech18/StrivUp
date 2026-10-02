@@ -45,6 +45,10 @@ const APP_ROUTE_PREFIXES = [
   "/settings",
   "/alerts",
   "/creator",
+  // Physical activity dashboard. Gated like any other personal view — it
+  // renders the viewer's own step history, so an anonymous hit has nothing
+  // legitimate to show.
+  "/activity",
 ];
 
 export async function proxy(request: NextRequest) {

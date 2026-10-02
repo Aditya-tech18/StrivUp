@@ -74,10 +74,11 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
             key={item.href}
             href={item.href}
             aria-current={isActive ? "page" : undefined}
+            aria-label={isCreate ? item.label : undefined}
             className={[
               "flex flex-1 flex-col items-center justify-center gap-0.5 select-none transition-colors",
               isCreate ? "relative" : "",
-              isActive ? "text-blue-600" : "text-gray-400 hover:text-gray-600",
+              isActive ? "text-blue-600" : "text-gray-600 hover:text-gray-900",
             ].join(" ")}
           >
             {isCreate ? (

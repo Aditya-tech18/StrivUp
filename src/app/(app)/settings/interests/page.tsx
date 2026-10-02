@@ -59,10 +59,10 @@ export default function InterestsPage() {
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+            <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
               <ArrowLeft size={19} className="text-on-surface" />
             </button>
             <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Interests</h1>
@@ -89,7 +89,7 @@ export default function InterestsPage() {
         {/* Search */}
         <div className="relative">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-          <input
+          <input aria-label="Search interests…"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search interests…"
@@ -98,7 +98,7 @@ export default function InterestsPage() {
         </div>
 
         {error && (
-          <div className="px-4 py-3 rounded-xl bg-error-container border border-error/20">
+          <div role="alert" className="px-4 py-3 rounded-xl bg-error-container border border-error/20">
             <p className="text-[13px] text-error">{error}</p>
           </div>
         )}

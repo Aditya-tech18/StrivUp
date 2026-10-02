@@ -102,7 +102,7 @@ export default function ProofVerificationPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
         <h1 className="text-[17px] font-black text-gray-900 flex-1">Proof Verification</h1>
         {tabCounts.pending > 0 && (
           <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{tabCounts.pending}</span>
@@ -112,7 +112,7 @@ export default function ProofVerificationPage() {
       {/* Quest selector */}
       <div className="bg-white border-b border-gray-100 px-5 py-3">
         <div className="relative max-w-2xl mx-auto">
-          <select value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
+          <select aria-label="Filter by quest" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
             className="w-full h-10 rounded-xl border border-gray-200 bg-gray-50 px-4 pr-10 text-sm font-medium text-gray-700 focus:outline-none focus:border-blue-500 appearance-none">
             <option value="all">All Quests</option>
             {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
@@ -126,11 +126,11 @@ export default function ProofVerificationPage() {
         {TABS.map(t => (
           <button key={t.value} onClick={() => setTab(t.value)}
             className={`shrink-0 flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
-              tab === t.value ? "border-blue-600 text-blue-600" : "border-transparent text-gray-400"
+              tab === t.value ? "border-blue-600 text-blue-600" : "border-transparent text-gray-600"
             }`}>
             {t.label}
             {tabCounts[t.value] > 0 && (
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${tab === t.value ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}>
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${tab === t.value ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-gray-100 text-gray-600 border-gray-200"}`}>
                 {tabCounts[t.value]}
               </span>
             )}
@@ -142,7 +142,7 @@ export default function ProofVerificationPage() {
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-16 text-center bg-white rounded-2xl border border-gray-100">
             <CheckCircle2 size={32} className="text-gray-200" />
-            <p className="text-sm text-gray-400">No {tab === "pending" ? "pending" : tab} submissions.</p>
+            <p className="text-sm text-gray-600">No {tab === "pending" ? "pending" : tab} submissions.</p>
           </div>
         ) : (
           filtered.map(sub => {
@@ -158,8 +158,8 @@ export default function ProofVerificationPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-gray-900">{pName}</p>
-                      <p className="text-xs text-gray-400 truncate">Task: {taskTitle}</p>
-                      <p className="text-xs text-gray-400">{timeAgo(sub.submitted_at)}</p>
+                      <p className="text-xs text-gray-600 truncate">Task: {taskTitle}</p>
+                      <p className="text-xs text-gray-600">{timeAgo(sub.submitted_at)}</p>
                     </div>
                     {sub.verification_status !== "pending" && (
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
@@ -224,7 +224,7 @@ export default function ProofVerificationPage() {
               {showRejectModal.startsWith("resubmit-") ? "Request Resubmission" : "Reject Submission"}
             </h3>
             <p className="text-sm text-gray-500 mb-4">Optionally provide a reason for the participant.</p>
-            <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)}
+            <textarea aria-label="Rejection reason (optional)" value={rejectReason} onChange={e => setRejectReason(e.target.value)}
               placeholder="Reason (optional)..." rows={3}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-blue-500 resize-none mb-4" />
             <div className="flex gap-3">

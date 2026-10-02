@@ -52,7 +52,7 @@ export default function PromotePage() {
   return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
         <h1 className="text-[17px] font-black text-gray-900 flex-1">Promote Quest</h1>
       </div>
 
@@ -87,7 +87,7 @@ export default function PromotePage() {
           <p className="text-sm font-bold text-gray-900 mb-3">Select Quest to Promote</p>
           {quests.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-sm text-gray-400 mb-3">No active Quests to promote.</p>
+              <p className="text-sm text-gray-600 mb-3">No active Quests to promote.</p>
               <button onClick={() => router.push("/business/quests/new")}
                 className="h-9 px-5 rounded-xl bg-blue-600 text-white text-sm font-bold">
                 Create a Quest First
@@ -95,7 +95,7 @@ export default function PromotePage() {
             </div>
           ) : (
             <div className="relative">
-              <select value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
+              <select aria-label="Quest to promote" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
                 className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-4 pr-10 text-sm font-medium text-gray-700 focus:outline-none focus:border-blue-500 appearance-none">
                 {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
               </select>
@@ -114,7 +114,7 @@ export default function PromotePage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-gray-900 truncate">{selectedQuestObj.title}</p>
-                <p className="text-xs text-gray-400">{selectedQuestObj.participant_count} current participants</p>
+                <p className="text-xs text-gray-600">{selectedQuestObj.participant_count} current participants</p>
               </div>
             </div>
           )}
@@ -124,7 +124,7 @@ export default function PromotePage() {
         {quests.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <p className="text-sm font-bold text-gray-900 mb-1">Select Budget & Duration</p>
-            <p className="text-xs text-gray-400 mb-4">Estimated reach is based on historical data and may vary.</p>
+            <p className="text-xs text-gray-600 mb-4">Estimated reach is based on historical data and may vary.</p>
             <div className="grid grid-cols-2 gap-3">
               {BUDGETS.map(b => (
                 <button key={b.value} type="button" onClick={() => setSelectedBudget(b)}
@@ -137,7 +137,7 @@ export default function PromotePage() {
                     {b.label}
                   </p>
                   <p className="text-[10px] text-gray-500 font-medium">{b.reach}</p>
-                  <p className="text-[10px] text-gray-400">{b.duration}</p>
+                  <p className="text-[10px] text-gray-600">{b.duration}</p>
                 </button>
               ))}
             </div>

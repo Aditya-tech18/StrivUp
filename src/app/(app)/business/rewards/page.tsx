@@ -103,7 +103,7 @@ export default function RewardsPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
         <h1 className="text-[17px] font-black text-gray-900 flex-1">Rewards</h1>
       </div>
 
@@ -117,7 +117,7 @@ export default function RewardsPage() {
           ].map(s => (
             <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col items-center">
               <span className={`text-2xl font-black ${s.color}`}>{s.value}</span>
-              <span className="text-xs text-gray-400 mt-0.5">{s.label}</span>
+              <span className="text-xs text-gray-600 mt-0.5">{s.label}</span>
             </div>
           ))}
         </div>
@@ -137,7 +137,7 @@ export default function RewardsPage() {
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-16 text-center bg-white rounded-2xl border border-gray-100">
             <Gift size={32} className="text-gray-200" />
-            <p className="text-sm text-gray-400">No reward claims yet.</p>
+            <p className="text-sm text-gray-600">No reward claims yet.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -153,7 +153,7 @@ export default function RewardsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-gray-900">{pName}</p>
-                      <p className="text-xs text-gray-400 truncate">{claim.quest?.title ?? "—"}</p>
+                      <p className="text-xs text-gray-600 truncate">{claim.quest?.title ?? "—"}</p>
                       {claim.rank && (
                         <div className="flex items-center gap-1 mt-0.5">
                           <Trophy size={11} className="text-amber-500" />
@@ -174,7 +174,7 @@ export default function RewardsPage() {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
+                  <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
                     <span>Claimed {timeAgo(claim.created_at)}</span>
                     {claim.fulfilled_at && <span className="text-green-600">Fulfilled {timeAgo(claim.fulfilled_at)}</span>}
                   </div>

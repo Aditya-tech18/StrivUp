@@ -26,9 +26,9 @@ export default function DeleteAccountPage() {
 
   return (
     <div className="min-h-screen bg-surface pb-28">
-      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-5 py-3.5">
-          <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
           <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Delete Account</h1>
@@ -71,7 +71,7 @@ export default function DeleteAccountPage() {
         </div>
 
         {error && (
-          <div className="w-full px-4 py-3 rounded-xl bg-error-container border border-error/20">
+          <div role="alert" className="w-full px-4 py-3 rounded-xl bg-error-container border border-error/20">
             <p className="text-[13px] text-error text-center">{error}</p>
           </div>
         )}
@@ -80,7 +80,7 @@ export default function DeleteAccountPage() {
           <label className="text-[13px] font-semibold text-on-surface">
             Type <span className="font-black text-error tracking-wide">DELETE</span> to confirm
           </label>
-          <input
+          <input aria-label="Type DELETE to confirm"
             value={confirmText}
             onChange={e => setConfirmText(e.target.value)}
             placeholder="DELETE"

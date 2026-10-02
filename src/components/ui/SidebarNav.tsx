@@ -7,7 +7,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Compass, Home, MapPin, PlusSquare, Search, Trophy, User } from "lucide-react";
+import {
+  BadgeCheck, BarChart3, Bell, Compass, Home, LayoutDashboard, ListChecks, MapPin, PlusSquare, ReceiptText,
+  Search, Settings, Store, Trophy, User,
+} from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
 import { useUnreadCount } from "./AlertsContext";
@@ -30,15 +33,33 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/profile",        icon: User,       label: "Profile" },
 ];
 
+// Business dashboard navigation (shown on /business/*).
+const BUSINESS_NAV_ITEMS: NavItem[] = [
+  { href: "/business/dashboard",       icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/business/explore",         icon: Compass,         label: "Explore Quests" },
+  { href: "/business/quests/new",      icon: PlusSquare,      label: "Create Quest" },
+  { href: "/business/quests",          icon: ListChecks,      label: "My Quests" },
+  { href: "/business/analytics",       icon: BarChart3,       label: "Analytics" },
+  { href: "/business/verification",    icon: ReceiptText,     label: "Verify Customers" },
+  { href: "/business/verify-business", icon: BadgeCheck,      label: "Verify Business" },
+  { href: "/business/profile",         icon: Store,           label: "Business Profile" },
+  { href: "/alerts",                   icon: Bell,            label: "Notifications", showBadge: true },
+  { href: "/business/settings",        icon: Settings,        label: "Settings" },
+];
+
 export function SidebarNav() {
   const pathname = usePathname();
   const { unreadCount } = useUnreadCount();
+  const items = pathname.startsWith("/business") ? BUSINESS_NAV_ITEMS : NAV_ITEMS;
+  // Longest matching href wins, so /business/quests/new doesn't also light up "My Quests".
+  const activeHref = items
+    .filter(i => pathname === i.href || pathname.startsWith(`${i.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
   return (
     <nav className="flex-1 px-3 py-4 space-y-1" aria-label="Main navigation">
-      {NAV_ITEMS.map(({ href, icon: Icon, label, showBadge }) => {
-        const isActive =
-          pathname === href || pathname.startsWith(`${href}/`);
+      {items.map(({ href, icon: Icon, label, showBadge }) => {
+        const isActive = href === activeHref;
         const badgeCount = showBadge ? unreadCount : 0;
         return (
           <Link

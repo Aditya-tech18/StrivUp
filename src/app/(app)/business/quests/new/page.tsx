@@ -15,6 +15,12 @@ import {
   type QuestTask, type QuestReward, type ProofType, type RewardType,
 } from "@/lib/data/businessQuests";
 import { Input } from "@/components/ui";
+import {
+  PhysicalActivityConfigFields,
+  DEFAULT_PHYSICAL_CONFIG,
+  type PhysicalConfigDraft,
+} from "@/components/features/activity/PhysicalActivityConfigFields";
+import { upsertTaskActivityConfig } from "@/lib/data/activity";
 
 const TOTAL_STEPS = 6;
 const STEP_LABELS = ["Basic Info","Tasks","Rewards","Rules","Audience","Review"];
@@ -77,6 +83,10 @@ function CreateQuestContent() {
   const [tasks, setTasks] = useState<Partial<QuestTask>[]>([
     { title: "", description: "", proof_type: "photo", is_required: true, instructions: "", image_url: null, sort_order: 0 }
   ]);
+
+  // Physical config is keyed by task index, not task id: a task being drafted
+  // has no id until saveTasks runs. The two are married up there.
+  const [physicalConfigs, setPhysicalConfigs] = useState<Record<number, PhysicalConfigDraft>>({});
 
   // Step 3 — Rewards
   const [rewards, setRewards] = useState<Partial<QuestReward>[]>([]);
@@ -152,12 +162,31 @@ function CreateQuestContent() {
       for (let i = 0; i < tasks.length; i++) {
         const t = tasks[i];
         if (!t.title?.trim()) continue;
-        await upsertQuestTask(supabase, { ...t, quest_id: questId, sort_order: i } as Partial<QuestTask> & { quest_id: string });
+        const saved = await upsertQuestTask(supabase, { ...t, quest_id: questId, sort_order: i } as Partial<QuestTask> & { quest_id: string });
+
+        // A physical task is only meaningful with its target attached, so the
+        // config is written in the same pass as the task itself.
+        if (t.proof_type === "physical_activity" && saved?.id) {
+          const cfg = physicalConfigs[i] ?? DEFAULT_PHYSICAL_CONFIG;
+          const { error: cfgError } = await upsertTaskActivityConfig(supabase, {
+            task_id: saved.id,
+            quest_id: questId,
+            activity_type: cfg.activity_type,
+            target_value: cfg.target_value,
+            unit: cfg.unit,
+            tracking_mode: cfg.tracking_mode,
+            frequency: cfg.frequency,
+            specific_date: cfg.specific_date,
+            timezone: "Asia/Kolkata",
+            allow_manual_proof: cfg.allow_manual_proof,
+          });
+          if (cfgError) throw new Error(`Activity settings for "${t.title}": ${cfgError}`);
+        }
       }
       setStep(3);
     } catch(e) { setError(e instanceof Error ? e.message : "Failed to save tasks"); }
     finally { setSaving(false); }
-  }, [questId, tasks, supabase]);
+  }, [questId, tasks, physicalConfigs, supabase]);
 
   const saveRewards = useCallback(async () => {
     if (!questId) return;
@@ -392,6 +421,13 @@ function CreateQuestContent() {
             <textarea value={task.instructions ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, instructions: e.target.value } : t))}
               placeholder="Instructions for participants (optional)..." rows={2}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:bg-white resize-none" />
+
+            {task.proof_type === "physical_activity" && (
+              <PhysicalActivityConfigFields
+                value={physicalConfigs[i] ?? DEFAULT_PHYSICAL_CONFIG}
+                onChange={next => setPhysicalConfigs(prev => ({ ...prev, [i]: next }))}
+              />
+            )}
           </div>
         ))}
         <button type="button" onClick={() => setTasks(prev => [...prev, { title: "", description: "", proof_type: "photo", is_required: true, instructions: "", image_url: null, sort_order: prev.length }])}

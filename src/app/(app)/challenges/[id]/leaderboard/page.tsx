@@ -31,7 +31,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-surface">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
+      <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
         <div className="flex items-center gap-3 px-4 h-14 max-w-2xl mx-auto">
           <Link
             href={`/challenges/${id}`}

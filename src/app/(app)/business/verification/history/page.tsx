@@ -53,7 +53,7 @@ export default function VerificationHistoryPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
-        <Link href="/business/verification"><ArrowLeft size={22} className="text-gray-600" /></Link>
+        <Link aria-label="Back" href="/business/verification"><ArrowLeft size={22} className="text-gray-600" /></Link>
         <h1 className="text-[17px] font-black text-gray-900 flex-1">Verification History</h1>
       </div>
 
@@ -68,7 +68,7 @@ export default function VerificationHistoryPage() {
           ].map(s => (
             <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-3 flex flex-col items-center">
               <span className={`text-2xl font-black ${s.color}`}>{s.value}</span>
-              <span className="text-[10px] text-gray-400 font-medium mt-0.5">{s.label}</span>
+              <span className="text-[10px] text-gray-600 font-medium mt-0.5">{s.label}</span>
             </div>
           ))}
         </div>
@@ -104,8 +104,8 @@ export default function VerificationHistoryPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900">{pName}</p>
-                    <p className="text-xs text-gray-400 truncate">{challenge}</p>
-                    <p className="text-xs text-gray-400">{timeAgo(req.created_at)}</p>
+                    <p className="text-xs text-gray-600 truncate">{challenge}</p>
+                    <p className="text-xs text-gray-600">{timeAgo(req.created_at)}</p>
                   </div>
                   <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${sc.cls}`}>{sc.label}</span>
                 </div>

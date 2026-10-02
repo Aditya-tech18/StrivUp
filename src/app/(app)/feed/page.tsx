@@ -23,6 +23,8 @@ import { TodaysTasks } from "@/components/features/TodaysTasks";
 import { createClient } from "@/lib/supabase/server";
 import { getFeedPosts } from "@/lib/data/feed";
 import { getTodaysTasks, type TodayTask } from "@/lib/data/today";
+import { getCoinStateWithCheckin } from "@/lib/data/coins";
+import { CoinPill } from "@/components/features/CoinPill";
 
 /** "Thursday, 24 May" — matches the design's date eyebrow. */
 function todayLabel(): string {
@@ -109,7 +111,7 @@ export default async function FeedPage() {
 
   // proxy.ts guards this route, so `user` is present in practice; the fallback
   // keeps the page renderable rather than throwing if that ever changes.
-  const [today, posts] = await Promise.all([
+  const [today, posts, coins] = await Promise.all([
     user
       ? getTodaysTasks(supabase, user.id)
       : Promise.resolve({
@@ -122,6 +124,11 @@ export default async function FeedPage() {
           justCompleted: 0,
         }),
     getFeedPosts(supabase, { limit: 20 }),
+    // Claims the daily check-in as a side effect. Deduped on the IST calendar
+    // date in Postgres, so opening the feed twice earns one coin, not two.
+    user
+      ? getCoinStateWithCheckin(supabase, user.id)
+      : Promise.resolve({ balance: 0, earnedToday: 0 }),
   ]);
 
   // One card per challenge, not per task.
@@ -175,14 +182,18 @@ export default async function FeedPage() {
             </h2>
           </div>
 
-          {today.bestStreak > 0 ? (
-            <div className="flex shrink-0 items-center gap-space-xs rounded-full bg-surface-container-high px-space-md py-1.5 shadow-sm">
-              <Flame size={15} className="text-secondary" aria-hidden="true" />
-              <span className="text-label-md font-bold text-on-surface">
-                {today.bestStreak} {today.bestStreak === 1 ? "Day" : "Days"}
-              </span>
-            </div>
-          ) : null}
+          {/* Reward and consistency read in one glance. */}
+          <div className="flex shrink-0 items-center gap-space-xs">
+            {today.bestStreak > 0 ? (
+              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 shadow-sm">
+                <Flame size={15} className="text-secondary" aria-hidden="true" />
+                <span className="text-label-md font-bold text-on-surface">
+                  {today.bestStreak}
+                </span>
+              </div>
+            ) : null}
+            <CoinPill balance={coins.balance} earnedToday={coins.earnedToday} />
+          </div>
         </div>
 
         {/* ── Completion celebration ─────────────────────────────────────
@@ -278,9 +289,12 @@ export default async function FeedPage() {
                 This is where verified proof from everyone in your challenges shows up. Be
                 the first to put something here.
               </p>
+              {/* A quiet link, not a second dark slab — Today's Tasks above
+                  already owns the primary call to action on an empty home, and
+                  two identical buttons pointing at /explore read as a mistake. */}
               <Link
                 href="/explore"
-                className="mt-space-md inline-flex h-11 items-center justify-center rounded-lg bg-primary px-space-lg text-label-lg text-on-primary shadow-sm transition-transform active:scale-[0.99]"
+                className="mt-space-sm inline-block text-label-md font-semibold text-secondary hover:underline"
               >
                 Browse challenges
               </Link>

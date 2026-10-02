@@ -15,7 +15,7 @@ function StatBadge({ label, value }: { label: string; value: string | number }) 
   return (
     <div className="flex flex-col items-center">
       <span className="text-[18px] font-black text-gray-900">{value}</span>
-      <span className="text-[10px] text-gray-400 font-medium mt-0.5">{label}</span>
+      <span className="text-[10px] text-gray-600 font-medium mt-0.5">{label}</span>
     </div>
   );
 }
@@ -62,7 +62,7 @@ export default function BusinessProfilePage() {
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
         <h1 className="text-[17px] font-black text-gray-900 flex-1">Business Profile</h1>
         <button onClick={() => router.push("/business/settings")}
           className="flex items-center gap-1.5 h-9 px-4 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50">
@@ -88,7 +88,7 @@ export default function BusinessProfilePage() {
                   <ShieldCheck size={18} className="text-blue-600 shrink-0" />
                 )}
               </div>
-              {bp.business_username && <p className="text-sm text-gray-400">@{bp.business_username}</p>}
+              {bp.business_username && <p className="text-sm text-gray-600">@{bp.business_username}</p>}
               {bp.category && (
                 <span className="inline-block mt-1 text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full">
                   {bp.category}
@@ -156,7 +156,7 @@ export default function BusinessProfilePage() {
                     ? "Verification Rejected"
                     : "Verification Incomplete"}
                 </p>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-gray-600 mt-0.5">
                   {bp.verification_status === "submitted" || bp.verification_status === "under_review"
                     ? "Your business will be verified within 24–48 hours."
                     : bp.verification_status === "rejected"
@@ -190,7 +190,7 @@ export default function BusinessProfilePage() {
                 <span className="text-2xl">🏆</span>
               </div>
               <p className="text-sm font-semibold text-gray-700">No Quests yet</p>
-              <p className="text-xs text-gray-400 max-w-xs">Create your first Quest to start attracting participants.</p>
+              <p className="text-xs text-gray-600 max-w-xs">Create your first Quest to start attracting participants.</p>
               <button onClick={() => router.push("/business/quests/new")}
                 className="h-9 px-5 rounded-xl bg-blue-600 text-white text-sm font-bold">
                 Create Quest
@@ -209,9 +209,9 @@ export default function BusinessProfilePage() {
                   </div>
                   <div className="flex-1 min-w-0 py-0.5">
                     <p className="text-sm font-bold text-gray-900 line-clamp-1">{quest.title}</p>
-                    {quest.category && <p className="text-xs text-gray-400">{quest.category}</p>}
+                    {quest.category && <p className="text-xs text-gray-600">{quest.category}</p>}
                     <div className="flex items-center gap-3 mt-1">
-                      <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <div className="flex items-center gap-1 text-xs text-gray-600">
                         <Users size={11} />{quest.participant_count} participants
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
