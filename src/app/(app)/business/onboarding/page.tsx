@@ -32,7 +32,7 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
           </button>
         )}
         <div className="flex-1">
-          <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Step {step} of {TOTAL} · {LABELS[step-1]}</p>
+          <p className="text-[11px] text-gray-600 font-semibold uppercase tracking-wider">Step {step} of {TOTAL} · {LABELS[step-1]}</p>
           <h1 className="text-[20px] font-black text-gray-900 leading-tight">{title}</h1>
           {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
         </div>
@@ -129,7 +129,7 @@ export default function BusinessOnboardingPage() {
     <StepShell step={1} title="Tell us about your business" subtitle="Start with the basics — you can edit these anytime."
       onNext={() => { if (!businessName.trim()) { setError("Business name is required."); return; } save({ business_name: businessName.trim(), business_username: businessUsername.trim() || null, description: description.trim() || null }, 2); }}
       nextDisabled={!businessName.trim()} saving={saving}>
-      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-center mb-2">
           <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center">
@@ -140,10 +140,10 @@ export default function BusinessOnboardingPage() {
         <Input label="Business Handle" value={businessUsername} onChange={e => setBusinessUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g,""))} placeholder="@thebrewhouse" maxLength={30} hint="Optional · lowercase only" />
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-gray-700">Description</label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={300} rows={3}
+          <textarea aria-label="Description" value={description} onChange={e => setDescription(e.target.value)} maxLength={300} rows={3}
             placeholder="What does your business do? What makes it special?"
             className="w-full rounded-xl border border-gray-200 bg-white text-gray-900 text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-100 resize-none" />
-          <p className="text-xs text-gray-400 text-right">{description.length}/300</p>
+          <p className="text-xs text-gray-600 text-right">{description.length}/300</p>
         </div>
       </div>
     </StepShell>
@@ -154,7 +154,7 @@ export default function BusinessOnboardingPage() {
     <StepShell step={2} title="What type of business?" subtitle="Choose the category that best describes you."
       onBack={() => setStep(1)} onNext={() => { if (!category) { setError("Please select a category."); return; } save({ category }, 3); }}
       nextDisabled={!category} saving={saving}>
-      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
       <div className="grid grid-cols-2 gap-2">
         {BUSINESS_CATEGORIES.map(cat => (
           <button key={cat} type="button" onClick={() => setCategory(cat)}
@@ -172,7 +172,7 @@ export default function BusinessOnboardingPage() {
   if (step === 3) return (
     <StepShell step={3} title="Contact details" subtitle="How can customers reach you?"
       onBack={() => setStep(2)} onNext={() => save({ business_phone: businessPhone.trim()||null, business_email: businessEmail.trim()||null, website: website.trim()||null }, 4)} saving={saving}>
-      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
       <div className="flex flex-col gap-4">
         <Input label="Business Phone" type="tel" value={businessPhone} onChange={e => setBusinessPhone(e.target.value)} placeholder="+91 98765 43210" hint="Optional" leadingIcon={<Phone size={16} />} />
         <Input label="Business Email" type="email" value={businessEmail} onChange={e => setBusinessEmail(e.target.value)} placeholder="hello@yourbusiness.com" hint="Optional" />
@@ -206,7 +206,7 @@ export default function BusinessOnboardingPage() {
   if (step === 5) return (
     <StepShell step={5} title="Add your business logo" subtitle="A logo makes your profile stand out."
       onBack={() => setStep(4)} onNext={() => save({ logo_url: logoUrl }, 6)} nextLabel={logoUrl ? "Continue" : "Skip for now"} saving={saving}>
-      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
       <div className="flex flex-col items-center gap-6 py-4">
         <label className="relative cursor-pointer group">
           <div className="w-32 h-32 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 group-hover:border-blue-500 overflow-hidden flex items-center justify-center transition-colors">
@@ -216,7 +216,7 @@ export default function BusinessOnboardingPage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={logoUrl} alt="logo" className="w-full h-full object-cover" />
             ) : (
-              <div className="flex flex-col items-center gap-2 text-gray-400">
+              <div className="flex flex-col items-center gap-2 text-gray-600">
                 <Camera size={32} />
                 <span className="text-sm">Upload Logo</span>
               </div>
@@ -235,7 +235,7 @@ export default function BusinessOnboardingPage() {
             }} />
         </label>
         {logoUrl && <button type="button" onClick={() => setLogoUrl(null)} className="text-sm text-red-500">Remove logo</button>}
-        <p className="text-sm text-gray-400 text-center max-w-xs">Square image recommended, min 200×200px. JPG, PNG, or WebP.</p>
+        <p className="text-sm text-gray-600 text-center max-w-xs">Square image recommended, min 200×200px. JPG, PNG, or WebP.</p>
       </div>
     </StepShell>
   );
@@ -249,23 +249,23 @@ export default function BusinessOnboardingPage() {
           <div key={i} className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-gray-200">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-700 capitalize">{link.platform}</p>
-              <p className="text-xs text-gray-400 truncate">{link.url}</p>
+              <p className="text-xs text-gray-600 truncate">{link.url}</p>
             </div>
-            <button type="button" onClick={() => setSocialLinks(p => p.filter((_,j) => j !== i))} className="text-red-500 shrink-0">
+            <button aria-label="Remove link" type="button" onClick={() => setSocialLinks(p => p.filter((_,j) => j !== i))} className="text-red-500 shrink-0">
               <X size={16} />
             </button>
           </div>
         ))}
         {socialLinks.length < 4 && (
           <div className="flex flex-col gap-2 mt-1">
-            <select value={newPlatform} onChange={e => setNewPlatform(e.target.value)}
+            <select aria-label="Social platform" value={newPlatform} onChange={e => setNewPlatform(e.target.value)}
               className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700">
               {["instagram","linkedin","twitter","youtube","portfolio","other"].map(p => (
                 <option key={p} value={p}>{p.charAt(0).toUpperCase()+p.slice(1)}</option>
               ))}
             </select>
             <div className="flex gap-2">
-              <input value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="https://…"
+              <input aria-label="Link URL" value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="https://…"
                 className="flex-1 h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:border-blue-500" />
               <button type="button" onClick={() => { if (!newUrl.trim()) return; setSocialLinks(p => [...p, { platform: newPlatform, url: newUrl.trim() }]); setNewUrl(""); }}
                 className="h-10 px-4 rounded-xl bg-blue-600 text-white text-sm font-semibold">
@@ -274,7 +274,7 @@ export default function BusinessOnboardingPage() {
             </div>
           </div>
         )}
-        {socialLinks.length >= 4 && <p className="text-sm text-gray-400">Maximum 4 social links.</p>}
+        {socialLinks.length >= 4 && <p className="text-sm text-gray-600">Maximum 4 social links.</p>}
       </div>
     </StepShell>
   );
@@ -284,17 +284,17 @@ export default function BusinessOnboardingPage() {
     <div className="min-h-screen bg-[#F8F9FC] flex flex-col">
       <div className="h-1 bg-blue-600 w-full" />
       <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100">
-        <button onClick={() => setStep(6)} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
+        <button aria-label="Back" onClick={() => setStep(6)} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
           <ChevronLeft size={20} className="text-gray-600" />
         </button>
         <div>
-          <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Step 7 of 7 · Review</p>
+          <p className="text-[11px] text-gray-600 font-semibold uppercase tracking-wider">Step 7 of 7 · Review</p>
           <h1 className="text-[20px] font-black text-gray-900">Review & Submit</h1>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-6 pb-36 max-w-lg mx-auto w-full">
-        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+        {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
 
         {/* Profile preview */}
         <div className="flex flex-col items-center gap-3 mb-6">
@@ -325,7 +325,7 @@ export default function BusinessOnboardingPage() {
             { label: "Location", value: [address, city, stateName, pincode, country].filter(Boolean).join(", ") },
           ].filter(r => r.value).map(row => (
             <div key={row.label} className="flex gap-3 px-4 py-3">
-              <span className="text-sm text-gray-400 w-24 shrink-0">{row.label}</span>
+              <span className="text-sm text-gray-600 w-24 shrink-0">{row.label}</span>
               <span className="text-sm text-gray-800 flex-1 break-words">{row.value}</span>
             </div>
           ))}

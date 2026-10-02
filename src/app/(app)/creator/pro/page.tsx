@@ -39,7 +39,7 @@ export default function CreatorProPage() {
                 <Icon size={18} className="text-blue-600" aria-hidden="true" />
               </div>
               <p className="text-sm font-bold text-gray-900">{title}</p>
-              <p className="mt-0.5 text-xs leading-snug text-gray-500">{desc}</p>
+              <p className="mt-0.5 text-xs leading-snug text-gray-600">{desc}</p>
             </div>
           ))}
         </div>

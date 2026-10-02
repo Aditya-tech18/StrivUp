@@ -249,7 +249,7 @@ export default function AlertsPage() {
                       {notif.message}
                     </p>
                   )}
-                  <p className="type-body-md text-on-surface-variant/60 mt-1 text-xs">
+                  <p className="type-body-md text-on-surface-variant mt-1 text-xs">
                     {relativeTime(notif.created_at)}
                   </p>
                 </div>

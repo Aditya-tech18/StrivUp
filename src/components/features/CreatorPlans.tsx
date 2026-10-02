@@ -87,7 +87,7 @@ export function CreatorPlans({ showComparison = true }: { showComparison?: boole
               GROWTH
             </span>
             <p className="mt-2 text-3xl font-black text-white">
-              ₹299<span className="text-sm font-medium text-gray-400">/month</span>
+              ₹299<span className="text-sm font-medium text-gray-600">/month</span>
             </p>
           </div>
           <div className="mt-6 flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
@@ -105,7 +105,7 @@ export function CreatorPlans({ showComparison = true }: { showComparison?: boole
         <div className="mt-5"><ComingSoonButton dark /></div>
       </div>
 
-      <p className="px-1 text-center text-xs text-gray-400">
+      <p className="px-1 text-center text-xs text-gray-600">
         Paid plans are launching soon. Creating challenges stays free.
       </p>
 
@@ -115,7 +115,7 @@ export function CreatorPlans({ showComparison = true }: { showComparison?: boole
           <div className="overflow-x-auto no-scrollbar">
             <table className="mt-3 w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 text-left text-xs text-gray-500">
+                <tr className="bg-gray-50 text-left text-xs text-gray-600">
                   <th className="px-4 py-2.5 font-semibold">Feature</th>
                   <th className="px-4 py-2.5 font-semibold">Starter</th>
                   <th className="px-4 py-2.5 font-semibold text-blue-600">Growth</th>
