@@ -6,7 +6,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type QuestStatus = "draft"|"pending_review"|"published"|"active"|"paused"|"completed"|"expired"|"rejected"|"cancelled"|"archived";
-export type ProofType = "photo"|"video"|"screenshot"|"photo_text"|"qr"|"bill_document"|"location"|"manual"|"none"|"order_verification";
+export type ProofType = "photo"|"video"|"screenshot"|"photo_text"|"qr"|"bill_document"|"location"|"manual"|"none"|"order_verification"|"physical_activity";
 export type RewardType = "cash"|"coupon"|"gift_card"|"discount"|"product"|"subscription"|"voucher"|"certificate"|"internship"|"custom"|"other";
 
 export interface QuestTask {
@@ -104,6 +104,10 @@ export const PROOF_TYPES: { value: ProofType; label: string }[] = [
   // puts in their delivery-app order description, the business verifies it at
   // the counter, and the bill code it mints closes the task.
   { value: "order_verification", label: "🧾 Order Verification (STRIVUP OTP)" },
+  // Verified from the participant's step count, measured by the in-app
+  // pedometer. The only proof type that completes itself with no human in the
+  // loop — see docs/physical-activity.md.
+  { value: "physical_activity", label: "🏃 Physical Activity (steps)" },
 ];
 
 export const REWARD_TYPES: { value: RewardType; label: string }[] = [

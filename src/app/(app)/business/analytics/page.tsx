@@ -6,6 +6,9 @@ import { ArrowLeft, BarChart2, ChevronDown, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, getQuestAnalytics, type Quest } from "@/lib/data/businessQuests";
+import { getPhysicalQuestAnalytics } from "@/lib/data/activity";
+import { PhysicalQuestAnalytics } from "@/components/features/activity";
+import type { PhysicalQuestAnalyticsData } from "@/lib/activity/types";
 
 interface Analytics {
   views: number;
@@ -53,6 +56,7 @@ export default function AnalyticsPage() {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [physical, setPhysical] = useState<PhysicalQuestAnalyticsData | null>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
   useEffect(() => {
@@ -76,8 +80,14 @@ export default function AnalyticsPage() {
   const handleQuestChange = async (questId: string) => {
     setSelectedQuestId(questId);
     setLoadingAnalytics(true);
-    const a = await getQuestAnalytics(supabase, questId);
+    const [a, p] = await Promise.all([
+      getQuestAnalytics(supabase, questId),
+      // Returns null for a quest with no physical tasks, so the panel simply
+      // does not render for quests that never had one.
+      getPhysicalQuestAnalytics(supabase, questId),
+    ]);
     setAnalytics(a);
+    setPhysical(p);
     setLoadingAnalytics(false);
   };
 
@@ -123,6 +133,12 @@ export default function AnalyticsPage() {
                   <MetricCard label="Pending Proofs"     value={analytics.pendingProofs}                color="text-orange-500" />
                   <MetricCard label="Approval Rate"      value={`${analytics.approvalRate}%`}           color="text-teal-600" />
                 </div>
+
+                {/* Physical quest performance — only for quests that have a
+                    physical activity task (spec §53). */}
+                {physical && physical.participants > 0 && (
+                  <PhysicalQuestAnalytics data={physical} />
+                )}
 
                 {/* Funnel */}
                 <div className="bg-white rounded-2xl border border-gray-100 p-5">
