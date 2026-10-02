@@ -125,7 +125,10 @@ export async function getMyOrderRequests(
 export async function getQuestLeaderboard(
   supabase: SupabaseClient, questId: string, limit = 20
 ): Promise<LeaderboardRow[]> {
-  const { data, error } = await supabase.rpc("get_quest_leaderboard", { p_quest_id: questId, p_limit: limit });
+  // NOTE: the live function is quest_leaderboard. The canonical wrapper is
+  // getQuestLeaderboard in questOrderVerification.ts; this one is kept only so
+  // this module stays self contained after the branch merge.
+  const { data, error } = await supabase.rpc("quest_leaderboard", { p_quest_id: questId, p_limit: limit });
   if (error) return [];
   return (data ?? []) as LeaderboardRow[];
 }
