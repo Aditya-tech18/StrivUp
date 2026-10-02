@@ -33,6 +33,12 @@ import {
 import { Badge, Button, Card, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { CreatorPlans } from "@/components/features/CreatorPlans";
+import {
+  PhysicalActivityConfigFields,
+  DEFAULT_PHYSICAL_CONFIG,
+  type PhysicalConfigDraft,
+} from "@/components/features/activity/PhysicalActivityConfigFields";
+import { upsertChallengeTaskActivityConfig } from "@/lib/data/activity";
 
 /* ── Zod schema ─────────────────────────────────────────────────────────── */
 const schema = z.object({
@@ -53,7 +59,18 @@ interface TaskRow {
   isRequired: boolean;
 }
 
-const PROOF_TYPES = ["photo", "video", "text", "link", "none"] as const;
+// "physical_activity" is verified automatically from the in-app step counter —
+// see docs/physical-activity.md. Everything else needs a human to look at it.
+const PROOF_TYPES = ["photo", "video", "text", "link", "none", "physical_activity"] as const;
+
+const PROOF_TYPE_LABELS: Record<string, string> = {
+  photo: "photo",
+  video: "video",
+  text: "text",
+  link: "link",
+  none: "none",
+  physical_activity: "🏃 steps",
+};
 
 /* ── Config ────────────────────────────────────────────────────────────── */
 const CATEGORIES = ["Coding", "Fitness", "Writing", "Reading", "Business"] as const;
@@ -98,11 +115,13 @@ const selectCls = [
 ].join(" ");
 
 /* ── TaskRowEditor ───────────────────────────────────────────────────────── */
-function TaskRowEditor({ task, index, onChange, onRemove }: {
+function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhysicalConfigChange }: {
   task: TaskRow;
   index: number;
   onChange: (updated: TaskRow) => void;
   onRemove: () => void;
+  physicalConfig: PhysicalConfigDraft;
+  onPhysicalConfigChange: (next: PhysicalConfigDraft) => void;
 }) {
   return (
     <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
@@ -161,7 +180,7 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
             className="flex-1 h-8 px-2 rounded border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
           >
             {PROOF_TYPES.map((t) => (
-              <option key={t} value={t}>{t}</option>
+              <option key={t} value={t}>{PROOF_TYPE_LABELS[t] ?? t}</option>
             ))}
           </select>
         </div>
@@ -176,6 +195,13 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
           />
         </div>
       </div>
+
+      {task.proofType === "physical_activity" && (
+        <PhysicalActivityConfigFields
+          value={physicalConfig}
+          onChange={onPhysicalConfigChange}
+        />
+      )}
     </div>
   );
 }
@@ -311,6 +337,10 @@ export default function CreateChallengePage() {
   /* ── Task rows state ─────────────────────────────────────────────────── */
   const [tasks, setTasks] = useState<TaskRow[]>([]);
 
+  // Physical targets, keyed by the task's local React key — a drafted task has
+  // no database id until the insert below returns one.
+  const [physicalConfigs, setPhysicalConfigs] = useState<Record<string, PhysicalConfigDraft>>({});
+
   const addTask = () =>
     setTasks((prev) => [...prev, {
       key: crypto.randomUUID(),
@@ -445,9 +475,42 @@ export default function CreateChallengePage() {
         sort_order: idx,
       }));
 
-      const { error: tasksError } = await supabase
+      // select() so the physical targets can be attached to the new task ids
+      const { data: insertedTasks, error: tasksError } = await supabase
         .from("challenge_tasks")
-        .insert(taskRows);
+        .insert(taskRows)
+        .select("id, sort_order");
+
+      if (!tasksError && insertedTasks) {
+        const bySortOrder = new Map(
+          insertedTasks.map((r) => [r.sort_order as number, r.id as string])
+        );
+        for (let idx = 0; idx < tasks.length; idx++) {
+          const t = tasks[idx];
+          if (t.proofType !== "physical_activity") continue;
+          const taskId = bySortOrder.get(idx);
+          if (!taskId) continue;
+
+          const cfg = physicalConfigs[t.key] ?? DEFAULT_PHYSICAL_CONFIG;
+          const { error: cfgError } = await upsertChallengeTaskActivityConfig(supabase, {
+            challenge_task_id: taskId,
+            challenge_id: challengeId,
+            activity_type: cfg.activity_type,
+            target_value: cfg.target_value,
+            unit: cfg.unit,
+            tracking_mode: cfg.tracking_mode,
+            frequency: cfg.frequency,
+            specific_date: cfg.specific_date,
+            timezone: "Asia/Kolkata",
+            allow_manual_proof: cfg.allow_manual_proof,
+          });
+          // A task without its target would render a progress bar with no goal,
+          // so surface it rather than letting it fail silently.
+          if (cfgError) {
+            setSubmitError(`Activity settings for "${t.title}" could not be saved: ${cfgError}`);
+          }
+        }
+      }
 
       if (tasksError) {
         // Challenge exists but tasks failed — show a clear error with the challenge link
@@ -693,6 +756,10 @@ export default function CreateChallengePage() {
                   index={idx}
                   onChange={(updated) => updateTask(task.key, updated)}
                   onRemove={() => removeTask(task.key)}
+                  physicalConfig={physicalConfigs[task.key] ?? DEFAULT_PHYSICAL_CONFIG}
+                  onPhysicalConfigChange={(next) =>
+                    setPhysicalConfigs((prev) => ({ ...prev, [task.key]: next }))
+                  }
                 />
               ))}
             </div>
