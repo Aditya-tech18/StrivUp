@@ -102,7 +102,7 @@ function ConsistencyHeatmap({
           {monthLabels.map(ml => (
             <span
               key={ml.col}
-              className="absolute text-[9px] text-on-surface-variant"
+              className="absolute text-label-sm text-on-surface-variant"
               style={{ left: `${ml.col * 14}px` }}
             >
               {ml.label}
@@ -113,7 +113,7 @@ function ConsistencyHeatmap({
           {/* Day labels */}
           <div className="flex flex-col gap-[2px] mr-1">
             {["", "Mon", "", "Wed", "", "Fri", ""].map((l, i) => (
-              <div key={i} className="h-[12px] text-[9px] text-on-surface-variant flex items-center justify-end w-6 pr-1">
+              <div key={i} className="h-[12px] text-label-sm text-on-surface-variant flex items-center justify-end w-6 pr-1">
                 {l}
               </div>
             ))}
@@ -134,13 +134,13 @@ function ConsistencyHeatmap({
         {/* Legend + streak */}
         <div className="flex items-center justify-between mt-2.5">
           <div className="flex items-center gap-1.5">
-            <span className="text-[9px] text-on-surface-variant">Less</span>
+            <span className="text-label-sm text-on-surface-variant">Less</span>
             {[0, 1, 2, 3, 4].map(n => (
               <div key={n} className={`w-[10px] h-[10px] rounded-[2px] ${cellColor(n)}`} />
             ))}
-            <span className="text-[9px] text-on-surface-variant">More</span>
+            <span className="text-label-sm text-on-surface-variant">More</span>
           </div>
-          <span className="flex items-center gap-1 text-[11px] font-bold text-on-surface">
+          <span className="flex items-center gap-1 text-label-sm font-bold text-on-surface">
             <Flame size={12} className="text-warning" aria-hidden="true" />
             {currentStreak} day streak
           </span>
@@ -160,7 +160,7 @@ function ChallengeCard({ stats }: { stats: ChallengeStats }) {
           <img src={stats.thumbnail_url} alt={stats.title} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-secondary/10 to-secondary/5 flex items-center justify-center">
-            <span className="text-[28px] font-black text-secondary/30">
+            <span className="text-headline-lg font-black text-secondary/30">
               {stats.title.charAt(0)}
             </span>
           </div>
@@ -170,12 +170,12 @@ function ChallengeCard({ stats }: { stats: ChallengeStats }) {
         </div>
       </div>
       <div className="p-2 flex flex-col gap-0.5">
-        <p className="text-[11px] font-bold text-on-surface leading-tight line-clamp-2">{stats.title}</p>
-        <p className="text-[10px] text-on-surface-variant">
+        <p className="text-label-sm font-bold text-on-surface leading-tight line-clamp-2">{stats.title}</p>
+        <p className="text-label-sm text-on-surface-variant">
           Day {stats.current_day}{stats.duration_days ? `/${stats.duration_days}` : ""}
           {stats.consistency_pct >= 90 ? " · On fire" : ""}
         </p>
-        <p className="text-[10px] font-bold text-secondary">{stats.consistency_pct}% Consistency</p>
+        <p className="text-label-sm font-bold text-secondary">{stats.consistency_pct}% Consistency</p>
       </div>
     </div>
   );
@@ -226,7 +226,7 @@ function FollowModal({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm px-4">
       <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl flex flex-col max-h-[80vh] shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant shrink-0">
-          <h2 className="text-[17px] font-bold text-on-surface">{title}</h2>
+          <h2 className="text-body-lg font-bold text-on-surface">{title}</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
             <X size={18} className="text-on-surface-variant" />
           </button>
@@ -237,7 +237,7 @@ function FollowModal({
               <Loader2 size={22} className="animate-spin text-secondary" />
             </div>
           ) : users.length === 0 ? (
-            <p className="text-center py-12 text-[14px] text-on-surface-variant">No {title.toLowerCase()} yet.</p>
+            <p className="text-center py-12 text-body-md text-on-surface-variant">No {title.toLowerCase()} yet.</p>
           ) : (
             <>
               {users.map(u => (
@@ -247,14 +247,14 @@ function FollowModal({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-[15px] font-bold text-secondary">
+                      <span className="text-body-lg font-bold text-secondary">
                         {(u.full_name ?? u.username ?? "?").charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-[14px] font-semibold text-on-surface truncate">
+                      <p className="text-body-md font-semibold text-on-surface truncate">
                         {u.full_name ?? u.username ?? "Unknown"}
                       </p>
                       {u.verification_status === "approved" && (
@@ -262,7 +262,7 @@ function FollowModal({
                       )}
                     </div>
                     {u.username && (
-                      <p className="text-[12px] text-on-surface-variant">@{u.username}</p>
+                      <p className="text-body-sm text-on-surface-variant">@{u.username}</p>
                     )}
                   </div>
                 </div>
@@ -272,7 +272,7 @@ function FollowModal({
                   <button
                     onClick={() => { const next = page + 1; setPage(next); setBusy(true); load(next); }}
                     disabled={busy}
-                    className="text-[13px] text-secondary font-semibold disabled:opacity-40"
+                    className="text-body-md text-secondary font-semibold disabled:opacity-40"
                   >
                     {busy ? <Loader2 size={14} className="animate-spin inline" /> : "Load more"}
                   </button>
@@ -301,8 +301,8 @@ function ManageModal({
       <div className="w-full max-w-md bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl p-5 max-h-[80vh] overflow-y-auto shadow-2xl">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-[17px] font-bold text-on-surface">Manage Challenges</h2>
-            <p className="text-[12px] text-on-surface-variant mt-0.5">Pin up to 3 to display on your profile.</p>
+            <h2 className="text-body-lg font-bold text-on-surface">Manage Challenges</h2>
+            <p className="text-body-sm text-on-surface-variant mt-0.5">Pin up to 3 to display on your profile.</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
             <X size={18} className="text-on-surface-variant" />
@@ -330,13 +330,13 @@ function ManageModal({
                   {pinned && <Check size={11} className="text-white" strokeWidth={3} />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-semibold text-on-surface truncate">{s.title}</p>
-                  <p className="text-[11px] text-on-surface-variant">
+                  <p className="text-body-md font-semibold text-on-surface truncate">{s.title}</p>
+                  <p className="text-label-sm text-on-surface-variant">
                     Day {s.current_day}{s.duration_days ? `/${s.duration_days}` : ""} · {s.consistency_pct}% consistency
                   </p>
                 </div>
                 {pinned && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary shrink-0">
+                  <span className="text-label-sm font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary shrink-0">
                     Pinned
                   </span>
                 )}
@@ -346,7 +346,7 @@ function ManageModal({
         </div>
         <button
           onClick={onClose}
-          className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-[14px] shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+          className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-body-md shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
         >
           Done
         </button>
@@ -576,7 +576,7 @@ export default function ProfilePage() {
       {/* ── Sticky header ───────────────────────────────────────────────── */}
       <div className="sticky top-0 pt-safe z-30 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
-          <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">My Profile</h1>
+          <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">My Profile</h1>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setEditing(v => !v)}
@@ -600,7 +600,7 @@ export default function ProfilePage() {
       {error && (
         <div className="max-w-lg mx-auto px-4 mt-3">
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-error-container border border-error/20">
-            <p className="text-[13px] text-error flex-1">{error}</p>
+            <p className="text-body-md text-error flex-1">{error}</p>
             <button onClick={() => setError(null)}>
               <X size={14} className="text-error" />
             </button>
@@ -626,7 +626,7 @@ export default function ProfilePage() {
                     <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-[28px] font-black text-secondary">
+                      <span className="text-headline-lg font-black text-secondary">
                         {displayName.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -649,7 +649,7 @@ export default function ProfilePage() {
 
               <div className="flex-1 min-w-0 pt-1">
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-[17px] font-bold text-on-surface tracking-[-0.01em] truncate">
+                  <h2 className="text-body-lg font-bold text-on-surface tracking-[-0.01em] truncate">
                     {displayName}
                   </h2>
                   {isVerified && (
@@ -657,15 +657,15 @@ export default function ProfilePage() {
                   )}
                 </div>
                 {profile?.username && (
-                  <p className="text-[13px] text-on-surface-variant">@{profile.username}</p>
+                  <p className="text-body-md text-on-surface-variant">@{profile.username}</p>
                 )}
                 {!editing && profile?.bio && (
-                  <p className="text-[13px] text-on-surface mt-1.5 leading-snug">{profile.bio}</p>
+                  <p className="text-body-md text-on-surface mt-1.5 leading-snug">{profile.bio}</p>
                 )}
                 {!editing && !profile?.bio && (
                   <button
                     onClick={() => setEditing(true)}
-                    className="mt-1.5 text-[12px] text-secondary font-medium hover:underline"
+                    className="mt-1.5 text-body-sm text-secondary font-medium hover:underline"
                   >
                     + Add bio
                   </button>
@@ -673,7 +673,7 @@ export default function ProfilePage() {
                 {!editing && (
                   <button
                     onClick={() => router.push("/settings/edit-profile")}
-                    className="mt-2.5 px-3.5 py-1.5 rounded-lg border border-outline-variant text-[12px] font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
+                    className="mt-2.5 px-3.5 py-1.5 rounded-lg border border-outline-variant text-body-sm font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
                   >
                     Edit Profile
                   </button>
@@ -684,19 +684,19 @@ export default function ProfilePage() {
             {/* Followers / Following */}
             <div className="flex items-center gap-5 mt-4 pt-3.5 border-t border-outline-variant">
               <button onClick={() => setShowFoll(true)} className="flex flex-col items-center group">
-                <span className="text-[20px] font-bold text-on-surface tabular-nums tracking-tight">
+                <span className="text-headline-md font-bold text-on-surface tabular-nums tracking-tight">
                   {fmtN(fCount)}
                 </span>
-                <span className="text-[11px] text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
+                <span className="text-label-sm text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
                   Followers
                 </span>
               </button>
               <div className="w-px h-7 bg-outline-variant" />
               <button onClick={() => setShowFolg(true)} className="flex flex-col items-center group">
-                <span className="text-[20px] font-bold text-on-surface tabular-nums tracking-tight">
+                <span className="text-headline-md font-bold text-on-surface tabular-nums tracking-tight">
                   {fmtN(fgCount)}
                 </span>
-                <span className="text-[11px] text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
+                <span className="text-label-sm text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
                   Following
                 </span>
               </button>
@@ -714,9 +714,9 @@ export default function ProfilePage() {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container border border-outline-variant text-[11px] font-medium text-on-surface-variant hover:text-secondary hover:border-secondary transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container border border-outline-variant text-label-sm font-medium text-on-surface-variant hover:text-secondary hover:border-secondary transition-colors"
                     >
-                      <span className="font-semibold text-[10px] uppercase tracking-wide text-secondary/70">{label}</span>
+                      <span className="font-semibold text-label-sm uppercase tracking-wide text-secondary/70">{label}</span>
                       <span className="truncate max-w-[80px]">{display}</span>
                     </a>
                   );
@@ -726,7 +726,7 @@ export default function ProfilePage() {
             {links.length === 0 && !editing && (
               <button
                 onClick={() => setEditing(true)}
-                className="mt-3 flex items-center gap-1.5 text-[12px] text-on-surface-variant hover:text-secondary transition-colors"
+                className="mt-3 flex items-center gap-1.5 text-body-sm text-on-surface-variant hover:text-secondary transition-colors"
               >
                 <Plus size={13} /> Add social links
               </button>
@@ -736,56 +736,56 @@ export default function ProfilePage() {
           {/* Inline edit form */}
           {editing && (
             <div className="border-t border-outline-variant px-4 py-4 bg-[#FAFAFA] flex flex-col gap-3">
-              <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
+              <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
                 Editing Profile
               </p>
 
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-medium text-on-surface-variant">Full Name</label>
+                <label className="text-label-sm font-medium text-on-surface-variant">Full Name</label>
                 <input
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   maxLength={80}
-                  className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                  className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
                 />
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-medium text-on-surface-variant">Username</label>
+                <label className="text-label-sm font-medium text-on-surface-variant">Username</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[13px]">@</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-body-md">@</span>
                   <input
                     value={username}
                     onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))}
                     maxLength={30}
-                    className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest pl-7 pr-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                    className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest pl-7 pr-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between">
-                  <label className="text-[11px] font-medium text-on-surface-variant">Bio</label>
-                  <span className="text-[10px] text-on-surface-variant">{bio.length}/150</span>
+                  <label className="text-label-sm font-medium text-on-surface-variant">Bio</label>
+                  <span className="text-label-sm text-on-surface-variant">{bio.length}/150</span>
                 </div>
                 <textarea
                   value={bio}
                   onChange={e => setBio(e.target.value)}
                   maxLength={150}
                   rows={3}
-                  className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary resize-none"
+                  className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary resize-none"
                 />
               </div>
 
               {/* Social links in edit mode */}
               <div className="flex flex-col gap-2">
-                <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Social Links</p>
+                <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Social Links</p>
                 {links.map(link => {
                   const label = PLATFORM_LABEL[link.platform] ?? link.platform;
                   return (
                     <div key={link.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-surface-container-lowest">
-                      <span className="text-[10px] font-bold text-secondary/70 uppercase tracking-wide shrink-0 w-16 truncate">{label}</span>
-                      <span className="flex-1 text-[12px] text-on-surface truncate">{link.url}</span>
+                      <span className="text-label-sm font-bold text-secondary/70 uppercase tracking-wide shrink-0 w-16 truncate">{label}</span>
+                      <span className="flex-1 text-body-sm text-on-surface truncate">{link.url}</span>
                       <button onClick={() => handleDelLink(link.id)} className="text-on-surface-variant hover:text-error transition-colors shrink-0">
                         <Trash2 size={13} />
                       </button>
@@ -793,7 +793,7 @@ export default function ProfilePage() {
                   );
                 })}
                 {!addingLink && links.length < PROFILE_CONSTANTS.MAX_SOCIAL_LINKS && (
-                  <button onClick={() => setAddingLink(true)} className="flex items-center gap-1.5 text-[13px] text-secondary font-semibold">
+                  <button onClick={() => setAddingLink(true)} className="flex items-center gap-1.5 text-body-md text-secondary font-semibold">
                     <Plus size={14} /> Add Social Link
                   </button>
                 )}
@@ -802,7 +802,7 @@ export default function ProfilePage() {
                     <select
                       value={newPlat}
                       onChange={e => setNewPlat(e.target.value as SocialPlatform)}
-                      className="h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-[13px] text-on-surface focus:outline-none"
+                      className="h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none"
                     >
                       {PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                     </select>
@@ -811,10 +811,10 @@ export default function ProfilePage() {
                         value={newUrl}
                         onChange={e => setNewUrl(e.target.value)}
                         placeholder="https://…"
-                        className="flex-1 h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                        className="flex-1 h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
                       />
-                      <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-[13px] font-semibold disabled:opacity-40">Add</button>
-                      <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-[13px]">✕</button>
+                      <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-body-md font-semibold disabled:opacity-40">Add</button>
+                      <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-body-md">✕</button>
                     </div>
                   </div>
                 )}
@@ -824,11 +824,11 @@ export default function ProfilePage() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-[14px] flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+                  className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-body-md flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
                 >
                   {saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Save Changes"}
                 </button>
-                <button onClick={() => setEditing(false)} className="flex-1 h-10 rounded-xl border border-outline-variant text-on-surface font-semibold text-[14px]">
+                <button onClick={() => setEditing(false)} className="flex-1 h-10 rounded-xl border border-outline-variant text-on-surface font-semibold text-body-md">
                   Cancel
                 </button>
               </div>
@@ -839,14 +839,14 @@ export default function ProfilePage() {
         {/* ── My Active Challenges ─────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em]">
+            <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">
               My Active Challenges
               {activeStats.length > 0 && (
                 <span className="text-on-surface-variant font-normal ml-1">({activeStats.length})</span>
               )}
             </h3>
             {allStats.filter(s => s.status === "active").length > 0 && (
-              <button onClick={() => setManageOpen(true)} className="text-[13px] text-secondary font-bold hover:opacity-75 transition-opacity">
+              <button onClick={() => setManageOpen(true)} className="text-body-md text-secondary font-bold hover:opacity-75 transition-opacity">
                 Manage
               </button>
             )}
@@ -861,13 +861,13 @@ export default function ProfilePage() {
               <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
                 <Flame size={22} className="text-on-surface-variant" />
               </div>
-              <p className="text-[14px] font-semibold text-on-surface">No active challenges yet.</p>
-              <p className="text-[12px] text-on-surface-variant max-w-[200px]">
+              <p className="text-body-md font-semibold text-on-surface">No active challenges yet.</p>
+              <p className="text-body-sm text-on-surface-variant max-w-[200px]">
                 Join a challenge to start tracking your progress here.
               </p>
               <button
                 onClick={() => router.push("/explore")}
-                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-[13px] font-bold shadow-[0_2px_8px_rgba(29,78,216,0.2)]"
+                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-body-md font-bold shadow-[0_2px_8px_rgba(29,78,216,0.2)]"
               >
                 Explore Challenges
               </button>
@@ -879,11 +879,11 @@ export default function ProfilePage() {
         {allStats.filter(s => s.status === "active").length > 0 && (
           <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em]">Consistency Heatmap</h3>
+              <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Consistency Heatmap</h3>
               <select
                 value={heatId ?? ""}
                 onChange={e => switchHeatmap(e.target.value)}
-                className="text-[11px] font-medium text-on-surface bg-surface-container border border-outline-variant rounded-lg px-2 py-1.5 focus:outline-none max-w-[140px] truncate"
+                className="text-label-sm font-medium text-on-surface bg-surface-container border border-outline-variant rounded-lg px-2 py-1.5 focus:outline-none max-w-[140px] truncate"
               >
                 {allStats.filter(s => s.status === "active").map(s => (
                   <option key={s.challenge_id} value={s.challenge_id}>
@@ -898,7 +898,7 @@ export default function ProfilePage() {
 
         {/* ── Achievements ─────────────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
-          <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em] mb-3">Achievements</h3>
+          <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em] mb-3">Achievements</h3>
           {achievements.length > 0 ? (
             <div>
               {achievements.map((a, i) => {
@@ -908,18 +908,18 @@ export default function ProfilePage() {
                 return (
                   <div key={a.challenge_id} className="flex items-center gap-3 py-3 border-b border-outline-variant last:border-0">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${BG[idx]}`}>
-                      <span className={`text-[13px] font-black ${FG[idx]}`}>{a.title.charAt(0)}</span>
+                      <span className={`text-body-md font-black ${FG[idx]}`}>{a.title.charAt(0)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-semibold text-on-surface truncate">{a.title}</p>
-                      <p className="text-[11px] text-on-surface-variant">
+                      <p className="text-body-md font-semibold text-on-surface truncate">{a.title}</p>
+                      <p className="text-label-sm text-on-surface-variant">
                         Completed{a.completed_at
                           ? ` · ${new Date(a.completed_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
                           : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-success-container text-on-success-container border border-success-outline">
+                      <span className="text-label-sm font-bold px-2 py-0.5 rounded-full bg-success-container text-on-success-container border border-success-outline">
                         Completed
                       </span>
                       <ChevronRight size={14} className="text-outline" />
@@ -933,12 +933,12 @@ export default function ProfilePage() {
               <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
                 <ChevronRight size={20} className="text-on-surface-variant" />
               </div>
-              <p className="text-[13px] text-on-surface-variant max-w-[220px] leading-relaxed">
+              <p className="text-body-md text-on-surface-variant max-w-[220px] leading-relaxed">
                 Your achievements will appear here as you complete challenges and quests.
               </p>
               <button
                 onClick={() => router.push("/explore")}
-                className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-[13px] font-semibold hover:bg-surface-container transition-colors"
+                className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-body-md font-semibold hover:bg-surface-container transition-colors"
               >
                 Start a Challenge
               </button>

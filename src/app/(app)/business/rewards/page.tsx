@@ -104,7 +104,7 @@ export default function RewardsPage() {
     <div className="min-h-screen bg-surface pb-28">
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-[17px] font-black text-on-surface flex-1">Rewards</h1>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">Rewards</h1>
       </div>
 
       {/* Summary cards */}
@@ -161,7 +161,7 @@ export default function RewardsPage() {
                         </div>
                       )}
                     </div>
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${sc.cls}`}>{sc.label}</span>
+                    <span className={`text-label-sm font-bold px-2.5 py-1 rounded-full border shrink-0 ${sc.cls}`}>{sc.label}</span>
                   </div>
 
                   {reward && (

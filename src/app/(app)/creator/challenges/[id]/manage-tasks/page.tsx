@@ -216,7 +216,7 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
             <ArrowLeft size={20} aria-hidden="true" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="type-headline-sm text-on-surface font-semibold truncate">Manage Tasks</p>
+            <p className="text-headline-md text-on-surface font-semibold truncate">Manage Tasks</p>
             {challengeTitle && (
               <p className="text-xs text-on-surface-variant truncate">{challengeTitle}</p>
             )}

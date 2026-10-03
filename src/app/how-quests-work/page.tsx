@@ -70,7 +70,7 @@ const RULES = [
 function CodeChip({ label, value, tone }: { label: string; value: string; tone: "sv" | "bv" }) {
   return (
     <div className={`mt-3 rounded-xl border-2 border-dashed px-4 py-3 ${tone === "sv" ? "border-secondary-fixed-dim bg-secondary-fixed" : "border-success-outline bg-success-container"}`}>
-      <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">{label}</p>
+      <p className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">{label}</p>
       <p className="font-mono text-2xl font-black tracking-widest text-on-surface">{value}</p>
     </div>
   );
@@ -79,7 +79,7 @@ function CodeChip({ label, value, tone }: { label: string; value: string; tone: 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
-      <h2 id={id} className="text-[20px] font-black tracking-tight text-on-surface">{title}</h2>
+      <h2 id={id} className="text-headline-md font-black tracking-tight text-on-surface">{title}</h2>
       {children}
     </section>
   );
@@ -92,18 +92,18 @@ export default function HowQuestsWorkPage() {
         <Link href="/quests" aria-label="Back to Quests" className="flex h-11 w-11 items-center justify-center rounded-xl">
           <ArrowLeft size={20} className="text-on-surface-variant" />
         </Link>
-        <p className="flex-1 text-[15px] font-black text-on-surface">How Quests Work</p>
-        <span className="pr-2 text-[11px] font-black tracking-[0.2em] text-secondary">STRIVUP</span>
+        <p className="flex-1 text-body-lg font-black text-on-surface">How Quests Work</p>
+        <span className="pr-2 text-label-sm font-black tracking-[0.2em] text-secondary">STRIVUP</span>
       </header>
 
       <main className="mx-auto flex max-w-2xl flex-col gap-10 px-4 pb-16 pt-6">
         {/* Hero */}
         <div className="flex flex-col gap-3">
           <p className="text-xs font-bold uppercase tracking-wider text-secondary">STRIVUP Quests</p>
-          <h1 className="text-[30px] font-black leading-tight tracking-tight text-on-surface">
+          <h1 className="text-headline-lg font-black leading-tight tracking-tight text-on-surface">
             Business promotions, turned into verified real-world actions.
           </h1>
-          <p className="text-[15px] leading-relaxed text-on-surface-variant">
+          <p className="text-body-lg leading-relaxed text-on-surface-variant">
             Users join a Quest, place an eligible order, generate a unique STRIVUP code, link it to their order, get verified by
             the business, receive a second code on their bill, and complete the task to earn progress and rewards.
           </p>
@@ -122,13 +122,13 @@ export default function HowQuestsWorkPage() {
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
               <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Challenge</p>
-              <p className="mt-1 text-[17px] font-black text-on-surface">Personal growth</p>
+              <p className="mt-1 text-body-lg font-black text-on-surface">Personal growth</p>
               <p className="mt-1 text-sm text-on-surface-variant">100 Days of LeetCode, 30 Days Fitness, Daily Reading.</p>
               <p className="mt-3 text-xs font-semibold text-on-surface-variant">Join → Daily task → Upload proof → Streak → Community</p>
             </div>
             <div className="rounded-2xl border border-secondary-fixed-dim bg-surface-container-lowest p-4">
               <p className="text-xs font-bold uppercase tracking-wider text-secondary">Quest</p>
-              <p className="mt-1 text-[17px] font-black text-on-surface">Real-world business action</p>
+              <p className="mt-1 text-body-lg font-black text-on-surface">Real-world business action</p>
               <p className="mt-1 text-sm text-on-surface-variant">Order a featured dish, visit an outlet, try a product, attend an event.</p>
               <p className="mt-3 text-xs font-semibold text-on-surface-variant">Join → Business action → Verify → Progress → Reward</p>
             </div>
@@ -171,10 +171,10 @@ export default function HowQuestsWorkPage() {
                     {i < FLOW.length - 1 && <span className="w-0.5 flex-1 bg-surface-container-highest" aria-hidden="true" />}
                   </div>
                   <div className="flex-1 pb-5">
-                    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold ${a.cls}`}>
+                    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-label-sm font-bold ${a.cls}`}>
                       <a.icon size={11} aria-hidden="true" /> {a.label}
                     </span>
-                    <p className="mt-1 text-[15px] font-bold text-on-surface">{step.title}</p>
+                    <p className="mt-1 text-body-lg font-bold text-on-surface">{step.title}</p>
                     <p className="text-sm leading-relaxed text-on-surface-variant">{step.body}</p>
                     {step.code && <CodeChip {...step.code} />}
                   </div>

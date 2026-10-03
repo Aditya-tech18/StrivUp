@@ -106,17 +106,17 @@ function SubmissionRow({
         {/* Current status badge */}
         <div className="flex-shrink-0">
           {submission.status === "approved" && (
-            <span className="flex items-center gap-1 text-on-success-container bg-success-container text-[11px] font-semibold rounded-full px-2 py-0.5">
+            <span className="flex items-center gap-1 text-on-success-container bg-success-container text-label-sm font-semibold rounded-full px-2 py-0.5">
               <CheckCircle2 size={11} /> Approved
             </span>
           )}
           {submission.status === "pending" && (
-            <span className="flex items-center gap-1 text-on-warning-container bg-warning-container text-[11px] font-semibold rounded-full px-2 py-0.5">
+            <span className="flex items-center gap-1 text-on-warning-container bg-warning-container text-label-sm font-semibold rounded-full px-2 py-0.5">
               <Clock size={11} /> Pending
             </span>
           )}
           {submission.status === "rejected" && (
-            <span className="flex items-center gap-1 text-on-error-container bg-error-container text-[11px] font-semibold rounded-full px-2 py-0.5">
+            <span className="flex items-center gap-1 text-on-error-container bg-error-container text-label-sm font-semibold rounded-full px-2 py-0.5">
               <XCircle size={11} /> Rejected
             </span>
           )}
@@ -320,7 +320,7 @@ export function SubmissionsReviewClient({
             {tab.label}
             {counts[tab.value] > 0 && (
               <span className={[
-                "ml-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-bold w-4 h-4",
+                "ml-1.5 inline-flex items-center justify-center rounded-full text-label-sm font-bold w-4 h-4",
                 tab.value === "pending"
                   ? "bg-warning-container text-on-warning-container"
                   : tab.value === "rejected"

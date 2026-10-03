@@ -125,13 +125,13 @@ export function LoginForm() {
         <div className="w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center">
           <Flame size={28} className="text-on-primary" aria-hidden="true" />
         </div>
-        <p className="type-label-caps text-secondary tracking-widest">STRIVUP</p>
+        <p className="text-overline text-secondary tracking-widest">STRIVUP</p>
       </div>
 
       {/* ── Headline ─────────────────────────────────────────────────── */}
       <div className="text-center space-y-1">
-        <h1 className="type-headline-md text-on-surface">Welcome Back</h1>
-        <p className="type-body-md text-on-surface-variant">
+        <h1 className="text-headline-lg-mobile text-on-surface">Welcome Back</h1>
+        <p className="text-body-md text-on-surface-variant">
           Consistency starts with showing up.
         </p>
       </div>
@@ -140,7 +140,7 @@ export function LoginForm() {
       {authError && (
         <div
           role="alert"
-          className="rounded border border-error/30 bg-error-container px-4 py-3 type-body-md text-error"
+          className="rounded border border-error/30 bg-error-container px-4 py-3 text-body-md text-error"
         >
           {authError}
         </div>
@@ -178,7 +178,7 @@ export function LoginForm() {
       {/* ── OR divider ───────────────────────────────────────────────── */}
       <div className="flex items-center gap-3" aria-hidden="true">
         <hr className="flex-1 border-outline-variant" />
-        <span className="type-label-caps text-on-surface-variant">or</span>
+        <span className="text-overline text-on-surface-variant">or</span>
         <hr className="flex-1 border-outline-variant" />
       </div>
 
@@ -200,13 +200,13 @@ export function LoginForm() {
           <div className="flex items-center justify-between mb-0.5">
             <label
               htmlFor="login-password"
-              className="type-body-md font-medium text-on-surface"
+              className="text-body-md font-medium text-on-surface"
             >
               Password
             </label>
             <Link
               href="/forgot-password"
-              className="type-body-md text-secondary hover:underline transition-colors"
+              className="text-body-md text-secondary hover:underline transition-colors"
             >
               Forgot Password?
             </Link>
@@ -239,7 +239,7 @@ export function LoginForm() {
           {errors.password && (
             <p
               id="login-password-error"
-              className="type-body-md text-error"
+              className="text-body-md text-error"
               role="alert"
             >
               {errors.password.message}
@@ -266,7 +266,7 @@ export function LoginForm() {
       </form>
 
       {/* ── Footer ───────────────────────────────────────────────────── */}
-      <p className="text-center type-body-md text-on-surface-variant">
+      <p className="text-center text-body-md text-on-surface-variant">
         Don&apos;t have an account?{" "}
         <Link
           href="/signup"

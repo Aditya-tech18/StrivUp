@@ -147,7 +147,7 @@ export function LiveStepTracker({
         </span>
         {isRunning && (
           <span
-            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-label-sm font-medium ${
               status === "paused"
                 ? "bg-warning-container text-on-warning-container"
                 : "bg-success-container text-on-success-container"
@@ -172,7 +172,7 @@ export function LiveStepTracker({
       )}
 
       {isRunning && sessionSteps > 0 && (
-        <p className="mt-1.5 text-[11px] text-on-surface-variant">
+        <p className="mt-1.5 text-label-sm text-on-surface-variant">
           +{sessionSteps.toLocaleString("en-IN")} this session
           {saving && " · saving…"}
         </p>
@@ -191,21 +191,21 @@ export function LiveStepTracker({
       </div>
 
       {status === "paused" && (
-        <p className="mt-2 text-[11px] leading-relaxed text-on-warning-container">
+        <p className="mt-2 text-label-sm leading-relaxed text-on-warning-container">
           Counting pauses when you leave the app or the screen locks. Keep StrivUp open while
           you walk.
         </p>
       )}
 
       {status === "denied" && (
-        <p className="mt-2 text-[11px] leading-relaxed text-on-error-container">
+        <p className="mt-2 text-label-sm leading-relaxed text-on-error-container">
           Motion access was blocked. Allow it in your browser settings, and make sure you&apos;re
           on an https:// page.
         </p>
       )}
 
       {!isRunning && status !== "denied" && (
-        <p className="mt-2 text-[11px] leading-relaxed text-on-surface-variant">
+        <p className="mt-2 text-label-sm leading-relaxed text-on-surface-variant">
           Keep StrivUp open while you walk — a browser can only count steps on the screen
           you&apos;re looking at.
         </p>

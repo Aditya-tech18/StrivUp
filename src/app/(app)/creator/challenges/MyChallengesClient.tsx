@@ -43,17 +43,17 @@ function ChallengeCard({ c }: { c: CreatedChallenge }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-2">
-            <p className="line-clamp-2 flex-1 text-[15px] font-bold leading-snug text-on-surface">{c.title}</p>
+            <p className="line-clamp-2 flex-1 text-body-lg font-bold leading-snug text-on-surface">{c.title}</p>
             <div className="flex shrink-0 flex-col items-end gap-1">
-              <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wider ${c.visibility === "private" ? "bg-primary text-white" : "border border-outline-variant text-on-surface-variant"}`}>
+              <span className={`rounded px-1.5 py-0.5 text-label-sm font-bold tracking-wider ${c.visibility === "private" ? "bg-primary text-white" : "border border-outline-variant text-on-surface-variant"}`}>
                 {c.visibility === "private" ? "PRIVATE" : "PUBLIC"}
               </span>
               {c.featured && (
-                <span className="rounded bg-warning-container px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-on-warning-container">FEATURED</span>
+                <span className="rounded bg-warning-container px-1.5 py-0.5 text-label-sm font-bold tracking-wider text-on-warning-container">FEATURED</span>
               )}
             </div>
           </div>
-          <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">
+          <p className="mt-0.5 text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
             {[c.category, c.durationDays ? `${c.durationDays} days` : "Ongoing"].filter(Boolean).join(" · ")}
           </p>
           <p className="text-xs italic text-on-surface-variant">
@@ -65,15 +65,15 @@ function ChallengeCard({ c }: { c: CreatedChallenge }) {
       <div className="mt-3 grid grid-cols-3 gap-2 border-t border-outline-variant pt-3 text-center">
         <div>
           <p className="flex items-center justify-center gap-1 text-sm font-black text-on-surface"><Users size={13} className="text-on-surface-variant" />{compact(c.members)}</p>
-          <p className="text-[10px] text-on-surface-variant">Members</p>
+          <p className="text-label-sm text-on-surface-variant">Members</p>
         </div>
         <div>
           <p className="flex items-center justify-center gap-1 text-sm font-black text-secondary"><Zap size={13} />{activePct}%</p>
-          <p className="text-[10px] text-on-surface-variant">Active</p>
+          <p className="text-label-sm text-on-surface-variant">Active</p>
         </div>
         <div>
           <p className="flex items-center justify-center gap-1 text-sm font-black text-on-success-container"><CheckCircle2 size={13} />{pct(c.completed, c.members)}%</p>
-          <p className="text-[10px] text-on-surface-variant">Completed</p>
+          <p className="text-label-sm text-on-surface-variant">Completed</p>
         </div>
       </div>
 
@@ -86,7 +86,7 @@ function ChallengeCard({ c }: { c: CreatedChallenge }) {
           className="relative flex h-9 items-center justify-center gap-1.5 rounded-xl border border-outline-variant px-3 text-xs font-semibold text-on-surface-variant">
           <ClipboardList size={14} /> Proofs
           {c.pendingProofs > 0 && (
-            <span className="ml-0.5 min-w-[18px] rounded-full bg-warning px-1 text-[10px] font-bold leading-[18px] text-white">
+            <span className="ml-0.5 min-w-[18px] rounded-full bg-warning px-1 text-label-sm font-bold leading-[18px] text-white">
               {c.pendingProofs > 99 ? "99+" : c.pendingProofs}
             </span>
           )}
@@ -119,7 +119,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
     <div className="min-h-screen bg-surface">
       <header className="sticky top-0 pt-safe z-30 border-b border-outline-variant bg-surface-container-lowest px-4 pt-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-[18px] font-black text-on-surface">My Challenges</h1>
+          <h1 className="text-headline-md font-black text-on-surface">My Challenges</h1>
           <Link href="/creator/pro"
             className="flex h-8 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-white">
             <Crown size={13} className="text-amber-400" /> Creator Pro
@@ -144,7 +144,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary-fixed">
               <Trophy size={26} className="text-secondary" />
             </div>
-            <p className="text-[15px] font-bold text-on-surface">You haven&apos;t created a challenge yet</p>
+            <p className="text-body-lg font-bold text-on-surface">You haven&apos;t created a challenge yet</p>
             <p className="text-sm text-on-surface-variant">Turn a goal into a structured challenge and invite your community.</p>
             <Link href="/challenges/new"
               className="mt-1 flex h-11 items-center gap-2 rounded-xl bg-secondary px-5 text-sm font-bold text-white">
@@ -189,7 +189,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
             )}
 
             <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest">
-              <p className="px-4 pt-4 text-[15px] font-black text-on-surface">Performance by challenge</p>
+              <p className="px-4 pt-4 text-body-lg font-black text-on-surface">Performance by challenge</p>
               <div className="mt-2 divide-y divide-gray-50">
                 {[...challenges].sort((a, b) => b.members - a.members).map(c => (
                   <Link key={c.id} href={`/challenges/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low">
@@ -201,7 +201,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="text-sm font-black text-on-surface">{compact(c.members)}</p>
-                      <p className="text-[10px] text-on-surface-variant">{pct(c.active, c.members)}% active</p>
+                      <p className="text-label-sm text-on-surface-variant">{pct(c.active, c.members)}% active</p>
                     </div>
                     <ChevronRight size={16} className="shrink-0 text-on-surface-variant" />
                   </Link>

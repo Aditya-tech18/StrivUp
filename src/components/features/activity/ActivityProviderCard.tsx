@@ -60,7 +60,7 @@ export function ActivityProviderCard({
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-on-surface">{label}</h3>
             {connected && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-success-container px-2 py-0.5 text-[11px] font-medium text-on-success-container">
+              <span className="inline-flex items-center gap-1 rounded-full bg-success-container px-2 py-0.5 text-label-sm font-medium text-on-success-container">
                 <Check className="h-3 w-3" /> Connected
               </span>
             )}
@@ -68,7 +68,7 @@ export function ActivityProviderCard({
           <p className="mt-0.5 text-xs text-on-surface-variant">{description}</p>
 
           {connected && connection?.last_synced_at && (
-            <p className="mt-1 text-[11px] text-on-surface-variant">
+            <p className="mt-1 text-label-sm text-on-surface-variant">
               Last synced{" "}
               {new Date(connection.last_synced_at).toLocaleString("en-IN", {
                 day: "numeric",
@@ -79,17 +79,17 @@ export function ActivityProviderCard({
             </p>
           )}
           {connection?.status === "expired" && (
-            <p className="mt-1 text-[11px] text-on-warning-container">
+            <p className="mt-1 text-label-sm text-on-warning-container">
               Access expired — reconnect to resume tracking.
             </p>
           )}
           {connection?.last_sync_error && connected && (
-            <p className="mt-1 text-[11px] text-on-error-container">Last sync failed: {connection.last_sync_error}</p>
+            <p className="mt-1 text-label-sm text-on-error-container">Last sync failed: {connection.last_sync_error}</p>
           )}
         </div>
 
         {!configured ? (
-          <span className="shrink-0 rounded-full bg-surface-container px-2.5 py-1 text-[11px] text-on-surface-variant">
+          <span className="shrink-0 rounded-full bg-surface-container px-2.5 py-1 text-label-sm text-on-surface-variant">
             Not available
           </span>
         ) : connected ? (

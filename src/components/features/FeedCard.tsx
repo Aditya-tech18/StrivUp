@@ -90,7 +90,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="type-headline-sm text-on-surface font-semibold truncate">
+                <span className="text-headline-md text-on-surface font-semibold truncate">
                   {post.authorName}
                 </span>
                 {post.verified && (
@@ -101,7 +101,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
                   />
                 )}
               </div>
-              <p className="type-label-caps text-on-surface-variant text-[10px] leading-tight mt-0.5">
+              <p className="text-overline text-on-surface-variant text-label-sm leading-tight mt-0.5">
                 {post.category} &bull; {post.dayLabel}
               </p>
             </div>
@@ -110,7 +110,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 bg-primary-container rounded-full px-2.5 py-1 flex-shrink-0">
               <Flame size={12} className="text-secondary-fixed-dim" aria-hidden="true" />
-              <span className="type-label-caps text-on-primary text-[10px] font-semibold">
+              <span className="text-overline text-on-primary text-label-sm font-semibold">
                 DAY {post.streakDay}
               </span>
             </div>
@@ -122,8 +122,8 @@ export function FeedCard({ post }: { post: FeedPost }) {
           {post.adminRemoved ? (
             <div className="flex flex-col items-center gap-2 text-on-surface-variant p-4 text-center">
               <ShieldAlert size={32} />
-              <p className="type-body-md font-semibold text-on-surface">Content removed</p>
-              <p className="type-body-sm text-on-surface-variant">This content was removed by a moderator.</p>
+              <p className="text-body-md font-semibold text-on-surface">Content removed</p>
+              <p className="text-body-sm text-on-surface-variant">This content was removed by a moderator.</p>
             </div>
           ) : (
             <>
@@ -138,9 +138,9 @@ export function FeedCard({ post }: { post: FeedPost }) {
               {isReporting && (
                 <div className="absolute inset-0 z-10 bg-black/60 flex items-center justify-center p-4">
                   <div className="bg-surface p-4 rounded-xl shadow-lg w-full max-w-sm">
-                    <h3 className="type-headline-sm text-on-surface mb-2 font-semibold">Report Content</h3>
+                    <h3 className="text-headline-md text-on-surface mb-2 font-semibold">Report Content</h3>
                     <select aria-label="Report reason" 
-                      className="w-full p-2 mb-4 rounded-lg bg-surface-container border border-outline-variant text-on-surface type-body-md"
+                      className="w-full p-2 mb-4 rounded-lg bg-surface-container border border-outline-variant text-on-surface text-body-md"
                       value={reportReason}
                       onChange={(e) => setReportReason(e.target.value)}
                     >
@@ -154,13 +154,13 @@ export function FeedCard({ post }: { post: FeedPost }) {
                     </select>
                     <div className="flex justify-end gap-2">
                       <button 
-                        className="px-4 py-2 type-body-sm font-medium text-on-surface-variant"
+                        className="px-4 py-2 text-body-sm font-medium text-on-surface-variant"
                         onClick={() => setIsReporting(false)}
                       >
                         Cancel
                       </button>
                       <button 
-                        className="px-4 py-2 type-body-sm font-medium bg-error text-on-error rounded-lg"
+                        className="px-4 py-2 text-body-sm font-medium bg-error text-on-error rounded-lg"
                         onClick={handleReport}
                       >
                         Submit Report
@@ -175,7 +175,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
 
         {/* ── Caption ── */}
         <div className="px-4 pt-3 pb-2">
-          <p className="type-body-md text-on-surface leading-relaxed line-clamp-3">
+          <p className="text-body-md text-on-surface leading-relaxed line-clamp-3">
             {post.caption}
           </p>
         </div>
@@ -194,7 +194,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
                 className="group-hover:scale-110 transition-transform duration-150"
                 aria-hidden="true"
               />
-              <span className="type-body-md text-sm">{post.likeCount}</span>
+              <span className="text-body-md text-sm">{post.likeCount}</span>
             </button>
             <button
               type="button"
@@ -207,13 +207,13 @@ export function FeedCard({ post }: { post: FeedPost }) {
                 className="group-hover:scale-110 transition-transform duration-150"
                 aria-hidden="true"
               />
-              <span className="type-body-md text-sm">{post.commentCount}</span>
+              <span className="text-body-md text-sm">{post.commentCount}</span>
             </button>
           </div>
           
           <div className="flex items-center gap-2">
             {reportSubmitted && (
-              <span className="type-body-sm text-success text-xs">Reported</span>
+              <span className="text-body-sm text-success text-xs">Reported</span>
             )}
             <button
               type="button"

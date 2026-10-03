@@ -49,7 +49,7 @@ export default function HowItWorksPage() {
     <div className="min-h-screen bg-surface flex flex-col">
       <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
         <div className="flex-1">
-          <h1 className="text-[17px] font-black text-on-surface">How Order Verification Works</h1>
+          <h1 className="text-body-lg font-black text-on-surface">How Order Verification Works</h1>
         </div>
         <button aria-label="Close" onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center">
           <X size={18} className="text-on-surface-variant" />
@@ -66,7 +66,7 @@ export default function HowItWorksPage() {
               {i < STEPS.length-1 && <div className="w-0.5 flex-1 bg-surface-container-highest mt-2" />}
             </div>
             <div className="flex-1 pb-5">
-              <p className="text-[15px] font-bold text-on-surface mb-1">{step.title}</p>
+              <p className="text-body-lg font-bold text-on-surface mb-1">{step.title}</p>
               <p className="text-sm text-on-surface-variant mb-3 leading-relaxed">{step.body}</p>
               {step.visual}
             </div>
@@ -79,7 +79,7 @@ export default function HowItWorksPage() {
 
       <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-4">
         <button onClick={() => router.back()}
-          className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-[15px]">
+          className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-body-lg">
           Got it
         </button>
       </div>

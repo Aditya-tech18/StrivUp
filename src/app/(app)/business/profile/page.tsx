@@ -14,8 +14,8 @@ import { getBusinessQuests, type Quest } from "@/lib/data/businessQuests";
 function StatBadge({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex flex-col items-center">
-      <span className="text-[18px] font-black text-on-surface">{value}</span>
-      <span className="text-[10px] text-on-surface-variant font-medium mt-0.5">{label}</span>
+      <span className="text-headline-md font-black text-on-surface">{value}</span>
+      <span className="text-label-sm text-on-surface-variant font-medium mt-0.5">{label}</span>
     </div>
   );
 }
@@ -63,7 +63,7 @@ export default function BusinessProfilePage() {
       {/* Header */}
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-[17px] font-black text-on-surface flex-1">Business Profile</h1>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">Business Profile</h1>
         <button onClick={() => router.push("/business/settings")}
           className="flex items-center gap-1.5 h-9 px-4 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant bg-surface-container-lowest hover:bg-surface-container-low">
           <Edit2 size={14} /> Edit
@@ -83,7 +83,7 @@ export default function BusinessProfilePage() {
             </div>
             <div className="flex-1 min-w-0 pt-1">
               <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h1 className="text-[20px] font-black text-on-surface leading-tight">{name}</h1>
+                <h1 className="text-headline-md font-black text-on-surface leading-tight">{name}</h1>
                 {bp.verification_status === "verified" && (
                   <ShieldCheck size={18} className="text-secondary shrink-0" />
                 )}
@@ -177,7 +177,7 @@ export default function BusinessProfilePage() {
         {/* Active Quests */}
         <div className="px-5 py-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[17px] font-black text-on-surface">
+            <h2 className="text-body-lg font-black text-on-surface">
               {activeQuests.length > 0 ? "Active Quests" : "Your Quests"}
             </h2>
             <button onClick={() => router.push("/business/quests")}
@@ -214,7 +214,7 @@ export default function BusinessProfilePage() {
                       <div className="flex items-center gap-1 text-xs text-on-surface-variant">
                         <Users size={11} />{quest.participant_count} participants
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      <span className={`text-label-sm font-bold px-2 py-0.5 rounded-full ${
                         quest.quest_status === "active" ? "bg-success-container text-on-success-container"
                         : quest.quest_status === "completed" ? "bg-purple-50 text-purple-700"
                         : "bg-surface-container text-on-surface-variant"

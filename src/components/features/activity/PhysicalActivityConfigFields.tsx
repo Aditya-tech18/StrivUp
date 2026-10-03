@@ -160,11 +160,11 @@ export function PhysicalActivityConfigFields({
         </div>
       </div>
 
-      <p className="mt-2 text-[11px] text-on-surface-variant">
+      <p className="mt-2 text-label-sm text-on-surface-variant">
         {ACTIVITY_FREQUENCIES.find((f) => f.value === value.frequency)?.hint}
       </p>
 
-      <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-surface-container-lowest/70 p-2 text-[11px] leading-relaxed text-on-surface-variant">
+      <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-surface-container-lowest/70 p-2 text-label-sm leading-relaxed text-on-surface-variant">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-secondary" />
         <span>
           Participants tap start in the StrivUp app and walk — their phone&apos;s motion sensor

@@ -27,7 +27,7 @@ export function PhysicalQuestBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full bg-warning-container px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-on-warning-container ${className}`}
+      className={`inline-flex items-center gap-1 rounded-full bg-warning-container px-2 py-0.5 text-label-sm font-semibold uppercase tracking-wide text-on-warning-container ${className}`}
     >
       <span aria-hidden>{activityIcon(activityType)}</span>
       {label}

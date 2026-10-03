@@ -126,16 +126,16 @@ export function BusinessLoginForm() {
           <Building2 size={28} className="text-secondary" />
         </div>
         <div>
-          <p className="text-[11px] font-black tracking-[0.2em] text-secondary uppercase mb-1">STRIVUP BUSINESS</p>
-          <h1 className="type-headline-md text-on-surface font-black">Welcome Back</h1>
-          <p className="type-body-md text-on-surface-variant mt-1">
+          <p className="text-label-sm font-black tracking-[0.2em] text-secondary uppercase mb-1">STRIVUP BUSINESS</p>
+          <h1 className="text-headline-lg-mobile text-on-surface font-black">Welcome Back</h1>
+          <p className="text-body-md text-on-surface-variant mt-1">
             Sign in to manage your campaigns and verifications.
           </p>
         </div>
       </div>
 
       {authError && (
-        <div role="alert" className="rounded-xl border border-error/30 bg-error-container px-4 py-3 type-body-md text-error">
+        <div role="alert" className="rounded-xl border border-error/30 bg-error-container px-4 py-3 text-body-md text-error">
           {authError}
         </div>
       )}
@@ -148,7 +148,7 @@ export function BusinessLoginForm() {
 
       <div className="flex items-center gap-3">
         <hr className="flex-1 border-outline-variant" />
-        <span className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest">or</span>
+        <span className="text-label-sm font-medium text-on-surface-variant uppercase tracking-widest">or</span>
         <hr className="flex-1 border-outline-variant" />
       </div>
 
@@ -167,8 +167,8 @@ export function BusinessLoginForm() {
 
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between">
-            <label htmlFor="biz-login-pwd" className="type-body-md font-medium text-on-surface">Password</label>
-            <Link href="/forgot-password" className="type-body-md text-secondary hover:underline">Forgot?</Link>
+            <label htmlFor="biz-login-pwd" className="text-body-md font-medium text-on-surface">Password</label>
+            <Link href="/forgot-password" className="text-body-md text-secondary hover:underline">Forgot?</Link>
           </div>
           <div className="relative">
             <input
@@ -188,7 +188,7 @@ export function BusinessLoginForm() {
               {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-          {errors.password && <p id="password-error" role="alert" className="type-body-md text-error">{errors.password.message}</p>}
+          {errors.password && <p id="password-error" role="alert" className="text-body-md text-error">{errors.password.message}</p>}
         </div>
 
         <Button type="submit" variant="primary" fullWidth disabled={busy} size="lg">
@@ -197,11 +197,11 @@ export function BusinessLoginForm() {
       </form>
 
       <div className="space-y-2 text-center">
-        <p className="type-body-md text-on-surface-variant">
+        <p className="text-body-md text-on-surface-variant">
           New business?{" "}
           <Link href="/business-signup" className="text-secondary font-semibold hover:underline">Create account</Link>
         </p>
-        <p className="type-body-md text-on-surface-variant">
+        <p className="text-body-md text-on-surface-variant">
           Not a business?{" "}
           <Link href="/login" className="text-secondary font-semibold hover:underline">User login</Link>
         </p>

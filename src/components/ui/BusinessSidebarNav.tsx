@@ -125,7 +125,7 @@ export function BusinessSidebarNav() {
 
   const section = (title: string, items: NavItem[]) => (
     <div className="pt-3">
-      <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">
+      <p className="px-3 pb-1 text-label-sm font-bold uppercase tracking-wider text-on-surface-variant/60">
         {title}
       </p>
       {items.map(renderItem)}
@@ -138,7 +138,7 @@ export function BusinessSidebarNav() {
       <div className="mx-1 mb-2 flex items-center gap-2 rounded-lg bg-surface-container px-3 py-2">
         <Target size={15} className="text-secondary shrink-0" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+          <p className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant/70">
             Business mode
           </p>
           <p className="text-xs font-semibold text-on-surface truncate">
@@ -158,7 +158,7 @@ export function BusinessSidebarNav() {
           className="mt-4 mx-1 block rounded-xl border border-secondary/30 bg-secondary/5 px-3 py-3 hover:bg-secondary/10 transition-colors"
         >
           <p className="text-xs font-bold text-secondary">Verification required</p>
-          <p className="text-[11px] text-on-surface-variant leading-relaxed mt-0.5">
+          <p className="text-label-sm text-on-surface-variant leading-relaxed mt-0.5">
             Verify your business to create and publish Quests.
           </p>
         </Link>

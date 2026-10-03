@@ -50,7 +50,7 @@ export function ModeSwitcher() {
 
   return (
     <div className="px-3 pb-4 mt-auto space-y-1.5">
-      <p className="px-3 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60">
+      <p className="px-3 pb-0.5 text-label-sm font-bold uppercase tracking-wider text-on-surface-variant/60">
         Account
       </p>
 
@@ -73,7 +73,7 @@ export function ModeSwitcher() {
           <div className="min-w-0 flex-1">
             <p className="truncate">Business Mode</p>
             {ctx.business_name && (
-              <p className="text-[11px] font-medium text-on-surface-variant truncate">
+              <p className="text-label-sm font-medium text-on-surface-variant truncate">
                 {ctx.business_name}
               </p>
             )}
@@ -89,7 +89,7 @@ export function ModeSwitcher() {
           <Lock size={18} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="truncate">Business Mode</p>
-            <p className="text-[11px] text-on-surface-variant/70 truncate">
+            <p className="text-label-sm text-on-surface-variant/70 truncate">
               Verification required
             </p>
           </div>

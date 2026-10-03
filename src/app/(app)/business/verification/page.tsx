@@ -164,7 +164,7 @@ function VerifyContent() {
     <div className="min-h-screen bg-surface pb-28">
       <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-[17px] font-black text-on-surface flex-1">Verify Participant</h1>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">Verify Participant</h1>
         <Link aria-label="How verification works" href="/business/verification/how-it-works"><HelpCircle size={22} className="text-on-surface-variant" /></Link>
       </div>
 
@@ -233,7 +233,7 @@ function VerifyContent() {
             ].map(t => (
               <div key={t.label} className="rounded-xl bg-surface-container-low/50 border border-outline-variant py-3 flex flex-col items-center">
                 <span className={`text-lg font-black ${t.cls}`}>{t.value}</span>
-                <span className="text-[10px] text-on-surface-variant font-medium mt-0.5">{t.label}</span>
+                <span className="text-label-sm text-on-surface-variant font-medium mt-0.5">{t.label}</span>
               </div>
             ))}
           </div>
@@ -285,7 +285,7 @@ function VerifyContent() {
                       <p className="text-sm font-mono font-semibold text-on-surface">{s.code}</p>
                       <p className="text-xs text-on-surface-variant">Today, {s.time}</p>
                     </div>
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${c.cls}`}>{c.label}</span>
+                    <span className={`text-label-sm font-bold px-2.5 py-1 rounded-full ${c.cls}`}>{c.label}</span>
                   </div>
                 );
               })}
@@ -319,7 +319,7 @@ function VerifyContent() {
                       <p className="text-xs text-on-surface-variant truncate">{challenge}</p>
                       <p className="text-xs text-on-surface-variant">{timeAgo(req.created_at)}</p>
                     </div>
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${sc.cls} shrink-0`}>{sc.label}</span>
+                    <span className={`text-label-sm font-bold px-2.5 py-1 rounded-full border ${sc.cls} shrink-0`}>{sc.label}</span>
                     <ChevronRight size={14} className="text-on-surface-variant shrink-0" />
                   </div>
                 );
@@ -341,13 +341,13 @@ function VerifyContent() {
       <div className="min-h-screen bg-surface pb-40">
         <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
           <button aria-label="Back" onClick={reset} className="w-11 h-11 -ml-2 flex items-center justify-center"><ArrowLeft size={22} className="text-on-surface-variant" /></button>
-          <h1 className="text-[17px] font-black text-on-surface flex-1">Verify Quest Order</h1>
+          <h1 className="text-body-lg font-black text-on-surface flex-1">Verify Quest Order</h1>
         </div>
 
         <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-4">
           <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 text-center">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Order code</p>
-            <p className="mt-1 font-mono text-[32px] font-black tracking-widest text-on-surface">{foundReq.sv_code}</p>
+            <p className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">Order code</p>
+            <p className="mt-1 font-mono text-display-mobile font-black tracking-widest text-on-surface">{foundReq.sv_code}</p>
             <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-warning-container px-3 py-1 text-xs font-bold text-on-warning-container">
               <Clock size={13} /> Awaiting verification
             </span>
@@ -418,7 +418,7 @@ function VerifyContent() {
   if (screen === "approved" && billCode) return (
     <div className="min-h-screen bg-surface flex flex-col">
       <div className="flex items-center justify-center px-5 py-4 bg-surface-container-lowest border-b border-outline-variant">
-        <h1 className="text-[17px] font-black text-on-surface">Order Verified</h1>
+        <h1 className="text-body-lg font-black text-on-surface">Order Verified</h1>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-8 gap-6 max-w-sm mx-auto w-full">
@@ -428,7 +428,7 @@ function VerifyContent() {
         </div>
 
         <div className="text-center">
-          <h2 className="text-[22px] font-black text-on-surface">Verification Successful</h2>
+          <h2 className="text-headline-md font-black text-on-surface">Verification Successful</h2>
           <p className="text-sm text-on-surface-variant mt-1">Now write the bill code below on the customer&apos;s bill.</p>
         </div>
 
@@ -437,7 +437,7 @@ function VerifyContent() {
           <p className="text-sm font-bold text-on-surface mb-1">Bill Verification Code</p>
           <p className="text-xs text-on-surface-variant mb-4">Write or print this clearly on the customer&apos;s bill. They enter it in STRIVUP to complete their task.</p>
           <div className="flex items-center justify-between bg-surface-container-low rounded-xl px-5 py-4 border border-outline-variant">
-            <span className="font-mono font-black text-[28px] text-on-surface tracking-widest">{billCode}</span>
+            <span className="font-mono font-black text-headline-lg text-on-surface tracking-widest">{billCode}</span>
             <button type="button" onClick={() => navigator.clipboard.writeText(billCode).catch(()=>{})}
               className="w-11 h-11 -mr-2 flex items-center justify-center text-on-surface-variant hover:text-on-surface ml-3" aria-label="Copy bill code">
               <Copy size={20} />
@@ -483,7 +483,7 @@ function VerifyContent() {
         <XCircle size={40} className="text-error" />
       </div>
       <div className="text-center">
-        <h2 className="text-[22px] font-black text-on-surface">Order Rejected</h2>
+        <h2 className="text-headline-md font-black text-on-surface">Order Rejected</h2>
         <p className="text-sm text-on-surface-variant mt-1">The customer has been notified{rejectReason.trim() ? " with your reason" : ""}.</p>
       </div>
       <button onClick={reset} className="w-full h-12 rounded-xl bg-secondary text-white font-bold">Verify Another Order</button>

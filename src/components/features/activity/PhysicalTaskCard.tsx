@@ -57,7 +57,7 @@ export function PhysicalTaskCard({
           {taskDescription && (
             <p className="mt-0.5 line-clamp-2 text-xs text-on-surface-variant">{taskDescription}</p>
           )}
-          <p className="mt-1 text-[11px] uppercase tracking-wide text-on-surface-variant">
+          <p className="mt-1 text-label-sm uppercase tracking-wide text-on-surface-variant">
             {config.frequency === "daily"
               ? "Resets daily"
               : config.frequency === "total"

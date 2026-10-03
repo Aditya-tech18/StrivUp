@@ -272,7 +272,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
         <Link href={`/quests/${questId}`}><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
         <div className="flex-1 min-w-0">
           <p className="text-xs text-on-surface-variant font-medium">{quest.business_name ?? "Quest"}</p>
-          <h1 className="text-[15px] font-black text-on-surface truncate">{quest.title}</h1>
+          <h1 className="text-body-lg font-black text-on-surface truncate">{quest.title}</h1>
         </div>
         <div className="text-right shrink-0">
           <p className="text-xs text-on-surface-variant">Progress</p>
@@ -349,11 +349,11 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-bold text-on-surface">{task.title}</p>
-                    {task.is_required && <span className="text-[10px] text-error font-semibold">Required</span>}
+                    {task.is_required && <span className="text-label-sm text-error font-semibold">Required</span>}
                   </div>
                   {task.description && <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">{task.description}</p>}
                   {task.instructions && <p className="text-xs text-secondary mt-1 italic">{task.instructions}</p>}
-                  <p className="text-[11px] text-on-surface-variant mt-1">{PROOF_LABEL[task.proof_type] ?? task.proof_type}</p>
+                  <p className="text-label-sm text-on-surface-variant mt-1">{PROOF_LABEL[task.proof_type] ?? task.proof_type}</p>
                 </div>
               </div>
 
@@ -446,7 +446,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
             <div className="w-14 h-14 rounded-full bg-success flex items-center justify-center">
               <CheckCircle2 size={28} className="text-white" />
             </div>
-            <h3 className="text-[17px] font-black text-on-success-container">Quest Completed! 🎉</h3>
+            <h3 className="text-body-lg font-black text-on-success-container">Quest Completed! 🎉</h3>
             <p className="text-sm text-on-success-container">All tasks approved. Rewards will be announced by the business.</p>
           </div>
         )}

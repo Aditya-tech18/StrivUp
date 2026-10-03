@@ -156,7 +156,7 @@ export default function OrderVerificationModal({
             </button>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-bold text-on-surface truncate">{title}</p>
+            <p className="text-body-lg font-bold text-on-surface truncate">{title}</p>
             <p className="text-xs text-on-surface-variant truncate">{taskTitle}</p>
           </div>
           <button
@@ -173,7 +173,7 @@ export default function OrderVerificationModal({
           {/* ── Step: ask ─────────────────────────────────────────────── */}
           {step === "ask" && (
             <>
-              <p className="text-[19px] font-bold text-on-surface leading-snug">
+              <p className="text-headline-md font-bold text-on-surface leading-snug">
                 Hey {userName} <span aria-hidden="true">👋</span>
               </p>
               <p className="text-sm text-on-surface-variant leading-relaxed mt-2">
@@ -218,7 +218,7 @@ export default function OrderVerificationModal({
               <ol className="mt-4 flex flex-col gap-2.5">
                 {ORDER_STEPS.map((text, i) => (
                   <li key={text} className="flex gap-3 items-start">
-                    <span className="w-5 h-5 rounded-full bg-surface-container text-on-surface-variant text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="w-5 h-5 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-bold flex items-center justify-center shrink-0 mt-0.5">
                       {i + 1}
                     </span>
                     <span className="text-sm text-on-surface-variant leading-relaxed">{text}</span>
@@ -248,19 +248,19 @@ export default function OrderVerificationModal({
                     {/* ── Section 1: the code STRIVUP generated ─────────── */}
                     <section aria-labelledby="otp-1-heading">
                       <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-secondary text-white text-[11px] font-bold flex items-center justify-center shrink-0">
+                        <span className="w-5 h-5 rounded-full bg-secondary text-white text-label-sm font-bold flex items-center justify-center shrink-0">
                           1
                         </span>
                         <h3 id="otp-1-heading" className="text-sm font-bold text-on-surface">
                           Your STRIVUP order code
                         </h3>
-                        <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-outline bg-success-container text-on-success-container">
+                        <span className="ml-auto text-label-sm font-bold px-2 py-0.5 rounded-full border border-success-outline bg-success-container text-on-success-container">
                           Generated
                         </span>
                       </div>
 
                       <div className="mt-2.5 rounded-2xl border border-secondary-fixed-dim bg-secondary-fixed/60 px-5 py-5 text-center">
-                        <p className="text-[34px] leading-none font-bold tracking-[0.18em] text-secondary select-all">
+                        <p className="text-display-mobile leading-none font-bold tracking-[0.18em] text-secondary select-all">
                           {row.order_code}
                         </p>
                         <button
@@ -283,7 +283,7 @@ export default function OrderVerificationModal({
                     {/* ── Section 2: the code the business writes on the bill ─ */}
                     <section aria-labelledby="otp-2-heading" className="mt-6 pt-5 border-t border-outline-variant">
                       <div className="flex items-center gap-2">
-                        <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
+                        <span className={`w-5 h-5 rounded-full text-label-sm font-bold flex items-center justify-center shrink-0 ${
                           verified ? "bg-secondary text-white" : "bg-surface-container-highest text-on-surface-variant"}`}>
                           2
                         </span>
@@ -291,7 +291,7 @@ export default function OrderVerificationModal({
                           verified ? "text-on-surface" : "text-on-surface-variant"}`}>
                           Bill verification code
                         </h3>
-                        <span className={`ml-auto inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        <span className={`ml-auto inline-flex items-center gap-1 text-label-sm font-bold px-2 py-0.5 rounded-full border ${
                           verified
                             ? "border-success-outline bg-success-container text-on-success-container"
                             : "border-warning-outline bg-warning-container text-on-warning-container"}`}>
@@ -370,7 +370,7 @@ export default function OrderVerificationModal({
               <div className="w-14 h-14 rounded-full bg-success-container border border-success-outline flex items-center justify-center mx-auto">
                 <ClipboardCheck size={26} className="text-on-success-container" />
               </div>
-              <p className="text-[19px] font-bold text-on-surface mt-4">
+              <p className="text-headline-md font-bold text-on-surface mt-4">
                 Task Completed <span aria-hidden="true">✓</span>
               </p>
               <p className="text-sm text-on-surface-variant mt-1.5">

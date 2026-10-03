@@ -69,7 +69,7 @@ export function AdminSidebarNav() {
       <div className="mx-1 mb-3 flex items-center gap-2 rounded-lg bg-warning/10 border border-warning/25 px-3 py-2">
         <ShieldCheck size={15} className="text-amber-400 shrink-0" aria-hidden="true" />
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400/80">
+          <p className="text-label-sm font-bold uppercase tracking-wider text-amber-400/80">
             Admin mode
           </p>
           <p className="text-xs font-semibold text-white/90 truncate">STRIVUP Platform</p>
@@ -78,7 +78,7 @@ export function AdminSidebarNav() {
 
       {MAIN.map(item)}
 
-      <p className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/30">
+      <p className="px-3 pt-4 pb-1 text-label-sm font-bold uppercase tracking-wider text-white/30">
         Manage
       </p>
       {MANAGE.map(item)}

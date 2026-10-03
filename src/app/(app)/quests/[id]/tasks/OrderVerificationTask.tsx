@@ -157,8 +157,8 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
       {state === "waiting" && request && (
         <>
           <div className="rounded-2xl border-2 border-dashed border-secondary-fixed-dim bg-secondary-fixed px-4 py-4 text-center">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-on-secondary-fixed">Your verification code</p>
-            <p className="mt-1 font-mono text-[32px] font-black tracking-widest text-on-surface">{request.sv_code}</p>
+            <p className="text-label-sm font-bold uppercase tracking-wider text-on-secondary-fixed">Your verification code</p>
+            <p className="mt-1 font-mono text-display-mobile font-black tracking-widest text-on-surface">{request.sv_code}</p>
             <button type="button" onClick={() => copy(request.sv_code)}
               className="mt-2 inline-flex h-10 items-center gap-1.5 rounded-xl bg-surface-container-lowest px-4 text-sm font-bold text-secondary border border-secondary-fixed-dim">
               <Copy size={14} /> {copied ? "Copied" : "Copy Code"}

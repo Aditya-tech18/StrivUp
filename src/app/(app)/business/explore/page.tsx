@@ -61,7 +61,7 @@ export default async function BusinessExplorePage({ searchParams }: { searchPara
           <ArrowLeft size={20} className="text-on-surface-variant" />
         </Link>
         <div>
-          <h1 className="text-[17px] font-black text-on-surface">Explore Quests</h1>
+          <h1 className="text-body-lg font-black text-on-surface">Explore Quests</h1>
           <p className="text-xs text-on-surface-variant">See how other businesses design Quests, then build your own.</p>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default async function BusinessExplorePage({ searchParams }: { searchPara
         {rows.length === 0 ? (
           <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-12 text-center">
             <Store size={28} className="text-on-surface-variant" aria-hidden="true" />
-            <p className="text-[15px] font-bold text-on-surface">No Quests from other businesses yet</p>
+            <p className="text-body-lg font-bold text-on-surface">No Quests from other businesses yet</p>
             <p className="max-w-sm text-sm text-on-surface-variant">{q || category ? "Try a different search or category." : "Be the first in your area — create a Quest and it will show up here for others."}</p>
             <Link href="/business/quests/new" className="mt-1 h-11 rounded-xl bg-secondary px-5 text-sm font-bold leading-[44px] text-white">Create a Quest</Link>
           </div>
@@ -112,10 +112,10 @@ export default async function BusinessExplorePage({ searchParams }: { searchPara
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={img} alt="" className="absolute inset-0 h-full w-full object-cover" />
                       : <span className="absolute inset-0 flex items-center justify-center"><ListChecks size={28} className="text-on-surface-variant" aria-hidden="true" /></span>}
-                    {r.category && <span className="absolute left-2 top-2 rounded-full bg-surface-container-lowest/95 px-2.5 py-1 text-[11px] font-bold text-on-surface">{r.category}</span>}
+                    {r.category && <span className="absolute left-2 top-2 rounded-full bg-surface-container-lowest/95 px-2.5 py-1 text-label-sm font-bold text-on-surface">{r.category}</span>}
                   </Link>
                   <div className="flex flex-1 flex-col gap-2 p-4">
-                    <Link href={`/quests/${r.id}`} className="line-clamp-2 text-[15px] font-black leading-snug text-on-surface hover:underline">{r.title}</Link>
+                    <Link href={`/quests/${r.id}`} className="line-clamp-2 text-body-lg font-black leading-snug text-on-surface hover:underline">{r.title}</Link>
                     <p className="flex items-center gap-1 text-sm text-on-surface">
                       <span className="truncate">{name}</span>
                       {verified && <BadgeCheck size={15} className="shrink-0 text-secondary" aria-label="Verified business" />}

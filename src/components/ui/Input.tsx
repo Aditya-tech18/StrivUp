@@ -26,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="type-body-md font-medium text-on-surface"
+            className="text-body-md font-medium text-on-surface"
           >
             {label}
           </label>
@@ -66,12 +66,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         </div>
 
         {error && (
-          <p id={`${inputId}-error`} className="type-body-md text-error" role="alert">
+          <p id={`${inputId}-error`} className="text-body-md text-error" role="alert">
             {error}
           </p>
         )}
         {hint && !error && (
-          <p id={`${inputId}-hint`} className="type-body-md text-on-surface-variant">
+          <p id={`${inputId}-hint`} className="text-body-md text-on-surface-variant">
             {hint}
           </p>
         )}

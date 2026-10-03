@@ -200,7 +200,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="type-body-md text-on-surface-variant">Loading…</p>
+        <p className="text-body-md text-on-surface-variant">Loading…</p>
       </div>
     );
   }
@@ -209,7 +209,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-surface px-5 py-8 pb-24">
       <div className="mx-auto max-w-md flex flex-col gap-6">
         {error && (
-          <p className="type-body-md text-error text-center" role="alert">
+          <p className="text-body-md text-error text-center" role="alert">
             {error}
           </p>
         )}
@@ -235,7 +235,7 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={handleRemoveAvatar}
-              className="type-body-md text-error"
+              className="text-body-md text-error"
             >
               Remove photo
             </button>
@@ -243,17 +243,17 @@ export default function ProfilePage() {
 
           <div>
             <div className="flex items-center justify-center gap-1.5">
-              <h1 className="type-title-lg text-on-surface">{profile?.full_name || "Unnamed"}</h1>
+              <h1 className="text-headline-md text-on-surface">{profile?.full_name || "Unnamed"}</h1>
               {profile?.verification_status === "verified" && (
                 <Badge variant="secondary">Verified</Badge>
               )}
             </div>
             {profile?.username && (
-              <p className="type-body-md text-on-surface-variant">@{profile.username}</p>
+              <p className="text-body-md text-on-surface-variant">@{profile.username}</p>
             )}
           </div>
 
-          {profile?.bio && <p className="type-body-lg text-on-surface">{profile.bio}</p>}
+          {profile?.bio && <p className="text-body-lg text-on-surface">{profile.bio}</p>}
 
           <Button type="button" variant="outline" size="sm" onClick={() => setEditing((v) => !v)}>
             {editing ? "Cancel" : "Edit Profile"}
@@ -262,7 +262,7 @@ export default function ProfilePage() {
 
         {editing && (
           <Card bordered padding="lg" className="flex flex-col gap-4">
-            <p className="type-label-caps text-on-surface-variant">Personal Information</p>
+            <p className="text-overline text-on-surface-variant">Personal Information</p>
             <Input label="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={80} />
             <Input label="Username" value={username} onChange={(e) => setUsername(e.target.value)} maxLength={30} />
             <Input label="Age" type="number" value={age} onChange={(e) => setAge(e.target.value)} min={13} max={120} />
@@ -274,9 +274,9 @@ export default function ProfilePage() {
         )}
 
         <Card bordered padding="lg" className="flex flex-col gap-2">
-          <p className="type-label-caps text-on-surface-variant">Interests</p>
+          <p className="text-overline text-on-surface-variant">Interests</p>
           <div className="flex items-center justify-between">
-            <p className="type-body-lg text-on-surface">{myInterestIds.length} selected</p>
+            <p className="text-body-lg text-on-surface">{myInterestIds.length} selected</p>
             <Button type="button" variant="outline" size="sm" onClick={openInterestsModal}>
               Edit Interests
             </Button>
@@ -294,15 +294,15 @@ export default function ProfilePage() {
 
         <Card bordered padding="lg" className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <p className="type-label-caps text-on-surface-variant">Social Links</p>
-            <span className="type-body-md text-on-surface-variant">Optional</span>
+            <p className="text-overline text-on-surface-variant">Social Links</p>
+            <span className="text-body-md text-on-surface-variant">Optional</span>
           </div>
 
           {links.map((link) => (
             <div key={link.id} className="flex items-center justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="type-body-md font-medium text-on-surface capitalize">{link.platform}</p>
-                <p className="type-body-md text-on-surface-variant truncate">{link.url}</p>
+                <p className="text-body-md font-medium text-on-surface capitalize">{link.platform}</p>
+                <p className="text-body-md text-on-surface-variant truncate">{link.url}</p>
               </div>
               <button
                 type="button"
@@ -320,7 +320,7 @@ export default function ProfilePage() {
               <select aria-label="Social platform"
                 value={newPlatform}
                 onChange={(e) => setNewPlatform(e.target.value as SocialPlatform)}
-                className="h-10 rounded border border-outline-variant bg-surface-container-lowest px-3 type-body-lg text-on-surface"
+                className="h-10 rounded border border-outline-variant bg-surface-container-lowest px-3 text-body-lg text-on-surface"
               >
                 {PLATFORMS.map((p) => (
                   <option key={p.value} value={p.value}>
@@ -347,7 +347,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setAddingLink(true)}
-                className="flex items-center gap-1.5 type-body-md text-secondary font-medium"
+                className="flex items-center gap-1.5 text-body-md text-secondary font-medium"
               >
                 <Plus size={16} /> Add Social Link
               </button>
@@ -356,7 +356,7 @@ export default function ProfilePage() {
         </Card>
 
         <Card bordered padding="lg" className="flex flex-col gap-3 border-error/40">
-          <p className="type-label-caps text-error">Danger Zone</p>
+          <p className="text-overline text-error">Danger Zone</p>
           <Button type="button" variant="outline" className="border-error text-error" onClick={() => setDeleteModalOpen(true)}>
             Delete Account
           </Button>
@@ -367,12 +367,12 @@ export default function ProfilePage() {
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md bg-surface-container-lowest rounded-t-xl sm:rounded-xl p-5 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-1">
-              <h2 className="type-headline-sm text-on-surface">Choose your interests</h2>
+              <h2 className="text-headline-md text-on-surface">Choose your interests</h2>
               <button type="button" onClick={() => setInterestsModalOpen(false)} aria-label="Close" className="text-on-surface-variant">
                 <X size={20} />
               </button>
             </div>
-            <p className="type-body-md text-on-surface-variant mb-4">
+            <p className="text-body-md text-on-surface-variant mb-4">
               Select at least {PROFILE_CONSTANTS.MIN_INTERESTS} interests — {draftInterestIds.length} / {allInterests.length} selected
             </p>
             <div className="flex flex-wrap gap-2 mb-6">
@@ -384,7 +384,7 @@ export default function ProfilePage() {
                     type="button"
                     onClick={() => toggleDraftInterest(interest.id)}
                     className={[
-                      "px-4 py-2 rounded-full type-body-md border transition-colors duration-150",
+                      "px-4 py-2 rounded-full text-body-md border transition-colors duration-150",
                       selected
                         ? "bg-secondary text-on-secondary border-secondary"
                         : "bg-surface-container text-on-surface-variant border-outline-variant hover:border-outline",
@@ -411,11 +411,11 @@ export default function ProfilePage() {
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-sm bg-surface-container-lowest rounded-xl p-5">
-            <h2 className="type-headline-sm text-on-surface mb-2">Delete your StrivUp account?</h2>
-            <p className="type-body-md text-on-surface-variant mb-4">
+            <h2 className="text-headline-md text-on-surface mb-2">Delete your StrivUp account?</h2>
+            <p className="text-body-md text-on-surface-variant mb-4">
               This permanently removes your profile and account data. This action cannot be undone.
             </p>
-            <p className="type-body-md text-on-surface mb-1">
+            <p className="text-body-md text-on-surface mb-1">
               Type <span className="font-semibold">DELETE</span> to confirm
             </p>
             <Input

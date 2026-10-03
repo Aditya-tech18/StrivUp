@@ -46,7 +46,7 @@ export function DailyStepsCard({ data }: { data: ActivityDashboard }) {
                 style={{ height: `${heightPct}%` }}
                 title={`${d.steps.toLocaleString("en-IN")} steps`}
               />
-              <span className="text-[10px] text-on-surface-variant">
+              <span className="text-label-sm text-on-surface-variant">
                 {new Date(`${d.date}T00:00:00`).toLocaleDateString("en-IN", { weekday: "narrow" })}
               </span>
             </div>
@@ -56,13 +56,13 @@ export function DailyStepsCard({ data }: { data: ActivityDashboard }) {
 
       <div className="grid grid-cols-2 gap-3 border-t border-outline-variant pt-3">
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-on-surface-variant">This week</p>
+          <p className="text-label-sm uppercase tracking-wide text-on-surface-variant">This week</p>
           <p className="text-sm font-semibold tabular-nums text-on-surface">
             {data.week_steps.toLocaleString("en-IN")} steps
           </p>
         </div>
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-on-surface-variant">Active days</p>
+          <p className="text-label-sm uppercase tracking-wide text-on-surface-variant">Active days</p>
           <p className="text-sm font-semibold tabular-nums text-on-surface">
             {data.active_days} / {data.days.length}
           </p>

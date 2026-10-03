@@ -40,13 +40,13 @@ export function GatewayScreen() {
                 <path d="M24 36V18M24 18L17 25M24 18L31 25" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                 <circle cx="24" cy="13" r="3" fill="#3B82F6"/>
               </svg>
-              <span className="text-[11px] font-black tracking-[0.2em] text-secondary uppercase">STRIVUP</span>
+              <span className="text-label-sm font-black tracking-[0.2em] text-secondary uppercase">STRIVUP</span>
             </div>
 
-            <h1 className="type-display-lg text-on-surface leading-tight font-black">
+            <h1 className="text-display-mobile text-on-surface leading-tight font-black">
               India&apos;s Platform<br/>for Growth
             </h1>
-            <p className="type-body-md text-on-surface-variant max-w-[260px]">
+            <p className="text-body-md text-on-surface-variant max-w-[260px]">
               Build discipline, join challenges, and grow with a community that holds you accountable.
             </p>
           </header>
@@ -63,8 +63,8 @@ export function GatewayScreen() {
                 <User size={22} className="text-secondary" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="type-headline-sm text-on-surface font-bold">Continue as User</p>
-                <p className="type-body-md text-on-surface-variant mt-0.5">
+                <p className="text-headline-md text-on-surface font-bold">Continue as User</p>
+                <p className="text-body-md text-on-surface-variant mt-0.5">
                   Join challenges, build streaks, grow with community.
                 </p>
               </div>
@@ -80,8 +80,8 @@ export function GatewayScreen() {
                 <Store size={22} className="text-secondary" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="type-headline-sm text-on-surface font-bold">Continue as Business</p>
-                <p className="type-body-md text-on-surface-variant mt-0.5">
+                <p className="text-headline-md text-on-surface font-bold">Continue as Business</p>
+                <p className="text-body-md text-on-surface-variant mt-0.5">
                   Create campaigns, verify participants and attract customers.
                 </p>
               </div>
@@ -91,7 +91,7 @@ export function GatewayScreen() {
 
           {/* Footer */}
           <footer className="text-center" style={fadeUpStyle("160ms")}>
-            <p className="type-body-md text-on-surface-variant">
+            <p className="text-body-md text-on-surface-variant">
               Already have an account?{" "}
               <Link href="/login" className="text-secondary font-semibold hover:underline">
                 Login

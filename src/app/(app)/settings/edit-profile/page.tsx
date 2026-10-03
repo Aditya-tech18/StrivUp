@@ -45,17 +45,17 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[12px] font-semibold text-on-surface-variant uppercase tracking-[0.05em]">
+      <label className="text-body-sm font-semibold text-on-surface-variant uppercase tracking-[0.05em]">
         {label}{required && <span className="text-error ml-0.5">*</span>}
       </label>
       {children}
-      {hint && <p className="text-[11px] text-on-surface-variant">{hint}</p>}
+      {hint && <p className="text-label-sm text-on-surface-variant">{hint}</p>}
     </div>
   );
 }
 
 const inputCls =
-  "w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 text-[14px] " +
+  "w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 text-body-md " +
   "text-on-surface placeholder:text-on-surface-variant focus:outline-none " +
   "focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors";
 
@@ -187,12 +187,12 @@ export default function EditProfilePage() {
             >
               <ArrowLeft size={19} className="text-on-surface" />
             </button>
-            <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Edit Profile</h1>
+            <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Edit Profile</h1>
           </div>
           <button
             onClick={handleSave}
             disabled={saving || !fullName.trim()}
-            className="flex items-center gap-1.5 text-[14px] font-bold text-secondary disabled:opacity-40 transition-opacity"
+            className="flex items-center gap-1.5 text-body-md font-bold text-secondary disabled:opacity-40 transition-opacity"
           >
             {saving ? (
               <Loader2 size={15} className="animate-spin" />
@@ -208,7 +208,7 @@ export default function EditProfilePage() {
       {error && (
         <div role="alert" className="max-w-lg mx-auto px-5 mt-4">
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-error-container border border-error/20">
-            <p className="text-[13px] text-error flex-1">{error}</p>
+            <p className="text-body-md text-error flex-1">{error}</p>
             <button aria-label="Dismiss error" onClick={() => setError(null)}>
               <X size={14} className="text-error" />
             </button>
@@ -230,7 +230,7 @@ export default function EditProfilePage() {
                 <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-secondary/8">
-                  <span className="text-[32px] font-black text-secondary">
+                  <span className="text-display-mobile font-black text-secondary">
                     {displayName.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -251,7 +251,7 @@ export default function EditProfilePage() {
             </label>
           </div>
           <div className="flex gap-2">
-            <label className="px-4 py-1.5 rounded-lg bg-secondary text-white text-[13px] font-semibold cursor-pointer hover:opacity-90 transition-opacity">
+            <label className="px-4 py-1.5 rounded-lg bg-secondary text-white text-body-md font-semibold cursor-pointer hover:opacity-90 transition-opacity">
               Change Photo
               <input
                 type="file"
@@ -264,18 +264,18 @@ export default function EditProfilePage() {
             {profile?.avatar_url && (
               <button
                 onClick={handleRemoveAvatar}
-                className="px-4 py-1.5 rounded-lg border border-outline-variant text-[13px] font-semibold text-error hover:bg-error-container/50 transition-colors"
+                className="px-4 py-1.5 rounded-lg border border-outline-variant text-body-md font-semibold text-error hover:bg-error-container/50 transition-colors"
               >
                 Remove
               </button>
             )}
           </div>
-          <p className="text-[11px] text-on-surface-variant">JPEG, PNG or WebP · Max 5 MB</p>
+          <p className="text-label-sm text-on-surface-variant">JPEG, PNG or WebP · Max 5 MB</p>
         </div>
 
         {/* ── Personal information ─────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-4">
-          <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
+          <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
             Personal Information
           </p>
           <Field label="Full Name" required>
@@ -289,7 +289,7 @@ export default function EditProfilePage() {
           </Field>
           <Field label="Username" hint="Lowercase letters, numbers, . and _ only">
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[14px] select-none">@</span>
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-body-md select-none">@</span>
               <input aria-label="Username"
                 value={username}
                 onChange={e =>
@@ -309,9 +309,9 @@ export default function EditProfilePage() {
                 maxLength={150}
                 rows={3}
                 placeholder="Tell people a bit about yourself"
-                className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 py-2.5 text-[14px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors resize-none"
+                className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 py-2.5 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors resize-none"
               />
-              <span className="absolute bottom-2 right-3 text-[11px] text-on-surface-variant">
+              <span className="absolute bottom-2 right-3 text-label-sm text-on-surface-variant">
                 {bio.length}/150
               </span>
             </div>
@@ -321,10 +321,10 @@ export default function EditProfilePage() {
         {/* ── Social links ─────────────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
+            <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
               Social Links
             </p>
-            <p className="text-[11px] text-on-surface-variant">
+            <p className="text-label-sm text-on-surface-variant">
               {links.length} / {PROFILE_CONSTANTS.MAX_SOCIAL_LINKS}
             </p>
           </div>
@@ -344,13 +344,13 @@ export default function EditProfilePage() {
               >
                 <span
                   className={[
-                    "text-[11px] font-bold px-2 py-1 rounded-lg shrink-0",
+                    "text-label-sm font-bold px-2 py-1 rounded-lg shrink-0",
                     colorCls,
                   ].join(" ")}
                 >
                   {pl?.label ?? link.platform}
                 </span>
-                <p className="flex-1 text-[13px] text-on-surface truncate">{displayUrl}</p>
+                <p className="flex-1 text-body-md text-on-surface truncate">{displayUrl}</p>
                 <button aria-label="Remove link"
                   onClick={() => handleDeleteLink(link.id)}
                   className="text-on-surface-variant hover:text-error transition-colors shrink-0"
@@ -364,7 +364,7 @@ export default function EditProfilePage() {
           {!addingLink && links.length < PROFILE_CONSTANTS.MAX_SOCIAL_LINKS && (
             <button
               onClick={() => setAddingLink(true)}
-              className="flex items-center gap-2 text-[13px] font-semibold text-secondary hover:text-secondary/80 transition-colors"
+              className="flex items-center gap-2 text-body-md font-semibold text-secondary hover:text-secondary/80 transition-colors"
             >
               <Plus size={15} /> Add Social Link
             </button>
@@ -375,7 +375,7 @@ export default function EditProfilePage() {
               <select aria-label="Social platform"
                 value={newPlatform}
                 onChange={e => setNewPlatform(e.target.value as SocialPlatform)}
-                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
               >
                 {PLATFORMS.map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -385,22 +385,22 @@ export default function EditProfilePage() {
                 value={newUrl}
                 onChange={e => setNewUrl(e.target.value)}
                 placeholder="https://…"
-                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-[13px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
               />
               {linkError && (
-                <p className="text-[12px] text-error">{linkError}</p>
+                <p className="text-body-sm text-error">{linkError}</p>
               )}
               <div className="flex gap-2">
                 <button
                   onClick={handleAddLink}
                   disabled={!newUrl.trim()}
-                  className="flex-1 h-9 rounded-lg bg-secondary text-white text-[13px] font-semibold disabled:opacity-40"
+                  className="flex-1 h-9 rounded-lg bg-secondary text-white text-body-md font-semibold disabled:opacity-40"
                 >
                   Add
                 </button>
                 <button
                   onClick={() => { setAddingLink(false); setNewUrl(""); setLinkError(""); }}
-                  className="flex-1 h-9 rounded-lg border border-outline-variant text-on-surface text-[13px] font-semibold"
+                  className="flex-1 h-9 rounded-lg border border-outline-variant text-on-surface text-body-md font-semibold"
                 >
                   Cancel
                 </button>
@@ -413,7 +413,7 @@ export default function EditProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving || !fullName.trim()}
-          className="w-full h-12 rounded-xl bg-secondary text-white text-[15px] font-bold flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+          className="w-full h-12 rounded-xl bg-secondary text-white text-body-lg font-bold flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
         >
           {saving
             ? <><Loader2 size={16} className="animate-spin" /> Saving…</>

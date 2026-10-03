@@ -52,7 +52,7 @@ export default function VerificationStepper() {
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 id="verification-heading" className="text-[17px] font-bold text-on-surface">
+          <h2 id="verification-heading" className="text-body-lg font-bold text-on-surface">
             How Verification Works
           </h2>
           <p className="text-sm text-on-surface-variant mt-0.5">
@@ -67,7 +67,7 @@ export default function VerificationStepper() {
                 aria-hidden="true"
               />
               <Icon size={12} className="text-on-surface-variant" aria-hidden="true" />
-              <span className="text-[11px] font-medium text-on-surface-variant">{label}</span>
+              <span className="text-label-sm font-medium text-on-surface-variant">{label}</span>
             </li>
           ))}
         </ul>
@@ -84,7 +84,7 @@ export default function VerificationStepper() {
               />
             )}
             <span
-              className={`relative z-10 w-[26px] h-[26px] rounded-full border text-[11px] font-bold flex items-center justify-center shrink-0 ${ACTOR_STYLE[s.actor].chip}`}
+              className={`relative z-10 w-[26px] h-[26px] rounded-full border text-label-sm font-bold flex items-center justify-center shrink-0 ${ACTOR_STYLE[s.actor].chip}`}
             >
               {s.n}
             </span>

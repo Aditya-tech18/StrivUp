@@ -381,12 +381,12 @@ function TaskUploadSlot({
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-on-surface text-sm">{task.title}</h3>
             {!task.isRequired && (
-              <Badge variant="default" className="text-[10px]">
+              <Badge variant="default" className="text-label-sm">
                 Optional
               </Badge>
             )}
             {task.proofType && task.proofType !== "none" && (
-              <span className="text-[11px] text-on-surface-variant">
+              <span className="text-label-sm text-on-surface-variant">
                 {PROOF_TYPE_ICONS[task.proofType]} {task.proofType}
               </span>
             )}
@@ -580,7 +580,7 @@ function LegacyUploadCard({
       <div>
         <div className="flex items-center gap-1.5 mb-1">
           <Calendar size={12} className="text-white/60" aria-hidden="true" />
-          <span className="type-label-caps text-white/60 text-[10px]">CURRENT CHALLENGE</span>
+          <span className="text-overline text-white/60 text-label-sm">CURRENT CHALLENGE</span>
         </div>
         <h2 className="text-white font-semibold text-base leading-snug">
           Day {challenge.currentDay}: {challenge.todayTask}
@@ -782,7 +782,7 @@ export function ChallengeDetailClient({
             <div className="w-7 h-7 rounded-lg bg-primary-container flex items-center justify-center">
               <Flame size={16} className="text-on-primary" aria-hidden="true" />
             </div>
-            <span className="type-label-caps text-secondary tracking-widest font-semibold">
+            <span className="text-overline text-secondary tracking-widest font-semibold">
               STRIVUP
             </span>
           </div>
@@ -848,7 +848,7 @@ export function ChallengeDetailClient({
           <div className="mx-4 -mt-6 relative z-10">
             <Card bordered padding="md" className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h1 className="type-headline-sm text-on-surface font-semibold leading-tight">
+                <h1 className="text-headline-md text-on-surface font-semibold leading-tight">
                   {challenge.title}
                 </h1>
                 <p className="text-xs text-on-surface-variant mt-0.5">
@@ -857,7 +857,7 @@ export function ChallengeDetailClient({
               </div>
               <div className="flex items-center gap-1 bg-secondary-container rounded-full px-3 py-1 flex-shrink-0">
                 <Users size={12} className="text-on-secondary-container" aria-hidden="true" />
-                <span className="type-label-caps text-on-secondary-container text-[10px] font-semibold">
+                <span className="text-overline text-on-secondary-container text-label-sm font-semibold">
                   {formatCount(challenge.memberCount)} MEMBERS
                 </span>
               </div>
@@ -878,7 +878,7 @@ export function ChallengeDetailClient({
               },
             ].map(({ label, value, icon }) => (
               <Card key={label} bordered padding="sm" className="text-center" role="listitem">
-                <p className="type-label-caps text-on-surface-variant text-[10px]">{label}</p>
+                <p className="text-overline text-on-surface-variant text-label-sm">{label}</p>
                 <div className="flex items-center justify-center gap-1 mt-1">
                   {icon}
                   <p className="font-bold text-on-surface text-xl leading-tight">{value}</p>
@@ -894,7 +894,7 @@ export function ChallengeDetailClient({
               {hasTasks ? (
                 <section aria-label="Challenge tasks">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="type-headline-sm text-on-surface font-semibold">
+                    <h2 className="text-headline-md text-on-surface font-semibold">
                       Today&apos;s Tasks
                     </h2>
                     <span className="text-xs text-on-surface-variant">
@@ -949,7 +949,7 @@ export function ChallengeDetailClient({
                   style={{ background: "linear-gradient(135deg, #0d1c32 0%, #1a3a6b 100%)" }}
                 >
                   <div>
-                    <p className="type-label-caps text-white/60 text-[10px] mb-1">
+                    <p className="text-overline text-white/60 text-label-sm mb-1">
                       READY TO COMMIT?
                     </p>
                     <h2 className="text-white font-semibold text-lg leading-snug">
@@ -998,7 +998,7 @@ export function ChallengeDetailClient({
           {/* ── Leaderboard ───────────────────────────────────────────── */}
           <section aria-label="Leaderboard">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="type-headline-sm text-on-surface font-semibold">Leaderboard</h2>
+              <h2 className="text-headline-md text-on-surface font-semibold">Leaderboard</h2>
               <Link
                 href={`/challenges/${challenge.id}/leaderboard`}
                 className="text-secondary text-sm font-semibold hover:underline"
@@ -1042,13 +1042,13 @@ export function ChallengeDetailClient({
                         {entry.badge === "champion" && (
                           <Badge
                             variant="secondary"
-                            className="text-[10px] !bg-warning-container !text-on-warning-container"
+                            className="text-label-sm !bg-warning-container !text-on-warning-container"
                           >
                             Champion
                           </Badge>
                         )}
                         {entry.badge === "leader" && (
-                          <Badge variant="default" className="text-[10px]">
+                          <Badge variant="default" className="text-label-sm">
                             Leader
                           </Badge>
                         )}
@@ -1081,7 +1081,7 @@ export function ChallengeDetailClient({
           {/* ── Community Feed ────────────────────────────────────────── */}
           <section aria-label="Community Feed">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="type-headline-sm text-on-surface font-semibold">Community Feed</h2>
+              <h2 className="text-headline-md text-on-surface font-semibold">Community Feed</h2>
               <button
                 type="button"
                 className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors"
@@ -1099,7 +1099,7 @@ export function ChallengeDetailClient({
               </div>
             ) : (
               <div className="rounded-xl border border-outline-variant px-6 py-8 text-center">
-                <p className="type-body-md text-on-surface-variant text-sm">
+                <p className="text-body-md text-on-surface-variant text-sm">
                   No approved posts yet. Upload your proof above to be the first!
                 </p>
               </div>

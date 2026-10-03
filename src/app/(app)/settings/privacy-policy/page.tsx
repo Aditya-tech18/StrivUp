@@ -59,16 +59,16 @@ export default function PrivacyPolicyPage() {
           >
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
-          <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Privacy Policy</h1>
+          <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Privacy Policy</h1>
         </div>
       </div>
 
       <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-4">
         {/* Header card */}
         <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
-          <h2 className="text-[18px] font-bold text-on-surface tracking-[-0.01em]">STRIVUP Privacy Policy</h2>
-          <p className="text-[12px] text-on-surface-variant mt-1">Effective Date: September 2026</p>
-          <p className="text-[13px] text-on-surface-variant mt-3 leading-relaxed">
+          <h2 className="text-headline-md font-bold text-on-surface tracking-[-0.01em]">STRIVUP Privacy Policy</h2>
+          <p className="text-body-sm text-on-surface-variant mt-1">Effective Date: September 2026</p>
+          <p className="text-body-md text-on-surface-variant mt-3 leading-relaxed">
             At STRIVUP, your privacy is a priority. This policy explains how we collect, use,
             store and protect your personal information when you use our platform.
           </p>
@@ -80,8 +80,8 @@ export default function PrivacyPolicyPage() {
             key={section.title}
             className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5"
           >
-            <h3 className="text-[14px] font-bold text-on-surface mb-2">{section.title}</h3>
-            <p className="text-[13px] text-on-surface-variant leading-relaxed">{section.body}</p>
+            <h3 className="text-body-md font-bold text-on-surface mb-2">{section.title}</h3>
+            <p className="text-body-md text-on-surface-variant leading-relaxed">{section.body}</p>
           </div>
         ))}
 
@@ -91,14 +91,14 @@ export default function PrivacyPolicyPage() {
             <Mail size={16} className="text-secondary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-semibold text-on-surface">Privacy questions?</p>
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-[12px] text-secondary hover:underline truncate block">
+            <p className="text-body-md font-semibold text-on-surface">Privacy questions?</p>
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-body-sm text-secondary hover:underline truncate block">
               {SUPPORT_EMAIL}
             </a>
           </div>
         </div>
 
-        <p className="text-center text-[11px] text-on-surface-variant pb-2">
+        <p className="text-center text-label-sm text-on-surface-variant pb-2">
           © 2026 STRIVUP. All rights reserved.
         </p>
       </div>

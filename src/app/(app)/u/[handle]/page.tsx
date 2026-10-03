@@ -71,8 +71,8 @@ function displayName(fullName: string | null, username: string | null): string {
 function Stat({ value, label }: { value: string | number; label: string }) {
   return (
     <div className="text-center">
-      <p className="text-[17px] font-bold text-on-surface">{value}</p>
-      <p className="text-[12px] text-on-surface-variant">{label}</p>
+      <p className="text-body-lg font-bold text-on-surface">{value}</p>
+      <p className="text-body-sm text-on-surface-variant">{label}</p>
     </div>
   );
 }
@@ -88,18 +88,18 @@ function ChallengeRow({ stat }: { stat: ProfileChallengeStat }) {
         <Flame size={18} className="text-secondary" aria-hidden="true" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[14px] font-semibold text-on-surface">
+        <p className="truncate text-body-md font-semibold text-on-surface">
           {stat.title ?? "Untitled challenge"}
         </p>
-        <p className="text-[12px] text-on-surface-variant">
+        <p className="text-body-sm text-on-surface-variant">
           Day {stat.current_day}
           {stat.duration_days ? ` of ${stat.duration_days}` : ""} ·{" "}
           {Math.round(Number(stat.consistency_pct))}% consistent
         </p>
       </div>
       <div className="shrink-0 text-right">
-        <p className="text-[14px] font-bold text-on-surface">{stat.current_streak}</p>
-        <p className="text-[11px] text-on-surface-variant">streak</p>
+        <p className="text-body-md font-bold text-on-surface">{stat.current_streak}</p>
+        <p className="text-label-sm text-on-surface-variant">streak</p>
       </div>
     </Link>
   );
@@ -155,7 +155,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <span className="text-[28px] font-bold text-secondary">
+              <span className="text-headline-lg font-bold text-secondary">
                 {name.replace("@", "").charAt(0).toUpperCase()}
               </span>
             </div>
@@ -164,7 +164,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <h1 className="truncate text-[19px] font-bold text-on-surface">{name}</h1>
+            <h1 className="truncate text-headline-md font-bold text-on-surface">{name}</h1>
             {/* Identity verification only. Never render a Pro/paid badge here —
                 Verified and Premium are separate systems. */}
             {isVerified ? (
@@ -184,7 +184,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
           </div>
 
           {profile.full_name && profile.username ? (
-            <p className="text-[13px] text-on-surface-variant">@{profile.username}</p>
+            <p className="text-body-md text-on-surface-variant">@{profile.username}</p>
           ) : null}
 
           <div className="mt-3 flex items-center gap-6">
@@ -196,7 +196,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
       </header>
 
       {profile.bio && !locked ? (
-        <p className="mt-4 text-[14px] leading-relaxed text-on-surface-variant">{profile.bio}</p>
+        <p className="mt-4 text-body-md leading-relaxed text-on-surface-variant">{profile.bio}</p>
       ) : null}
 
       <div className="mt-5">
@@ -207,7 +207,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
           />
         ) : (
           <Link href={`/login?redirectTo=/u/${handle}`}>
-            <span className="text-[13px] font-semibold text-secondary">
+            <span className="text-body-md font-semibold text-secondary">
               Sign in to follow
             </span>
           </Link>
@@ -218,27 +218,27 @@ export default async function PublicProfilePage({ params }: PageProps) {
       {locked ? (
         <div className="mt-10 flex flex-col items-center rounded-2xl border border-outline-variant bg-surface-container-low px-6 py-10 text-center">
           <Lock size={22} className="text-on-surface-variant" aria-hidden="true" />
-          <p className="mt-3 text-[15px] font-semibold text-on-surface">
+          <p className="mt-3 text-body-lg font-semibold text-on-surface">
             This account is private
           </p>
-          <p className="mt-1 max-w-xs text-[13px] text-on-surface-variant">
+          <p className="mt-1 max-w-xs text-body-md text-on-surface-variant">
             Follow {name} to see the challenges they&apos;re building and their streaks.
           </p>
         </div>
       ) : (
         <section className="mt-8">
-          <h2 className="mb-3 text-[15px] font-bold text-on-surface">
+          <h2 className="mb-3 text-body-lg font-bold text-on-surface">
             Active challenges
           </h2>
 
           {active.length === 0 ? (
             <div className="rounded-2xl border border-outline-variant bg-surface-container-low px-5 py-8 text-center">
-              <p className="text-[13px] text-on-surface-variant">
+              <p className="text-body-md text-on-surface-variant">
                 {name} isn&apos;t in any public challenges yet.
               </p>
               <Link
                 href="/explore"
-                className="mt-3 inline-block text-[13px] font-semibold text-secondary"
+                className="mt-3 inline-block text-body-md font-semibold text-secondary"
               >
                 Find a challenge to join
               </Link>

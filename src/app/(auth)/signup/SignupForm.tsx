@@ -142,16 +142,16 @@ export function SignupForm() {
           <div className="w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center">
             <Flame size={28} className="text-on-primary" aria-hidden="true" />
           </div>
-          <p className="type-label-caps text-secondary tracking-widest">STRIVUP</p>
+          <p className="text-overline text-secondary tracking-widest">STRIVUP</p>
         </div>
         <div className="space-y-2">
-          <h1 className="type-headline-md text-on-surface">Check your inbox</h1>
-          <p className="type-body-md text-on-surface-variant">
+          <h1 className="text-headline-lg-mobile text-on-surface">Check your inbox</h1>
+          <p className="text-body-md text-on-surface-variant">
             We&apos;ve sent a confirmation link to your email address. Click it
             to activate your account and get started.
           </p>
         </div>
-        <p className="type-body-md text-on-surface-variant">
+        <p className="text-body-md text-on-surface-variant">
           Already confirmed?{" "}
           <Link
             href="/login"
@@ -171,13 +171,13 @@ export function SignupForm() {
         <div className="w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center">
           <Flame size={28} className="text-on-primary" aria-hidden="true" />
         </div>
-        <p className="type-label-caps text-secondary tracking-widest">STRIVUP</p>
+        <p className="text-overline text-secondary tracking-widest">STRIVUP</p>
       </div>
 
       {/* ── Headline ─────────────────────────────────────────────────── */}
       <div className="text-center space-y-1">
-        <h1 className="type-headline-md text-on-surface">Create Account</h1>
-        <p className="type-body-md text-on-surface-variant">
+        <h1 className="text-headline-lg-mobile text-on-surface">Create Account</h1>
+        <p className="text-body-md text-on-surface-variant">
           Join thousands building better habits every day.
         </p>
       </div>
@@ -186,7 +186,7 @@ export function SignupForm() {
       {authError && (
         <div
           role="alert"
-          className="rounded border border-error/30 bg-error-container px-4 py-3 type-body-md text-error"
+          className="rounded border border-error/30 bg-error-container px-4 py-3 text-body-md text-error"
         >
           {authError}
         </div>
@@ -224,7 +224,7 @@ export function SignupForm() {
       {/* ── OR divider ───────────────────────────────────────────────── */}
       <div className="flex items-center gap-3" aria-hidden="true">
         <hr className="flex-1 border-outline-variant" />
-        <span className="type-label-caps text-on-surface-variant">or</span>
+        <span className="text-overline text-on-surface-variant">or</span>
         <hr className="flex-1 border-outline-variant" />
       </div>
 
@@ -256,7 +256,7 @@ export function SignupForm() {
         <div className="flex flex-col gap-1">
           <label
             htmlFor="signup-password"
-            className="type-body-md font-medium text-on-surface"
+            className="text-body-md font-medium text-on-surface"
           >
             Password
           </label>
@@ -290,7 +290,7 @@ export function SignupForm() {
           {errors.password && (
             <p
               id="signup-password-error"
-              className="type-body-md text-error"
+              className="text-body-md text-error"
               role="alert"
             >
               {errors.password.message}
@@ -317,7 +317,7 @@ export function SignupForm() {
       </form>
 
       {/* ── Footer ───────────────────────────────────────────────────── */}
-      <p className="text-center type-body-md text-on-surface-variant">
+      <p className="text-center text-body-md text-on-surface-variant">
         Already have an account?{" "}
         <Link
           href="/login"

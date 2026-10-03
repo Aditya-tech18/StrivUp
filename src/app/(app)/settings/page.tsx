@@ -28,7 +28,7 @@ function SettingsGroup({
   const router = useRouter();
   return (
     <section>
-      <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em] mb-2 px-1">
+      <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em] mb-2 px-1">
         {title}
       </p>
       <div className="bg-white rounded-2xl border border-outline-variant overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
@@ -53,13 +53,13 @@ function SettingsGroup({
             <div className="flex-1 min-w-0">
               <p
                 className={[
-                  "text-[14px] font-semibold leading-tight",
+                  "text-body-md font-semibold leading-tight",
                   item.destructive ? "text-error" : "text-on-surface",
                 ].join(" ")}
               >
                 {item.label}
               </p>
-              <p className="text-[12px] text-on-surface-variant mt-0.5 leading-snug">
+              <p className="text-body-sm text-on-surface-variant mt-0.5 leading-snug">
                 {item.subtitle}
               </p>
             </div>
@@ -185,7 +185,7 @@ export default function SettingsPage() {
           >
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
-          <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Settings</h1>
+          <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Settings</h1>
         </div>
       </div>
 
@@ -200,20 +200,20 @@ export default function SettingsPage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-[18px] font-bold text-secondary">{initial}</span>
+                  <span className="text-headline-md font-bold text-secondary">{initial}</span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[15px] font-bold text-on-surface truncate">
+                <p className="text-body-lg font-bold text-on-surface truncate">
                   {profile.full_name ?? "Your Name"}
                 </p>
                 {profile.username && (
-                  <p className="text-[13px] text-on-surface-variant">@{profile.username}</p>
+                  <p className="text-body-md text-on-surface-variant">@{profile.username}</p>
                 )}
               </div>
               <button
                 onClick={() => router.push("/settings/edit-profile")}
-                className="shrink-0 px-3.5 py-1.5 rounded-lg border border-outline-variant text-[13px] font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
+                className="shrink-0 px-3.5 py-1.5 rounded-lg border border-outline-variant text-body-md font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
               >
                 Edit
               </button>
@@ -230,13 +230,13 @@ export default function SettingsPage() {
         <button
           onClick={handleLogOut}
           disabled={loggingOut}
-          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl bg-white border border-outline-variant text-[14px] font-semibold text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl bg-white border border-outline-variant text-body-md font-semibold text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
         >
           <LogOut size={16} className="text-on-surface-variant" />
           {loggingOut ? "Signing out…" : "Sign Out"}
         </button>
 
-        <p className="text-center text-[11px] text-on-surface-variant pb-2">
+        <p className="text-center text-label-sm text-on-surface-variant pb-2">
           STRIVUP · India&apos;s Platform for Growth
         </p>
       </div>

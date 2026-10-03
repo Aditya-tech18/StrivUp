@@ -59,7 +59,7 @@ export default function FollowingPage() {
           <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
-          <h1 className="text-[17px] font-bold text-on-surface flex-1">Following</h1>
+          <h1 className="text-body-lg font-bold text-on-surface flex-1">Following</h1>
           <span className="text-sm font-bold text-secondary">{following.length}</span>
         </div>
       </div>

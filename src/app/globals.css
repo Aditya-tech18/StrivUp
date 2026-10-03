@@ -225,61 +225,17 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* ─── Legacy type utilities ─────────────────────────────────────────────────
-   Superseded by the `text-*` scale above. Kept as thin aliases so the ~60
-   existing components keep rendering while screens migrate incrementally.
-   Do not use these in new code; delete once no references remain.          */
-.type-display-lg {
-  font-size: var(--text-display-mobile);
-  line-height: var(--text-display-mobile--line-height);
-  letter-spacing: var(--text-display-mobile--letter-spacing);
-  font-weight: var(--text-display-mobile--font-weight);
-}
-.type-headline-md {
-  font-size: var(--text-headline-lg-mobile);
-  line-height: var(--text-headline-lg-mobile--line-height);
-  letter-spacing: var(--text-headline-lg-mobile--letter-spacing);
-  font-weight: var(--text-headline-lg-mobile--font-weight);
-}
-.type-headline-sm {
-  font-size: var(--text-headline-md);
-  line-height: var(--text-headline-md--line-height);
-  letter-spacing: var(--text-headline-md--letter-spacing);
-  font-weight: var(--text-headline-md--font-weight);
-}
-.type-body-lg {
-  font-size: var(--text-body-lg);
-  line-height: var(--text-body-lg--line-height);
-  font-weight: var(--text-body-lg--font-weight);
-}
-.type-body-md {
-  font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
-  font-weight: var(--text-body-md--font-weight);
-}
-.type-label-caps {
+/* ─── Overline ───────────────────────────────────────────────────────────────
+   The only type style that is more than a size: small caps-styled labels above
+   a heading or inside a chip. Everything else comes straight off the `text-*`
+   scale, so this is the one bundled type class left after the `.type-*` aliases
+   were retired.                                                            */
+.text-overline {
   font-size: var(--text-label-md);
   line-height: var(--text-label-md--line-height);
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-}
-.type-body-sm {
-  font-size: var(--text-body-sm);
-  line-height: var(--text-body-sm--line-height);
-  font-weight: var(--text-body-sm--font-weight);
-}
-.type-title-lg {
-  font-size: var(--text-headline-md);
-  line-height: var(--text-headline-md--line-height);
-  letter-spacing: var(--text-headline-md--letter-spacing);
-  font-weight: var(--text-headline-md--font-weight);
-}
-.type-stat-value {
-  font-size: 28px;
-  line-height: 2rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
 }
 
 /* ─── StrivCoin earn flourish ───────────────────────────────────────────────

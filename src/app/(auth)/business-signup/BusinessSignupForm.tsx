@@ -97,12 +97,12 @@ export function BusinessSignupForm() {
         <Building2 size={28} className="text-secondary" />
       </div>
       <div>
-        <h2 className="type-headline-md text-on-surface font-black">Check your inbox</h2>
-        <p className="type-body-md text-on-surface-variant mt-2">
+        <h2 className="text-headline-lg-mobile text-on-surface font-black">Check your inbox</h2>
+        <p className="text-body-md text-on-surface-variant mt-2">
           We sent a confirmation link to your email. Click it to activate your business account.
         </p>
       </div>
-      <Link href="/business-login" className="type-body-md text-secondary font-semibold hover:underline">
+      <Link href="/business-login" className="text-body-md text-secondary font-semibold hover:underline">
         Already confirmed? Login →
       </Link>
     </div>
@@ -115,14 +115,14 @@ export function BusinessSignupForm() {
           <Building2 size={28} className="text-secondary" />
         </div>
         <div>
-          <p className="text-[11px] font-black tracking-[0.2em] text-secondary uppercase mb-1">STRIVUP BUSINESS</p>
-          <h1 className="type-headline-md text-on-surface font-black">Create Business Account</h1>
-          <p className="type-body-md text-on-surface-variant mt-1">Attract customers, run campaigns, grow your brand.</p>
+          <p className="text-label-sm font-black tracking-[0.2em] text-secondary uppercase mb-1">STRIVUP BUSINESS</p>
+          <h1 className="text-headline-lg-mobile text-on-surface font-black">Create Business Account</h1>
+          <p className="text-body-md text-on-surface-variant mt-1">Attract customers, run campaigns, grow your brand.</p>
         </div>
       </div>
 
       {authError && (
-        <div role="alert" className="rounded-xl border border-error/30 bg-error-container px-4 py-3 type-body-md text-error">{authError}</div>
+        <div role="alert" className="rounded-xl border border-error/30 bg-error-container px-4 py-3 text-body-md text-error">{authError}</div>
       )}
 
       <button type="button" onClick={handleGoogle} disabled={busy} className={socialBtnCls}>
@@ -132,7 +132,7 @@ export function BusinessSignupForm() {
 
       <div className="flex items-center gap-3">
         <hr className="flex-1 border-outline-variant" />
-        <span className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest">or</span>
+        <span className="text-label-sm font-medium text-on-surface-variant uppercase tracking-widest">or</span>
         <hr className="flex-1 border-outline-variant" />
       </div>
 
@@ -142,7 +142,7 @@ export function BusinessSignupForm() {
         <Input id="biz-email" label="Business Email" type="email" autoComplete="email"
           placeholder="hello@yourbusiness.com" error={errors.email?.message} disabled={busy} {...register("email")} />
         <div className="flex flex-col gap-1">
-          <label htmlFor="biz-pwd" className="type-body-md font-medium text-on-surface">Password</label>
+          <label htmlFor="biz-pwd" className="text-body-md font-medium text-on-surface">Password</label>
           <div className="relative">
             <input id="biz-pwd" type={showPwd ? "text" : "password"} autoComplete="new-password"
               placeholder="Min. 8 chars, 1 letter + 1 number" disabled={busy}
@@ -154,7 +154,7 @@ export function BusinessSignupForm() {
               {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-          {errors.password && <p id="password-error" role="alert" className="type-body-md text-error">{errors.password.message}</p>}
+          {errors.password && <p id="password-error" role="alert" className="text-body-md text-error">{errors.password.message}</p>}
         </div>
         <Button type="submit" variant="primary" fullWidth disabled={busy} size="lg">
           {isSubmitting ? <><Loader2 size={16} className="animate-spin mr-2" />Creating…</> : "Create Business Account"}
@@ -162,11 +162,11 @@ export function BusinessSignupForm() {
       </form>
 
       <div className="space-y-2 text-center">
-        <p className="type-body-md text-on-surface-variant">
+        <p className="text-body-md text-on-surface-variant">
           Already have a business account?{" "}
           <Link href="/business-login" className="text-secondary font-semibold hover:underline">Login</Link>
         </p>
-        <p className="type-body-md text-on-surface-variant">
+        <p className="text-body-md text-on-surface-variant">
           Not a business?{" "}
           <Link href="/signup" className="text-secondary font-semibold hover:underline">Sign up as User</Link>
         </p>

@@ -53,7 +53,7 @@ export default function PromotePage() {
     <div className="min-h-screen bg-surface pb-28">
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-[17px] font-black text-on-surface flex-1">Promote Quest</h1>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">Promote Quest</h1>
       </div>
 
       <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
@@ -64,7 +64,7 @@ export default function PromotePage() {
               <Zap size={20} className="text-white" />
             </div>
             <div>
-              <h2 className="text-[15px] font-black text-on-secondary-fixed">Boost Your Quest Reach</h2>
+              <h2 className="text-body-lg font-black text-on-secondary-fixed">Boost Your Quest Reach</h2>
               <p className="text-xs text-secondary">Reach more STRIVUP users who match your audience</p>
             </div>
           </div>
@@ -76,7 +76,7 @@ export default function PromotePage() {
             ].map(item => (
               <div key={item.label} className="bg-surface-container-lowest/70 rounded-xl p-2.5 text-center">
                 <p className="text-xl mb-1">{item.icon}</p>
-                <p className="text-[10px] font-semibold text-on-secondary-fixed">{item.label}</p>
+                <p className="text-label-sm font-semibold text-on-secondary-fixed">{item.label}</p>
               </div>
             ))}
           </div>
@@ -136,8 +136,8 @@ export default function PromotePage() {
                   <p className={`text-lg font-black mb-1 ${selectedBudget?.value === b.value ? "text-secondary" : "text-on-surface"}`}>
                     {b.label}
                   </p>
-                  <p className="text-[10px] text-on-surface-variant font-medium">{b.reach}</p>
-                  <p className="text-[10px] text-on-surface-variant">{b.duration}</p>
+                  <p className="text-label-sm text-on-surface-variant font-medium">{b.reach}</p>
+                  <p className="text-label-sm text-on-surface-variant">{b.duration}</p>
                 </button>
               ))}
             </div>
@@ -156,7 +156,7 @@ export default function PromotePage() {
             ].map(step => (
               <div key={step.num} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-secondary-fixed flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-[11px] font-black text-secondary">{step.num}</span>
+                  <span className="text-label-sm font-black text-secondary">{step.num}</span>
                 </div>
                 <p className="text-sm text-on-surface-variant leading-relaxed">{step.text}</p>
               </div>
@@ -184,7 +184,7 @@ export default function PromotePage() {
             </div>
             <button
               onClick={() => alert("Payment integration coming soon. Your promotion setup has been saved.")}
-              className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-[15px] flex items-center justify-center gap-2 transition-all">
+              className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-body-lg flex items-center justify-center gap-2 transition-all">
               <Zap size={18} /> Boost Quest — {selectedBudget.label}
             </button>
           </div>

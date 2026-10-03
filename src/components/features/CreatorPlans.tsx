@@ -54,7 +54,7 @@ export function CreatorPlans({ showComparison = true }: { showComparison?: boole
       <div className="relative overflow-hidden rounded-2xl border-2 border-secondary bg-surface-container-lowest p-5">
         <div className="flex items-start justify-between">
           <div>
-            <span className="inline-block rounded-md bg-secondary-fixed px-2 py-0.5 text-[10px] font-bold tracking-wider text-secondary">
+            <span className="inline-block rounded-md bg-secondary-fixed px-2 py-0.5 text-label-sm font-bold tracking-wider text-secondary">
               STARTER
             </span>
             <p className="mt-2 text-3xl font-black text-on-surface">
@@ -78,12 +78,12 @@ export function CreatorPlans({ showComparison = true }: { showComparison?: boole
 
       {/* Growth */}
       <div className="relative overflow-hidden rounded-2xl border border-warning/60 bg-inverse-surface p-5">
-        <span className="absolute right-0 top-0 rounded-bl-xl bg-amber-400 px-3 py-1 text-[10px] font-bold tracking-wider text-on-surface">
+        <span className="absolute right-0 top-0 rounded-bl-xl bg-amber-400 px-3 py-1 text-label-sm font-bold tracking-wider text-on-surface">
           POPULAR
         </span>
         <div className="flex items-start justify-between">
           <div>
-            <span className="inline-block rounded-md bg-amber-400 px-2 py-0.5 text-[10px] font-bold tracking-wider text-on-surface">
+            <span className="inline-block rounded-md bg-amber-400 px-2 py-0.5 text-label-sm font-bold tracking-wider text-on-surface">
               GROWTH
             </span>
             <p className="mt-2 text-3xl font-black text-inverse-on-surface">
@@ -111,7 +111,7 @@ export function CreatorPlans({ showComparison = true }: { showComparison?: boole
 
       {showComparison && (
         <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest">
-          <p className="px-4 pt-4 text-[15px] font-black text-on-surface">Plan comparison</p>
+          <p className="px-4 pt-4 text-body-lg font-black text-on-surface">Plan comparison</p>
           <div className="overflow-x-auto no-scrollbar">
             <table className="mt-3 w-full text-sm">
               <thead>

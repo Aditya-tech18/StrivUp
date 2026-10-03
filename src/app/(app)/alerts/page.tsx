@@ -176,7 +176,7 @@ export default function AlertsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="type-body-md text-on-surface-variant">Loading…</p>
+        <p className="text-body-md text-on-surface-variant">Loading…</p>
       </div>
     );
   }
@@ -187,7 +187,7 @@ export default function AlertsPage() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <h1 className="type-headline-sm text-on-surface">Alerts</h1>
+          <h1 className="text-headline-md text-on-surface">Alerts</h1>
           {hasUnread && (
             <Button
               variant="outline"
@@ -204,7 +204,7 @@ export default function AlertsPage() {
         {notifications.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
             <Bell size={40} className="text-on-surface-variant opacity-40" aria-hidden="true" />
-            <p className="type-body-lg text-on-surface-variant">No notifications yet.</p>
+            <p className="text-body-lg text-on-surface-variant">No notifications yet.</p>
           </div>
         )}
 
@@ -238,18 +238,18 @@ export default function AlertsPage() {
                 <div className="flex-1 min-w-0">
                   <p
                     className={[
-                      "type-body-md truncate",
+                      "text-body-md truncate",
                       notif.is_read ? "text-on-surface" : "font-semibold text-on-surface",
                     ].join(" ")}
                   >
                     {notif.title}
                   </p>
                   {notif.message && (
-                    <p className="type-body-md text-on-surface-variant line-clamp-2 mt-0.5">
+                    <p className="text-body-md text-on-surface-variant line-clamp-2 mt-0.5">
                       {notif.message}
                     </p>
                   )}
-                  <p className="type-body-md text-on-surface-variant mt-1 text-xs">
+                  <p className="text-body-md text-on-surface-variant mt-1 text-xs">
                     {relativeTime(notif.created_at)}
                   </p>
                 </div>

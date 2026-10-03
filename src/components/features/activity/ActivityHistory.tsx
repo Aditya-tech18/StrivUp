@@ -39,7 +39,7 @@ export function ActivityHistory({ records }: { records: ActivityRecord[] }) {
               </p>
               <span className="text-xs text-on-surface-variant">{activityLabel(r.activity_type)}</span>
             </div>
-            <p className="text-[11px] text-on-surface-variant">
+            <p className="text-label-sm text-on-surface-variant">
               {new Date(`${r.local_date}T00:00:00`).toLocaleDateString("en-IN", {
                 weekday: "short",
                 day: "numeric",

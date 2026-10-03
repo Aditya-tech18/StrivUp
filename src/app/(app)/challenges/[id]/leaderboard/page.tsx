@@ -41,7 +41,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
             <ArrowLeft size={20} aria-hidden="true" />
           </Link>
           <div>
-            <h1 className="type-headline-sm text-on-surface font-semibold leading-tight">
+            <h1 className="text-headline-md text-on-surface font-semibold leading-tight">
               Leaderboard
             </h1>
             <p className="text-xs text-on-surface-variant">{challenge.title}</p>
@@ -94,12 +94,12 @@ export default async function LeaderboardPage({ params }: PageProps) {
                 {/* Badge + trophy */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {entry.badge === "champion" && (
-                    <span className="text-[10px] font-semibold text-on-warning-container bg-warning-container rounded-full px-2 py-0.5">
+                    <span className="text-label-sm font-semibold text-on-warning-container bg-warning-container rounded-full px-2 py-0.5">
                       Champion
                     </span>
                   )}
                   {entry.badge === "leader" && (
-                    <span className="text-[10px] font-semibold text-secondary bg-secondary/10 rounded-full px-2 py-0.5">
+                    <span className="text-label-sm font-semibold text-secondary bg-secondary/10 rounded-full px-2 py-0.5">
                       Leader
                     </span>
                   )}
@@ -116,10 +116,10 @@ export default async function LeaderboardPage({ params }: PageProps) {
               <Trophy size={32} className="text-warning" aria-hidden="true" />
             </div>
             <div className="space-y-1">
-              <p className="type-headline-sm text-on-surface font-semibold">
+              <p className="text-headline-md text-on-surface font-semibold">
                 No rankings yet
               </p>
-              <p className="type-body-md text-on-surface-variant text-sm max-w-xs">
+              <p className="text-body-md text-on-surface-variant text-sm max-w-xs">
                 Rankings appear once participants start building streaks.
               </p>
             </div>

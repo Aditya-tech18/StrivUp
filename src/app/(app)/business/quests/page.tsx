@@ -74,7 +74,7 @@ export default function BusinessQuestsPage() {
       {/* Header */}
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-[17px] font-black text-on-surface flex-1">My Quests</h1>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">My Quests</h1>
         <button onClick={() => router.push("/business/quests/new")}
           className="flex items-center gap-1.5 h-9 px-4 rounded-xl bg-secondary text-white text-sm font-bold">
           <Plus size={16} /> New Quest
@@ -103,7 +103,7 @@ export default function BusinessQuestsPage() {
               <Plus size={28} className="text-secondary" />
             </div>
             <div>
-              <p className="text-[17px] font-black text-on-surface">Your first Quest starts here</p>
+              <p className="text-body-lg font-black text-on-surface">Your first Quest starts here</p>
               <p className="text-sm text-on-surface-variant mt-1 max-w-xs">Create a real-world mission, reward participation and grow your community.</p>
             </div>
             <button onClick={() => router.push("/business/quests/new")}
@@ -128,8 +128,8 @@ export default function BusinessQuestsPage() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h3 className="text-[15px] font-bold text-on-surface leading-tight line-clamp-2">{quest.title}</h3>
-                      <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${sc.cls}`}>{sc.label}</span>
+                      <h3 className="text-body-lg font-bold text-on-surface leading-tight line-clamp-2">{quest.title}</h3>
+                      <span className={`shrink-0 text-label-sm font-bold px-2 py-0.5 rounded-full ${sc.cls}`}>{sc.label}</span>
                     </div>
                     {quest.category && <p className="text-xs text-on-surface-variant mb-2">{quest.category}</p>}
                     <div className="flex items-center gap-4 text-xs text-on-surface-variant">

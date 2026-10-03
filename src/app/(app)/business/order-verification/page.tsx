@@ -46,7 +46,7 @@ function ProfileStat({
     <div className="rounded-xl bg-surface-container-lowest border border-outline-variant px-2.5 py-2">
       <div className="flex items-center gap-1.5">
         <Icon size={11} className="text-on-surface-variant shrink-0" aria-hidden="true" />
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant truncate">
+        <p className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant truncate">
           {label}
         </p>
       </div>
@@ -189,7 +189,7 @@ export default function BusinessOrderVerificationPage() {
           </Link>
           <div className="flex-1 min-w-0">
             <h1 className="text-sm font-bold text-on-surface">Order Verification</h1>
-            <p className="text-[11px] text-on-surface-variant">
+            <p className="text-label-sm text-on-surface-variant">
               Match a STRIVUP code to an incoming order
             </p>
           </div>
@@ -207,7 +207,7 @@ export default function BusinessOrderVerificationPage() {
 
         {/* ── Search ───────────────────────────────────────────────── */}
         <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
-          <h2 className="text-[17px] font-bold text-on-surface">Search order code</h2>
+          <h2 className="text-body-lg font-bold text-on-surface">Search order code</h2>
           <p className="text-sm text-on-surface-variant mt-0.5">
             The customer adds this code to the order description on Zomato or Swiggy.
           </p>
@@ -264,7 +264,7 @@ export default function BusinessOrderVerificationPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-[15px] font-bold text-on-surface truncate">
+                    <p className="text-body-lg font-bold text-on-surface truncate">
                       {match.participant_name ?? "Participant"}
                     </p>
                     {match.participant_username && (
@@ -298,7 +298,7 @@ export default function BusinessOrderVerificationPage() {
                   />
                 </div>
 
-                <p className="text-[11px] text-on-surface-variant mt-2.5">
+                <p className="text-label-sm text-on-surface-variant mt-2.5">
                   Code issued {timeAgo(match.created_at)} · expires{" "}
                   {new Date(match.expires_at).toLocaleString("en-IN", {
                     day: "numeric", month: "short", hour: "numeric", minute: "2-digit",
@@ -322,11 +322,11 @@ export default function BusinessOrderVerificationPage() {
                     <div className="mt-3 rounded-2xl border border-secondary-fixed-dim bg-secondary-fixed/60 px-5 py-5 text-center">
                       <div className="flex items-center justify-center gap-2 text-secondary">
                         <Receipt size={16} />
-                        <span className="text-[11px] font-bold uppercase tracking-wider">
+                        <span className="text-label-sm font-bold uppercase tracking-wider">
                           Bill verification code
                         </span>
                       </div>
-                      <p className="text-[34px] leading-none font-bold tracking-[0.18em] text-secondary mt-2.5 select-all">
+                      <p className="text-display-mobile leading-none font-bold tracking-[0.18em] text-secondary mt-2.5 select-all">
                         {billCode}
                       </p>
                       <button
@@ -420,7 +420,7 @@ export default function BusinessOrderVerificationPage() {
         <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-[17px] font-bold text-on-surface">Open verifications</h2>
+              <h2 className="text-body-lg font-bold text-on-surface">Open verifications</h2>
               <p className="text-sm text-on-surface-variant mt-0.5">
                 Codes issued to participants that are not closed yet.
               </p>

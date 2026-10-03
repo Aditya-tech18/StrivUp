@@ -115,23 +115,23 @@ export default function ModerationClient({
     <div className="min-h-screen bg-surface px-4 py-6">
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
-          <h1 className="type-headline-md text-on-surface flex items-center gap-2">
+          <h1 className="text-headline-lg-mobile text-on-surface flex items-center gap-2">
             <Shield className="text-secondary" /> Moderation Dashboard
           </h1>
-          <p className="type-body-md text-on-surface-variant mt-1">
+          <p className="text-body-md text-on-surface-variant mt-1">
             Role: <span className="font-semibold text-secondary">{moderatorRole}</span>
           </p>
         </div>
 
         <div className="flex gap-2 border-b border-outline-variant">
           <button 
-            className={`px-4 py-2 type-body-md font-medium border-b-2 ${tab === "reports" ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"}`}
+            className={`px-4 py-2 text-body-md font-medium border-b-2 ${tab === "reports" ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"}`}
             onClick={() => setTab("reports")}
           >
             Pending Reports
           </button>
           <button 
-            className={`px-4 py-2 type-body-md font-medium border-b-2 ${tab === "all" ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"}`}
+            className={`px-4 py-2 text-body-md font-medium border-b-2 ${tab === "all" ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"}`}
             onClick={() => setTab("all")}
           >
             All Proof
@@ -139,11 +139,11 @@ export default function ModerationClient({
         </div>
 
         {loading ? (
-          <p className="type-body-md text-on-surface-variant">Loading...</p>
+          <p className="text-body-md text-on-surface-variant">Loading...</p>
         ) : tab === "reports" ? (
           <div className="space-y-4">
             {reports.length === 0 ? (
-              <p className="type-body-md text-on-surface-variant">No pending reports.</p>
+              <p className="text-body-md text-on-surface-variant">No pending reports.</p>
             ) : (
               reports.map(report => (
                 <Card key={report.id} bordered padding="md" className="flex gap-4">
@@ -157,14 +157,14 @@ export default function ModerationClient({
                     />
                   </div>
                   <div className="flex-1 space-y-2">
-                    <p className="type-label-caps text-error">Report Reason: {report.reason}</p>
-                    <p className="type-body-sm text-on-surface">
+                    <p className="text-overline text-error">Report Reason: {report.reason}</p>
+                    <p className="text-body-sm text-on-surface">
                       <strong>Submitter:</strong> {(report.proof_submissions?.profiles as any)?.full_name || "Unknown"}
                     </p>
-                    <p className="type-body-sm text-on-surface">
+                    <p className="text-body-sm text-on-surface">
                       <strong>Challenge:</strong> {(report.proof_submissions?.challenges as any)?.title || "Unknown"}
                     </p>
-                    <p className="type-body-sm text-on-surface">
+                    <p className="text-body-sm text-on-surface">
                       <strong>Caption:</strong> {report.proof_submissions?.caption}
                     </p>
                     
@@ -198,7 +198,7 @@ export default function ModerationClient({
                   {sub.admin_removed ? (
                     <div className="text-center text-on-surface-variant">
                       <ShieldAlert size={24} className="mx-auto mb-1" />
-                      <p className="type-label-caps">Removed</p>
+                      <p className="text-overline">Removed</p>
                     </div>
                   ) : (
                     <Image 
@@ -211,10 +211,10 @@ export default function ModerationClient({
                   )}
                 </div>
                 <div className="space-y-1">
-                  <p className="type-body-sm text-on-surface line-clamp-1">
+                  <p className="text-body-sm text-on-surface line-clamp-1">
                     <strong>Submitter:</strong> {(sub.profiles as any)?.full_name || "Unknown"}
                   </p>
-                  <p className="type-body-sm text-on-surface line-clamp-1">
+                  <p className="text-body-sm text-on-surface line-clamp-1">
                     <strong>Challenge:</strong> {(sub.challenges as any)?.title || "Unknown"}
                   </p>
                 </div>
@@ -240,12 +240,12 @@ export default function ModerationClient({
       {removeProofId && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
           <div className="bg-surface p-6 rounded-xl shadow-lg w-full max-w-sm space-y-4">
-            <h3 className="type-headline-sm text-on-surface font-semibold">Remove Content</h3>
-            <p className="type-body-sm text-on-surface-variant">
+            <h3 className="text-headline-md text-on-surface font-semibold">Remove Content</h3>
+            <p className="text-body-sm text-on-surface-variant">
               Please provide a reason for removal. This is required and will be logged.
             </p>
             <textarea
-              className="w-full p-3 rounded-lg border border-outline-variant bg-surface-container text-on-surface min-h-[100px] type-body-md"
+              className="w-full p-3 rounded-lg border border-outline-variant bg-surface-container text-on-surface min-h-[100px] text-body-md"
               placeholder="e.g. Violates community guidelines, spam, explicit content..."
               value={removeReason}
               onChange={(e) => setRemoveReason(e.target.value)}

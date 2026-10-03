@@ -36,8 +36,8 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
       <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
         {onBack && <button onClick={onBack} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center"><ChevronLeft size={20} className="text-on-surface-variant" /></button>}
         <div className="flex-1">
-          <p className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">Step {step} of {TOTAL_STEPS} · {STEP_LABELS[step-1]}</p>
-          <h1 className="text-[18px] font-black text-on-surface leading-tight">{title}</h1>
+          <p className="text-label-sm text-on-surface-variant font-semibold uppercase tracking-wider">Step {step} of {TOTAL_STEPS} · {STEP_LABELS[step-1]}</p>
+          <h1 className="text-headline-md font-black text-on-surface leading-tight">{title}</h1>
           {subtitle && <p className="text-sm text-on-surface-variant mt-0.5">{subtitle}</p>}
         </div>
       </div>
@@ -360,7 +360,7 @@ function CreateQuestContent() {
               className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest resize-none" />
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">Proof Type</label>
+                <label className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">Proof Type</label>
                 <select value={task.proof_type ?? "photo"} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, proof_type: e.target.value as ProofType } : t))}
                   className="w-full h-9 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-xs text-on-surface-variant focus:outline-none focus:border-secondary">
                   {PROOF_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
@@ -384,7 +384,7 @@ function CreateQuestContent() {
                   : <ImageIcon size={18} className="text-on-surface-variant" aria-hidden="true" />}
               </div>
               <div className="flex-1 min-w-0">
-                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1">
+                <label className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider block mb-1">
                   Task image
                 </label>
                 <div className="flex items-center gap-2">
@@ -463,7 +463,7 @@ function CreateQuestContent() {
             </div>
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">Reward Type</label>
+                <label className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">Reward Type</label>
                 <select value={reward.reward_type ?? "other"} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, reward_type: e.target.value as RewardType } : r))}
                   className="w-full h-9 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-xs text-on-surface-variant focus:outline-none focus:border-secondary">
                   {REWARD_TYPES.map(rt => <option key={rt.value} value={rt.value}>{rt.label}</option>)}
@@ -554,8 +554,8 @@ function CreateQuestContent() {
       <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
         <button onClick={() => setStep(5)} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center"><ChevronLeft size={20} className="text-on-surface-variant" /></button>
         <div>
-          <p className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">Step 6 of 6 · Review</p>
-          <h1 className="text-[18px] font-black text-on-surface">Review & Publish</h1>
+          <p className="text-label-sm text-on-surface-variant font-semibold uppercase tracking-wider">Step 6 of 6 · Review</p>
+          <h1 className="text-headline-md font-black text-on-surface">Review & Publish</h1>
         </div>
       </div>
 
@@ -578,15 +578,15 @@ function CreateQuestContent() {
 
         {tasks.filter(t => t.title?.trim()).length > 0 && (
           <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
-            <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-3">Tasks ({tasks.filter(t => t.title?.trim()).length})</p>
+            <p className="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider mb-3">Tasks ({tasks.filter(t => t.title?.trim()).length})</p>
             <div className="flex flex-col gap-2">
               {tasks.filter(t => t.title?.trim()).map((t, i) => (
                 <div key={i} className="flex items-center gap-3 py-2 border-b border-outline-variant last:border-0">
                   <div className="w-6 h-6 rounded-full bg-secondary-fixed flex items-center justify-center shrink-0">
-                    <span className="text-[10px] font-black text-secondary">{i+1}</span>
+                    <span className="text-label-sm font-black text-secondary">{i+1}</span>
                   </div>
                   <p className="text-sm text-on-surface font-medium">{t.title}</p>
-                  <span className="ml-auto text-[10px] text-on-surface-variant shrink-0">{PROOF_TYPES.find(p => p.value === t.proof_type)?.label}</span>
+                  <span className="ml-auto text-label-sm text-on-surface-variant shrink-0">{PROOF_TYPES.find(p => p.value === t.proof_type)?.label}</span>
                 </div>
               ))}
             </div>
@@ -595,7 +595,7 @@ function CreateQuestContent() {
 
         {rewards.filter(r => r.title?.trim()).length > 0 && (
           <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
-            <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-3">Rewards ({rewards.filter(r => r.title?.trim()).length})</p>
+            <p className="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider mb-3">Rewards ({rewards.filter(r => r.title?.trim()).length})</p>
             {rewards.filter(r => r.title?.trim()).map((r, i) => (
               <div key={i} className="flex items-center gap-3 py-2 border-b border-outline-variant last:border-0">
                 <span className="text-lg">🏆</span>
@@ -620,7 +620,7 @@ function CreateQuestContent() {
       <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-4 flex flex-col gap-2">
         {isVerified && (
           <button onClick={handlePublish} disabled={saving}
-            className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-[15px] transition-all">
+            className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-body-lg transition-all">
             {saving ? "Publishing…" : "🚀 Publish Quest"}
           </button>
         )}

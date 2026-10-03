@@ -304,7 +304,7 @@ export default function BusinessQuestDetailClient({
           </button>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-on-surface truncate">{quest.title}</p>
-            <p className="text-[11px] text-on-surface-variant truncate">{businessName}</p>
+            <p className="text-label-sm text-on-surface-variant truncate">{businessName}</p>
           </div>
           {shareNote && (
             <span role="status" className="text-xs font-medium text-on-surface-variant shrink-0">
@@ -368,18 +368,18 @@ export default function BusinessQuestDetailClient({
                     </span>
                   )}
                   {quest.category && (
-                    <span className="text-[11px] font-semibold text-white bg-surface-container-lowest/15 border border-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
+                    <span className="text-label-sm font-semibold text-white bg-surface-container-lowest/15 border border-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
                       {quest.category}
                     </span>
                   )}
                 </div>
 
-                <h1 className="text-[30px] lg:text-[38px] leading-[1.1] font-bold text-white tracking-tight uppercase">
+                <h1 className="text-headline-lg lg:text-display leading-[1.1] font-bold text-white tracking-tight uppercase">
                   {quest.title}
                 </h1>
 
                 {quest.description && (
-                  <p className="text-[15px] text-on-surface-variant leading-relaxed line-clamp-2">
+                  <p className="text-body-lg text-on-surface-variant leading-relaxed line-clamp-2">
                     {quest.description}
                   </p>
                 )}
@@ -529,10 +529,10 @@ export default function BusinessQuestDetailClient({
             {/* ── Rules ─────────────────────────────────────────────── */}
             {tab === "rules" && (
               <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
-                <h2 className="text-[17px] font-bold text-on-surface">Quest Rules</h2>
+                <h2 className="text-body-lg font-bold text-on-surface">Quest Rules</h2>
                 {quest.eligibility && (
                   <>
-                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-5">
+                    <h3 className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant mt-5">
                       Eligibility
                     </h3>
                     <p className="text-sm text-on-surface-variant leading-relaxed mt-1.5 whitespace-pre-line">
@@ -540,7 +540,7 @@ export default function BusinessQuestDetailClient({
                     </p>
                   </>
                 )}
-                <h3 className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-5">
+                <h3 className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant mt-5">
                   Rules
                 </h3>
                 {quest.rules ? (
@@ -616,7 +616,7 @@ export default function BusinessQuestDetailClient({
           <button
             onClick={handleJoin}
             disabled={joining}
-            className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-50 text-white font-bold text-[15px] transition-colors"
+            className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-50 text-white font-bold text-body-lg transition-colors"
           >
             {joining ? "Joining…" : "Join Quest"}
           </button>
@@ -671,8 +671,8 @@ function StatPill({
     <div className={`rounded-2xl border px-4 py-3.5 flex items-center gap-3 ${t.wrap}`}>
       <Icon size={20} className={`${t.icon} shrink-0`} aria-hidden="true" />
       <div className="min-w-0">
-        <p className="text-[15px] font-bold text-on-surface leading-tight truncate">{value}</p>
-        <p className="text-[11px] text-on-surface-variant truncate">{label}</p>
+        <p className="text-body-lg font-bold text-on-surface leading-tight truncate">{value}</p>
+        <p className="text-label-sm text-on-surface-variant truncate">{label}</p>
       </div>
     </div>
   );
@@ -709,7 +709,7 @@ function AboutQuestCard({
 
   return (
     <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
-      <h2 className="text-[17px] font-bold text-on-surface">About This Quest</h2>
+      <h2 className="text-body-lg font-bold text-on-surface">About This Quest</h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-6 mt-3">
         <div className="min-w-0">
@@ -721,7 +721,7 @@ function AboutQuestCard({
             <dl className="grid grid-cols-2 gap-x-6 gap-y-4 mt-5">
               {facts.map((f) => (
                 <div key={f.k}>
-                  <dt className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+                  <dt className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">
                     {f.k}
                   </dt>
                   <dd className="text-sm font-semibold text-on-surface mt-1">{f.v}</dd>
@@ -768,7 +768,7 @@ function TaskSection({
     <section id="tasks" className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 scroll-mt-20">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-[17px] font-bold text-on-surface">
+          <h2 className="text-body-lg font-bold text-on-surface">
             Tasks ({tasks.length})
           </h2>
           <p className="text-sm text-on-surface-variant mt-0.5">
@@ -851,9 +851,9 @@ function TaskCard({
         {/* Body */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-[15px] font-bold text-on-surface truncate">{task.title}</h3>
+            <h3 className="text-body-lg font-bold text-on-surface truncate">{task.title}</h3>
             <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+              className={`text-label-sm font-bold px-2 py-0.5 rounded-full border shrink-0 ${
                 task.is_required
                   ? "text-on-error-container bg-error-container border-error-outline"
                   : "text-on-surface-variant bg-surface-container-low border-outline-variant"
@@ -870,7 +870,7 @@ function TaskCard({
           )}
 
           <div className="flex items-center gap-2 flex-wrap mt-2">
-            <span className="text-[11px] font-medium text-on-surface-variant">
+            <span className="text-label-sm font-medium text-on-surface-variant">
               Proof Type: <span className="text-on-surface-variant">{proofLabel}</span>
             </span>
             {showPlatforms && platforms!.map((p) => (
@@ -881,14 +881,14 @@ function TaskCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors"
+                  className="inline-flex items-center gap-1 text-label-sm font-bold px-2 py-0.5 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors"
                 >
                   {p.label} <ExternalLink size={9} />
                 </a>
               ) : (
                 <span
                   key={p.platform}
-                  className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant"
+                  className="inline-flex items-center text-label-sm font-bold px-2 py-0.5 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant"
                 >
                   {p.label}
                 </span>
@@ -896,7 +896,7 @@ function TaskCard({
             ))}
             {state && (
               <span
-                className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${state.cls}`}
+                className={`inline-flex items-center gap-1 text-label-sm font-bold px-2 py-0.5 rounded-full border ${state.cls}`}
               >
                 <state.Icon size={11} /> {state.label}
               </span>
@@ -940,7 +940,7 @@ function LeaderboardPanel({
 }) {
   return (
     <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
-      <h2 className="text-[17px] font-bold text-on-surface">Leaderboard</h2>
+      <h2 className="text-body-lg font-bold text-on-surface">Leaderboard</h2>
       <p className="text-sm text-on-surface-variant mt-0.5">
         {enabled
           ? "Ranked on verified task completions only."
@@ -1021,7 +1021,7 @@ function AboutBusinessPanel({
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h2 className="text-[19px] font-bold text-on-surface truncate">{businessName}</h2>
+            <h2 className="text-headline-md font-bold text-on-surface truncate">{businessName}</h2>
             {verified && (
               <ShieldCheck size={16} className="text-secondary shrink-0" aria-label="Verified by STRIVUP" />
             )}
@@ -1037,7 +1037,7 @@ function AboutBusinessPanel({
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mt-5">
         {address.length > 0 && (
           <div>
-            <dt className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+            <dt className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">
               Address
             </dt>
             <dd className="text-sm text-on-surface-variant leading-relaxed mt-1">
@@ -1047,7 +1047,7 @@ function AboutBusinessPanel({
         )}
         {phones.length > 0 && (
           <div>
-            <dt className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+            <dt className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">
               Phone
             </dt>
             <dd className="text-sm text-on-surface-variant mt-1">{phones.join(" / ")}</dd>
@@ -1055,7 +1055,7 @@ function AboutBusinessPanel({
         )}
         {b?.website && (
           <div>
-            <dt className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+            <dt className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">
               Website
             </dt>
             <dd className="text-sm mt-1">

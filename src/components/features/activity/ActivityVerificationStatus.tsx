@@ -45,7 +45,7 @@ export function ActivityVerificationStatus({
           : "Flagged for review";
     return (
       <span
-        className={`inline-flex items-center gap-1 rounded-full bg-warning-container px-2 py-0.5 text-[11px] font-medium text-on-warning-container ${className}`}
+        className={`inline-flex items-center gap-1 rounded-full bg-warning-container px-2 py-0.5 text-label-sm font-medium text-on-warning-container ${className}`}
       >
         <ShieldAlert className="h-3 w-3" /> {label}
       </span>
@@ -55,7 +55,7 @@ export function ActivityVerificationStatus({
   if (verification === "VERIFIED") {
     return (
       <span
-        className={`inline-flex items-center gap-1 rounded-full bg-success-container px-2 py-0.5 text-[11px] font-medium text-on-success-container ${className}`}
+        className={`inline-flex items-center gap-1 rounded-full bg-success-container px-2 py-0.5 text-label-sm font-medium text-on-success-container ${className}`}
       >
         <BadgeCheck className="h-3 w-3" /> Verified by {sourceLabel(source)}
       </span>
@@ -65,7 +65,7 @@ export function ActivityVerificationStatus({
   if (verification === "SELF_REPORTED") {
     return (
       <span
-        className={`inline-flex items-center gap-1 rounded-full bg-secondary-fixed px-2 py-0.5 text-[11px] font-medium text-secondary ${className}`}
+        className={`inline-flex items-center gap-1 rounded-full bg-secondary-fixed px-2 py-0.5 text-label-sm font-medium text-secondary ${className}`}
       >
         <Smartphone className="h-3 w-3" /> Self-reported · {sourceLabel(source)}
       </span>
@@ -74,7 +74,7 @@ export function ActivityVerificationStatus({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full bg-surface-container px-2 py-0.5 text-[11px] font-medium text-on-surface-variant ${className}`}
+      className={`inline-flex items-center gap-1 rounded-full bg-surface-container px-2 py-0.5 text-label-sm font-medium text-on-surface-variant ${className}`}
     >
       <ShieldQuestion className="h-3 w-3" /> Unverified
     </span>

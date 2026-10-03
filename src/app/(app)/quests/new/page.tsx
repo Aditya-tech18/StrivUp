@@ -197,7 +197,7 @@ export default function CreateQuestPage() {
         >
           <ChevronLeft size={24} aria-hidden="true" />
         </button>
-        <h1 className="type-body-md font-semibold text-on-surface">
+        <h1 className="text-body-md font-semibold text-on-surface">
           Create a Quest
         </h1>
       </div>
@@ -211,7 +211,7 @@ export default function CreateQuestPage() {
               className="shrink-0 mt-0.5 text-error"
               aria-hidden="true"
             />
-            <p className="type-body-md text-error text-sm">{error}</p>
+            <p className="text-body-md text-error text-sm">{error}</p>
           </div>
         )}
 
@@ -229,7 +229,7 @@ export default function CreateQuestPage() {
 
           {/* Description */}
           <Card bordered padding="md">
-            <label className="block type-label-caps text-on-surface-variant mb-2">
+            <label className="block text-overline text-on-surface-variant mb-2">
               Description
             </label>
             <textarea aria-label="Description"
@@ -238,9 +238,9 @@ export default function CreateQuestPage() {
               onChange={(e) => setDescription(e.target.value)}
               maxLength={1000}
               rows={4}
-              className="w-full type-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary resize-none"
+              className="w-full text-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary resize-none"
             />
-            <p className="type-body-sm text-on-surface-variant mt-1">
+            <p className="text-body-sm text-on-surface-variant mt-1">
               {description.length} / 1000
             </p>
           </Card>
@@ -280,7 +280,7 @@ export default function CreateQuestPage() {
 
           {/* Latitude & Longitude */}
           <Card bordered padding="md" className="space-y-3">
-            <p className="type-label-caps text-on-surface-variant">
+            <p className="text-overline text-on-surface-variant">
               Coordinates
             </p>
             <div className="grid grid-cols-2 gap-3">
@@ -290,7 +290,7 @@ export default function CreateQuestPage() {
                 step="0.0001"
                 value={latitude}
                 onChange={(e) => setLatitude(e.target.value)}
-                className="w-full type-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
+                className="w-full text-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
               />
               <input aria-label="Longitude"
                 type="number"
@@ -298,10 +298,10 @@ export default function CreateQuestPage() {
                 step="0.0001"
                 value={longitude}
                 onChange={(e) => setLongitude(e.target.value)}
-                className="w-full type-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
+                className="w-full text-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
               />
             </div>
-            <p className="type-body-sm text-on-surface-variant text-xs">
+            <p className="text-body-sm text-on-surface-variant text-xs">
               Enter decimal coordinates (e.g., 40.7829 for latitude)
             </p>
           </Card>
@@ -319,7 +319,7 @@ export default function CreateQuestPage() {
 
           {/* Proof Type */}
           <Card bordered padding="md">
-            <label className="block type-label-caps text-on-surface-variant mb-2">
+            <label className="block text-overline text-on-surface-variant mb-2">
               Proof Type
             </label>
             <select aria-label="Proof Type"
@@ -327,7 +327,7 @@ export default function CreateQuestPage() {
               onChange={(e) =>
                 setProofType(e.target.value as "photo" | "checkin" | "none")
               }
-              className="w-full type-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"
+              className="w-full text-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"
             >
               <option value="photo">Photo Upload</option>
               <option value="checkin">Check-in</option>
@@ -337,7 +337,7 @@ export default function CreateQuestPage() {
 
           {/* Thumbnail Upload */}
           <Card bordered padding="md">
-            <p className="type-label-caps text-on-surface-variant mb-3">
+            <p className="text-overline text-on-surface-variant mb-3">
               Quest Thumbnail
             </p>
             {thumbnailPreview ? (
@@ -371,10 +371,10 @@ export default function CreateQuestPage() {
                   aria-hidden="true"
                 />
                 <div className="text-center">
-                  <p className="type-body-md font-medium text-on-surface">
+                  <p className="text-body-md font-medium text-on-surface">
                     Upload thumbnail
                   </p>
-                  <p className="type-body-sm text-on-surface-variant">
+                  <p className="text-body-sm text-on-surface-variant">
                     JPG, PNG or WebP • Max 5 MB
                   </p>
                 </div>

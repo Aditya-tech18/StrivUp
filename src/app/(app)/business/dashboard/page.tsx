@@ -170,7 +170,7 @@ export default function BusinessDashboardPage() {
             }
           </Link>
         </div>
-        <span className="text-center font-black text-on-surface text-[17px] tracking-tight">STRIVUP</span>
+        <span className="text-center font-black text-on-surface text-body-lg tracking-tight">STRIVUP</span>
         <div className="flex items-center justify-end gap-2">
           <Link href="/search" aria-label="Search"
             className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center">
@@ -214,7 +214,7 @@ export default function BusinessDashboardPage() {
             {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-[18px] font-black text-on-surface">{name}</h1>
+                <h1 className="text-headline-md font-black text-on-surface">{name}</h1>
                 {bp.verification_status === "verified" && (
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-label="Verified"><circle cx="9" cy="9" r="9" fill="#3B82F6"/><path d="M5 9l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 )}
@@ -240,7 +240,7 @@ export default function BusinessDashboardPage() {
             ].map((s, i) => (
               <div key={s.label} className={`flex flex-col items-center py-3 bg-surface-container-low/50 ${i > 0 ? "border-l border-outline-variant" : ""}`}>
                 <span className="text-lg font-black text-on-surface">{s.value}</span>
-                <span className="text-[10px] text-on-surface-variant font-medium mt-0.5">{s.label}</span>
+                <span className="text-label-sm text-on-surface-variant font-medium mt-0.5">{s.label}</span>
               </div>
             ))}
           </div>
@@ -272,7 +272,7 @@ export default function BusinessDashboardPage() {
 
         {/* ── Business Tools ───────────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5">
-          <h2 className="text-[17px] font-black text-on-surface mb-1">Business Tools</h2>
+          <h2 className="text-body-lg font-black text-on-surface mb-1">Business Tools</h2>
           <p className="text-sm text-on-surface-variant mb-4">Manage your challenges, verify participants and track your impact on STRIVUP.</p>
           <div className="grid grid-cols-2 gap-3">
             {TOOLS.map(tool => (
@@ -280,7 +280,7 @@ export default function BusinessDashboardPage() {
                 <div className="flex items-start justify-between">
                   <div className={`w-10 h-10 rounded-xl ${tool.bg} flex items-center justify-center`}>{tool.icon}</div>
                   {tool.badge > 0 && (
-                    <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-warning text-white text-[11px] font-bold flex items-center justify-center">
+                    <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-warning text-white text-label-sm font-bold flex items-center justify-center">
                       {tool.badge > 99 ? "99+" : tool.badge}
                     </span>
                   )}
@@ -309,7 +309,7 @@ export default function BusinessDashboardPage() {
             {QUICK_LINKS.map(q => (
               <Link key={q.href} href={q.href} className="flex flex-col items-center gap-1.5 rounded-xl py-2 hover:bg-surface-container-low transition-colors">
                 <div className={`w-9 h-9 rounded-xl ${q.bg} flex items-center justify-center`}>{q.icon}</div>
-                <span className="text-[10px] font-medium text-on-surface-variant text-center leading-tight">{q.label}</span>
+                <span className="text-label-sm font-medium text-on-surface-variant text-center leading-tight">{q.label}</span>
               </Link>
             ))}
           </div>
@@ -325,7 +325,7 @@ export default function BusinessDashboardPage() {
           ].map(s => (
             <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-3 flex flex-col items-center">
               <span className={`text-xl font-black ${s.color}`}>{s.value}</span>
-              <span className="text-[9px] text-on-surface-variant font-medium mt-0.5 text-center leading-tight">{s.label}</span>
+              <span className="text-label-sm text-on-surface-variant font-medium mt-0.5 text-center leading-tight">{s.label}</span>
             </div>
           ))}
         </div>
@@ -333,7 +333,7 @@ export default function BusinessDashboardPage() {
         {/* ── Active Quests ─────────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[17px] font-black text-on-surface">Your Active Campaigns</h2>
+            <h2 className="text-body-lg font-black text-on-surface">Your Active Campaigns</h2>
             <Link href="/business/quests" className="text-sm text-secondary font-semibold">View all</Link>
           </div>
           {activeQuests.length === 0 ? (
@@ -361,13 +361,13 @@ export default function BusinessDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-on-surface truncate">{quest.title}</p>
                       {quest.description && <p className="text-xs text-on-surface-variant truncate mt-0.5">{quest.description}</p>}
-                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-on-success-container bg-success-container px-2 py-0.5 rounded-full">
+                      <span className="inline-flex items-center gap-1 mt-1 text-label-sm font-semibold text-on-success-container bg-success-container px-2 py-0.5 rounded-full">
                         <span className="w-1.5 h-1.5 rounded-full bg-success" /> Active
                       </span>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-sm font-black text-on-surface">{quest.participant_count}</p>
-                      <p className="text-[10px] text-on-surface-variant">Participants</p>
+                      <p className="text-label-sm text-on-surface-variant">Participants</p>
                     </div>
                     <ChevronRight size={16} className="text-on-surface-variant shrink-0" />
                   </div>
@@ -381,7 +381,7 @@ export default function BusinessDashboardPage() {
         {verifs.length > 0 && (
           <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[17px] font-black text-on-surface">Recent Activity</h2>
+              <h2 className="text-body-lg font-black text-on-surface">Recent Activity</h2>
               <Link href="/business/verification/history" className="text-sm text-secondary font-semibold">View all</Link>
             </div>
             <div className="flex flex-col gap-0">
@@ -407,7 +407,7 @@ export default function BusinessDashboardPage() {
                       </p>
                       <p className="text-xs text-on-surface-variant">{timeAgo(req.created_at)}</p>
                     </div>
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${sc.cls}`}>{sc.label}</span>
+                    <span className={`text-label-sm font-bold px-2.5 py-1 rounded-full shrink-0 ${sc.cls}`}>{sc.label}</span>
                   </div>
                 );
               })}

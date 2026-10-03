@@ -90,12 +90,12 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
                 <span className="relative inline-flex">
                   <Icon size={22} strokeWidth={isActive ? 2.5 : 1.75} />
                   {badge > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-error text-white text-[10px] font-bold leading-4 flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-error text-white text-label-sm font-bold leading-4 flex items-center justify-center">
                       {badge > 99 ? "99+" : badge}
                     </span>
                   )}
                 </span>
-                <span className={`text-[10px] font-medium leading-none ${isActive ? "text-secondary" : ""}`}>
+                <span className={`text-label-sm font-medium leading-none ${isActive ? "text-secondary" : ""}`}>
                   {item.label}
                 </span>
               </>

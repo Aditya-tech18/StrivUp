@@ -132,7 +132,7 @@ export default function SearchPage() {
                 }`}>
                 {t}
                 {counts[t] > 0 && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${tab === t ? "bg-secondary text-on-secondary" : "bg-surface-container text-on-surface-variant"}`}>
+                  <span className={`text-label-sm px-1.5 py-0.5 rounded-full font-black ${tab === t ? "bg-secondary text-on-secondary" : "bg-surface-container text-on-surface-variant"}`}>
                     {counts[t]}
                   </span>
                 )}
@@ -207,7 +207,7 @@ export default function SearchPage() {
                   </div>
                   <div className="flex-1 min-w-0 py-0.5">
                     <p className="text-sm font-bold text-on-surface line-clamp-1">{ch.title}</p>
-                    {ch.category && <span className="text-[10px] font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">{ch.category}</span>}
+                    {ch.category && <span className="text-label-sm font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">{ch.category}</span>}
                     {ch.description && <p className="text-xs text-on-surface-variant line-clamp-1 mt-1">{ch.description}</p>}
                     <div className="flex items-center gap-1 text-xs text-on-surface-variant mt-1">
                       <Users size={11} />{ch.participant_count} participants
@@ -234,8 +234,8 @@ export default function SearchPage() {
                   </div>
                   <div className="flex-1 min-w-0 py-0.5">
                     <p className="text-sm font-bold text-on-surface line-clamp-1">{q.title}</p>
-                    {q.business_name && <p className="text-[10px] text-on-surface-variant">by {q.business_name}</p>}
-                    {q.category && <span className="text-[10px] font-semibold text-secondary bg-secondary-fixed px-2 py-0.5 rounded-full">{q.category}</span>}
+                    {q.business_name && <p className="text-label-sm text-on-surface-variant">by {q.business_name}</p>}
+                    {q.category && <span className="text-label-sm font-semibold text-secondary bg-secondary-fixed px-2 py-0.5 rounded-full">{q.category}</span>}
                     <div className="flex items-center gap-1 text-xs text-on-surface-variant mt-1">
                       <Users size={11} />{q.participant_count} participants
                     </div>

@@ -48,7 +48,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         onClick={() => setOpen(v => !v)}
         className="w-full flex items-center justify-between gap-3 px-4 py-4 text-left hover:bg-surface-container-low transition-colors"
       >
-        <p className="text-[14px] font-medium text-on-surface leading-snug">{q}</p>
+        <p className="text-body-md font-medium text-on-surface leading-snug">{q}</p>
         {open
           ? <ChevronUp size={16} className="text-on-surface-variant shrink-0" />
           : <ChevronDown size={16} className="text-on-surface-variant shrink-0" />
@@ -56,7 +56,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
       </button>
       {open && (
         <div className="px-4 pb-4">
-          <p className="text-[13px] text-on-surface-variant leading-relaxed">{a}</p>
+          <p className="text-body-md text-on-surface-variant leading-relaxed">{a}</p>
         </div>
       )}
     </div>
@@ -76,7 +76,7 @@ export default function HelpPage() {
           >
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
-          <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Help & Support</h1>
+          <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Help & Support</h1>
         </div>
       </div>
 
@@ -84,8 +84,8 @@ export default function HelpPage() {
 
         {/* Contact card */}
         <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
-          <p className="text-[13px] font-semibold text-on-surface-variant uppercase tracking-[0.06em] mb-3">Contact Us</p>
-          <p className="text-[13px] text-on-surface-variant leading-relaxed mb-4">
+          <p className="text-body-md font-semibold text-on-surface-variant uppercase tracking-[0.06em] mb-3">Contact Us</p>
+          <p className="text-body-md text-on-surface-variant leading-relaxed mb-4">
             Have a question, found a bug, or want to request a feature? Our team is ready to help.
             We typically respond within 24–48 hours.
           </p>
@@ -97,8 +97,8 @@ export default function HelpPage() {
               <Mail size={18} className="text-secondary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] text-on-surface-variant mb-0.5">Email support</p>
-              <p className="text-[14px] font-bold text-secondary truncate">{SUPPORT_EMAIL}</p>
+              <p className="text-label-sm text-on-surface-variant mb-0.5">Email support</p>
+              <p className="text-body-md font-bold text-secondary truncate">{SUPPORT_EMAIL}</p>
             </div>
             <ExternalLink size={15} className="text-secondary shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
           </a>
@@ -106,7 +106,7 @@ export default function HelpPage() {
 
         {/* FAQ */}
         <div>
-          <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em] mb-2 px-1">
+          <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em] mb-2 px-1">
             Frequently Asked Questions
           </p>
           <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
@@ -116,8 +116,8 @@ export default function HelpPage() {
 
         {/* Footer note */}
         <div className="bg-surface-container-low rounded-2xl border border-outline-variant p-4 text-center">
-          <p className="text-[13px] font-semibold text-on-surface">Still need help?</p>
-          <p className="text-[12px] text-on-surface-variant mt-1">
+          <p className="text-body-md font-semibold text-on-surface">Still need help?</p>
+          <p className="text-body-sm text-on-surface-variant mt-1">
             Write to us at{" "}
             <a href={`mailto:${SUPPORT_EMAIL}`} className="text-secondary font-medium hover:underline">
               {SUPPORT_EMAIL}

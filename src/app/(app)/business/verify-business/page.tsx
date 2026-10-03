@@ -201,9 +201,9 @@ export default function VerifyBusinessPage() {
           </Link>
           <div className="flex-1 min-w-0">
             <h1 className="text-sm font-bold text-on-surface">Business Verification</h1>
-            <p className="text-[11px] text-on-surface-variant truncate">{f.business_name || "Your business"}</p>
+            <p className="text-label-sm text-on-surface-variant truncate">{f.business_name || "Your business"}</p>
           </div>
-          <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${ui.cls}`}>
+          <span className={`text-label-sm font-bold px-2.5 py-1 rounded-full border shrink-0 ${ui.cls}`}>
             {ui.label}
           </span>
         </div>
@@ -235,7 +235,7 @@ export default function VerifyBusinessPage() {
 
         {status === "verified" ? (
           <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
-            <h2 className="text-[17px] font-bold text-on-surface">You&apos;re all set</h2>
+            <h2 className="text-body-lg font-bold text-on-surface">You&apos;re all set</h2>
             <p className="text-sm text-on-surface-variant mt-1">
               Your blue tick is live on your profile, Quests and Challenges.
             </p>
@@ -252,7 +252,7 @@ export default function VerifyBusinessPage() {
           </section>
         ) : locked ? (
           <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
-            <h2 className="text-[17px] font-bold text-on-surface">What happens next</h2>
+            <h2 className="text-body-lg font-bold text-on-surface">What happens next</h2>
             <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">
               A STRIVUP reviewer checks your business information and documents.
               You&apos;ll be notified as soon as there is a decision. You can&apos;t
@@ -314,7 +314,7 @@ export default function VerifyBusinessPage() {
 
               {step === 2 && (
                 <>
-                  <h2 className="text-[17px] font-bold text-on-surface flex items-center gap-2">
+                  <h2 className="text-body-lg font-bold text-on-surface flex items-center gap-2">
                     <FileText size={18} className="text-on-surface-variant" /> Business documents
                   </h2>
                   <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">
@@ -337,7 +337,7 @@ export default function VerifyBusinessPage() {
                           <p className="text-sm font-semibold text-on-surface">
                             {dt.label}
                             {required.includes(dt.value) && (
-                              <span className="ml-2 text-[10px] font-bold text-secondary bg-secondary-fixed border border-secondary-fixed-dim px-1.5 py-0.5 rounded-full">
+                              <span className="ml-2 text-label-sm font-bold text-secondary bg-secondary-fixed border border-secondary-fixed-dim px-1.5 py-0.5 rounded-full">
                                 Suggested
                               </span>
                             )}
@@ -373,7 +373,7 @@ export default function VerifyBusinessPage() {
 
               {step === 4 && (
                 <>
-                  <h2 className="text-[17px] font-bold text-on-surface">Declaration</h2>
+                  <h2 className="text-body-lg font-bold text-on-surface">Declaration</h2>
                   <label className="flex items-start gap-3 mt-4 cursor-pointer">
                     <input type="checkbox" checked={declared}
                       onChange={(e) => setDeclared(e.target.checked)}
@@ -385,7 +385,7 @@ export default function VerifyBusinessPage() {
                   </label>
 
                   <div className="mt-5 rounded-xl bg-surface-container-low border border-outline-variant p-4">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Summary</p>
+                    <p className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">Summary</p>
                     <dl className="grid grid-cols-2 gap-x-6 gap-y-2 mt-2">
                       <Summary k="Business" v={f.business_name} />
                       <Summary k="Category" v={f.category} />
@@ -427,7 +427,7 @@ export default function VerifyBusinessPage() {
         {/* History — what a reviewer has already said */}
         {history.length > 0 && (
           <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
-            <h2 className="text-[17px] font-bold text-on-surface">Verification history</h2>
+            <h2 className="text-body-lg font-bold text-on-surface">Verification history</h2>
             <ol className="mt-3 divide-y divide-gray-100">
               {history.map((h) => (
                 <li key={h.id} className="py-3">
@@ -435,7 +435,7 @@ export default function VerifyBusinessPage() {
                     <span className="text-sm font-semibold text-on-surface">
                       {STATUS_UI[h.to_status as VerificationStatus]?.label ?? h.to_status}
                     </span>
-                    <span className="text-[11px] text-on-surface-variant">
+                    <span className="text-label-sm text-on-surface-variant">
                       by {h.actor_role} · {new Date(h.created_at).toLocaleString("en-IN", {
                         day: "numeric", month: "short", year: "numeric",
                         hour: "numeric", minute: "2-digit",
@@ -465,7 +465,7 @@ function Fields({
 }) {
   return (
     <>
-      <h2 className="text-[17px] font-bold text-on-surface flex items-center gap-2">
+      <h2 className="text-body-lg font-bold text-on-surface flex items-center gap-2">
         <Icon size={18} className="text-on-surface-variant" /> {title}
       </h2>
       {note && <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">{note}</p>}
@@ -489,7 +489,7 @@ function Field({
     "w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest transition-colors";
   return (
     <label className={wide ? "sm:col-span-2" : undefined}>
-      <span className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1">
+      <span className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider block mb-1">
         {label}
       </span>
       {textarea
@@ -502,7 +502,7 @@ function Field({
 function Summary({ k, v }: { k: string; v: string }) {
   return (
     <div>
-      <dt className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">{k}</dt>
+      <dt className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider">{k}</dt>
       <dd className="text-sm text-on-surface mt-0.5">{v || "—"}</dd>
     </div>
   );
@@ -536,7 +536,7 @@ function DocumentList({
             <p className="text-xs text-on-surface-variant truncate">{d.file_name}</p>
           </div>
           {d.status !== "submitted" && (
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+            <span className={`text-label-sm font-bold px-2 py-0.5 rounded-full border shrink-0 ${
               d.status === "accepted"
                 ? "text-on-success-container bg-success-container border-success-outline"
                 : "text-on-error-container bg-error-container border-error-outline"}`}>

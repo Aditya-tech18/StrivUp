@@ -30,7 +30,7 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
             <div className="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
               <Flame size={18} className="text-on-primary" aria-hidden="true" />
             </div>
-            <span className="type-label-caps text-secondary tracking-widest text-sm font-semibold">
+            <span className="text-overline text-secondary tracking-widest text-sm font-semibold">
               STRIVUP
             </span>
           </div>

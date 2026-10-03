@@ -46,10 +46,10 @@ export function ValuePropPanel() {
           <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
             <Flame size={24} className="text-secondary-fixed" aria-hidden="true" />
           </div>
-          <h2 className="type-display-lg text-on-primary leading-tight">
+          <h2 className="text-display-mobile text-on-primary leading-tight">
             Analyze Your<br />Potential
           </h2>
-          <p className="type-body-md text-on-primary-container leading-relaxed">
+          <p className="text-body-md text-on-primary-container leading-relaxed">
             Track streaks, build habits, and push your limits with a community
             that holds you accountable every single day.
           </p>
@@ -66,15 +66,15 @@ export function ValuePropPanel() {
                 {stat.icon}
               </div>
               <div>
-                <p className="type-label-caps text-on-primary-container">{stat.label}</p>
-                <p className="type-headline-sm text-on-primary">{stat.value}</p>
+                <p className="text-overline text-on-primary-container">{stat.label}</p>
+                <p className="text-headline-md text-on-primary">{stat.value}</p>
               </div>
             </div>
           ))}
         </div>
 
         {/* Footer tagline */}
-        <p className="type-label-caps text-on-primary-container/60 text-center tracking-widest">
+        <p className="text-overline text-on-primary-container/60 text-center tracking-widest">
           STRIVUP · Build Better. Every Day.
         </p>
       </div>

@@ -175,7 +175,7 @@ export default function PublicProfilePage({
           <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
-          <h1 className="text-[17px] font-bold text-on-surface flex-1 truncate">
+          <h1 className="text-body-lg font-bold text-on-surface flex-1 truncate">
             {displayName}
           </h1>
           {profile.is_private && (
@@ -203,7 +203,7 @@ export default function PublicProfilePage({
               {/* Name + info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                  <h2 className="text-[18px] font-black text-on-surface">{displayName}</h2>
+                  <h2 className="text-headline-md font-black text-on-surface">{displayName}</h2>
                   {isVerified && <ShieldCheck size={17} className="text-secondary shrink-0" />}
                 </div>
                 {profile.username && <p className="text-sm text-on-surface-variant mb-1">@{profile.username}</p>}
@@ -220,8 +220,8 @@ export default function PublicProfilePage({
                 { label: "Quests", value: stats.quests },
               ].map(s => (
                 <div key={s.label} className="flex flex-col items-center">
-                  <span className="text-[17px] font-black text-on-surface">{s.value}</span>
-                  <span className="text-[10px] text-on-surface-variant font-medium">{s.label}</span>
+                  <span className="text-body-lg font-black text-on-surface">{s.value}</span>
+                  <span className="text-label-sm text-on-surface-variant font-medium">{s.label}</span>
                 </div>
               ))}
             </div>
@@ -260,7 +260,7 @@ export default function PublicProfilePage({
             <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center">
               <span className="text-3xl">🔒</span>
             </div>
-            <p className="text-[15px] font-bold text-on-surface">This account is private</p>
+            <p className="text-body-lg font-bold text-on-surface">This account is private</p>
             <p className="text-sm text-on-surface-variant">
               Follow {displayName} to see their challenges and progress.
             </p>
@@ -283,8 +283,8 @@ export default function PublicProfilePage({
                       }
                     </div>
                     <div className="p-2">
-                      <p className="text-[10px] font-bold text-on-surface line-clamp-1">{ch.title}</p>
-                      <p className="text-[9px] text-on-surface-variant">
+                      <p className="text-label-sm font-bold text-on-surface line-clamp-1">{ch.title}</p>
+                      <p className="text-label-sm text-on-surface-variant">
                         Day {ch.current_day}{ch.duration_days ? `/${ch.duration_days}` : ""}
                       </p>
                     </div>

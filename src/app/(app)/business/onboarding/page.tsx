@@ -32,8 +32,8 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
           </button>
         )}
         <div className="flex-1">
-          <p className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Step {step} of {TOTAL} · {LABELS[step-1]}</p>
-          <h1 className="text-[20px] font-black text-on-surface leading-tight">{title}</h1>
+          <p className="text-label-sm text-on-surface-variant font-semibold uppercase tracking-wider">Step {step} of {TOTAL} · {LABELS[step-1]}</p>
+          <h1 className="text-headline-md font-black text-on-surface leading-tight">{title}</h1>
           {subtitle && <p className="text-sm text-on-surface-variant mt-0.5">{subtitle}</p>}
         </div>
       </div>
@@ -44,7 +44,7 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
         <button
           onClick={onNext}
           disabled={nextDisabled || saving}
-          className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-[15px] flex items-center justify-center gap-2 transition-all"
+          className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-body-lg flex items-center justify-center gap-2 transition-all"
         >
           {saving ? "Saving…" : <>{nextLabel}{!saving && <ChevronRight size={18} />}</>}
         </button>
@@ -288,8 +288,8 @@ export default function BusinessOnboardingPage() {
           <ChevronLeft size={20} className="text-on-surface-variant" />
         </button>
         <div>
-          <p className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Step 7 of 7 · Review</p>
-          <h1 className="text-[20px] font-black text-on-surface">Review & Submit</h1>
+          <p className="text-label-sm text-on-surface-variant font-semibold uppercase tracking-wider">Step 7 of 7 · Review</p>
+          <h1 className="text-headline-md font-black text-on-surface">Review & Submit</h1>
         </div>
       </div>
 
@@ -345,7 +345,7 @@ export default function BusinessOnboardingPage() {
             router.push("/business/dashboard");
           } catch(e) { setError(e instanceof Error ? e.message : "Failed"); setSaving(false); }
         }} disabled={saving}
-          className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-[15px] transition-all">
+          className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-body-lg transition-all">
           {saving ? "Submitting…" : "Submit Business Profile"}
         </button>
         <button onClick={() => setStep(1)} className="w-full h-10 rounded-xl border border-outline-variant text-on-surface-variant text-sm font-medium">

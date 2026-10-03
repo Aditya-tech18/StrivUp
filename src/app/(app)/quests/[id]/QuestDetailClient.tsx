@@ -254,7 +254,7 @@ export default function QuestDetailClient({
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="type-body-md text-on-surface-variant">Loading…</p>
+        <p className="text-body-md text-on-surface-variant">Loading…</p>
       </div>
     );
   }
@@ -271,7 +271,7 @@ export default function QuestDetailClient({
         >
           <ChevronLeft size={24} aria-hidden="true" />
         </button>
-        <h1 className="type-body-md font-semibold text-on-surface flex-1 truncate">
+        <h1 className="text-body-md font-semibold text-on-surface flex-1 truncate">
           {quest.title}
         </h1>
       </div>
@@ -291,21 +291,21 @@ export default function QuestDetailClient({
         <div className="px-4 py-6 flex flex-col gap-4">
           {/* Title & Info */}
           <div>
-            <h2 className="type-headline-sm text-on-surface mb-2">
+            <h2 className="text-headline-md text-on-surface mb-2">
               {quest.title}
             </h2>
-            <p className="type-body-md text-on-surface-variant mb-3">
+            <p className="text-body-md text-on-surface-variant mb-3">
               {quest.business_name}
             </p>
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary">{quest.category}</Badge>
               <div className="flex items-center gap-1 text-on-surface-variant">
                 <MapPin size={16} aria-hidden="true" />
-                <span className="type-body-sm">{quest.location_name}</span>
+                <span className="text-body-sm">{quest.location_name}</span>
               </div>
               <div className="flex items-center gap-1 text-on-surface-variant">
                 <Users size={16} aria-hidden="true" />
-                <span className="type-body-sm">
+                <span className="text-body-sm">
                   {quest.participant_count} joined
                 </span>
               </div>
@@ -316,18 +316,18 @@ export default function QuestDetailClient({
           <Card bordered padding="md" className="bg-surface-container-low">
             <div className="space-y-3">
               <div>
-                <p className="type-label-caps text-on-surface-variant mb-1">
+                <p className="text-overline text-on-surface-variant mb-1">
                   About
                 </p>
-                <p className="type-body-md text-on-surface">
+                <p className="text-body-md text-on-surface">
                   {quest.description}
                 </p>
               </div>
               <div>
-                <p className="type-label-caps text-on-surface-variant mb-1">
+                <p className="text-overline text-on-surface-variant mb-1">
                   Reward
                 </p>
-                <p className="type-body-md text-on-surface font-semibold">
+                <p className="text-body-md text-on-surface font-semibold">
                   {quest.reward_description}
                 </p>
               </div>
@@ -342,7 +342,7 @@ export default function QuestDetailClient({
                 className="shrink-0 mt-0.5 text-error"
                 aria-hidden="true"
               />
-              <p className="type-body-md text-error text-sm">{uploadError}</p>
+              <p className="text-body-md text-error text-sm">{uploadError}</p>
             </div>
           )}
 
@@ -361,10 +361,10 @@ export default function QuestDetailClient({
             // Approved: Completed state
             <div className="flex flex-col items-center gap-2 py-4 text-center">
               <CheckCircle2 size={40} className="text-success" aria-hidden="true" />
-              <p className="type-body-md font-semibold text-on-surface">
+              <p className="text-body-md font-semibold text-on-surface">
                 Completed ✓
               </p>
-              <p className="type-body-md text-on-surface-variant">
+              <p className="text-body-md text-on-surface-variant">
                 Great job! Your submission was approved.
               </p>
             </div>
@@ -372,8 +372,8 @@ export default function QuestDetailClient({
             // Rejected: Show reason + resubmit option
             <div className="space-y-3">
               <Card bordered padding="md" className="border-error/30 bg-error/5">
-                <p className="type-label-caps text-error mb-2">Rejected</p>
-                <p className="type-body-md text-on-surface mb-3">
+                <p className="text-overline text-error mb-2">Rejected</p>
+                <p className="text-body-md text-on-surface mb-3">
                   {participation.rejection_reason ||
                     "Your submission did not meet the requirements."}
                 </p>
@@ -411,7 +411,7 @@ export default function QuestDetailClient({
             // Check-in proof: Mark as Visited button
             <div className="space-y-3">
               {participation?.verification_status === "pending" && (
-                <p className="type-body-md text-on-surface-variant text-center px-3">
+                <p className="text-body-md text-on-surface-variant text-center px-3">
                   Mark as visited to submit your proof.
                 </p>
               )}
@@ -430,7 +430,7 @@ export default function QuestDetailClient({
                     className="shrink-0 mt-0.5 text-secondary"
                     aria-hidden="true"
                   />
-                  <p className="type-body-md text-secondary text-sm">
+                  <p className="text-body-md text-secondary text-sm">
                     Pending review
                   </p>
                 </div>
@@ -468,16 +468,16 @@ function renderPhotoProofSection(
 ) {
   return (
     <div className="space-y-3">
-      <p className="type-label-caps text-on-surface-variant">Submit Proof</p>
+      <p className="text-overline text-on-surface-variant">Submit Proof</p>
 
       {proofState === "success" ? (
         // Success state
         <div className="flex flex-col items-center gap-2 py-4 text-center">
           <CheckCircle2 size={40} className="text-success" aria-hidden="true" />
-          <p className="type-body-md font-semibold text-on-surface">
+          <p className="text-body-md font-semibold text-on-surface">
             Proof Submitted
           </p>
-          <p className="type-body-md text-on-surface-variant">
+          <p className="text-body-md text-on-surface-variant">
             Pending review
           </p>
         </div>
@@ -518,10 +518,10 @@ function renderPhotoProofSection(
             <label className="flex flex-col items-center justify-center gap-3 py-8 rounded-lg border-2 border-dashed border-outline-variant hover:border-secondary/50 bg-surface-container/50 hover:bg-surface-container cursor-pointer transition-colors">
               <Upload size={32} className="text-on-surface-variant" aria-hidden="true" />
               <div className="text-center">
-                <p className="type-body-md font-medium text-on-surface">
+                <p className="text-body-md font-medium text-on-surface">
                   Upload your proof
                 </p>
-                <p className="type-body-sm text-on-surface-variant">
+                <p className="text-body-sm text-on-surface-variant">
                   JPG, PNG or WebP • Max 5 MB
                 </p>
               </div>

@@ -34,7 +34,7 @@ export function QuestProgressCard({
     >
       <h3
         id="quest-progress-heading"
-        className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
+        className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant"
       >
         Quest Progress
       </h3>
@@ -52,10 +52,10 @@ export function QuestProgressCard({
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-[26px] leading-none font-bold text-on-surface">
+            <p className="text-headline-lg-mobile leading-none font-bold text-on-surface">
               {completed}/{total}
             </p>
-            <p className="text-[11px] text-on-surface-variant mt-1">Tasks Completed</p>
+            <p className="text-label-sm text-on-surface-variant mt-1">Tasks Completed</p>
           </div>
         </div>
       </div>
@@ -108,7 +108,7 @@ export function RewardCard({
             <Trophy size={19} className="text-warning" />
           </div>
           <div className="min-w-0">
-            <p className="text-[19px] font-bold text-on-surface leading-tight">
+            <p className="text-headline-md font-bold text-on-surface leading-tight">
               {reward.headline}
             </p>
             {reward.subline && (
@@ -124,8 +124,8 @@ export function RewardCard({
                 key={s.v}
                 className="rounded-xl bg-surface-container-low border border-outline-variant px-2 py-2.5 text-center"
               >
-                <p className="text-[15px] font-bold text-on-surface leading-tight truncate">{s.k}</p>
-                <p className="text-[10px] text-on-surface-variant mt-0.5">{s.v}</p>
+                <p className="text-body-lg font-bold text-on-surface leading-tight truncate">{s.k}</p>
+                <p className="text-label-sm text-on-surface-variant mt-0.5">{s.v}</p>
               </div>
             ))}
           </div>
@@ -192,12 +192,12 @@ export function LeaderboardPreviewCard({
       <div className="flex items-center justify-between gap-2">
         <h3
           id="quest-leaderboard-heading"
-          className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
+          className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant"
         >
           Leaderboard Preview
         </h3>
         {isPlaceholder && (
-          <span className="text-[10px] font-semibold text-on-surface-variant bg-surface-container-low border border-outline-variant px-2 py-0.5 rounded-full shrink-0">
+          <span className="text-label-sm font-semibold text-on-surface-variant bg-surface-container-low border border-outline-variant px-2 py-0.5 rounded-full shrink-0">
             Sample
           </span>
         )}
@@ -213,7 +213,7 @@ export function LeaderboardPreviewCard({
                 <div className="w-8 h-8 rounded-full bg-surface-container shrink-0" aria-hidden="true" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-on-surface-variant truncate">{p.label}</p>
-                  <p className="text-[11px] text-on-surface-variant">{p.tasks}</p>
+                  <p className="text-label-sm text-on-surface-variant">{p.tasks}</p>
                 </div>
                 <span className="text-sm font-bold text-on-surface-variant shrink-0">{p.points} pts</span>
               </li>
@@ -237,7 +237,7 @@ export function LeaderboardPreviewCard({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-on-surface truncate">{name}</p>
-                    <p className="text-[11px] text-on-surface-variant">
+                    <p className="text-label-sm text-on-surface-variant">
                       {r.tasks_completed}/{totalTasks}
                     </p>
                   </div>
@@ -250,7 +250,7 @@ export function LeaderboardPreviewCard({
       </ul>
 
       {isPlaceholder && (
-        <p className="text-[11px] text-on-surface-variant leading-relaxed mt-2">
+        <p className="text-label-sm text-on-surface-variant leading-relaxed mt-2">
           Sample rows — the leaderboard fills in from verified Quest activity.
         </p>
       )}
@@ -300,7 +300,7 @@ export function BusinessProfileCard({
     >
       <h3
         id="business-profile-heading"
-        className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
+        className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant"
       >
         Business Profile
       </h3>
@@ -316,7 +316,7 @@ export function BusinessProfileCard({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <p className="text-[15px] font-bold text-on-surface truncate">{name}</p>
+            <p className="text-body-lg font-bold text-on-surface truncate">{name}</p>
             {/* Blue tick only when STRIVUP has actually verified the business. */}
             {verified && (
               <ShieldCheck
@@ -466,13 +466,13 @@ export function GoogleBusinessCard({
             <span className="w-5 h-5 rounded-full bg-error flex items-center justify-center shrink-0">
               <MapPin size={11} className="text-white" />
             </span>
-            <span className="text-[11px] font-semibold text-on-surface-variant truncate">{name}</span>
+            <span className="text-label-sm font-semibold text-on-surface-variant truncate">{name}</span>
           </div>
         </div>
       </div>
 
       <div className="p-5">
-        <p className="text-[15px] font-bold text-on-surface">{name}</p>
+        <p className="text-body-lg font-bold text-on-surface">{name}</p>
         {business?.category && (
           <p className="text-xs text-on-surface-variant mt-0.5">{business.category}</p>
         )}

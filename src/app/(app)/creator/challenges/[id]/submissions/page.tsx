@@ -52,7 +52,7 @@ export default async function SubmissionsPage({ params }: PageProps) {
           </Link>
           <div className="flex items-center gap-2">
             <ClipboardList size={18} className="text-secondary" aria-hidden="true" />
-            <h1 className="type-headline-sm text-on-surface font-semibold">
+            <h1 className="text-headline-md text-on-surface font-semibold">
               Review Submissions
             </h1>
           </div>

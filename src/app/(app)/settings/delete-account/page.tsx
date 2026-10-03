@@ -31,7 +31,7 @@ export default function DeleteAccountPage() {
           <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
-          <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Delete Account</h1>
+          <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Delete Account</h1>
         </div>
       </div>
 
@@ -41,8 +41,8 @@ export default function DeleteAccountPage() {
         </div>
 
         <div className="text-center max-w-xs">
-          <h2 className="text-[22px] font-bold text-on-surface tracking-[-0.02em]">Delete your account?</h2>
-          <p className="text-[14px] text-on-surface-variant mt-2 leading-relaxed">
+          <h2 className="text-headline-md font-bold text-on-surface tracking-[-0.02em]">Delete your account?</h2>
+          <p className="text-body-md text-on-surface-variant mt-2 leading-relaxed">
             This permanently deletes your account and all associated data.{" "}
             <span className="font-semibold text-on-surface">This cannot be undone.</span>
           </p>
@@ -51,9 +51,9 @@ export default function DeleteAccountPage() {
         <div className="w-full bg-error-container border border-error-outline rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2.5">
             <div className="w-4 h-4 rounded-full bg-error flex items-center justify-center shrink-0">
-              <span className="text-white text-[9px] font-black">!</span>
+              <span className="text-white text-label-sm font-black">!</span>
             </div>
-            <p className="text-[13px] font-bold text-error">This will permanently remove:</p>
+            <p className="text-body-md font-bold text-error">This will permanently remove:</p>
           </div>
           <ul className="space-y-1.5 pl-1">
             {[
@@ -64,7 +64,7 @@ export default function DeleteAccountPage() {
             ].map(item => (
               <li key={item} className="flex items-start gap-2">
                 <div className="w-1 h-1 rounded-full bg-error mt-2 shrink-0" />
-                <span className="text-[13px] text-error">{item}</span>
+                <span className="text-body-md text-error">{item}</span>
               </li>
             ))}
           </ul>
@@ -72,12 +72,12 @@ export default function DeleteAccountPage() {
 
         {error && (
           <div role="alert" className="w-full px-4 py-3 rounded-xl bg-error-container border border-error/20">
-            <p className="text-[13px] text-error text-center">{error}</p>
+            <p className="text-body-md text-error text-center">{error}</p>
           </div>
         )}
 
         <div className="w-full flex flex-col gap-2">
-          <label className="text-[13px] font-semibold text-on-surface">
+          <label className="text-body-md font-semibold text-on-surface">
             Type <span className="font-black text-error tracking-wide">DELETE</span> to confirm
           </label>
           <input aria-label="Type DELETE to confirm"
@@ -86,17 +86,17 @@ export default function DeleteAccountPage() {
             placeholder="DELETE"
             autoComplete="off"
             spellCheck={false}
-            className="w-full h-12 rounded-xl border border-outline-variant bg-white px-4 text-[15px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-error/25 focus:border-error font-mono transition-colors"
+            className="w-full h-12 rounded-xl border border-outline-variant bg-white px-4 text-body-lg text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-error/25 focus:border-error font-mono transition-colors"
           />
         </div>
 
         <div className="w-full flex flex-col gap-3">
           <button onClick={handleDelete} disabled={!canDelete || loading}
-            className="w-full h-12 rounded-xl bg-error text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity shadow-[0_2px_8px_rgba(186,26,26,0.25)]">
+            className="w-full h-12 rounded-xl bg-error text-white font-bold text-body-lg flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity shadow-[0_2px_8px_rgba(186,26,26,0.25)]">
             {loading ? <><Loader2 size={16} className="animate-spin" /> Deleting…</> : "Delete Account"}
           </button>
           <button onClick={() => router.back()}
-            className="w-full h-12 rounded-xl border border-outline-variant text-on-surface font-semibold text-[15px] hover:bg-surface-container-low transition-colors">
+            className="w-full h-12 rounded-xl border border-outline-variant text-on-surface font-semibold text-body-lg hover:bg-surface-container-low transition-colors">
             Cancel
           </button>
         </div>

@@ -127,10 +127,10 @@ export default function QuestParticipantsClient({
           <ChevronLeft size={24} aria-hidden="true" />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="type-body-md font-semibold text-on-surface truncate">
+          <h1 className="text-body-md font-semibold text-on-surface truncate">
             {questTitle}
           </h1>
-          <p className="type-body-sm text-on-surface-variant">
+          <p className="text-body-sm text-on-surface-variant">
             {participants.length} submission{participants.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -145,14 +145,14 @@ export default function QuestParticipantsClient({
               className="shrink-0 mt-0.5 text-error"
               aria-hidden="true"
             />
-            <p className="type-body-md text-error text-sm">{error}</p>
+            <p className="text-body-md text-error text-sm">{error}</p>
           </div>
         )}
 
         {participants.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
             <AlertCircle size={40} className="text-on-surface-variant opacity-40" aria-hidden="true" />
-            <p className="type-body-lg text-on-surface-variant">
+            <p className="text-body-lg text-on-surface-variant">
               No submissions yet.
             </p>
           </div>
@@ -176,10 +176,10 @@ export default function QuestParticipantsClient({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="type-body-md font-medium text-on-surface">
+                      <p className="text-body-md font-medium text-on-surface">
                         {participant.user_profile.full_name ?? "Unknown"}
                       </p>
-                      <p className="type-body-sm text-on-surface-variant">
+                      <p className="text-body-sm text-on-surface-variant">
                         Joined {new Date(participant.joined_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -187,7 +187,7 @@ export default function QuestParticipantsClient({
                       {participant.verification_status === "approved" && (
                         <div className="flex items-center gap-1 text-success">
                           <Check size={18} aria-hidden="true" />
-                          <span className="type-body-sm font-medium">
+                          <span className="text-body-sm font-medium">
                             Approved
                           </span>
                         </div>
@@ -195,7 +195,7 @@ export default function QuestParticipantsClient({
                       {participant.verification_status === "rejected" && (
                         <div className="flex items-center gap-1 text-error">
                           <X size={18} aria-hidden="true" />
-                          <span className="type-body-sm font-medium">
+                          <span className="text-body-sm font-medium">
                             Rejected
                           </span>
                         </div>
@@ -203,7 +203,7 @@ export default function QuestParticipantsClient({
                       {participant.verification_status === "pending" && (
                         <div className="flex items-center gap-1 text-secondary">
                           <AlertCircle size={18} aria-hidden="true" />
-                          <span className="type-body-sm font-medium">
+                          <span className="text-body-sm font-medium">
                             Pending
                           </span>
                         </div>
@@ -227,10 +227,10 @@ export default function QuestParticipantsClient({
                   {participant.verification_status === "rejected" &&
                     participant.rejection_reason && (
                       <div className="rounded-lg bg-error/5 border border-error/30 px-3 py-2">
-                        <p className="type-label-caps text-error text-xs mb-1">
+                        <p className="text-overline text-error text-xs mb-1">
                           Rejection Reason
                         </p>
-                        <p className="type-body-sm text-on-surface">
+                        <p className="text-body-sm text-on-surface">
                           {participant.rejection_reason}
                         </p>
                       </div>

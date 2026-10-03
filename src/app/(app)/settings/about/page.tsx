@@ -16,7 +16,7 @@ export default function AboutPage() {
           >
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
-          <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">About STRIVUP</h1>
+          <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">About STRIVUP</h1>
         </div>
       </div>
 
@@ -24,17 +24,17 @@ export default function AboutPage() {
         {/* Brand card */}
         <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 flex flex-col items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center shadow-[0_4px_16px_rgba(29,78,216,0.3)]">
-            <span className="text-white text-[26px] font-black tracking-tight">S</span>
+            <span className="text-white text-headline-lg-mobile font-black tracking-tight">S</span>
           </div>
           <div className="text-center">
-            <h2 className="text-[22px] font-black text-on-surface tracking-[-0.02em]">STRIVUP</h2>
-            <p className="text-[13px] text-on-surface-variant mt-0.5">India&apos;s Platform for Growth</p>
+            <h2 className="text-headline-md font-black text-on-surface tracking-[-0.02em]">STRIVUP</h2>
+            <p className="text-body-md text-on-surface-variant mt-0.5">India&apos;s Platform for Growth</p>
           </div>
           <div className="flex flex-wrap gap-2 justify-center">
             {["Challenges", "Quests", "Streaks", "Community"].map(tag => (
               <span
                 key={tag}
-                className="px-3 py-1 rounded-full bg-secondary/8 text-secondary text-[12px] font-semibold border border-secondary/15"
+                className="px-3 py-1 rounded-full bg-secondary/8 text-secondary text-body-sm font-semibold border border-secondary/15"
               >
                 {tag}
               </span>
@@ -57,16 +57,16 @@ export default function AboutPage() {
                 i < arr.length - 1 ? "border-b border-outline-variant" : "",
               ].join(" ")}
             >
-              <p className="text-[13px] text-on-surface-variant">{row.label}</p>
-              <p className="text-[13px] font-semibold text-on-surface">{row.value}</p>
+              <p className="text-body-md text-on-surface-variant">{row.label}</p>
+              <p className="text-body-md font-semibold text-on-surface">{row.value}</p>
             </div>
           ))}
         </div>
 
         {/* Mission */}
         <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
-          <h3 className="text-[14px] font-bold text-on-surface mb-2">Our Mission</h3>
-          <p className="text-[13px] text-on-surface-variant leading-relaxed">
+          <h3 className="text-body-md font-bold text-on-surface mb-2">Our Mission</h3>
+          <p className="text-body-md text-on-surface-variant leading-relaxed">
             STRIVUP helps people build real habits, take on meaningful challenges, and grow together
             as a community. We believe that consistent effort — tracked publicly and celebrated
             together — is the foundation of personal growth.
@@ -79,14 +79,14 @@ export default function AboutPage() {
             <Mail size={16} className="text-secondary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-semibold text-on-surface">Get in touch</p>
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-[12px] text-secondary hover:underline truncate block">
+            <p className="text-body-md font-semibold text-on-surface">Get in touch</p>
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-body-sm text-secondary hover:underline truncate block">
               {SUPPORT_EMAIL}
             </a>
           </div>
         </div>
 
-        <p className="text-center text-[11px] text-on-surface-variant pb-2">
+        <p className="text-center text-label-sm text-on-surface-variant pb-2">
           © 2026 STRIVUP. All rights reserved.
         </p>
       </div>

@@ -81,7 +81,7 @@ export function FollowButton({
       </Button>
 
       {error ? (
-        <p role="alert" className="text-[12px] text-error">
+        <p role="alert" className="text-body-sm text-error">
           {error}
         </p>
       ) : null}

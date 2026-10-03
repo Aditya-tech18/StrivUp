@@ -200,7 +200,7 @@ function LivePreviewCard({ title, orgName, duration, thumbnail }: {
         )}
       </div>
       <div className="p-3 space-y-2">
-        <h3 className="type-headline-sm text-on-surface font-semibold leading-snug line-clamp-2">
+        <h3 className="text-headline-md text-on-surface font-semibold leading-snug line-clamp-2">
           {title || <span className="text-on-surface-variant italic font-normal">Your challenge title…</span>}
         </h3>
         <p className="text-xs text-on-surface-variant">by {orgName || "Your organisation"}</p>
@@ -211,7 +211,7 @@ function LivePreviewCard({ title, orgName, duration, thumbnail }: {
                 <div key={i} className="w-6 h-6 rounded-full bg-secondary/20 border-2 border-surface-container-low" />
               ))}
             </div>
-            <span className="text-[11px] text-on-surface-variant flex items-center gap-0.5">
+            <span className="text-label-sm text-on-surface-variant flex items-center gap-0.5">
               <Users size={11} aria-hidden="true" /> 0 joined
             </span>
           </div>
@@ -235,7 +235,7 @@ function BrandingPanel({ onBack }: { onBack: () => void }) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <div>
-        <h2 className="type-headline-sm text-on-surface font-semibold">Personal Branding</h2>
+        <h2 className="text-headline-md text-on-surface font-semibold">Personal Branding</h2>
         <p className="text-sm text-on-surface-variant mt-1">
           Promote your challenge and build your personal brand with professional visibility tools.
         </p>
@@ -260,7 +260,7 @@ function BusinessPanel() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <div>
-        <h2 className="type-headline-sm text-on-surface font-semibold">Business Quests</h2>
+        <h2 className="text-headline-md text-on-surface font-semibold">Business Quests</h2>
         <p className="text-sm font-semibold text-secondary mt-1">Don&apos;t just advertise. Give people a reason to visit, act and return.</p>
         <p className="text-sm text-on-surface-variant mt-1">
           Businesses create Quests — real-world actions at your store, café, gym or restaurant that customers complete for a reward.
@@ -489,8 +489,8 @@ export default function CreateChallengePage() {
               <X size={20} aria-hidden="true" />
             </button>
             <div className="text-center">
-              <p className="type-headline-sm text-on-surface font-semibold leading-tight">Create Challenge</p>
-              <p className="text-[10px] text-on-surface-variant leading-tight">Build consistency in your community</p>
+              <p className="text-headline-md text-on-surface font-semibold leading-tight">Create Challenge</p>
+              <p className="text-label-sm text-on-surface-variant leading-tight">Build consistency in your community</p>
             </div>
             <button
               type="button"
@@ -539,7 +539,7 @@ export default function CreateChallengePage() {
 
           {/* ── Section 1: Challenge Essentials ─────────────────────── */}
           <section aria-label="Challenge Essentials">
-            <h2 className="type-headline-sm text-on-surface font-semibold mb-4">Challenge Essentials</h2>
+            <h2 className="text-headline-md text-on-surface font-semibold mb-4">Challenge Essentials</h2>
             <div className="space-y-4">
               <Input
                 id="challenge-title"
@@ -551,7 +551,7 @@ export default function CreateChallengePage() {
 
               {/* Thumbnail upload */}
               <div className="flex flex-col gap-1">
-                <label className="type-body-md font-medium text-on-surface">Thumbnail</label>
+                <label className="text-body-md font-medium text-on-surface">Thumbnail</label>
                 <div
                   role="button"
                   tabIndex={0}
@@ -581,7 +581,7 @@ export default function CreateChallengePage() {
                     <>
                       <CloudUpload size={32} className="text-on-surface-variant/50" aria-hidden="true" />
                       <div className="text-center">
-                        <p className="type-body-md text-on-surface-variant text-sm">Click to upload or drag and drop</p>
+                        <p className="text-body-md text-on-surface-variant text-sm">Click to upload or drag and drop</p>
                         <p className="text-xs text-on-surface-variant mt-0.5">High-resolution PNG or JPG recommended</p>
                       </div>
                     </>
@@ -594,7 +594,7 @@ export default function CreateChallengePage() {
               <div className="grid grid-cols-2 gap-3">
                 <Input id="challenge-org" label="Organisation Name" placeholder="e.g. Dev Collective" {...register("orgName")} />
                 <div className="flex flex-col gap-1">
-                  <label htmlFor="challenge-category" className="type-body-md font-medium text-on-surface">Category</label>
+                  <label htmlFor="challenge-category" className="text-body-md font-medium text-on-surface">Category</label>
                   <select
                     id="challenge-category"
                     className={[selectCls, errors.category ? "border-error focus:ring-error/30 focus:border-error" : ""].join(" ")}
@@ -604,7 +604,7 @@ export default function CreateChallengePage() {
                     <option value="">Select…</option>
                     {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
-                  {errors.category && <p className="type-body-md text-error text-xs" role="alert">{errors.category.message}</p>}
+                  {errors.category && <p className="text-body-md text-error text-xs" role="alert">{errors.category.message}</p>}
                 </div>
               </div>
             </div>
@@ -615,7 +615,7 @@ export default function CreateChallengePage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
-                  <label htmlFor="challenge-duration" className="type-body-md font-medium text-on-surface">Duration</label>
+                  <label htmlFor="challenge-duration" className="text-body-md font-medium text-on-surface">Duration</label>
                   <select
                     id="challenge-duration"
                     className={[selectCls, errors.duration ? "border-error focus:ring-error/30 focus:border-error" : ""].join(" ")}
@@ -625,10 +625,10 @@ export default function CreateChallengePage() {
                     <option value="">Select…</option>
                     {DURATIONS.map((d) => <option key={d} value={d}>{d}</option>)}
                   </select>
-                  {errors.duration && <p className="type-body-md text-error text-xs" role="alert">{errors.duration.message}</p>}
+                  {errors.duration && <p className="text-body-md text-error text-xs" role="alert">{errors.duration.message}</p>}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span id="visibility-label" className="type-body-md font-medium text-on-surface">Visibility</span>
+                  <span id="visibility-label" className="text-body-md font-medium text-on-surface">Visibility</span>
                   <div role="group" aria-labelledby="visibility-label" className="flex rounded border border-outline-variant overflow-hidden h-10">
                     {(["public", "private"] as const).map((opt) => (
                       <button
@@ -651,7 +651,7 @@ export default function CreateChallengePage() {
                 </div>
               </div>
               <div className="flex flex-col gap-1">
-                <label htmlFor="challenge-description" className="type-body-md font-medium text-on-surface">Description</label>
+                <label htmlFor="challenge-description" className="text-body-md font-medium text-on-surface">Description</label>
                 <textarea
                   id="challenge-description"
                   rows={4}
@@ -672,7 +672,7 @@ export default function CreateChallengePage() {
           <section aria-label="Challenge Tasks">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="type-headline-sm text-on-surface font-semibold">Tasks</h2>
+                <h2 className="text-headline-md text-on-surface font-semibold">Tasks</h2>
                 <p className="text-xs text-on-surface-variant mt-0.5">
                   Optional — define discrete tasks participants must complete.
                   If you skip this, the challenge uses a single daily proof upload instead.
@@ -717,14 +717,14 @@ export default function CreateChallengePage() {
             <Card bordered padding="md" className="space-y-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="type-body-md font-semibold text-on-surface">Daily Proof Required</p>
+                  <p className="text-body-md font-semibold text-on-surface">Daily Proof Required</p>
                   <p className="text-xs text-on-surface-variant mt-0.5">Participants must upload evidence daily</p>
                 </div>
                 <ToggleSwitch id="daily-proof-toggle" checked={dailyProof} onChange={() => setDailyProof((v) => !v)} />
               </div>
               {dailyProof && (
                 <div className="space-y-2">
-                  <p className="type-label-caps text-on-surface-variant text-[10px]">SUGGESTED PROOF TYPES</p>
+                  <p className="text-overline text-on-surface-variant text-label-sm">SUGGESTED PROOF TYPES</p>
                   <div className="flex flex-wrap gap-2">
                     {DEFAULT_PROOF_TYPES.map((type) => {
                       const selected = proofTypes.includes(type);
@@ -789,7 +789,7 @@ export default function CreateChallengePage() {
                     <MapPin size={18} className="text-secondary" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="type-body-md font-semibold text-on-surface">Enable Location</p>
+                    <p className="text-body-md font-semibold text-on-surface">Enable Location</p>
                     <p className="text-xs text-on-surface-variant mt-0.5">Tag challenges to a physical spot</p>
                   </div>
                 </div>
@@ -800,7 +800,7 @@ export default function CreateChallengePage() {
 
           {/* ── Live card preview ────────────────────────────────────── */}
           <section aria-label="Live card preview">
-            <p className="type-label-caps text-on-surface-variant text-[10px] mb-3">LIVE CARD PREVIEW</p>
+            <p className="text-overline text-on-surface-variant text-label-sm mb-3">LIVE CARD PREVIEW</p>
             <LivePreviewCard title={titleVal} orgName={orgNameVal ?? ""} duration={durationVal} thumbnail={thumbnail} />
           </section>
 

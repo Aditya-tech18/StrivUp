@@ -103,7 +103,7 @@ export default function ProofVerificationPage() {
     <div className="min-h-screen bg-surface pb-28">
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-[17px] font-black text-on-surface flex-1">Proof Verification</h1>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">Proof Verification</h1>
         {tabCounts.pending > 0 && (
           <span className="bg-error text-white text-xs font-bold px-2 py-0.5 rounded-full">{tabCounts.pending}</span>
         )}
@@ -130,7 +130,7 @@ export default function ProofVerificationPage() {
             }`}>
             {t.label}
             {tabCounts[t.value] > 0 && (
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${tab === t.value ? "bg-secondary-fixed text-secondary border-secondary-fixed-dim" : "bg-surface-container text-on-surface-variant border-outline-variant"}`}>
+              <span className={`text-label-sm font-bold px-1.5 py-0.5 rounded-full border ${tab === t.value ? "bg-secondary-fixed text-secondary border-secondary-fixed-dim" : "bg-surface-container text-on-surface-variant border-outline-variant"}`}>
                 {tabCounts[t.value]}
               </span>
             )}
@@ -162,7 +162,7 @@ export default function ProofVerificationPage() {
                       <p className="text-xs text-on-surface-variant">{timeAgo(sub.submitted_at)}</p>
                     </div>
                     {sub.verification_status !== "pending" && (
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                      <span className={`text-label-sm font-bold px-2 py-0.5 rounded-full border shrink-0 ${
                         sub.verification_status === "approved" ? "text-on-success-container bg-success-container border-success-outline" :
                         sub.verification_status === "rejected" ? "text-on-error-container bg-error-container border-error-outline" :
                         "text-purple-700 bg-purple-50 border-purple-200"
@@ -220,7 +220,7 @@ export default function ProofVerificationPage() {
       {showRejectModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center px-4">
           <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl p-5">
-            <h3 className="text-[17px] font-black text-on-surface mb-1">
+            <h3 className="text-body-lg font-black text-on-surface mb-1">
               {showRejectModal.startsWith("resubmit-") ? "Request Resubmission" : "Reject Submission"}
             </h3>
             <p className="text-sm text-on-surface-variant mb-4">Optionally provide a reason for the participant.</p>

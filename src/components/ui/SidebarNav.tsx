@@ -83,7 +83,7 @@ export function SidebarNav() {
               {badgeCount > 0 && (
                 <span
                   aria-label={`${badgeCount} unread`}
-                  className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-error text-white text-[10px] font-bold leading-4 flex items-center justify-center"
+                  className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-error text-white text-label-sm font-bold leading-4 flex items-center justify-center"
                 >
                   {badgeCount > 99 ? "99+" : badgeCount}
                 </span>

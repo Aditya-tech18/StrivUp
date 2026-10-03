@@ -21,12 +21,12 @@ export default function CreatorProPage() {
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-container">
           <ArrowLeft size={20} className="text-on-surface-variant" />
         </Link>
-        <h1 className="flex-1 text-[17px] font-black text-on-surface">Creator Pro</h1>
+        <h1 className="flex-1 text-body-lg font-black text-on-surface">Creator Pro</h1>
       </header>
 
       <div className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-6">
         <div className="text-center">
-          <h2 className="text-[26px] font-black leading-tight tracking-tight text-on-surface">Scale Your Influence</h2>
+          <h2 className="text-headline-lg-mobile font-black leading-tight tracking-tight text-on-surface">Scale Your Influence</h2>
           <p className="mt-2 text-sm text-on-surface-variant">
             Turn your audience into an active community with structured challenges.
           </p>

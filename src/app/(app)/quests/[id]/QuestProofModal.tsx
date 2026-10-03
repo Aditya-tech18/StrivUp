@@ -129,7 +129,7 @@ export function QuestProofModal(props: Props) {
         className="relative outline-none w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-surface-container-lowest shadow-[0_24px_64px_-12px_rgba(13,28,50,0.35)] max-h-[92dvh] overflow-y-auto [padding-bottom:max(1.25rem,env(safe-area-inset-bottom))]">
         <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-outline-variant bg-surface-container-lowest px-5 py-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-secondary">Upload Proof</p>
+            <p className="text-label-sm font-bold uppercase tracking-wider text-secondary">Upload Proof</p>
             <p className="truncate text-sm font-bold text-on-surface">{task.title}</p>
           </div>
           <button type="button" onClick={onClose} aria-label="Close"
@@ -155,7 +155,7 @@ export function QuestProofModal(props: Props) {
           {step === "ask" && (
             <>
               <h2 id="proof-modal-title" className="text-xl font-black text-on-surface">Hey {userName ?? "there"} 👋</h2>
-              <p className="text-[15px] text-on-surface">
+              <p className="text-body-lg text-on-surface">
                 Are you ordering from <span className="font-bold">{businessName}</span> on Zomato or Swiggy for this Quest?
               </p>
               <p className="text-sm text-on-surface-variant">We&apos;ll give you a code to add to the order before you place it.</p>
@@ -188,7 +188,7 @@ export function QuestProofModal(props: Props) {
               <h2 id="proof-modal-title" className="text-xl font-black text-on-surface">Great! Let&apos;s verify your order.</h2>
               <div className="rounded-2xl border-2 border-dashed border-secondary-fixed-dim bg-secondary-fixed px-4 py-4 text-center">
                 <p className="text-xs font-semibold text-on-secondary-fixed">Your unique STRIVUP verification code is:</p>
-                <p className="mt-1 font-mono text-[34px] font-black tracking-widest text-on-surface">{request.sv_code}</p>
+                <p className="mt-1 font-mono text-display-mobile font-black tracking-widest text-on-surface">{request.sv_code}</p>
                 <button type="button" onClick={() => copy(request.sv_code)}
                   className="mt-2 inline-flex h-11 items-center gap-1.5 rounded-xl bg-secondary px-5 text-sm font-bold uppercase tracking-wide text-white">
                   <Copy size={15} /> {copied ? "Copied" : "Copy OTP"}
@@ -224,7 +224,7 @@ export function QuestProofModal(props: Props) {
                   <p className="text-xs text-on-success-container">Your business verification is complete.</p>
                 </div>
               </div>
-              <label htmlFor="bill-code" className="text-[15px] font-bold text-on-surface">Enter the verification code written on your bill.</label>
+              <label htmlFor="bill-code" className="text-body-lg font-bold text-on-surface">Enter the verification code written on your bill.</label>
               <input id="bill-code" value={billCode} onChange={e => { setBillCode(formatCodeInput(e.target.value, "BV")); setError(null); }}
                 onKeyDown={e => e.key === "Enter" && billCode.length >= 9 && verifyBill()}
                 placeholder="BV-______" autoCapitalize="characters" autoComplete="one-time-code" maxLength={9}

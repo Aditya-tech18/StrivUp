@@ -107,7 +107,7 @@ export default function AnalyticsPage() {
     <div className="min-h-screen bg-surface pb-28">
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-[17px] font-black text-on-surface flex-1">Analytics</h1>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">Analytics</h1>
       </div>
 
       <div className="px-5 py-5 max-w-2xl mx-auto flex flex-col gap-5">
@@ -148,7 +148,7 @@ export default function AnalyticsPage() {
                 <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
                   <div className="flex items-center gap-2 mb-4">
                     <TrendingUp size={18} className="text-secondary" />
-                    <h3 className="text-[15px] font-black text-on-surface">Quest Funnel</h3>
+                    <h3 className="text-body-lg font-black text-on-surface">Quest Funnel</h3>
                   </div>
                   <div className="flex flex-col gap-3">
                     {(analytics.orderCodesGenerated > 0 ? [
@@ -172,7 +172,7 @@ export default function AnalyticsPage() {
 
                 {/* Proof breakdown */}
                 <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
-                  <h3 className="text-[15px] font-black text-on-surface mb-4">Proof Submissions</h3>
+                  <h3 className="text-body-lg font-black text-on-surface mb-4">Proof Submissions</h3>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="flex flex-col items-center p-3 bg-warning-container rounded-xl">
                       <span className="text-2xl font-black text-on-warning-container">{analytics.pendingProofs}</span>
@@ -192,7 +192,7 @@ export default function AnalyticsPage() {
                 {/* Quest details */}
                 {selectedQuest && (
                   <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
-                    <h3 className="text-[15px] font-black text-on-surface mb-3">Quest Info</h3>
+                    <h3 className="text-body-lg font-black text-on-surface mb-3">Quest Info</h3>
                     <div className="flex flex-col gap-2">
                       {[
                         { label: "Status",    value: selectedQuest.quest_status.replace("_"," ").toUpperCase() },
@@ -215,7 +215,7 @@ export default function AnalyticsPage() {
         ) : (
           <div className="flex flex-col items-center gap-4 py-20 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant">
             <BarChart2 size={36} className="text-on-surface-variant" />
-            <p className="text-[17px] font-black text-on-surface">No Analytics Yet</p>
+            <p className="text-body-lg font-black text-on-surface">No Analytics Yet</p>
             <p className="text-sm text-on-surface-variant max-w-xs">Analytics will appear once people start interacting with your Quest.</p>
             <button onClick={() => router.push("/business/quests/new")}
               className="h-10 px-5 rounded-xl bg-secondary text-white text-sm font-bold">

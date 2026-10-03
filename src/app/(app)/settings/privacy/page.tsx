@@ -50,14 +50,14 @@ export default function PrivacyPage() {
           <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
-          <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Account Privacy</h1>
+          <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Account Privacy</h1>
         </div>
       </div>
 
       <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-4">
         {error && (
           <div role="alert" className="px-4 py-3 rounded-xl bg-error-container border border-error/20">
-            <p className="text-[13px] text-error">{error}</p>
+            <p className="text-body-md text-error">{error}</p>
           </div>
         )}
 
@@ -73,10 +73,10 @@ export default function PrivacyPage() {
                 : <Globe size={18} className="text-on-surface-variant" />}
             </div>
             <div className="flex-1">
-              <p className="text-[15px] font-bold text-on-surface">
+              <p className="text-body-lg font-bold text-on-surface">
                 {isPrivate ? "Private Account" : "Public Account"}
               </p>
-              <p className="text-[12px] text-on-surface-variant mt-0.5 leading-snug">
+              <p className="text-body-sm text-on-surface-variant mt-0.5 leading-snug">
                 {isPrivate
                   ? "Only approved followers can see your content"
                   : "Anyone can discover and view your profile"}
@@ -107,7 +107,7 @@ export default function PrivacyPage() {
         ].join(" ")}>
           {isPrivate ? (
             <>
-              <p className="text-[13px] font-semibold text-secondary mb-2">When your account is private</p>
+              <p className="text-body-md font-semibold text-secondary mb-2">When your account is private</p>
               <ul className="space-y-1.5">
                 {[
                   "Only your followers can see your profile and challenges",
@@ -116,15 +116,15 @@ export default function PrivacyPage() {
                 ].map(item => (
                   <li key={item} className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5 shrink-0" />
-                    <span className="text-[13px] text-on-surface">{item}</span>
+                    <span className="text-body-md text-on-surface">{item}</span>
                   </li>
                 ))}
               </ul>
             </>
           ) : (
             <>
-              <p className="text-[13px] font-semibold text-on-surface mb-1">Public Account</p>
-              <p className="text-[13px] text-on-surface-variant leading-relaxed">
+              <p className="text-body-md font-semibold text-on-surface mb-1">Public Account</p>
+              <p className="text-body-md text-on-surface-variant leading-relaxed">
                 Your profile, challenges, and achievements are visible to everyone on STRIVUP.
                 Anyone can follow you and view your progress.
               </p>
