@@ -1,10 +1,37 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Shield, ShieldAlert, Check, X, Search } from "lucide-react";
+import { Shield, ShieldAlert, Check, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, Button } from "@/components/ui";
+
+/* ── Row shapes ─────────────────────────────────────────────────────────────
+   Both queries embed to-one relations, so each nested key is an object or
+   null, never an array. These replace the `any[]` state and the per-read
+   `as any` casts that were needed to get at the nested fields. */
+interface PersonRef { full_name: string | null; avatar_url: string | null }
+interface ChallengeRef { title: string | null }
+
+interface ProofSubmissionRow {
+  id: string;
+  media_url: string | null;
+  caption: string | null;
+  admin_removed: boolean | null;
+  user_id: string;
+  challenge_id?: string | null;
+  profiles: PersonRef | null;
+  challenges: ChallengeRef | null;
+}
+
+interface ProofReportRow {
+  id: string;
+  reason: string | null;
+  status: string;
+  created_at: string;
+  proof_id: string;
+  proof_submissions: ProofSubmissionRow | null;
+}
 
 export default function ModerationClient({ 
   moderatorRole, 
@@ -14,13 +41,28 @@ export default function ModerationClient({
   currentUserId: string;
 }) {
   const [tab, setTab] = useState<"reports" | "all">("reports");
-  const supabase = createClient();
+  // Created once. As a plain call in the render body it was a new client on
+  // every render, which would make loadData's identity change every render and
+  // refire the effect in a loop.
+  const [supabase] = useState(() => createClient());
 
   const canRemove = moderatorRole === "senior_moderator" || moderatorRole === "super_admin";
 
-  const [reports, setReports] = useState<any[]>([]);
-  const [submissions, setSubmissions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [reports, setReports] = useState<ProofReportRow[]>([]);
+  const [submissions, setSubmissions] = useState<ProofSubmissionRow[]>([]);
+
+  // `loading` is derived rather than stored. It used to be its own state that
+  // the fetch effect set to true in its first synchronous line, which is the
+  // cascading-render pattern react-hooks/set-state-in-effect warns about.
+  // Recording which tab the data on screen belongs to answers the same
+  // question without a setState before the first await.
+  const [loadedTab, setLoadedTab] = useState<"reports" | "all" | null>(null);
+  const loading = loadedTab !== tab;
+
+  // Bumped after a removal so the fetch effect re-runs. A background refresh
+  // deliberately does not reset loadedTab, so the list stays on screen instead
+  // of blanking out.
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Modal state
   const [removeProofId, setRemoveProofId] = useState<string | null>(null);
@@ -28,59 +70,68 @@ export default function ModerationClient({
   const [removeReason, setRemoveReason] = useState("");
   const [removing, setRemoving] = useState(false);
 
+  /* The two reads are plain functions that return rows and touch no state, so
+     every setState below happens inside the effect's async callback after an
+     await. That is the shape react-hooks/set-state-in-effect asks for:
+     subscribe to an external system, set state when it answers. The previous
+     version called a state-setting helper straight from the effect body. */
   useEffect(() => {
-    loadData();
-  }, [tab]);
+    let cancelled = false;
 
-  const loadData = async () => {
-    setLoading(true);
-    if (tab === "reports") {
-      const { data, error } = await supabase
-        .from("proof_reports")
-        .select(`
-          id,
-          reason,
-          status,
-          created_at,
-          proof_id,
-          proof_submissions (
+    (async () => {
+      if (tab === "reports") {
+        const { data, error } = await supabase
+          .from("proof_reports")
+          .select(`
+            id,
+            reason,
+            status,
+            created_at,
+            proof_id,
+            proof_submissions (
+              id,
+              media_url,
+              caption,
+              admin_removed,
+              user_id,
+              challenge_id,
+              profiles ( full_name, avatar_url ),
+              challenges ( title )
+            )
+          `)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false });
+
+        if (cancelled) return;
+        if (!error && data) {
+          const rows = data as unknown as ProofReportRow[];
+          setReports(rows.filter(r => !r.proof_submissions?.admin_removed));
+        }
+      } else {
+        const { data, error } = await supabase
+          .from("proof_submissions")
+          .select(`
             id,
             media_url,
             caption,
             admin_removed,
             user_id,
-            challenge_id,
             profiles ( full_name, avatar_url ),
             challenges ( title )
-          )
-        `)
-        .eq("status", "pending")
-        .order("created_at", { ascending: false });
-        
-      if (!error && data) {
-        setReports(data.filter(r => !(r.proof_submissions as any)?.admin_removed));
+          `)
+          .order("submitted_at", { ascending: false })
+          .limit(50);
+
+        if (cancelled) return;
+        if (!error && data) {
+          setSubmissions(data as unknown as ProofSubmissionRow[]);
+        }
       }
-    } else {
-      const { data, error } = await supabase
-        .from("proof_submissions")
-        .select(`
-          id,
-          media_url,
-          caption,
-          admin_removed,
-          user_id,
-          profiles ( full_name, avatar_url ),
-          challenges ( title )
-        `)
-        .order("submitted_at", { ascending: false })
-        .limit(50);
-        
-      if (!error && data) {
-        setSubmissions(data);
-      }
-    }
-    setLoading(false);
-  };
+      if (!cancelled) setLoadedTab(tab);
+    })();
+
+    return () => { cancelled = true; };
+  }, [supabase, tab, refreshKey]);
 
   const handleDismiss = async (reportId: string) => {
     await supabase.from("proof_reports").update({ status: "reviewed" }).eq("id", reportId);
@@ -108,12 +159,12 @@ export default function ModerationClient({
     setRemoveReportId(null);
     setRemoveReason("");
     setRemoving(false);
-    loadData();
+    setRefreshKey(k => k + 1);
   };
 
   return (
     <div className="min-h-screen bg-surface px-4 py-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="measure-console mx-auto space-y-6">
         <div>
           <h1 className="text-headline-lg-mobile text-on-surface flex items-center gap-2">
             <Shield className="text-secondary" /> Moderation Dashboard
@@ -159,10 +210,10 @@ export default function ModerationClient({
                   <div className="flex-1 space-y-2">
                     <p className="text-overline text-error">Report Reason: {report.reason}</p>
                     <p className="text-body-sm text-on-surface">
-                      <strong>Submitter:</strong> {(report.proof_submissions?.profiles as any)?.full_name || "Unknown"}
+                      <strong>Submitter:</strong> {report.proof_submissions?.profiles?.full_name || "Unknown"}
                     </p>
                     <p className="text-body-sm text-on-surface">
-                      <strong>Challenge:</strong> {(report.proof_submissions?.challenges as any)?.title || "Unknown"}
+                      <strong>Challenge:</strong> {report.proof_submissions?.challenges?.title || "Unknown"}
                     </p>
                     <p className="text-body-sm text-on-surface">
                       <strong>Caption:</strong> {report.proof_submissions?.caption}
@@ -212,10 +263,10 @@ export default function ModerationClient({
                 </div>
                 <div className="space-y-1">
                   <p className="text-body-sm text-on-surface line-clamp-1">
-                    <strong>Submitter:</strong> {(sub.profiles as any)?.full_name || "Unknown"}
+                    <strong>Submitter:</strong> {sub.profiles?.full_name || "Unknown"}
                   </p>
                   <p className="text-body-sm text-on-surface line-clamp-1">
-                    <strong>Challenge:</strong> {(sub.challenges as any)?.title || "Unknown"}
+                    <strong>Challenge:</strong> {sub.challenges?.title || "Unknown"}
                   </p>
                 </div>
                 {canRemove && !sub.admin_removed && (

@@ -31,12 +31,12 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Pr
   const adminName = new Map((admins ?? []).map((a: { id: string; full_name: string | null }) => [a.id, a.full_name ?? "Admin"]));
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto measure-console">
       <PageHeader title="Audit Logs" subtitle="Every admin action, append-only. Entries can't be edited or deleted from the app." />
       <nav aria-label="Filter by target" className="mb-4 flex gap-2">
         {[["", "All"], ["user", "Users"], ["business", "Businesses"]].map(([k, l]) => (
           <Link key={k} href={`/admin/audit-logs?type=${k}`} aria-current={type === k ? "page" : undefined}
-            className={`h-10 rounded-full border px-4 text-sm font-semibold leading-10 ${type === k ? "border-[#0d1c32] bg-[#0d1c32] text-white" : "border-gray-200 bg-white text-gray-800"}`}>{l}</Link>
+            className={`h-10 rounded-full border px-4 text-sm font-semibold leading-10 ${type === k ? "border-admin-chrome bg-admin-chrome text-white" : "border-outline-variant bg-surface-container-lowest text-on-surface"}`}>{l}</Link>
         ))}
       </nav>
       <Panel>
@@ -45,7 +45,7 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Pr
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-sm">
               <thead>
-                <tr className="border-b border-gray-100 text-left text-xs text-gray-600">
+                <tr className="border-b border-outline-variant text-left text-xs text-on-surface-variant">
                   <th className="px-4 py-3 font-semibold">When</th>
                   <th className="px-4 py-3 font-semibold">Admin</th>
                   <th className="px-4 py-3 font-semibold">Action</th>
@@ -53,16 +53,16 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Pr
                   <th className="px-4 py-3 font-semibold">Reason</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-outline-variant">
                 {rows.slice(0, PAGE).map(r => (
                   <tr key={r.id} className="align-top">
-                    <td className="whitespace-nowrap px-4 py-3 text-gray-800">{fmtDateTime(r.created_at)}</td>
-                    <td className="px-4 py-3 text-gray-800">{r.admin_id ? adminName.get(r.admin_id) ?? r.admin_id.slice(0, 8) : "System"}</td>
-                    <td className="px-4 py-3 font-semibold capitalize text-gray-900">{r.action.replace(/_/g, " ")}</td>
-                    <td className="px-4 py-3 text-gray-800">
+                    <td className="whitespace-nowrap px-4 py-3 text-on-surface">{fmtDateTime(r.created_at)}</td>
+                    <td className="px-4 py-3 text-on-surface">{r.admin_id ? adminName.get(r.admin_id) ?? r.admin_id.slice(0, 8) : "System"}</td>
+                    <td className="px-4 py-3 font-semibold capitalize text-on-surface">{r.action.replace(/_/g, " ")}</td>
+                    <td className="px-4 py-3 text-on-surface">
                       <span className="capitalize">{r.target_type}</span>{r.target_id ? ` · ${name.get(r.target_id) ?? r.target_id.slice(0, 8)}` : ""}
                     </td>
-                    <td className="px-4 py-3 text-gray-800">{r.reason ?? "—"}</td>
+                    <td className="px-4 py-3 text-on-surface">{r.reason ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -71,8 +71,8 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Pr
         )}
       </Panel>
       <div className="mt-4 flex justify-between">
-        {page > 0 ? <Link href={`/admin/audit-logs?page=${page - 1}&type=${type}`} className="h-10 rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold leading-10">Newer</Link> : <span />}
-        {hasMore && <Link href={`/admin/audit-logs?page=${page + 1}&type=${type}`} className="h-10 rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold leading-10">Older</Link>}
+        {page > 0 ? <Link href={`/admin/audit-logs?page=${page - 1}&type=${type}`} className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 text-sm font-semibold leading-10">Newer</Link> : <span />}
+        {hasMore && <Link href={`/admin/audit-logs?page=${page + 1}&type=${type}`} className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 text-sm font-semibold leading-10">Older</Link>}
       </div>
     </div>
   );

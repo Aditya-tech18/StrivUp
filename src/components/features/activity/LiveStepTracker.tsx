@@ -52,14 +52,34 @@ export function LiveStepTracker({
   const totalRef = useRef(0);
 
   const total = baseline + sessionSteps;
-  totalRef.current = total;
 
+  /* Mirrored into the ref in an effect rather than during render: writing a
+     ref while rendering is what react-hooks/refs forbids, since a render that
+     React throws away would still have moved the value. */
   useEffect(() => {
-    if (!isPedometerSupported()) {
-      setStatus("unsupported");
-      return;
-    }
-    void fetchStoredToday(timezone).then(setBaseline).catch(() => {});
+    totalRef.current = total;
+  }, [total]);
+
+  /* Capability check and the day's starting figure, both of which need the
+     browser. Everything that sets state here does so inside the async callback
+     after the await, or behind the cancelled guard on unmount. */
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      if (!isPedometerSupported()) {
+        if (!cancelled) setStatus("unsupported");
+        return;
+      }
+      try {
+        const stored = await fetchStoredToday(timezone);
+        if (!cancelled) setBaseline(stored);
+      } catch {
+        /* No stored figure yet; the baseline stays at 0. */
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, [timezone]);
 
   const save = useCallback(async () => {

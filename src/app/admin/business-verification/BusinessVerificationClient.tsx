@@ -33,10 +33,10 @@ const TABS: { value: VerificationStatus | "all"; label: string }[] = [
 ];
 
 const ACTIONS: { action: ReviewAction; label: string; cls: string; needsReason: boolean }[] = [
-  { action: "approve",              label: "Approve Business",   cls: "bg-green-600 hover:bg-green-700 text-white",       needsReason: false },
-  { action: "request_resubmission", label: "Request Resubmission", cls: "border border-purple-200 text-purple-700 hover:bg-purple-50", needsReason: true },
-  { action: "reject",               label: "Reject",             cls: "border border-red-200 text-red-700 hover:bg-red-50", needsReason: true },
-  { action: "suspend",              label: "Suspend",            cls: "border border-gray-200 text-gray-700 hover:bg-gray-50", needsReason: true },
+  { action: "approve",              label: "Approve Business",   cls: "bg-success hover:bg-success text-white",       needsReason: false },
+  { action: "request_resubmission", label: "Request Resubmission", cls: "border border-chart-3/25 text-chart-3 hover:bg-chart-3/10", needsReason: true },
+  { action: "reject",               label: "Reject",             cls: "border border-error-outline text-on-error-container hover:bg-error-container", needsReason: true },
+  { action: "suspend",              label: "Suspend",            cls: "border border-outline-variant text-on-surface hover:bg-surface-container-low", needsReason: true },
 ];
 
 export default function BusinessVerificationClient() {
@@ -79,28 +79,28 @@ export default function BusinessVerificationClient() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1420] pb-24">
+    <div className="min-h-screen bg-admin-chrome-high pb-24">
       {/* Admin chrome is deliberately dark — you should never mistake the admin
           console for the business dashboard while acting on someone's account. */}
-      <header className="sticky top-0 z-30 bg-[#161C2A] border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 h-14 flex items-center gap-3">
-          <ShieldCheck size={18} className="text-blue-400 shrink-0" />
+      <header className="sticky top-0 z-30 bg-admin-chrome-high border-b border-white/10">
+        <div className="measure-console mx-auto px-5 lg:px-8 h-14 flex items-center gap-3">
+          <ShieldCheck size={18} className="text-admin-accent shrink-0" />
           <div className="flex-1 min-w-0">
             <h1 className="text-sm font-bold text-white">Business Verification</h1>
-            <p className="text-[11px] text-white/40">STRIVUP admin console</p>
+            <p className="text-label-sm text-on-admin-chrome-variant">STRIVUP admin console</p>
           </div>
           <Link href="/admin/moderation"
-            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-white/70 flex items-center transition-colors">
+            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-on-admin-chrome-variant flex items-center transition-colors">
             Moderation
           </Link>
           <button onClick={() => void reload()} aria-label="Refresh"
-            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-white/70 flex items-center gap-1.5 transition-colors">
+            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-on-admin-chrome-variant flex items-center gap-1.5 transition-colors">
             <RefreshCw size={13} /> Refresh
           </button>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-5 lg:px-8 py-6 flex flex-col gap-5">
+      <div className="measure-console mx-auto px-5 lg:px-8 py-6 flex flex-col gap-5">
 
         {/* Platform KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -111,8 +111,8 @@ export default function BusinessVerificationClient() {
             { k: "Users",           v: stats.total_users },
             { k: "Suspended",       v: stats.suspended_accounts },
           ].map((s) => (
-            <div key={s.k} className="rounded-2xl bg-[#161C2A] border border-white/10 px-4 py-3.5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">{s.k}</p>
+            <div key={s.k} className="rounded-2xl bg-admin-chrome-high border border-white/10 px-4 py-3.5">
+              <p className="text-label-sm font-bold uppercase tracking-wider text-on-admin-chrome-variant">{s.k}</p>
               <p className="text-2xl font-bold text-white mt-1">{s.v ?? 0}</p>
             </div>
           ))}
@@ -125,7 +125,7 @@ export default function BusinessVerificationClient() {
               aria-current={tab === t.value ? "page" : undefined}
               className={`shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
                 tab === t.value
-                  ? "bg-blue-600 text-white"
+                  ? "bg-secondary text-white"
                   : "text-white/50 hover:text-white hover:bg-white/5"}`}>
               {t.label}
             </button>
@@ -133,13 +133,13 @@ export default function BusinessVerificationClient() {
         </nav>
 
         {/* Queue */}
-        <section className="rounded-2xl bg-[#161C2A] border border-white/10 overflow-hidden">
+        <section className="rounded-2xl bg-admin-chrome-high border border-white/10 overflow-hidden">
           {loading ? (
             <div className="py-16 flex justify-center">
-              <Loader2 size={22} className="text-blue-400 animate-spin" />
+              <Loader2 size={22} className="text-admin-accent animate-spin" />
             </div>
           ) : rows.length === 0 ? (
-            <p className="py-16 text-center text-sm text-white/40">
+            <p className="py-16 text-center text-sm text-on-admin-chrome-variant">
               Nothing in this queue.
             </p>
           ) : (
@@ -151,21 +151,21 @@ export default function BusinessVerificationClient() {
                     <button onClick={() => setSelected(r)}
                       className="w-full text-left px-5 py-4 hover:bg-white/5 transition-colors flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                        <Building2 size={17} className="text-white/40" />
+                        <Building2 size={17} className="text-on-admin-chrome-variant" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-white truncate">
                           {r.business_name ?? "Unnamed business"}
                         </p>
-                        <p className="text-xs text-white/40 truncate">
+                        <p className="text-xs text-on-admin-chrome-variant truncate">
                           {[r.category, [r.city, r.state].filter(Boolean).join(", "), r.owner_email]
                             .filter(Boolean).join(" · ")}
                         </p>
                       </div>
-                      <span className="text-xs text-white/40 shrink-0 hidden sm:block">
+                      <span className="text-xs text-on-admin-chrome-variant shrink-0 hidden sm:block">
                         {r.document_count} doc{r.document_count === 1 ? "" : "s"}
                       </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${ui.cls}`}>
+                      <span className={`text-label-sm font-bold px-2 py-0.5 rounded-full border shrink-0 ${ui.cls}`}>
                         {ui.label}
                       </span>
                     </button>
@@ -242,12 +242,12 @@ function ReviewPanel({
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center sm:p-6"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full sm:max-w-2xl bg-[#161C2A] border border-white/10 rounded-t-3xl sm:rounded-2xl max-h-[92vh] overflow-y-auto">
+      <div className="w-full sm:max-w-2xl bg-admin-chrome-high border border-white/10 rounded-t-3xl sm:rounded-2xl max-h-[92vh] overflow-y-auto">
 
-        <div className="sticky top-0 bg-[#161C2A] border-b border-white/10 px-5 py-4 flex items-center gap-3">
+        <div className="sticky top-0 bg-admin-chrome-high border-b border-white/10 px-5 py-4 flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-white truncate">{app.business_name}</p>
-            <p className="text-[11px] text-white/40 truncate">{app.owner_email}</p>
+            <p className="text-label-sm text-on-admin-chrome-variant truncate">{app.owner_email}</p>
           </div>
           <button onClick={onClose} aria-label="Close"
             className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center shrink-0">
@@ -282,13 +282,13 @@ function ReviewPanel({
             {profile?.website ? (
               <a href={profile.website.startsWith("http") ? profile.website : `https://${profile.website}`}
                 target="_blank" rel="noopener noreferrer"
-                className="text-sm text-blue-400 hover:underline break-all col-span-2">
+                className="text-sm text-admin-accent hover:underline break-all col-span-2">
                 {profile.website}
               </a>
             ) : <Row k="Website" v={null} />}
             {profile?.google_maps_url && (
               <a href={profile.google_maps_url} target="_blank" rel="noopener noreferrer"
-                className="text-sm text-blue-400 hover:underline break-all col-span-2 flex items-center gap-1.5">
+                className="text-sm text-admin-accent hover:underline break-all col-span-2 flex items-center gap-1.5">
                 <MapPin size={13} /> Google Business profile
               </a>
             )}
@@ -296,26 +296,26 @@ function ReviewPanel({
 
           {/* Documents — opened through short-lived signed URLs, never public links */}
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-2">
+            <p className="text-label-sm font-bold uppercase tracking-wider text-on-admin-chrome-variant flex items-center gap-2">
               <FileText size={13} /> Documents ({docs.length})
             </p>
             {docs.length === 0 ? (
-              <p className="text-sm text-white/30 mt-3 py-6 text-center border border-dashed border-white/10 rounded-xl">
+              <p className="text-sm text-on-admin-chrome-variant mt-3 py-6 text-center border border-dashed border-white/10 rounded-xl">
                 No documents submitted.
               </p>
             ) : (
               <ul className="mt-3 divide-y divide-white/5 border-t border-white/5">
                 {docs.map((d) => (
                   <li key={d.id} className="flex items-center gap-3 py-2.5">
-                    <FileText size={15} className="text-white/30 shrink-0" />
+                    <FileText size={15} className="text-on-admin-chrome-variant shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-white truncate">
                         {DOC_TYPES.find((t) => t.value === d.doc_type)?.label ?? d.doc_type}
                       </p>
-                      <p className="text-[11px] text-white/35 truncate">{d.file_name}</p>
+                      <p className="text-label-sm text-white/35 truncate">{d.file_name}</p>
                     </div>
                     <button onClick={() => openDoc(d)}
-                      className="text-xs font-semibold text-blue-400 hover:text-blue-300 shrink-0">
+                      className="text-xs font-semibold text-admin-accent hover:text-on-admin-chrome-variant shrink-0">
                       Open
                     </button>
                   </li>
@@ -326,17 +326,17 @@ function ReviewPanel({
 
           {/* Decision */}
           <div className="border-t border-white/10 pt-5">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-white/40">Decision</p>
+            <p className="text-label-sm font-bold uppercase tracking-wider text-on-admin-chrome-variant">Decision</p>
             <label htmlFor="review-reason" className="sr-only">Reason</label>
             <textarea id="review-reason" value={reason} rows={3}
               onChange={(e) => { setReason(e.target.value); setError(null); }}
               placeholder="Reason — required for reject, resubmission and suspend. The business sees this."
-              className="w-full mt-2 rounded-xl bg-white/5 border border-white/10 px-3.5 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-blue-500 resize-none transition-colors" />
+              className="w-full mt-2 rounded-xl bg-white/5 border border-white/10 px-3.5 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-secondary resize-none transition-colors" />
 
             {error && (
-              <div role="alert" className="mt-3 flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/30 px-3.5 py-2.5">
-                <AlertCircle size={15} className="text-red-400 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-300 leading-relaxed">{error}</p>
+              <div role="alert" className="mt-3 flex items-start gap-2 rounded-xl bg-error/10 border border-error/30 px-3.5 py-2.5">
+                <AlertCircle size={15} className="text-error-container shrink-0 mt-0.5" />
+                <p className="text-sm text-error-container leading-relaxed">{error}</p>
               </div>
             )}
 
@@ -368,7 +368,7 @@ function Block({
 }) {
   return (
     <div>
-      <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-2">
+      <p className="text-label-sm font-bold uppercase tracking-wider text-on-admin-chrome-variant flex items-center gap-2">
         <Icon size={13} /> {title}
       </p>
       <dl className="grid grid-cols-2 gap-x-5 gap-y-2.5 mt-3">{children}</dl>
@@ -379,8 +379,8 @@ function Block({
 function Row({ k, v }: { k: string; v: string | null | undefined }) {
   return (
     <div className="min-w-0">
-      <dt className="text-[10px] font-semibold uppercase tracking-wider text-white/30">{k}</dt>
-      <dd className="text-sm text-white/90 mt-0.5 break-words">{v || "—"}</dd>
+      <dt className="text-label-sm font-semibold uppercase tracking-wider text-on-admin-chrome-variant">{k}</dt>
+      <dd className="text-sm text-on-admin-chrome-variant mt-0.5 break-words">{v || "—"}</dd>
     </div>
   );
 }

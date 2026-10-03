@@ -72,25 +72,25 @@ export default function AdminHomeClient() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1420] pb-24">
-      <header className="sticky top-0 z-30 bg-[#161C2A] border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 h-14 flex items-center gap-3">
+    <div className="min-h-screen bg-admin-chrome-high pb-24">
+      <header className="sticky top-0 z-30 bg-admin-chrome-high border-b border-white/10">
+        <div className="measure-console mx-auto px-5 lg:px-8 h-14 flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <h1 className="text-sm font-bold text-white">Platform Overview</h1>
-            <p className="text-[11px] text-white/40">STRIVUP admin console</p>
+            <p className="text-label-sm text-on-admin-chrome-variant">STRIVUP admin console</p>
           </div>
           <button onClick={() => void reload()} aria-label="Refresh"
-            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-white/70 flex items-center gap-1.5 transition-colors">
+            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-on-admin-chrome-variant flex items-center gap-1.5 transition-colors">
             <RefreshCw size={13} /> Refresh
           </button>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-5 lg:px-8 py-6 flex flex-col gap-6">
+      <div className="measure-console mx-auto px-5 lg:px-8 py-6 flex flex-col gap-6">
 
         {loading ? (
           <div className="py-20 flex justify-center">
-            <Loader2 size={24} className="text-blue-400 animate-spin" />
+            <Loader2 size={24} className="text-admin-accent animate-spin" />
           </div>
         ) : (
           <>
@@ -102,16 +102,16 @@ export default function AdminHomeClient() {
                 const body = (
                   <div className={`rounded-2xl border px-4 py-4 h-full transition-colors ${
                     warn
-                      ? "bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/15"
-                      : "bg-[#161C2A] border-white/10 hover:bg-white/5"}`}>
+                      ? "bg-warning/10 border-warning/30 hover:bg-warning/15"
+                      : "bg-admin-chrome-high border-white/10 hover:bg-white/5"}`}>
                     <div className="flex items-center gap-2">
-                      <s.icon size={14} className={warn ? "text-amber-400" : "text-white/35"} aria-hidden="true" />
-                      <p className={`text-[10px] font-bold uppercase tracking-wider ${
-                        warn ? "text-amber-400/90" : "text-white/40"}`}>
+                      <s.icon size={14} className={warn ? "text-warning" : "text-white/35"} aria-hidden="true" />
+                      <p className={`text-label-sm font-bold uppercase tracking-wider ${
+                        warn ? "text-warning/90" : "text-on-admin-chrome-variant"}`}>
                         {s.label}
                       </p>
                     </div>
-                    <p className={`text-3xl font-bold mt-1.5 ${warn ? "text-amber-300" : "text-white"}`}>
+                    <p className={`text-3xl font-bold mt-1.5 ${warn ? "text-warning-container" : "text-white"}`}>
                       {value}
                     </p>
                   </div>
@@ -123,21 +123,21 @@ export default function AdminHomeClient() {
             </div>
 
             {/* Verification queue */}
-            <section className="rounded-2xl bg-[#161C2A] border border-white/10 overflow-hidden">
+            <section className="rounded-2xl bg-admin-chrome-high border border-white/10 overflow-hidden">
               <div className="px-5 py-4 border-b border-white/10 flex items-center gap-3">
-                <BadgeCheck size={16} className="text-blue-400 shrink-0" />
+                <BadgeCheck size={16} className="text-admin-accent shrink-0" />
                 <div className="flex-1 min-w-0">
                   <h2 className="text-sm font-bold text-white">Businesses awaiting verification</h2>
-                  <p className="text-[11px] text-white/40">Approve, reject or request changes</p>
+                  <p className="text-label-sm text-on-admin-chrome-variant">Approve, reject or request changes</p>
                 </div>
                 <Link href="/admin/business-verification"
-                  className="text-xs font-semibold text-blue-400 hover:text-blue-300 shrink-0">
+                  className="text-xs font-semibold text-admin-accent hover:text-on-admin-chrome-variant shrink-0">
                   View all →
                 </Link>
               </div>
 
               {queue.length === 0 ? (
-                <p className="py-12 text-center text-sm text-white/40">
+                <p className="py-12 text-center text-sm text-on-admin-chrome-variant">
                   Nothing awaiting review.
                 </p>
               ) : (
@@ -149,20 +149,20 @@ export default function AdminHomeClient() {
                         <Link href="/admin/business-verification"
                           className="px-5 py-3.5 flex items-center gap-4 hover:bg-white/5 transition-colors">
                           <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                            <Building2 size={16} className="text-white/40" />
+                            <Building2 size={16} className="text-on-admin-chrome-variant" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-white truncate">
                               {r.business_name ?? "Unnamed business"}
                             </p>
-                            <p className="text-xs text-white/40 truncate">
+                            <p className="text-xs text-on-admin-chrome-variant truncate">
                               {[r.category, r.owner_email].filter(Boolean).join(" · ")}
                             </p>
                           </div>
-                          <span className="text-xs text-white/40 shrink-0 hidden sm:block">
+                          <span className="text-xs text-on-admin-chrome-variant shrink-0 hidden sm:block">
                             {r.document_count} doc{r.document_count === 1 ? "" : "s"}
                           </span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${ui.cls}`}>
+                          <span className={`text-label-sm font-bold px-2 py-0.5 rounded-full border shrink-0 ${ui.cls}`}>
                             {ui.label}
                           </span>
                         </Link>
@@ -181,10 +181,10 @@ export default function AdminHomeClient() {
                 { href: "/admin/users",                 icon: Users,       title: "Users",                 body: "Search accounts and take action" },
               ].map((c) => (
                 <Link key={c.href} href={c.href}
-                  className="rounded-2xl bg-[#161C2A] border border-white/10 hover:bg-white/5 px-5 py-4 transition-colors">
-                  <c.icon size={18} className="text-blue-400" aria-hidden="true" />
+                  className="rounded-2xl bg-admin-chrome-high border border-white/10 hover:bg-white/5 px-5 py-4 transition-colors">
+                  <c.icon size={18} className="text-admin-accent" aria-hidden="true" />
                   <p className="text-sm font-bold text-white mt-2.5">{c.title}</p>
-                  <p className="text-xs text-white/40 mt-0.5 leading-relaxed">{c.body}</p>
+                  <p className="text-xs text-on-admin-chrome-variant mt-0.5 leading-relaxed">{c.body}</p>
                 </Link>
               ))}
             </div>
