@@ -39,6 +39,7 @@ import {
 import { Badge, Card } from "@/components/ui";
 import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { InviteSheet } from "@/components/features/InviteSheet";
 import type { ChallengeTask, TaskSubmission } from "@/lib/data/tasks";
 
@@ -132,52 +133,6 @@ type UploadResult =
   | { submissionId: string; preview: string; error: null }
   | { submissionId: null; preview: null; error: string };
 
-/**
- * Resize an image file to at most `maxPx` on its longest side and re-encode
- * as JPEG at `quality` (0–1). Videos are returned unchanged.
- * Runs entirely on the client via an offscreen <canvas> — nothing oversized
- * ever hits Supabase Storage.
- */
-async function resizeImage(file: File, maxPx = 1024, quality = 0.85): Promise<File> {
-  // Pass videos through unchanged
-  if (!file.type.startsWith("image/")) return file;
-
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new window.Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const { naturalWidth: w, naturalHeight: h } = img;
-      const scale = Math.min(1, maxPx / Math.max(w, h));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.round(w * scale);
-      canvas.height = Math.round(h * scale);
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        resolve(file);
-        return;
-      }
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            resolve(file);
-            return;
-          }
-          resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
-        },
-        "image/jpeg",
-        quality
-      );
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Image load failed"));
-    };
-    img.src = url;
-  });
-}
-
 async function uploadProof(opts: UploadOpts, file: File): Promise<UploadResult> {
   const { challengeId, userId, joinedAt, taskId, existingSubmissionId } = opts;
 
@@ -186,9 +141,11 @@ async function uploadProof(opts: UploadOpts, file: File): Promise<UploadResult> 
   const supabase = createClient();
   const dayNumber = calcDayNumber(joinedAt);
 
-  // 1. Resize image client-side (videos pass through unchanged)
-  //    Max 1024px longest side, JPEG 85% — keeps uploads under ~300 KB
-  const resized = await resizeImage(file).catch(() => file);
+  // 1. Compress client-side. Videos and GIFs pass through untouched; EXIF
+  //    rotation is baked in so portrait phone photos stop arriving sideways.
+  //    Dimensions come back so the feed can lay the image out at its real
+  //    aspect ratio instead of cropping it into a 16:9 box.
+  const { file: resized, width, height } = await compressImage(file, IMAGE_PRESETS.proof);
 
   // 2. Upload to storage
   const ext = resized.name.split(".").pop() ?? "jpg";
@@ -223,6 +180,8 @@ async function uploadProof(opts: UploadOpts, file: File): Promise<UploadResult> 
         ai_confidence: null,
         ai_reasoning: null,
         file_hash: null,
+        media_width: width || null,
+        media_height: height || null,
       })
       .eq("id", existingSubmissionId);
     if (updateError) return { submissionId: null, preview: null, error: updateError.message };
@@ -233,6 +192,8 @@ async function uploadProof(opts: UploadOpts, file: File): Promise<UploadResult> 
       .insert({
         challenge_id: challengeId,
         user_id: userId,
+        media_width: width || null,
+        media_height: height || null,
         day_number: dayNumber,
         task_id: taskId ?? null,
         media_url: publicUrl,
@@ -1090,7 +1051,7 @@ export function ChallengeDetailClient({
             {feed.length > 0 ? (
               <div className="space-y-4">
                 {feed.map((post) => (
-                  <FeedCard key={post.id} post={post} />
+                  <FeedCard key={post.id} post={post} viewerId={userId} />
                 ))}
               </div>
             ) : (

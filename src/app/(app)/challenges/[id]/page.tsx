@@ -38,7 +38,7 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
     getChallengeDetail(supabase, id),
     getChallengeStats(supabase, id, user?.id),
     getChallengeLeaderboard(supabase, id, 3),
-    getFeedPosts(supabase, { challengeId: id, limit: 10 }),
+    getFeedPosts(supabase, { challengeId: id, limit: 10, viewerId: user?.id }),
     user ? getParticipantJoinedAt(supabase, id, user.id) : Promise.resolve(null),
     getChallengeTasks(supabase, id),
   ]);

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Camera, Check, ChevronRight, Edit2, Flame,
+  Camera, Check, ChevronRight, Coins, Edit2, Flame,
   Loader2, Plus, Settings, ShieldCheck, Trash2, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -377,6 +377,8 @@ export default function ProfilePage() {
   const [pinnedIds,   setPinnedIds]   = useState<string[]>([]);
   const [achievements,setAchievements]= useState<ChallengeStats[]>([]);
 
+  const [coinBalance, setCoinBalance] = useState<number | null>(null);
+
   const [heatId,      setHeatId]      = useState<string | null>(null);
   const [heatEntries, setHeatEntries] = useState<HeatmapEntry[]>([]);
   const [heatStreak,  setHeatStreak]  = useState(0);
@@ -396,6 +398,12 @@ export default function ProfilePage() {
 
   const loadAll = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
+
+    // Coin balance is decoration on this screen: never let it fail the page.
+    if (user) {
+      const { data: bal } = await supabase.rpc("striv_coin_balance", { p_user_id: user.id });
+      setCoinBalance((bal as number | null) ?? 0);
+    }
     if (!user) { router.replace("/login"); return; }
     setUserId(user.id);
 
@@ -700,6 +708,24 @@ export default function ProfilePage() {
                   Following
                 </span>
               </button>
+              {coinBalance !== null && (
+                <>
+                  <div className="w-px h-7 bg-outline-variant" />
+                  <button
+                    onClick={() => router.push("/coins")}
+                    className="flex flex-col items-center group"
+                    aria-label={`${coinBalance} StrivCoins. Open your wallet.`}
+                  >
+                    <span className="flex items-center gap-1 text-[20px] font-bold text-on-surface tabular-nums tracking-tight">
+                      <Coins size={15} className="text-on-tertiary-container" aria-hidden="true" />
+                      {fmtN(coinBalance)}
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
+                      StrivCoins
+                    </span>
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Social links pills */}
@@ -876,8 +902,10 @@ export default function ProfilePage() {
         </div>
 
         {/* ── Consistency Heatmap ────────────────────────────────────────── */}
+        {/* id is the landing target for the streak pill in the feed header;
+            scroll-mt clears the sticky header so the card is not hidden. */}
         {allStats.filter(s => s.status === "active").length > 0 && (
-          <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
+          <div id="consistency" className="scroll-mt-20 bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em]">Consistency Heatmap</h3>
               <select
