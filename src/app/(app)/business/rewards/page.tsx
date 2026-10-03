@@ -108,7 +108,7 @@ export default function RewardsPage() {
       </div>
 
       {/* Summary cards */}
-      <div className="px-5 py-4 max-w-2xl mx-auto">
+      <div className="px-5 py-4 mx-auto measure-page">
         <div className="grid grid-cols-3 gap-3 mb-4">
           {[
             { label: "Eligible", value: claims.filter(c => c.status === "eligible").length, color: "text-on-success-container" },

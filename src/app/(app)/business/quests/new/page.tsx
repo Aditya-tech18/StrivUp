@@ -35,10 +35,10 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
       <div className="h-1 bg-surface-container-highest"><div className="h-1 bg-secondary transition-all duration-500" style={{ width: `${(step/TOTAL_STEPS)*100}%` }} /></div>
       {/* Header, form and footer all share one measure. They did not before:
           the header and the sticky footer ran the full viewport while the form
-          was clamped to max-w-lg, so on a laptop the step title sat far left of
-          the fields it described and Next was a 100vw-wide button. */}
+          was clamped narrow, so on a laptop the step title sat far left of the
+          fields it described and Next was a 100vw-wide button. */}
       <div className="sticky top-0 z-30 border-b border-outline-variant bg-surface-container-lowest">
-        <div className="mx-auto flex w-full max-w-lg items-center gap-3 px-5 py-4 md:max-w-2xl">
+        <div className="mx-auto flex measure-form items-center gap-3 px-5 py-4">
           {onBack && (
             <button
               onClick={onBack}
@@ -55,9 +55,9 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
           </div>
         </div>
       </div>
-      <div className="mx-auto w-full max-w-lg flex-1 overflow-y-auto px-5 py-5 pb-28 md:max-w-2xl">{children}</div>
+      <div className="mx-auto measure-form flex-1 overflow-y-auto px-5 py-5 pb-28">{children}</div>
       <div className="fixed above-bottom-nav z-40 border-t border-outline-variant bg-surface-container-lowest">
-        <div className="mx-auto w-full max-w-lg px-5 py-4 md:max-w-2xl">
+        <div className="mx-auto measure-form px-5 py-4">
           <button onClick={onNext} disabled={nextDisabled || saving}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary font-bold text-white transition-all elev-brand hover:opacity-90 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary">
             {saving ? "Saving…" : <>{nextLabel} <ChevronRight size={18} aria-hidden="true" /></>}
@@ -568,7 +568,7 @@ function CreateQuestContent() {
     <div className="min-h-screen bg-surface flex flex-col">
       <div className="h-1 bg-secondary w-full" />
       <div className="sticky top-0 z-30 border-b border-outline-variant bg-surface-container-lowest">
-        <div className="mx-auto flex w-full max-w-lg items-center gap-3 px-5 py-4 md:max-w-2xl">
+        <div className="mx-auto flex measure-form items-center gap-3 px-5 py-4">
           <button
             onClick={() => setStep(5)}
             aria-label="Back to visibility"
@@ -583,7 +583,7 @@ function CreateQuestContent() {
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 overflow-y-auto px-5 py-5 pb-36 md:max-w-2xl">
+      <div className="mx-auto flex measure-form flex-1 flex-col gap-4 overflow-y-auto px-5 py-5 pb-36">
         {error && <p className="text-on-error-container text-sm bg-error-container rounded-xl px-4 py-3">{error}</p>}
 
         {/* Cover preview */}
@@ -644,7 +644,7 @@ function CreateQuestContent() {
       </div>
 
       <div className="fixed above-bottom-nav z-40 border-t border-outline-variant bg-surface-container-lowest">
-        <div className="mx-auto flex w-full max-w-lg flex-col gap-2 px-5 py-4 md:max-w-2xl">
+        <div className="mx-auto flex measure-form flex-col gap-2 px-5 py-4">
           {isVerified && (
             <button onClick={handlePublish} disabled={saving}
               className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary font-bold text-body-lg text-white transition-all elev-brand hover:opacity-90 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary">

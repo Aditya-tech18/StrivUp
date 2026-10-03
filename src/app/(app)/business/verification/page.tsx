@@ -168,7 +168,7 @@ function VerifyContent() {
         <Link aria-label="How verification works" href="/business/verification/how-it-works"><HelpCircle size={22} className="text-on-surface-variant" /></Link>
       </div>
 
-      <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
+      <div className="px-5 py-5 mx-auto measure-form flex flex-col gap-5">
         {/* Instruction card */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex items-start gap-3 elev-1 surface-raised">
           <div className="w-10 h-10 rounded-xl bg-secondary-fixed flex items-center justify-center shrink-0">
@@ -344,7 +344,7 @@ function VerifyContent() {
           <h1 className="text-body-lg font-black text-on-surface flex-1">Verify Quest Order</h1>
         </div>
 
-        <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-4">
+        <div className="px-5 py-5 mx-auto measure-form flex flex-col gap-4">
           <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 text-center elev-1 surface-raised">
             <p className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">Order code</p>
             <p className="mt-1 font-mono text-display-mobile font-black tracking-widest text-on-surface">{foundReq.sv_code}</p>

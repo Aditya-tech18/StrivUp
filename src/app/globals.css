@@ -241,6 +241,29 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* ─── Page measures ──────────────────────────────────────────────────────────
+   The business console alone used six different clamps (max-w-lg, 2xl, 4xl,
+   5xl, 6xl, sm), so content jumped width as you moved between its pages. Three
+   named measures instead, each widening once. Use exactly one per page shell,
+   with mx-auto.
+
+     measure-form   a single-column form or settings page. Stays narrow because
+                    a form is read one field at a time.
+     measure-page   a standard content page: a list, a detail view, a feed.
+     measure-wide   a dashboard or a console, where two columns of information
+                    sit side by side on a laptop.                            */
+.measure-form { width: 100%; max-width: 32rem; }   /* lg  */
+.measure-page { width: 100%; max-width: 42rem; }   /* 2xl */
+.measure-wide { width: 100%; max-width: 48rem; }   /* 3xl */
+
+@media (min-width: 48rem) {        /* md */
+  .measure-form { max-width: 42rem; }  /* 2xl */
+}
+@media (min-width: 64rem) {        /* lg */
+  .measure-page { max-width: 64rem; }  /* 5xl */
+  .measure-wide { max-width: 72rem; }  /* 6xl */
+}
+
 /* ─── Overline ───────────────────────────────────────────────────────────────
    The only type style that is more than a size: small caps-styled labels above
    a heading or inside a chip. Everything else comes straight off the `text-*`

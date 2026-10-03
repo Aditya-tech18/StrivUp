@@ -70,7 +70,7 @@ export default function BusinessProfilePage() {
         </button>
       </div>
 
-      <div className="max-w-lg mx-auto">
+      <div className="mx-auto measure-form">
         {/* Cover / Header card */}
         <div className="bg-surface-container-lowest border-b border-outline-variant px-5 pt-6 pb-5">
           <div className="flex items-start gap-4 mb-4">

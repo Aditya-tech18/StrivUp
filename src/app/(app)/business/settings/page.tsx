@@ -93,7 +93,7 @@ export default function BusinessSettingsPage() {
         <h1 className="text-body-lg font-black text-on-surface flex-1">Business Settings</h1>
       </div>
 
-      <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
+      <div className="px-5 py-5 mx-auto measure-form flex flex-col gap-5">
         {error && <div role="alert" className="bg-error-container border border-error-outline rounded-2xl px-4 py-3 text-sm text-on-error-container">{error}</div>}
         {success && <div className="bg-success-container border border-success-outline rounded-2xl px-4 py-3 text-sm text-on-success-container">✓ Changes saved successfully.</div>}
 

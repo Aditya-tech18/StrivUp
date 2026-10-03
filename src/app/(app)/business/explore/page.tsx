@@ -66,7 +66,7 @@ export default async function BusinessExplorePage({ searchParams }: { searchPara
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-5">
+      <div className="mx-auto measure-wide px-4 py-5">
         <form action="/business/explore" className="flex flex-col gap-2 sm:flex-row">
           <label className="flex h-12 flex-1 items-center gap-2 rounded-xl border border-outline bg-surface-container-lowest px-3 focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/30">
             <Search size={16} className="text-on-surface-variant" aria-hidden="true" />

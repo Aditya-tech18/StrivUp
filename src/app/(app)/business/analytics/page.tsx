@@ -110,7 +110,7 @@ export default function AnalyticsPage() {
         <h1 className="text-body-lg font-black text-on-surface flex-1">Analytics</h1>
       </div>
 
-      <div className="px-5 py-5 max-w-2xl mx-auto flex flex-col gap-5">
+      <div className="px-5 py-5 mx-auto measure-page flex flex-col gap-5">
         {/* Quest selector */}
         {quests.length > 0 ? (
           <>

@@ -194,7 +194,7 @@ export default function VerifyBusinessPage() {
   return (
     <div className="min-h-screen bg-surface pb-24">
       <header className="sticky top-0 z-30 bg-surface-container-lowest border-b border-outline-variant">
-        <div className="max-w-4xl mx-auto px-5 lg:px-8 h-14 flex items-center gap-3">
+        <div className="mx-auto measure-page px-5 lg:px-8 h-14 flex items-center gap-3">
           <Link href="/business/dashboard" aria-label="Back to dashboard"
             className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0">
             <ArrowLeft size={18} className="text-on-surface-variant" />
@@ -209,7 +209,7 @@ export default function VerifyBusinessPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-5 lg:px-8 py-6 flex flex-col gap-5">
+      <div className="mx-auto measure-page px-5 lg:px-8 py-6 flex flex-col gap-5">
 
         {/* Status panel */}
         <section className={`rounded-2xl border p-5 ${ui.cls}`}>

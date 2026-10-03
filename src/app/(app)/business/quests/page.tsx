@@ -96,7 +96,7 @@ export default function BusinessQuestsPage() {
         ))}
       </div>
 
-      <div className="px-5 py-5 max-w-2xl mx-auto flex flex-col gap-3">
+      <div className="px-5 py-5 mx-auto measure-page flex flex-col gap-3">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-4 py-20 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
             <div className="w-16 h-16 rounded-2xl bg-secondary-fixed flex items-center justify-center">

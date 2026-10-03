@@ -162,7 +162,7 @@ export default function BusinessDashboardPage() {
     <div className="min-h-screen bg-surface pb-28">
       {/* ── Top Nav ──────────────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 border-b border-outline-variant bg-surface-container-lowest">
-        <div className="mx-auto grid max-w-lg grid-cols-3 items-center px-5 py-4 md:max-w-3xl lg:max-w-6xl lg:px-8">
+        <div className="mx-auto grid measure-wide grid-cols-3 items-center px-5 py-4 lg:px-8">
         <div className="flex items-center">
           <Link href="/business/profile" aria-label="Business profile">
             {bp.logo_url
@@ -189,11 +189,11 @@ export default function BusinessDashboardPage() {
         </div>
       </div>
 
-      {/* The dashboard was capped at max-w-lg, so a business owner on a laptop
-          read a 512px column with four stat tiles crammed into it. It now
-          widens in two steps and splits into a main column plus an aside at lg:
-          the things you act on stay left, the things you monitor move right. */}
-      <div className="mx-auto max-w-lg px-5 py-5 md:max-w-3xl lg:max-w-6xl lg:px-8">
+      {/* The dashboard was capped at 512px on every screen, so a business owner
+          on a laptop read a phone column with four stat tiles crammed into it.
+          measure-wide widens it, and at lg it splits into a main column plus an
+          aside: what you act on stays left, what you monitor moves right. */}
+      <div className="mx-auto measure-wide px-5 py-5 lg:px-8">
         <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-6">
         <div className="flex flex-col gap-5">
 

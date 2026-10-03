@@ -89,7 +89,7 @@ export default function ParticipantsPage() {
         <span className="text-sm font-bold text-secondary">{filtered.length}</span>
       </div>
 
-      <div className="px-5 py-4 max-w-2xl mx-auto flex flex-col gap-3">
+      <div className="px-5 py-4 mx-auto measure-page flex flex-col gap-3">
         {/* Quest filter */}
         <div className="relative">
           <select aria-label="Filter by quest" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}

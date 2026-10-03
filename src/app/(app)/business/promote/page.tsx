@@ -56,7 +56,7 @@ export default function PromotePage() {
         <h1 className="text-body-lg font-black text-on-surface flex-1">Promote Quest</h1>
       </div>
 
-      <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
+      <div className="px-5 py-5 mx-auto measure-form flex flex-col gap-5">
         {/* What is promotion */}
         <div className="bg-secondary-fixed border border-secondary-fixed-dim rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
@@ -177,7 +177,7 @@ export default function PromotePage() {
       {/* Sticky CTA */}
       {selectedBudget && quests.length > 0 && (
         <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-4">
-          <div className="max-w-lg mx-auto flex flex-col gap-2">
+          <div className="mx-auto measure-form flex flex-col gap-2">
             <div className="flex items-center justify-between text-sm mb-1">
               <span className="text-on-surface-variant">Selected budget:</span>
               <span className="font-black text-on-surface">{selectedBudget.label} · {selectedBudget.duration}</span>

@@ -56,7 +56,7 @@ export default function HowItWorksPage() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-6 pb-28 max-w-lg mx-auto flex flex-col gap-5">
+      <div className="flex-1 overflow-y-auto px-5 py-6 pb-28 mx-auto measure-form flex flex-col gap-5">
         {STEPS.map((step, i) => (
           <div key={i} className="flex gap-4">
             <div className="flex flex-col items-center">

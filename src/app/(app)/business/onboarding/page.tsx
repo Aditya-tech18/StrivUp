@@ -38,7 +38,7 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
         </div>
       </div>
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-5 py-6 pb-32 max-w-lg mx-auto w-full">{children}</div>
+      <div className="flex-1 overflow-y-auto px-5 py-6 pb-32 mx-auto measure-form w-full">{children}</div>
       {/* Sticky CTA */}
       <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-4">
         <button
@@ -293,7 +293,7 @@ export default function BusinessOnboardingPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-6 pb-36 max-w-lg mx-auto w-full">
+      <div className="flex-1 overflow-y-auto px-5 py-6 pb-36 mx-auto measure-form w-full">
         {error && <p role="alert" className="text-on-error-container text-sm mb-4">{error}</p>}
 
         {/* Profile preview */}

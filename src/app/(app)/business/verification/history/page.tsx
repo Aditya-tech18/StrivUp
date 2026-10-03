@@ -57,7 +57,7 @@ export default function VerificationHistoryPage() {
         <h1 className="text-body-lg font-black text-on-surface flex-1">Verification History</h1>
       </div>
 
-      <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
+      <div className="px-5 py-5 mx-auto measure-form flex flex-col gap-5">
         {/* Insights */}
         <div className="grid grid-cols-4 gap-2">
           {[

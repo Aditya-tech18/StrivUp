@@ -111,7 +111,7 @@ export default function ProofVerificationPage() {
 
       {/* Quest selector */}
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-3">
-        <div className="relative max-w-2xl mx-auto">
+        <div className="relative mx-auto measure-page">
           <select aria-label="Filter by quest" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
             className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none">
             <option value="all">All Quests</option>
@@ -138,7 +138,7 @@ export default function ProofVerificationPage() {
         ))}
       </div>
 
-      <div className="px-5 py-5 max-w-2xl mx-auto flex flex-col gap-3">
+      <div className="px-5 py-5 mx-auto measure-page flex flex-col gap-3">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-16 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
             <CheckCircle2 size={32} className="text-on-surface-variant" />
