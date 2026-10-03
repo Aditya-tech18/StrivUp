@@ -68,7 +68,7 @@ export default async function ActivitySettingsPage({
         <h1 className="text-base font-semibold text-on-surface">Activity tracking</h1>
       </header>
 
-      <main className="mx-auto max-w-2xl space-y-5 px-5 py-5">
+      <main className="mx-auto measure-form space-y-5 px-5 py-5">
         {params.connected && (
           <div className="rounded-xl bg-success-container p-3 text-sm text-on-success-container">
             Connected. Your activity will now be counted toward physical quests automatically.

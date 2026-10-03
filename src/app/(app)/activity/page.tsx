@@ -54,7 +54,7 @@ export default async function ActivityDashboardPage() {
         </Link>
       </header>
 
-      <main className="mx-auto max-w-2xl space-y-5 px-5 py-5">
+      <main className="mx-auto measure-page space-y-5 px-5 py-5">
         {!connected ? (
           <div className="rounded-xl border border-dashed border-outline bg-surface-container-lowest p-6 text-center">
             <ActivityIcon className="mx-auto mb-2 h-8 w-8 text-on-surface-variant" />

@@ -87,7 +87,7 @@ export default function AccountDetailsPage() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
-        <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
+        <div className="mx-auto measure-form flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
             <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
               <ArrowLeft size={19} className="text-on-surface" />
@@ -102,7 +102,7 @@ export default function AccountDetailsPage() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-5">
+      <div className="mx-auto measure-form px-5 pt-5 flex flex-col gap-5">
         {error && (
           <div role="alert" className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-error-container border border-error/20">
             <p className="text-body-md text-error flex-1">{error}</p>

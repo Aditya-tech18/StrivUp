@@ -286,7 +286,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
           style={{ width: totalRequired > 0 ? `${(completedCount/totalRequired)*100}%` : "0%" }} />
       </div>
 
-      <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-4">
+      <div className="px-5 py-5 mx-auto measure-page flex flex-col gap-4">
         {uploadError && (
           <div className="bg-error-container border border-error-outline rounded-xl px-4 py-3 text-sm text-on-error-container">
             {uploadError}

@@ -206,7 +206,7 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
     <div className="min-h-screen bg-surface">
       {/* Header */}
       <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
-        <div className="flex items-center gap-3 px-4 h-14 max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 px-4 h-14 mx-auto measure-page">
           <button
             type="button"
             onClick={() => router.back()}
@@ -224,7 +224,7 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4 pb-32">
+      <div className="mx-auto measure-page px-4 py-6 space-y-4 pb-32">
 
         {/* Info */}
         <p className="text-sm text-on-surface-variant">
@@ -276,7 +276,7 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
 
       {/* Sticky save bar */}
       <div className="fixed above-bottom-nav z-30 bg-surface/95 backdrop-blur-sm border-t border-outline-variant px-4 py-3">
-        <div className="max-w-2xl mx-auto flex gap-3">
+        <div className="mx-auto measure-page flex gap-3">
           <Button type="button" variant="outline" onClick={() => router.back()} className="flex-shrink-0">
             Cancel
           </Button>

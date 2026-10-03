@@ -276,7 +276,7 @@ export default function QuestDetailClient({
         </h1>
       </div>
 
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto measure-page">
         {/* Thumbnail */}
         <div className="relative w-full h-64 bg-surface-container overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}

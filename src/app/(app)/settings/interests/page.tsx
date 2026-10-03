@@ -60,7 +60,7 @@ export default function InterestsPage() {
     <div className="min-h-screen bg-surface flex flex-col">
       {/* Header */}
       <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
-        <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
+        <div className="mx-auto measure-form flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
             <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
               <ArrowLeft size={19} className="text-on-surface" />
@@ -78,7 +78,7 @@ export default function InterestsPage() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-4 flex-1 pb-36">
+      <div className="mx-auto measure-form px-5 pt-5 flex flex-col gap-4 flex-1 pb-36">
         <div>
           <h2 className="text-headline-md font-bold text-on-surface tracking-[-0.02em]">Choose Your Interests</h2>
           <p className="text-body-md text-on-surface-variant mt-1">
@@ -136,7 +136,7 @@ export default function InterestsPage() {
 
       {/* Bottom save bar */}
       <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant px-5 py-4">
-        <div className="max-w-lg mx-auto flex flex-col gap-2">
+        <div className="mx-auto measure-form flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <p className="text-body-md text-on-surface-variant">
               {selected.length} selected

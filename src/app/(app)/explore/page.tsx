@@ -90,7 +90,7 @@ export default async function ExplorePage() {
     <div className="min-h-screen bg-surface">
       {/* ── Sticky top bar (matches feed page) ───────────────────────── */}
       <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
-        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-gutter lg:max-w-5xl lg:px-gutter-md">
+        <div className="mx-auto flex h-14 measure-page items-center justify-between px-gutter lg:px-gutter-md">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-primary-container flex items-center justify-center">
               <Flame size={16} className="text-on-primary" aria-hidden="true" />

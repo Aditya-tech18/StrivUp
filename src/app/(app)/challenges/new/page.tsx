@@ -233,7 +233,7 @@ const MODES: { key: Mode; label: string; icon: typeof PenSquare }[] = [
 
 function BrandingPanel({ onBack }: { onBack: () => void }) {
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+    <div className="mx-auto measure-form px-4 py-6 space-y-5">
       <div>
         <h2 className="text-headline-md text-on-surface font-semibold">Personal Branding</h2>
         <p className="text-sm text-on-surface-variant mt-1">
@@ -258,7 +258,7 @@ const BUSINESS_STEPS = [
 
 function BusinessPanel() {
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+    <div className="mx-auto measure-form px-4 py-6 space-y-5">
       <div>
         <h2 className="text-headline-md text-on-surface font-semibold">Business Quests</h2>
         <p className="text-sm font-semibold text-secondary mt-1">Don&apos;t just advertise. Give people a reason to visit, act and return.</p>
@@ -478,7 +478,7 @@ export default function CreateChallengePage() {
 
       {/* ── Sticky header ─────────────────────────────────────────────── */}
       <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
-        <div className="max-w-2xl mx-auto px-4">
+        <div className="mx-auto measure-form px-4">
           <div className="flex items-center justify-between h-14">
             <button
               type="button"
@@ -528,7 +528,7 @@ export default function CreateChallengePage() {
 
       {/* ── Form ──────────────────────────────────────────────────────── */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate hidden={mode !== "basic"}>
-        <div className="max-w-2xl mx-auto px-4 py-6 space-y-8 pb-48 md:pb-32">
+        <div className="mx-auto measure-form px-4 py-6 space-y-8 pb-48 md:pb-32">
 
           {/* Submit error banner */}
           {submitError && (
@@ -808,7 +808,7 @@ export default function CreateChallengePage() {
 
         {/* ── Sticky bottom action bar ─────────────────────────────────── */}
         <div className="fixed above-bottom-nav z-30 bg-surface/95 backdrop-blur-sm border-t border-outline-variant px-4 py-3">
-          <div className="max-w-2xl mx-auto flex gap-3">
+          <div className="mx-auto measure-form flex gap-3">
             <Button type="button" variant="outline" onClick={() => router.back()} className="flex-shrink-0">Back</Button>
             <Button
               id="create-challenge-btn"

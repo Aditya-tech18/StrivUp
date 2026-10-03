@@ -52,7 +52,7 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
-        <div className="max-w-lg mx-auto flex items-center gap-3 px-5 py-3.5">
+        <div className="mx-auto measure-form flex items-center gap-3 px-5 py-3.5">
           <button aria-label="Back"
             onClick={() => router.back()}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
@@ -63,7 +63,7 @@ export default function PrivacyPolicyPage() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-4">
+      <div className="mx-auto measure-form px-5 pt-5 flex flex-col gap-4">
         {/* Header card */}
         <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
           <h2 className="text-headline-md font-bold text-on-surface tracking-[-0.01em]">STRIVUP Privacy Policy</h2>

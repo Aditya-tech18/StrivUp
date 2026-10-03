@@ -9,7 +9,7 @@
  *  - Empty state when a filter matches nothing
  *
  * Layout notes: the page shell is capped at max-w-2xl on phones and widens to
- * max-w-5xl from lg, where the list becomes a grid. Depth comes from Card's
+ * measure-page from lg, where the list becomes a grid. Depth comes from Card's
  * elevation and `interactive`, never from ad-hoc hover:shadow-* classes, so
  * every raised surface in the app lifts by the same amount.
  */
@@ -150,7 +150,7 @@ export default function QuestsClient({
 
   return (
     <div className="min-h-screen bg-surface px-gutter py-6 pb-24 md:px-gutter-md">
-      <div className="mx-auto flex max-w-2xl flex-col gap-8 lg:max-w-5xl">
+      <div className="mx-auto flex measure-page flex-col gap-8">
         <header>
           <h1 className="text-headline-lg-mobile text-on-surface lg:text-headline-lg">
             Quests

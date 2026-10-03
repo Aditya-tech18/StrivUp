@@ -55,7 +55,7 @@ export default function FollowingPage() {
   return (
     <div className="min-h-screen bg-surface-container-low pb-28">
       <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
-        <div className="max-w-lg mx-auto flex items-center gap-3 px-5 py-3.5">
+        <div className="mx-auto measure-page flex items-center gap-3 px-5 py-3.5">
           <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
@@ -63,7 +63,7 @@ export default function FollowingPage() {
           <span className="text-sm font-bold text-secondary">{following.length}</span>
         </div>
       </div>
-      <div className="max-w-lg mx-auto px-5 pt-4">
+      <div className="mx-auto measure-page px-5 pt-4">
         {following.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-20 text-center">
             <p className="text-sm text-on-surface-variant">Not following anyone yet.</p>

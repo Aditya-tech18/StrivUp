@@ -137,7 +137,7 @@ export default function QuestParticipantsClient({
       </div>
 
       {/* Content */}
-      <div className="mx-auto max-w-2xl px-4 py-6">
+      <div className="mx-auto measure-page px-4 py-6">
         {error && (
           <div role="alert" className="flex gap-2 rounded-lg bg-error/10 border border-error/30 px-3 py-2 mb-4">
             <AlertCircle

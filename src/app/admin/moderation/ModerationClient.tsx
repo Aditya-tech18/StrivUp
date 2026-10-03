@@ -290,7 +290,7 @@ export default function ModerationClient({
       {/* Remove Modal */}
       {removeProofId && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-surface p-6 rounded-xl shadow-lg w-full max-w-sm space-y-4">
+          <div className="bg-surface p-6 rounded-xl elev-5 w-full max-w-sm space-y-4">
             <h3 className="text-headline-md text-on-surface font-semibold">Remove Content</h3>
             <p className="text-body-sm text-on-surface-variant">
               Please provide a reason for removal. This is required and will be logged.

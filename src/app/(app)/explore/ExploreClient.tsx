@@ -287,7 +287,7 @@ export function ExploreClient({ featured, trending, quests = [] }: ExploreClient
     q !== "" && !shownFeatured.length && !shownTrending.length && !shownQuests.length;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 px-gutter py-6 lg:max-w-5xl lg:px-gutter-md">
+    <div className="mx-auto measure-page space-y-8 px-gutter py-6 lg:px-gutter-md">
 
       {/* ── Private challenge toast ─────────────────────────────────── */}
       {privateToast && (

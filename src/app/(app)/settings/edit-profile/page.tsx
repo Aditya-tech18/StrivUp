@@ -179,7 +179,7 @@ export default function EditProfilePage() {
     <div className="min-h-screen bg-surface pb-28">
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
-        <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
+        <div className="mx-auto measure-form flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
             <button aria-label="Back"
               onClick={() => router.back()}
@@ -206,7 +206,7 @@ export default function EditProfilePage() {
 
       {/* ── Error banner ─────────────────────────────────────────────────── */}
       {error && (
-        <div role="alert" className="max-w-lg mx-auto px-5 mt-4">
+        <div role="alert" className="mx-auto measure-form px-5 mt-4">
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-error-container border border-error/20">
             <p className="text-body-md text-error flex-1">{error}</p>
             <button aria-label="Dismiss error" onClick={() => setError(null)}>
@@ -216,7 +216,7 @@ export default function EditProfilePage() {
         </div>
       )}
 
-      <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-5">
+      <div className="mx-auto measure-form px-5 pt-5 flex flex-col gap-5">
 
         {/* ── Avatar ───────────────────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col items-center gap-3 elev-1 surface-raised">

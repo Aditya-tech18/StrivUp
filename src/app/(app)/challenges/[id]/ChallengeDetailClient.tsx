@@ -777,7 +777,7 @@ export function ChallengeDetailClient({
     <div className="min-h-screen bg-surface">
       {/* ── TopAppBar ────────────────────────────────────────────────── */}
       <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
-        <div className="flex items-center justify-between px-4 h-14 max-w-2xl mx-auto">
+        <div className="flex items-center justify-between px-4 h-14 mx-auto measure-page">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-primary-container flex items-center justify-center">
               <Flame size={16} className="text-on-primary" aria-hidden="true" />
@@ -832,7 +832,7 @@ export function ChallengeDetailClient({
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto pb-8 space-y-5">
+      <div className="mx-auto measure-page pb-8 space-y-5">
         {/* ── Banner ────────────────────────────────────────────────── */}
         <div className="relative">
           <div className="relative h-48 w-full bg-surface-variant overflow-hidden">

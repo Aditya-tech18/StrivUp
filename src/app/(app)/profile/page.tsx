@@ -543,7 +543,7 @@ export default function ProfilePage() {
         <Sk className="h-5 w-24" />
         <div className="flex gap-2"><Sk className="w-9 h-9 rounded-xl" /><Sk className="w-9 h-9 rounded-xl" /></div>
       </div>
-      <div className="max-w-lg mx-auto px-4 py-4 flex flex-col gap-3">
+      <div className="mx-auto measure-page px-4 py-4 flex flex-col gap-3">
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4 elev-1 surface-raised">
           <div className="flex gap-4">
             <Sk className="w-[76px] h-[76px] rounded-full shrink-0" />
@@ -575,7 +575,7 @@ export default function ProfilePage() {
 
       {/* ── Sticky header ───────────────────────────────────────────────── */}
       <div className="sticky top-0 pt-safe z-30 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
-        <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
+        <div className="mx-auto measure-page flex items-center justify-between px-5 py-3.5">
           <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">My Profile</h1>
           <div className="flex items-center gap-2">
             <button
@@ -598,7 +598,7 @@ export default function ProfilePage() {
 
       {/* ── Error banner ─────────────────────────────────────────────────── */}
       {error && (
-        <div className="max-w-lg mx-auto px-4 mt-3">
+        <div className="mx-auto measure-page px-4 mt-3">
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-error-container border border-error/20">
             <p className="text-body-md text-error flex-1">{error}</p>
             <button onClick={() => setError(null)}>
@@ -608,7 +608,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div className="max-w-lg mx-auto px-4 py-4 flex flex-col gap-3">
+      <div className="mx-auto measure-page px-4 py-4 flex flex-col gap-3">
 
         {/* ── Profile card ─────────────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] overflow-hidden elev-1 surface-raised">

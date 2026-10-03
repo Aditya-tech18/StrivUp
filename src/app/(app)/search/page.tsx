@@ -103,7 +103,7 @@ export default function SearchPage() {
     <div className="min-h-screen bg-surface-container-low pb-28">
       {/* Header */}
       <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest border-b border-outline-variant">
-        <div className="max-w-lg mx-auto px-5 py-3">
+        <div className="mx-auto measure-page px-5 py-3">
           <div className="flex items-center gap-2 bg-surface-container rounded-xl border border-outline-variant px-4 h-11 focus-within:ring-2 focus-within:ring-secondary focus-within:border-secondary">
             <Search size={18} className="text-on-surface-variant shrink-0" />
             <input aria-label="Search people, challenges and quests"
@@ -124,7 +124,7 @@ export default function SearchPage() {
 
         {/* Tabs */}
         {hasResults && (
-          <div className="flex gap-0 border-t border-outline-variant/50 max-w-lg mx-auto">
+          <div className="flex gap-0 border-t border-outline-variant/50 mx-auto measure-page">
             {(["users","challenges","quests"] as Tab[]).map(t => (
               <button key={t} onClick={() => setTab(t)}
                 className={`flex-1 py-2.5 text-xs font-bold capitalize flex items-center justify-center gap-1.5 border-b-2 transition-colors ${
@@ -142,7 +142,7 @@ export default function SearchPage() {
         )}
       </div>
 
-      <div className="max-w-lg mx-auto px-5 pt-4">
+      <div className="mx-auto measure-page px-5 pt-4">
         {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-16">
