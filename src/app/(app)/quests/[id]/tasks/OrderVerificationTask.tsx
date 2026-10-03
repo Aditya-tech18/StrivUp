@@ -124,9 +124,9 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
             </div>
           )}
 
-          <ol className="flex flex-col gap-2 text-sm text-gray-700">
-            <li className="flex gap-2"><span className="font-black text-blue-600">1.</span>Add the eligible item to your cart on Zomato or Swiggy.</li>
-            <li className="flex gap-2"><span className="font-black text-blue-600">2.</span>Before placing the order, tap Post Proof to get your verification code.</li>
+          <ol className="flex flex-col gap-2 text-sm text-on-surface-variant">
+            <li className="flex gap-2"><span className="font-black text-secondary">1.</span>Add the eligible item to your cart on Zomato or Swiggy.</li>
+            <li className="flex gap-2"><span className="font-black text-secondary">2.</span>Before placing the order, tap Post Proof to get your verification code.</li>
           </ol>
 
           {(task.order_link_zomato || task.order_link_swiggy) && (
@@ -147,7 +147,7 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
           )}
 
           <button type="button" onClick={postProof} disabled={busy}
-            className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+            className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
             {busy ? <Loader2 size={16} className="animate-spin" /> : <Receipt size={16} />}
             {state === "ready" ? "Post Proof — Get Verification Code" : "Post Proof Again"}
           </button>
@@ -156,24 +156,24 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
 
       {state === "waiting" && request && (
         <>
-          <div className="rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50 px-4 py-4 text-center">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-blue-800">Your verification code</p>
-            <p className="mt-1 font-mono text-[32px] font-black tracking-widest text-gray-900">{request.sv_code}</p>
+          <div className="rounded-2xl border-2 border-dashed border-secondary-fixed-dim bg-secondary-fixed px-4 py-4 text-center">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-on-secondary-fixed">Your verification code</p>
+            <p className="mt-1 font-mono text-[32px] font-black tracking-widest text-on-surface">{request.sv_code}</p>
             <button type="button" onClick={() => copy(request.sv_code)}
-              className="mt-2 inline-flex h-10 items-center gap-1.5 rounded-xl bg-white px-4 text-sm font-bold text-blue-700 border border-blue-200">
+              className="mt-2 inline-flex h-10 items-center gap-1.5 rounded-xl bg-surface-container-lowest px-4 text-sm font-bold text-secondary border border-secondary-fixed-dim">
               <Copy size={14} /> {copied ? "Copied" : "Copy Code"}
             </button>
           </div>
-          <p className="text-sm text-gray-700 leading-relaxed">
+          <p className="text-sm text-on-surface-variant leading-relaxed">
             Add this code to your <span className="font-semibold">Zomato/Swiggy order description</span> before placing your order.
             The business will verify it when your order arrives.
           </p>
-          <div className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2.5">
+          <div className="flex items-center justify-between rounded-xl bg-surface-container-low px-3 py-2.5">
             <span className="flex items-center gap-1.5 text-sm font-semibold text-amber-700"><Clock size={15} /> Waiting for business</span>
-            <span className="text-xs text-gray-600">Valid {expiresIn(request.expires_at, now)}</span>
+            <span className="text-xs text-on-surface-variant">Valid {expiresIn(request.expires_at, now)}</span>
           </div>
           <button type="button" onClick={refresh} disabled={refreshing}
-            className="h-10 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 flex items-center justify-center gap-1.5">
+            className="h-10 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant flex items-center justify-center gap-1.5">
             <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Check status
           </button>
         </>
@@ -185,14 +185,14 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
             <CheckCircle2 size={18} className="text-green-600 shrink-0" />
             <p className="text-sm font-bold text-green-900">Order Verified ✓</p>
           </div>
-          <label htmlFor={`bill-${task.id}`} className="text-sm font-semibold text-gray-900">
+          <label htmlFor={`bill-${task.id}`} className="text-sm font-semibold text-on-surface">
             Enter the verification code written on your bill
           </label>
           <input id={`bill-${task.id}`} value={billCode} onChange={e => { setBillCode(formatCodeInput(e.target.value, "BV")); setError(null); }}
             onKeyDown={e => e.key === "Enter" && billCode.length >= 9 && submitBillCode()}
             placeholder="BV-000000" inputMode="text" autoCapitalize="characters" autoComplete="one-time-code" maxLength={9}
-            className="h-14 rounded-xl border border-gray-300 bg-white px-4 text-center font-mono text-2xl font-black tracking-widest text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" />
-          <p className="text-xs text-gray-600">Bill code valid for {expiresIn(request?.bill_code_expires_at, now)}.</p>
+            className="h-14 rounded-xl border border-outline bg-surface-container-lowest px-4 text-center font-mono text-2xl font-black tracking-widest text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-secondary focus:ring-2 focus:ring-blue-100" />
+          <p className="text-xs text-on-surface-variant">Bill code valid for {expiresIn(request?.bill_code_expires_at, now)}.</p>
           <button type="button" onClick={submitBillCode} disabled={busy || billCode.length < 9}
             className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
             {busy ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />} Verify &amp; Complete Task
@@ -201,7 +201,7 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
       )}
 
       {state !== "completed" && (
-        <Link href="/how-quests-work" className="text-center text-xs font-semibold text-blue-700 underline">
+        <Link href="/how-quests-work" className="text-center text-xs font-semibold text-secondary underline">
           How does order verification work?
         </Link>
       )}

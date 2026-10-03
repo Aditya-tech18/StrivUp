@@ -33,9 +33,9 @@ const STATUS_TABS = [
 type StatusFilter = typeof STATUS_TABS[number]["value"];
 
 const STATUS_CFG = {
-  pending:    { label: "Pending",    cls: "text-gray-600 bg-gray-100 border-gray-200" },
+  pending:    { label: "Pending",    cls: "text-on-surface-variant bg-surface-container border-outline-variant" },
   eligible:   { label: "Eligible",   cls: "text-green-700 bg-green-50 border-green-200" },
-  processing: { label: "Processing", cls: "text-blue-700 bg-blue-50 border-blue-200" },
+  processing: { label: "Processing", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
   fulfilled:  { label: "Fulfilled",  cls: "text-purple-700 bg-purple-50 border-purple-200" },
   failed:     { label: "Failed",     cls: "text-red-700 bg-red-50 border-red-200" },
   disputed:   { label: "Disputed",   cls: "text-orange-700 bg-orange-50 border-orange-200" },
@@ -95,16 +95,16 @@ export default function RewardsPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8F9FC]">
-      <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-surface">
+      <div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#F8F9FC] pb-28">
-      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
-        <h1 className="text-[17px] font-black text-gray-900 flex-1">Rewards</h1>
+    <div className="min-h-screen bg-surface pb-28">
+      <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
+        <h1 className="text-[17px] font-black text-on-surface flex-1">Rewards</h1>
       </div>
 
       {/* Summary cards */}
@@ -115,9 +115,9 @@ export default function RewardsPage() {
             { label: "Pending",  value: claims.filter(c => c.status === "pending").length,  color: "text-amber-600" },
             { label: "Fulfilled",value: claims.filter(c => c.status === "fulfilled").length, color: "text-purple-600" },
           ].map(s => (
-            <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col items-center">
+            <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex flex-col items-center">
               <span className={`text-2xl font-black ${s.color}`}>{s.value}</span>
-              <span className="text-xs text-gray-600 mt-0.5">{s.label}</span>
+              <span className="text-xs text-on-surface-variant mt-0.5">{s.label}</span>
             </div>
           ))}
         </div>
@@ -127,7 +127,7 @@ export default function RewardsPage() {
           {STATUS_TABS.map(t => (
             <button key={t.value} onClick={() => setFilter(t.value)}
               className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
-                filter === t.value ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-500 border-gray-200"
+                filter === t.value ? "bg-secondary text-white border-secondary" : "bg-surface-container-lowest text-on-surface-variant border-outline-variant"
               }`}>
               {t.label}
             </button>
@@ -135,9 +135,9 @@ export default function RewardsPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center bg-white rounded-2xl border border-gray-100">
-            <Gift size={32} className="text-gray-200" />
-            <p className="text-sm text-gray-600">No reward claims yet.</p>
+          <div className="flex flex-col items-center gap-3 py-16 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant">
+            <Gift size={32} className="text-on-surface-variant" />
+            <p className="text-sm text-on-surface-variant">No reward claims yet.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -146,14 +146,14 @@ export default function RewardsPage() {
               const sc = STATUS_CFG[claim.status] ?? STATUS_CFG.pending;
               const reward = claim.reward;
               return (
-                <div key={claim.id} className="bg-white rounded-2xl border border-gray-100 p-4">
+                <div key={claim.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4">
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 font-bold text-blue-600 text-sm">
+                    <div className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center shrink-0 font-bold text-secondary text-sm">
                       {pName.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900">{pName}</p>
-                      <p className="text-xs text-gray-600 truncate">{claim.quest?.title ?? "—"}</p>
+                      <p className="text-sm font-bold text-on-surface">{pName}</p>
+                      <p className="text-xs text-on-surface-variant truncate">{claim.quest?.title ?? "—"}</p>
                       {claim.rank && (
                         <div className="flex items-center gap-1 mt-0.5">
                           <Trophy size={11} className="text-amber-500" />
@@ -165,16 +165,16 @@ export default function RewardsPage() {
                   </div>
 
                   {reward && (
-                    <div className="bg-gray-50 rounded-xl px-3 py-2.5 mb-3 flex items-center gap-3">
+                    <div className="bg-surface-container-low rounded-xl px-3 py-2.5 mb-3 flex items-center gap-3">
                       <span className="text-xl">🎁</span>
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">{reward.title}</p>
+                        <p className="text-sm font-semibold text-on-surface">{reward.title}</p>
                         {reward.value && <p className="text-xs text-green-600 font-bold">{reward.value}</p>}
                       </div>
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
+                  <div className="flex items-center justify-between text-xs text-on-surface-variant mb-3">
                     <span>Claimed {timeAgo(claim.created_at)}</span>
                     {claim.fulfilled_at && <span className="text-green-600">Fulfilled {timeAgo(claim.fulfilled_at)}</span>}
                   </div>

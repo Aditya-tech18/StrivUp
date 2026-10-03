@@ -54,8 +54,8 @@ export function AdminSidebarNav() {
         className={[
           "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150",
           active
-            ? "bg-blue-500/15 text-blue-300 font-semibold"
-            : "text-white/55 hover:bg-white/5 hover:text-white font-medium",
+            ? "bg-secondary/15 text-blue-300 font-semibold"
+            : "text-white/55 hover:bg-surface-container-lowest/5 hover:text-white font-medium",
         ].join(" ")}
       >
         <Icon size={19} strokeWidth={active ? 2.4 : 1.75} aria-hidden="true" className="shrink-0" />
@@ -85,7 +85,7 @@ export function AdminSidebarNav() {
 
       <Link
         href="/feed"
-        className="mt-5 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/50 hover:bg-white/5 hover:text-white transition-colors"
+        className="mt-5 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/50 hover:bg-surface-container-lowest/5 hover:text-white transition-colors"
       >
         <LogOut size={18} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />
         Exit admin

@@ -32,9 +32,9 @@ const STEPS: StepDef[] = [
 ];
 
 const ACTOR_STYLE: Record<StepDef["actor"], { chip: string; ring: string }> = {
-  user:     { chip: "bg-blue-50 text-blue-700 border-blue-100",   ring: "bg-blue-600" },
+  user:     { chip: "bg-secondary-fixed text-secondary border-secondary-fixed-dim",   ring: "bg-secondary" },
   business: { chip: "bg-amber-50 text-amber-700 border-amber-100", ring: "bg-amber-500" },
-  strivup:  { chip: "bg-gray-100 text-gray-600 border-gray-200",  ring: "bg-gray-900" },
+  strivup:  { chip: "bg-surface-container text-on-surface-variant border-outline-variant",  ring: "bg-primary" },
 };
 
 const LEGEND: { actor: StepDef["actor"]; label: string; Icon: typeof Smartphone }[] = [
@@ -48,14 +48,14 @@ export default function VerificationStepper() {
     <section
       id="how-verification-works"
       aria-labelledby="verification-heading"
-      className="bg-white rounded-2xl border border-gray-200 p-6"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 id="verification-heading" className="text-[17px] font-bold text-gray-900">
+          <h2 id="verification-heading" className="text-[17px] font-bold text-on-surface">
             How Verification Works
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-on-surface-variant mt-0.5">
             Two codes keep every order honest — one before, one on the bill.
           </p>
         </div>
@@ -66,8 +66,8 @@ export default function VerificationStepper() {
                 className={`w-2 h-2 rounded-full ${ACTOR_STYLE[actor].ring}`}
                 aria-hidden="true"
               />
-              <Icon size={12} className="text-gray-400" aria-hidden="true" />
-              <span className="text-[11px] font-medium text-gray-500">{label}</span>
+              <Icon size={12} className="text-on-surface-variant" aria-hidden="true" />
+              <span className="text-[11px] font-medium text-on-surface-variant">{label}</span>
             </li>
           ))}
         </ul>
@@ -80,7 +80,7 @@ export default function VerificationStepper() {
             {i !== STEPS.length - 1 && (
               <span
                 aria-hidden="true"
-                className="absolute left-[13px] top-7 bottom-0 w-px bg-gray-100"
+                className="absolute left-[13px] top-7 bottom-0 w-px bg-surface-container"
               />
             )}
             <span
@@ -88,14 +88,14 @@ export default function VerificationStepper() {
             >
               {s.n}
             </span>
-            <span className="text-sm text-gray-600 leading-relaxed pt-0.5">
+            <span className="text-sm text-on-surface-variant leading-relaxed pt-0.5">
               {s.text}
             </span>
           </li>
         ))}
       </ol>
 
-      <p className="mt-2 text-xs text-gray-400 leading-relaxed border-t border-gray-100 pt-4">
+      <p className="mt-2 text-xs text-on-surface-variant leading-relaxed border-t border-outline-variant pt-4">
         STRIVUP is not integrated with Zomato or Swiggy. Your verification code
         travels in the order description you type, and the bill code is written
         on your bill by the business.

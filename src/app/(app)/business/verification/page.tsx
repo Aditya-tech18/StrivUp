@@ -149,37 +149,37 @@ function VerifyContent() {
     setSearchErr(null); setRejectMode(false); setRejectReason(""); setScreen("search");
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#F8F9FC]"><div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-surface"><div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" /></div>;
 
   const statusCfg = {
     approved: { label: "Verified",  cls: "text-green-700 bg-green-50 border-green-200" },
     pending:  { label: "Pending",   cls: "text-amber-700 bg-amber-50 border-amber-200" },
     rejected: { label: "Rejected",  cls: "text-red-700 bg-red-50 border-red-200" },
-    expired:  { label: "Expired",   cls: "text-gray-500 bg-gray-100 border-gray-200" },
-    completed:{ label: "Completed", cls: "text-blue-700 bg-blue-50 border-blue-200" },
+    expired:  { label: "Expired",   cls: "text-on-surface-variant bg-surface-container border-outline-variant" },
+    completed:{ label: "Completed", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
   } as const;
 
   /* ── SEARCH SCREEN ────────────────────────────────────────────────────── */
   if (screen === "search") return (
-    <div className="min-h-screen bg-[#F8F9FC] pb-28">
-      <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
-        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
-        <h1 className="text-[17px] font-black text-gray-900 flex-1">Verify Participant</h1>
-        <Link aria-label="How verification works" href="/business/verification/how-it-works"><HelpCircle size={22} className="text-gray-400" /></Link>
+    <div className="min-h-screen bg-surface pb-28">
+      <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
+        <h1 className="text-[17px] font-black text-on-surface flex-1">Verify Participant</h1>
+        <Link aria-label="How verification works" href="/business/verification/how-it-works"><HelpCircle size={22} className="text-on-surface-variant" /></Link>
       </div>
 
       <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
         {/* Instruction card */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-secondary-fixed flex items-center justify-center shrink-0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><circle cx="18" cy="7" r="3"/><path d="M21 10c0 2-1 3-3 3"/></svg>
           </div>
-          <p className="text-sm text-gray-600 leading-relaxed">Quest orders arrive with a STRIVUP code in the order description (e.g. SV-123456). Enter it here to verify the order.</p>
+          <p className="text-sm text-on-surface-variant leading-relaxed">Quest orders arrive with a STRIVUP code in the order description (e.g. SV-123456). Enter it here to verify the order.</p>
         </div>
 
         {/* OTP Input */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-gray-700">Order verification code</label>
+          <label className="text-sm font-semibold text-on-surface-variant">Order verification code</label>
           <div className="flex gap-2">
             <input aria-label="Order verification code"
               value={svCode}
@@ -187,37 +187,37 @@ function VerifyContent() {
               onKeyDown={e => e.key === "Enter" && handleSearch()}
               placeholder="SV-000000"
               maxLength={9}
-              className="flex-1 h-12 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder:text-gray-500 px-4 font-mono tracking-wider text-lg focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-100"
+              className="flex-1 h-12 rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant px-4 font-mono tracking-wider text-lg focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100"
             />
             {svCode && (
               <button aria-label="Clear code" type="button" onClick={() => setSvCode("")}
-                className="w-12 h-12 flex items-center justify-center text-gray-600 border border-gray-200 rounded-xl bg-white">
+                className="w-12 h-12 flex items-center justify-center text-on-surface-variant border border-outline-variant rounded-xl bg-surface-container-lowest">
                 <XCircle size={18} />
               </button>
             )}
           </div>
           {searchErr && <p role="alert" className="text-sm text-red-600">{searchErr}</p>}
           <button onClick={handleSearch} disabled={!svCode.trim() || searching}
-            className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold flex items-center justify-center gap-2 transition-all">
+            className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold flex items-center justify-center gap-2 transition-all">
             {searching ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Search size={18} /> Search Order →</>}
           </button>
         </div>
 
         {/* Info note */}
-        <div className="flex items-start gap-2 text-gray-500">
+        <div className="flex items-start gap-2 text-on-surface-variant">
           <span className="text-blue-500 mt-0.5 shrink-0">ℹ</span>
           <p className="text-sm">No code in the order note? The order can&apos;t be linked to a Quest automatically.</p>
         </div>
 
         {/* Verification Insights */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-gray-900">Verification Insights</h3>
+            <h3 className="text-sm font-bold text-on-surface">Verification Insights</h3>
             <select
               value={insightRange}
               onChange={e => setInsightRange(e.target.value as InsightRange)}
               aria-label="Insights time range"
-              className="h-8 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-700 px-2 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
+              className="h-8 rounded-lg border border-outline-variant bg-surface-container-lowest text-xs font-semibold text-on-surface-variant px-2 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-secondary"
             >
               <option value="7">Last 7 Days</option>
               <option value="30">Last 30 Days</option>
@@ -226,14 +226,14 @@ function VerifyContent() {
           </div>
           <div className="grid grid-cols-4 gap-2">
             {[
-              { label: "Total",    value: insights.total,    cls: "text-gray-900" },
+              { label: "Total",    value: insights.total,    cls: "text-on-surface" },
               { label: "Approved", value: insights.approved, cls: "text-green-600" },
               { label: "Pending",  value: insights.pending,  cls: "text-amber-600" },
               { label: "Rejected", value: insights.rejected, cls: "text-red-600" },
             ].map(t => (
-              <div key={t.label} className="rounded-xl bg-gray-50/50 border border-gray-100 py-3 flex flex-col items-center">
+              <div key={t.label} className="rounded-xl bg-surface-container-low/50 border border-outline-variant py-3 flex flex-col items-center">
                 <span className={`text-lg font-black ${t.cls}`}>{t.value}</span>
-                <span className="text-[10px] text-gray-600 font-medium mt-0.5">{t.label}</span>
+                <span className="text-[10px] text-on-surface-variant font-medium mt-0.5">{t.label}</span>
               </div>
             ))}
           </div>
@@ -241,29 +241,29 @@ function VerifyContent() {
 
         {/* How verification works */}
         <Link href="/business/verification/how-it-works">
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-            <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-              <HelpCircle size={18} className="text-gray-500" />
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex items-center gap-3 hover:bg-surface-container-low transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
+              <HelpCircle size={18} className="text-on-surface-variant" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-900">How does verification work?</p>
-              <p className="text-xs text-gray-600">Learn the step-by-step process</p>
+              <p className="text-sm font-semibold text-on-surface">How does verification work?</p>
+              <p className="text-xs text-on-surface-variant">Learn the step-by-step process</p>
             </div>
-            <ChevronRight size={16} className="text-gray-300" />
+            <ChevronRight size={16} className="text-on-surface-variant" />
           </div>
         </Link>
 
         {/* Community CTA */}
         <Link href="/business/quests/new">
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-              <Users size={20} className="text-blue-600" />
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex items-center gap-3 hover:bg-surface-container-low transition-colors">
+            <div className="w-10 h-10 rounded-xl bg-secondary-fixed flex items-center justify-center shrink-0">
+              <Users size={20} className="text-secondary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-900">Build a more active community</p>
-              <p className="text-xs text-gray-600">Create a Quest to bring more participants to your business.</p>
+              <p className="text-sm font-semibold text-on-surface">Build a more active community</p>
+              <p className="text-xs text-on-surface-variant">Create a Quest to bring more participants to your business.</p>
             </div>
-            <span className="h-8 px-3 rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center shrink-0">Create Quest</span>
+            <span className="h-8 px-3 rounded-lg bg-secondary text-white text-xs font-bold flex items-center shrink-0">Create Quest</span>
           </div>
         </Link>
 
@@ -271,19 +271,19 @@ function VerifyContent() {
         {recentSearches.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-gray-900">Recent Searches</h3>
-              <button className="text-sm text-blue-600 font-semibold">View all</button>
+              <h3 className="text-sm font-bold text-on-surface">Recent Searches</h3>
+              <button className="text-sm text-secondary font-semibold">View all</button>
             </div>
-            <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+            <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-50">
               {recentSearches.map((s, i) => {
                 const sCfg = { found: { label: "Found", cls: "text-green-700 bg-green-50" }, invalid: { label: "Invalid", cls: "text-red-600 bg-red-50" }, expired: { label: "Expired", cls: "text-amber-700 bg-amber-50" } } as const;
                 const c = sCfg[s.status];
                 return (
                   <div key={i} className="flex items-center gap-3 px-4 py-3">
-                    <Search size={16} className="text-gray-400 shrink-0" />
+                    <Search size={16} className="text-on-surface-variant shrink-0" />
                     <div className="flex-1">
-                      <p className="text-sm font-mono font-semibold text-gray-900">{s.code}</p>
-                      <p className="text-xs text-gray-600">Today, {s.time}</p>
+                      <p className="text-sm font-mono font-semibold text-on-surface">{s.code}</p>
+                      <p className="text-xs text-on-surface-variant">Today, {s.time}</p>
                     </div>
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${c.cls}`}>{c.label}</span>
                   </div>
@@ -297,15 +297,15 @@ function VerifyContent() {
         {(recentVerifs.length > 0 || pendingOnly) && (
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-gray-900">{pendingOnly ? "Pending Requests" : "Recent Verifications"}</h3>
-              <Link href="/business/verification/history" className="text-sm text-blue-600 font-semibold">View all</Link>
+              <h3 className="text-sm font-bold text-on-surface">{pendingOnly ? "Pending Requests" : "Recent Verifications"}</h3>
+              <Link href="/business/verification/history" className="text-sm text-secondary font-semibold">View all</Link>
             </div>
             {recentVerifs.length === 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 px-4 py-6 text-center">
-                <p className="text-sm text-gray-500">No pending verification requests right now.</p>
+              <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-4 py-6 text-center">
+                <p className="text-sm text-on-surface-variant">No pending verification requests right now.</p>
               </div>
             )}
-            {recentVerifs.length > 0 && <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+            {recentVerifs.length > 0 && <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-50">
               {recentVerifs.map(req => {
                 const participant = req.participant as { full_name: string | null } | undefined;
                 const pName = participant?.full_name ?? "Unknown";
@@ -313,14 +313,14 @@ function VerifyContent() {
                 const sc = statusCfg[req.status as keyof typeof statusCfg] ?? statusCfg.expired;
                 return (
                   <div key={req.id} className="flex items-center gap-3 px-4 py-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 text-sm font-bold text-blue-600">{pName.charAt(0)}</div>
+                    <div className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center shrink-0 text-sm font-bold text-secondary">{pName.charAt(0)}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900">{pName}</p>
-                      <p className="text-xs text-gray-600 truncate">{challenge}</p>
-                      <p className="text-xs text-gray-600">{timeAgo(req.created_at)}</p>
+                      <p className="text-sm font-semibold text-on-surface">{pName}</p>
+                      <p className="text-xs text-on-surface-variant truncate">{challenge}</p>
+                      <p className="text-xs text-on-surface-variant">{timeAgo(req.created_at)}</p>
                     </div>
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${sc.cls} shrink-0`}>{sc.label}</span>
-                    <ChevronRight size={14} className="text-gray-300 shrink-0" />
+                    <ChevronRight size={14} className="text-on-surface-variant shrink-0" />
                   </div>
                 );
               })}
@@ -338,22 +338,22 @@ function VerifyContent() {
     const questTitle = (foundReq.quest as { title: string } | null)?.title ?? (foundReq.challenge as { title: string } | null)?.title ?? "—";
     const taskTitle = (foundReq.task as { title: string } | null)?.title ?? null;
     return (
-      <div className="min-h-screen bg-[#F8F9FC] pb-40">
-        <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
-          <button aria-label="Back" onClick={reset} className="w-11 h-11 -ml-2 flex items-center justify-center"><ArrowLeft size={22} className="text-gray-600" /></button>
-          <h1 className="text-[17px] font-black text-gray-900 flex-1">Verify Quest Order</h1>
+      <div className="min-h-screen bg-surface pb-40">
+        <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
+          <button aria-label="Back" onClick={reset} className="w-11 h-11 -ml-2 flex items-center justify-center"><ArrowLeft size={22} className="text-on-surface-variant" /></button>
+          <h1 className="text-[17px] font-black text-on-surface flex-1">Verify Quest Order</h1>
         </div>
 
         <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-4">
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-gray-600">Order code</p>
-            <p className="mt-1 font-mono text-[32px] font-black tracking-widest text-gray-900">{foundReq.sv_code}</p>
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 text-center">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Order code</p>
+            <p className="mt-1 font-mono text-[32px] font-black tracking-widest text-on-surface">{foundReq.sv_code}</p>
             <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">
               <Clock size={13} /> Awaiting verification
             </span>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 px-4 divide-y divide-gray-50">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-4 divide-y divide-gray-50">
             {[
               { label: "Customer", value: pName },
               { label: "Quest",    value: questTitle },
@@ -361,8 +361,8 @@ function VerifyContent() {
               { label: "Code created", value: new Date(foundReq.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) },
             ].map(row => (
               <div key={row.label} className="flex items-start gap-4 py-3">
-                <span className="text-sm text-gray-600 w-28 shrink-0">{row.label}</span>
-                <span className="text-sm text-gray-900 font-semibold flex-1">{row.value}</span>
+                <span className="text-sm text-on-surface-variant w-28 shrink-0">{row.label}</span>
+                <span className="text-sm text-on-surface font-semibold flex-1">{row.value}</span>
               </div>
             ))}
           </div>
@@ -373,11 +373,11 @@ function VerifyContent() {
           </div>
 
           {rejectMode && (
-            <div className="bg-white rounded-2xl border border-red-100 p-4 flex flex-col gap-2">
-              <label htmlFor="reject-reason" className="text-sm font-bold text-gray-900">Reason for rejecting (shown to the customer)</label>
+            <div className="bg-surface-container-lowest rounded-2xl border border-red-100 p-4 flex flex-col gap-2">
+              <label htmlFor="reject-reason" className="text-sm font-bold text-on-surface">Reason for rejecting (shown to the customer)</label>
               <textarea id="reject-reason" value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={2}
                 placeholder="e.g. Item isn't part of this Quest"
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-base focus:outline-none focus:border-red-400 resize-none" />
+                className="w-full rounded-xl border border-outline-variant px-3 py-2 text-base focus:outline-none focus:border-red-400 resize-none" />
             </div>
           )}
 
@@ -385,11 +385,11 @@ function VerifyContent() {
         </div>
 
         {/* Reject on the left, Verify on the right — different colour and position. */}
-        <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4 flex gap-3">
+        <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-4 flex gap-3">
           {rejectMode ? (
             <>
               <button onClick={() => { setRejectMode(false); setRejectReason(""); }} disabled={rejecting}
-                className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm">
+                className="flex-1 h-12 rounded-xl border border-outline-variant text-on-surface-variant font-semibold text-sm">
                 Cancel
               </button>
               <button onClick={handleReject} disabled={rejecting}
@@ -416,9 +416,9 @@ function VerifyContent() {
 
   /* ── APPROVED ─────────────────────────────────────────────────────────── */
   if (screen === "approved" && billCode) return (
-    <div className="min-h-screen bg-[#F8F9FC] flex flex-col">
-      <div className="flex items-center justify-center px-5 py-4 bg-white border-b border-gray-100">
-        <h1 className="text-[17px] font-black text-gray-900">Order Verified</h1>
+    <div className="min-h-screen bg-surface flex flex-col">
+      <div className="flex items-center justify-center px-5 py-4 bg-surface-container-lowest border-b border-outline-variant">
+        <h1 className="text-[17px] font-black text-on-surface">Order Verified</h1>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-8 gap-6 max-w-sm mx-auto w-full">
@@ -428,37 +428,37 @@ function VerifyContent() {
         </div>
 
         <div className="text-center">
-          <h2 className="text-[22px] font-black text-gray-900">Verification Successful</h2>
-          <p className="text-sm text-gray-600 mt-1">Now write the bill code below on the customer&apos;s bill.</p>
+          <h2 className="text-[22px] font-black text-on-surface">Verification Successful</h2>
+          <p className="text-sm text-on-surface-variant mt-1">Now write the bill code below on the customer&apos;s bill.</p>
         </div>
 
         {/* Bill code card */}
-        <div className="w-full bg-white rounded-2xl border border-gray-100 p-5">
-          <p className="text-sm font-bold text-gray-900 mb-1">Bill Verification Code</p>
-          <p className="text-xs text-gray-600 mb-4">Write or print this clearly on the customer&apos;s bill. They enter it in STRIVUP to complete their task.</p>
-          <div className="flex items-center justify-between bg-gray-50 rounded-xl px-5 py-4 border border-gray-100">
-            <span className="font-mono font-black text-[28px] text-gray-900 tracking-widest">{billCode}</span>
+        <div className="w-full bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
+          <p className="text-sm font-bold text-on-surface mb-1">Bill Verification Code</p>
+          <p className="text-xs text-on-surface-variant mb-4">Write or print this clearly on the customer&apos;s bill. They enter it in STRIVUP to complete their task.</p>
+          <div className="flex items-center justify-between bg-surface-container-low rounded-xl px-5 py-4 border border-outline-variant">
+            <span className="font-mono font-black text-[28px] text-on-surface tracking-widest">{billCode}</span>
             <button type="button" onClick={() => navigator.clipboard.writeText(billCode).catch(()=>{})}
-              className="w-11 h-11 -mr-2 flex items-center justify-center text-gray-600 hover:text-gray-900 ml-3" aria-label="Copy bill code">
+              className="w-11 h-11 -mr-2 flex items-center justify-center text-on-surface-variant hover:text-on-surface ml-3" aria-label="Copy bill code">
               <Copy size={20} />
             </button>
           </div>
           <div className="flex items-center gap-6 mt-4">
-            <div className="flex items-center gap-1.5 text-gray-500">
+            <div className="flex items-center gap-1.5 text-on-surface-variant">
               <span className="text-base">⏱</span>
               <span className="text-xs">
                 Valid until {billExpiresAt ? new Date(billExpiresAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "24 hours from now"}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 text-gray-500">
+            <div className="flex items-center gap-1.5 text-on-surface-variant">
               <Shield size={14} />
               <span className="text-xs">One-time use</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
-          <p className="text-xs text-blue-700 text-center leading-relaxed">
+        <div className="bg-secondary-fixed rounded-xl p-3 border border-secondary-fixed-dim">
+          <p className="text-xs text-secondary text-center leading-relaxed">
 ✏️ Write this code on the bill that goes with the order. The customer types it into STRIVUP — the task only completes when they do.
           </p>
         </div>
@@ -466,10 +466,10 @@ function VerifyContent() {
 
       <div className="px-5 pb-8 flex flex-col gap-3 max-w-sm mx-auto w-full">
         <button onClick={() => router.push("/business/verification/how-it-works")}
-          className="w-full h-12 rounded-xl bg-blue-600 text-white font-bold text-sm">
+          className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-sm">
           View Instructions →
         </button>
-        <button onClick={reset} className="w-full h-12 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm">
+        <button onClick={reset} className="w-full h-12 rounded-xl border border-outline-variant text-on-surface-variant font-semibold text-sm">
           Done
         </button>
       </div>
@@ -478,20 +478,20 @@ function VerifyContent() {
 
   /* ── REJECTED ─────────────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-[#F8F9FC] flex flex-col items-center justify-center px-5 gap-6 max-w-sm mx-auto">
+    <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-5 gap-6 max-w-sm mx-auto">
       <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
         <XCircle size={40} className="text-red-500" />
       </div>
       <div className="text-center">
-        <h2 className="text-[22px] font-black text-gray-900">Order Rejected</h2>
-        <p className="text-sm text-gray-600 mt-1">The customer has been notified{rejectReason.trim() ? " with your reason" : ""}.</p>
+        <h2 className="text-[22px] font-black text-on-surface">Order Rejected</h2>
+        <p className="text-sm text-on-surface-variant mt-1">The customer has been notified{rejectReason.trim() ? " with your reason" : ""}.</p>
       </div>
-      <button onClick={reset} className="w-full h-12 rounded-xl bg-blue-600 text-white font-bold">Verify Another Order</button>
-      <button onClick={() => router.push("/business/dashboard")} className="w-full h-12 rounded-xl border border-gray-200 text-gray-700 font-semibold">Back to Dashboard</button>
+      <button onClick={reset} className="w-full h-12 rounded-xl bg-secondary text-white font-bold">Verify Another Order</button>
+      <button onClick={() => router.push("/business/dashboard")} className="w-full h-12 rounded-xl border border-outline-variant text-on-surface-variant font-semibold">Back to Dashboard</button>
     </div>
   );
 }
 
 export default function VerifyParticipantPage() {
-  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#F8F9FC]"><div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>}><VerifyContent /></Suspense>;
+  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-surface"><div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" /></div>}><VerifyContent /></Suspense>;
 }

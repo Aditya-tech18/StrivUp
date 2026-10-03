@@ -290,30 +290,30 @@ export default function BusinessQuestDetailClient({
   /* ── Render ─────────────────────────────────────────────────────────── */
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] pb-24">
+    <div className="min-h-screen bg-surface pb-24">
 
       {/* ── Top bar ─────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-200 pt-safe">
+      <header className="sticky top-0 z-30 bg-surface-container-lowest/95 backdrop-blur border-b border-outline-variant pt-safe">
         <div className="max-w-[1400px] mx-auto px-5 lg:px-8 h-14 flex items-center gap-3">
           <button
             onClick={() => router.back()}
             aria-label="Go back"
-            className="w-9 h-9 rounded-xl hover:bg-gray-100 flex items-center justify-center shrink-0 transition-colors"
+            className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 transition-colors"
           >
-            <ArrowLeft size={18} className="text-gray-600" />
+            <ArrowLeft size={18} className="text-on-surface-variant" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-gray-900 truncate">{quest.title}</p>
-            <p className="text-[11px] text-gray-400 truncate">{businessName}</p>
+            <p className="text-sm font-bold text-on-surface truncate">{quest.title}</p>
+            <p className="text-[11px] text-on-surface-variant truncate">{businessName}</p>
           </div>
           {shareNote && (
-            <span role="status" className="text-xs font-medium text-gray-500 shrink-0">
+            <span role="status" className="text-xs font-medium text-on-surface-variant shrink-0">
               {shareNote}
             </span>
           )}
           <button
             onClick={handleShare}
-            className="h-9 px-3 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 hidden sm:flex items-center gap-1.5 transition-colors"
+            className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant hidden sm:flex items-center gap-1.5 transition-colors"
           >
             <Share2 size={14} /> Share
           </button>
@@ -322,11 +322,11 @@ export default function BusinessQuestDetailClient({
             aria-pressed={saved}
             className={`h-9 px-3 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
               saved
-                ? "border-blue-200 bg-blue-50 text-blue-700"
-                : "border-gray-200 hover:bg-gray-50 text-gray-700"
+                ? "border-secondary-fixed-dim bg-secondary-fixed text-secondary"
+                : "border-outline-variant hover:bg-surface-container-low text-on-surface-variant"
             }`}
           >
-            <Bookmark size={14} className={saved ? "fill-blue-600 text-blue-600" : ""} />
+            <Bookmark size={14} className={saved ? "fill-blue-600 text-secondary" : ""} />
             <span className="hidden sm:inline">{saved ? "Saved" : "Save"}</span>
           </button>
         </div>
@@ -339,7 +339,7 @@ export default function BusinessQuestDetailClient({
           <div className="min-w-0 flex flex-col gap-6">
 
             {/* Hero */}
-            <section className="relative rounded-2xl overflow-hidden border border-gray-200 bg-gray-900 min-h-[260px] flex">
+            <section className="relative rounded-2xl overflow-hidden border border-outline-variant bg-primary min-h-[260px] flex">
               {heroImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -358,7 +358,7 @@ export default function BusinessQuestDetailClient({
               <div className="relative z-10 p-7 lg:p-9 flex flex-col justify-center gap-3 max-w-2xl">
                 <div className="flex items-center gap-3">
                   {quest.business_logo && (
-                    <span className="w-11 h-11 rounded-xl bg-white/95 overflow-hidden shrink-0 flex items-center justify-center">
+                    <span className="w-11 h-11 rounded-xl bg-surface-container-lowest/95 overflow-hidden shrink-0 flex items-center justify-center">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={quest.business_logo}
@@ -368,7 +368,7 @@ export default function BusinessQuestDetailClient({
                     </span>
                   )}
                   {quest.category && (
-                    <span className="text-[11px] font-semibold text-white bg-white/15 border border-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
+                    <span className="text-[11px] font-semibold text-white bg-surface-container-lowest/15 border border-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
                       {quest.category}
                     </span>
                   )}
@@ -379,25 +379,25 @@ export default function BusinessQuestDetailClient({
                 </h1>
 
                 {quest.description && (
-                  <p className="text-[15px] text-gray-200 leading-relaxed line-clamp-2">
+                  <p className="text-[15px] text-on-surface-variant leading-relaxed line-clamp-2">
                     {quest.description}
                   </p>
                 )}
 
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-1">
                   {locationLine && (
-                    <span className="flex items-center gap-1.5 text-sm text-gray-200">
+                    <span className="flex items-center gap-1.5 text-sm text-on-surface-variant">
                       <MapPin size={14} className="shrink-0" /> {locationLine}
                     </span>
                   )}
                   {quest.start_date && quest.end_date && (
-                    <span className="flex items-center gap-1.5 text-sm text-gray-200">
+                    <span className="flex items-center gap-1.5 text-sm text-on-surface-variant">
                       <Calendar size={14} className="shrink-0" />
                       {formatDate(quest.start_date)} – {formatDate(quest.end_date)}
                     </span>
                   )}
                   {days != null && (
-                    <span className="flex items-center gap-1.5 text-sm font-semibold text-white bg-white/15 border border-white/20 px-2.5 py-0.5 rounded-full">
+                    <span className="flex items-center gap-1.5 text-sm font-semibold text-white bg-surface-container-lowest/15 border border-white/20 px-2.5 py-0.5 rounded-full">
                       <Clock size={13} /> {days} Days
                     </span>
                   )}
@@ -438,30 +438,30 @@ export default function BusinessQuestDetailClient({
             {totalTasks > 0 && (
               <Link
                 href={hasJoined ? `/quests/${quest.id}/tasks` : `#tasks`}
-                className="bg-white rounded-2xl border border-gray-200 px-5 py-4 flex items-center gap-4 hover:border-gray-300 transition-colors"
+                className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-4 flex items-center gap-4 hover:border-outline transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-bold text-gray-900">Your Progress</p>
-                    <p className="text-sm font-bold text-gray-900 shrink-0">
+                    <p className="text-sm font-bold text-on-surface">Your Progress</p>
+                    <p className="text-sm font-bold text-on-surface shrink-0">
                       {completedCount}/{totalTasks} Tasks
                     </p>
                   </div>
-                  <div className="mt-2 h-2 rounded-full bg-gray-100 overflow-hidden">
+                  <div className="mt-2 h-2 rounded-full bg-surface-container overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-blue-600 transition-[width] duration-500"
+                      className="h-full rounded-full bg-secondary transition-[width] duration-500"
                       style={{ width: `${totalTasks ? (completedCount / totalTasks) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
-                <ChevronRight size={18} className="text-gray-300 shrink-0" aria-hidden="true" />
+                <ChevronRight size={18} className="text-on-surface-variant shrink-0" aria-hidden="true" />
               </Link>
             )}
 
             {/* Tabs */}
             <nav
               aria-label="Quest sections"
-              className="bg-white rounded-2xl border border-gray-200 px-2 flex gap-1 overflow-x-auto"
+              className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-2 flex gap-1 overflow-x-auto"
             >
               {TABS.map((t) => (
                 <button
@@ -470,8 +470,8 @@ export default function BusinessQuestDetailClient({
                   aria-current={tab === t.id ? "page" : undefined}
                   className={`shrink-0 px-4 py-3.5 text-sm font-semibold border-b-2 transition-colors ${
                     tab === t.id
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-900"
+                      ? "border-secondary text-secondary"
+                      : "border-transparent text-on-surface-variant hover:text-on-surface"
                   }`}
                 >
                   {t.label}
@@ -528,31 +528,31 @@ export default function BusinessQuestDetailClient({
 
             {/* ── Rules ─────────────────────────────────────────────── */}
             {tab === "rules" && (
-              <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                <h2 className="text-[17px] font-bold text-gray-900">Quest Rules</h2>
+              <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+                <h2 className="text-[17px] font-bold text-on-surface">Quest Rules</h2>
                 {quest.eligibility && (
                   <>
-                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mt-5">
+                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-5">
                       Eligibility
                     </h3>
-                    <p className="text-sm text-gray-600 leading-relaxed mt-1.5 whitespace-pre-line">
+                    <p className="text-sm text-on-surface-variant leading-relaxed mt-1.5 whitespace-pre-line">
                       {quest.eligibility}
                     </p>
                   </>
                 )}
-                <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mt-5">
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-5">
                   Rules
                 </h3>
                 {quest.rules ? (
-                  <p className="text-sm text-gray-600 leading-relaxed mt-1.5 whitespace-pre-line">
+                  <p className="text-sm text-on-surface-variant leading-relaxed mt-1.5 whitespace-pre-line">
                     {quest.rules}
                   </p>
                 ) : (
                   <ul className="mt-2.5 flex flex-col gap-2.5">
                     {DEFAULT_RULES.map((rule) => (
                       <li key={rule} className="flex gap-2.5 items-start">
-                        <Check size={15} className="text-blue-600 shrink-0 mt-0.5" />
-                        <span className="text-sm text-gray-600 leading-relaxed">{rule}</span>
+                        <Check size={15} className="text-secondary shrink-0 mt-0.5" />
+                        <span className="text-sm text-on-surface-variant leading-relaxed">{rule}</span>
                       </li>
                     ))}
                   </ul>
@@ -601,8 +601,8 @@ export default function BusinessQuestDetailClient({
               fallbackName={businessName}
             />
             <div className="flex items-center gap-2 px-1">
-              <Users size={14} className="text-gray-400 shrink-0" />
-              <p className="text-xs text-gray-400">
+              <Users size={14} className="text-on-surface-variant shrink-0" />
+              <p className="text-xs text-on-surface-variant">
                 {quest.participant_count.toLocaleString("en-IN")} participants
               </p>
             </div>
@@ -612,11 +612,11 @@ export default function BusinessQuestDetailClient({
 
       {/* ── Mobile join bar ──────────────────────────────────────────── */}
       {!loading && !hasJoined && !isEnded && (
-        <div className="lg:hidden fixed above-bottom-nav left-0 right-0 z-40 bg-white border-t border-gray-200 px-5 py-3">
+        <div className="lg:hidden fixed above-bottom-nav left-0 right-0 z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-3">
           <button
             onClick={handleJoin}
             disabled={joining}
-            className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-[15px] transition-colors"
+            className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-50 text-white font-bold text-[15px] transition-colors"
           >
             {joining ? "Joining…" : "Join Quest"}
           </button>
@@ -654,7 +654,7 @@ export default function BusinessQuestDetailClient({
 
 const PILL_TONE = {
   amber:  { wrap: "bg-amber-50 border-amber-100",   icon: "text-amber-500" },
-  blue:   { wrap: "bg-blue-50 border-blue-100",     icon: "text-blue-600" },
+  blue:   { wrap: "bg-secondary-fixed border-secondary-fixed-dim",     icon: "text-secondary" },
   violet: { wrap: "bg-violet-50 border-violet-100", icon: "text-violet-600" },
 } as const;
 
@@ -671,8 +671,8 @@ function StatPill({
     <div className={`rounded-2xl border px-4 py-3.5 flex items-center gap-3 ${t.wrap}`}>
       <Icon size={20} className={`${t.icon} shrink-0`} aria-hidden="true" />
       <div className="min-w-0">
-        <p className="text-[15px] font-bold text-gray-900 leading-tight truncate">{value}</p>
-        <p className="text-[11px] text-gray-500 truncate">{label}</p>
+        <p className="text-[15px] font-bold text-on-surface leading-tight truncate">{value}</p>
+        <p className="text-[11px] text-on-surface-variant truncate">{label}</p>
       </div>
     </div>
   );
@@ -708,23 +708,23 @@ function AboutQuestCard({
   ].filter(Boolean) as { k: string; v: string }[];
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 p-6">
-      <h2 className="text-[17px] font-bold text-gray-900">About This Quest</h2>
+    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+      <h2 className="text-[17px] font-bold text-on-surface">About This Quest</h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-6 mt-3">
         <div className="min-w-0">
           {quest.description && (
-            <p className="text-sm text-gray-600 leading-relaxed">{quest.description}</p>
+            <p className="text-sm text-on-surface-variant leading-relaxed">{quest.description}</p>
           )}
 
           {facts.length > 0 && (
             <dl className="grid grid-cols-2 gap-x-6 gap-y-4 mt-5">
               {facts.map((f) => (
                 <div key={f.k}>
-                  <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                  <dt className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
                     {f.k}
                   </dt>
-                  <dd className="text-sm font-semibold text-gray-900 mt-1">{f.v}</dd>
+                  <dd className="text-sm font-semibold text-on-surface mt-1">{f.v}</dd>
                 </div>
               ))}
             </dl>
@@ -736,7 +736,7 @@ function AboutQuestCard({
             {gallery.map((g) => (
               <li
                 key={g.label}
-                className="aspect-square rounded-xl overflow-hidden border border-gray-100 bg-gray-50"
+                className="aspect-square rounded-xl overflow-hidden border border-outline-variant bg-surface-container-low"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={g.url} alt={g.label} className="w-full h-full object-cover" />
@@ -765,19 +765,19 @@ function TaskSection({
   if (tasks.length === 0) return null;
 
   return (
-    <section id="tasks" className="bg-white rounded-2xl border border-gray-200 p-6 scroll-mt-20">
+    <section id="tasks" className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 scroll-mt-20">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-[17px] font-bold text-gray-900">
+          <h2 className="text-[17px] font-bold text-on-surface">
             Tasks ({tasks.length})
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-on-surface-variant mt-0.5">
             Complete the required tasks to finish the Quest. Every task must be verified.
           </p>
         </div>
         <a
           href="#how-verification-works"
-          className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-blue-50 border border-blue-100 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
+          className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-secondary-fixed border border-secondary-fixed-dim text-xs font-semibold text-secondary hover:bg-secondary-fixed transition-colors"
         >
           <PlayCircle size={13} /> How It Works?
         </a>
@@ -824,39 +824,39 @@ function TaskCard({
   const state = completed
     ? { label: "Verified Order", cls: "text-green-700 bg-green-50 border-green-200", Icon: CheckCircle2 }
     : verification?.status === "order_verified"
-      ? { label: "Enter bill code", cls: "text-blue-700 bg-blue-50 border-blue-200", Icon: Upload }
+      ? { label: "Enter bill code", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim", Icon: Upload }
       : verification?.status === "code_issued"
         ? { label: "Awaiting business", cls: "text-amber-700 bg-amber-50 border-amber-200", Icon: Clock }
         : null;
 
   return (
-    <li className="group rounded-2xl border border-gray-200 hover:border-gray-300 bg-white transition-colors">
+    <li className="group rounded-2xl border border-outline-variant hover:border-outline bg-surface-container-lowest transition-colors">
       <div className="flex items-center gap-4 p-4">
 
         {/* Number */}
-        <span className="w-7 h-7 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center shrink-0">
+        <span className="w-7 h-7 rounded-full bg-surface-container text-on-surface-variant text-xs font-bold flex items-center justify-center shrink-0">
           {index}
         </span>
 
         {/* Thumbnail */}
-        <div className="w-[72px] h-[72px] rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0 flex items-center justify-center">
+        <div className="w-[72px] h-[72px] rounded-xl overflow-hidden bg-surface-container-low border border-outline-variant shrink-0 flex items-center justify-center">
           {task.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={task.image_url} alt="" className="w-full h-full object-cover" />
           ) : (
-            <ImageIcon size={20} className="text-gray-300" aria-hidden="true" />
+            <ImageIcon size={20} className="text-on-surface-variant" aria-hidden="true" />
           )}
         </div>
 
         {/* Body */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-[15px] font-bold text-gray-900 truncate">{task.title}</h3>
+            <h3 className="text-[15px] font-bold text-on-surface truncate">{task.title}</h3>
             <span
               className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
                 task.is_required
                   ? "text-red-600 bg-red-50 border-red-100"
-                  : "text-gray-500 bg-gray-50 border-gray-200"
+                  : "text-on-surface-variant bg-surface-container-low border-outline-variant"
               }`}
             >
               {task.is_required ? "Required" : "Optional"}
@@ -864,14 +864,14 @@ function TaskCard({
           </div>
 
           {task.description && (
-            <p className="text-sm text-gray-500 leading-relaxed mt-1 line-clamp-2">
+            <p className="text-sm text-on-surface-variant leading-relaxed mt-1 line-clamp-2">
               {task.description}
             </p>
           )}
 
           <div className="flex items-center gap-2 flex-wrap mt-2">
-            <span className="text-[11px] font-medium text-gray-400">
-              Proof Type: <span className="text-gray-600">{proofLabel}</span>
+            <span className="text-[11px] font-medium text-on-surface-variant">
+              Proof Type: <span className="text-on-surface-variant">{proofLabel}</span>
             </span>
             {showPlatforms && platforms!.map((p) => (
               p.url ? (
@@ -881,14 +881,14 @@ function TaskCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors"
                 >
                   {p.label} <ExternalLink size={9} />
                 </a>
               ) : (
                 <span
                   key={p.platform}
-                  className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600"
+                  className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant"
                 >
                   {p.label}
                 </span>
@@ -914,7 +914,7 @@ function TaskCard({
             <button
               onClick={onProof}
               disabled={loading}
-              className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+              className="h-9 px-4 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
             >
               {loading
                 ? <Loader2 size={14} className="animate-spin" />
@@ -922,7 +922,7 @@ function TaskCard({
               {joined ? "Upload Proof" : "Join to Start"}
             </button>
           )}
-          <ChevronRight size={18} className="text-gray-300 hidden sm:block" aria-hidden="true" />
+          <ChevronRight size={18} className="text-on-surface-variant hidden sm:block" aria-hidden="true" />
         </div>
       </div>
     </li>
@@ -939,9 +939,9 @@ function LeaderboardPanel({
   enabled: boolean;
 }) {
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 p-6">
-      <h2 className="text-[17px] font-bold text-gray-900">Leaderboard</h2>
-      <p className="text-sm text-gray-500 mt-0.5">
+    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+      <h2 className="text-[17px] font-bold text-on-surface">Leaderboard</h2>
+      <p className="text-sm text-on-surface-variant mt-0.5">
         {enabled
           ? "Ranked on verified task completions only."
           : "This Quest does not run a leaderboard."}
@@ -949,7 +949,7 @@ function LeaderboardPanel({
 
       {enabled && (
         rows.length === 0 ? (
-          <p className="text-sm text-gray-400 mt-6 text-center py-10 border border-dashed border-gray-200 rounded-xl">
+          <p className="text-sm text-on-surface-variant mt-6 text-center py-10 border border-dashed border-outline-variant rounded-xl">
             No verified activity yet — the leaderboard fills in as participants
             complete tasks.
           </p>
@@ -959,26 +959,26 @@ function LeaderboardPanel({
               const name = r.full_name ?? r.username ?? "Participant";
               return (
                 <li key={r.user_id} className="flex items-center gap-4 py-3">
-                  <span className="w-7 text-sm font-bold text-gray-400 text-center shrink-0">
+                  <span className="w-7 text-sm font-bold text-on-surface-variant text-center shrink-0">
                     {r.rank}
                   </span>
-                  <div className="w-9 h-9 rounded-full bg-blue-50 overflow-hidden shrink-0 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full bg-secondary-fixed overflow-hidden shrink-0 flex items-center justify-center">
                     {r.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={r.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-xs font-bold text-blue-600">
+                      <span className="text-xs font-bold text-secondary">
                         {name.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-sm font-semibold text-on-surface truncate">{name}</p>
+                    <p className="text-xs text-on-surface-variant">
                       {r.tasks_completed}/{totalTasks} tasks verified
                     </p>
                   </div>
-                  <span className="text-sm font-bold text-gray-900 shrink-0">
+                  <span className="text-sm font-bold text-on-surface shrink-0">
                     {r.points} pts
                   </span>
                 </li>
@@ -1005,9 +1005,9 @@ function AboutBusinessPanel({
   const phones = [b?.business_phone, b?.business_phone_alt].filter(Boolean);
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 p-6">
+    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
       <div className="flex items-start gap-4">
-        <div className="w-14 h-14 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
+        <div className="w-14 h-14 rounded-xl bg-surface-container-low border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center">
           {b?.logo_url ?? quest.business_logo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -1016,46 +1016,46 @@ function AboutBusinessPanel({
               className="w-full h-full object-cover"
             />
           ) : (
-            <span className="text-xl font-bold text-gray-300">{businessName.charAt(0)}</span>
+            <span className="text-xl font-bold text-on-surface-variant">{businessName.charAt(0)}</span>
           )}
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h2 className="text-[19px] font-bold text-gray-900 truncate">{businessName}</h2>
+            <h2 className="text-[19px] font-bold text-on-surface truncate">{businessName}</h2>
             {verified && (
-              <ShieldCheck size={16} className="text-blue-600 shrink-0" aria-label="Verified by STRIVUP" />
+              <ShieldCheck size={16} className="text-secondary shrink-0" aria-label="Verified by STRIVUP" />
             )}
           </div>
-          {b?.category && <p className="text-sm text-gray-500 mt-0.5">{b.category}</p>}
+          {b?.category && <p className="text-sm text-on-surface-variant mt-0.5">{b.category}</p>}
         </div>
       </div>
 
       {b?.description && (
-        <p className="text-sm text-gray-600 leading-relaxed mt-5">{b.description}</p>
+        <p className="text-sm text-on-surface-variant leading-relaxed mt-5">{b.description}</p>
       )}
 
       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mt-5">
         {address.length > 0 && (
           <div>
-            <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+            <dt className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
               Address
             </dt>
-            <dd className="text-sm text-gray-600 leading-relaxed mt-1">
+            <dd className="text-sm text-on-surface-variant leading-relaxed mt-1">
               {address.map((line) => <span key={line} className="block">{line}</span>)}
             </dd>
           </div>
         )}
         {phones.length > 0 && (
           <div>
-            <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+            <dt className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
               Phone
             </dt>
-            <dd className="text-sm text-gray-600 mt-1">{phones.join(" / ")}</dd>
+            <dd className="text-sm text-on-surface-variant mt-1">{phones.join(" / ")}</dd>
           </div>
         )}
         {b?.website && (
           <div>
-            <dt className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+            <dt className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
               Website
             </dt>
             <dd className="text-sm mt-1">
@@ -1063,7 +1063,7 @@ function AboutBusinessPanel({
                 href={b.website.startsWith("http") ? b.website : `https://${b.website}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline break-all"
+                className="text-secondary hover:underline break-all"
               >
                 {b.website.replace(/^https?:\/\//, "")}
               </a>
@@ -1073,7 +1073,7 @@ function AboutBusinessPanel({
       </dl>
 
       {!b && (
-        <p className="text-sm text-gray-400 mt-5">
+        <p className="text-sm text-on-surface-variant mt-5">
           This Quest is not linked to a verified business profile yet.
         </p>
       )}
@@ -1081,7 +1081,7 @@ function AboutBusinessPanel({
       {b?.id && (
         <Link
           href={`/business/${b.id}`}
-          className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700"
+          className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-secondary hover:text-secondary"
         >
           View Business Profile →
         </Link>

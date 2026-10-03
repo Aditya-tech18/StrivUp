@@ -52,7 +52,7 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
       className={[
         "fixed bottom-0 left-0 right-0 z-50",
         "flex h-[var(--bottom-nav-h)] items-stretch pb-safe",
-        "bg-white border-t border-gray-100",
+        "bg-surface-container-lowest border-t border-outline-variant",
         "shadow-[0_-1px_0_0_rgba(0,0,0,0.05)]",
         "md:hidden",
         className,
@@ -78,11 +78,11 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
             className={[
               "flex flex-1 flex-col items-center justify-center gap-0.5 select-none transition-colors",
               isCreate ? "relative" : "",
-              isActive ? "text-blue-600" : "text-gray-600 hover:text-gray-900",
+              isActive ? "text-secondary" : "text-on-surface-variant hover:text-on-surface",
             ].join(" ")}
           >
             {isCreate ? (
-              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-md shadow-blue-200 -mt-6">
+              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center shadow-md shadow-blue-200 -mt-6">
                 <Icon size={22} strokeWidth={2.5} className="text-white" />
               </div>
             ) : (
@@ -95,7 +95,7 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
                     </span>
                   )}
                 </span>
-                <span className={`text-[10px] font-medium leading-none ${isActive ? "text-blue-600" : ""}`}>
+                <span className={`text-[10px] font-medium leading-none ${isActive ? "text-secondary" : ""}`}>
                   {item.label}
                 </span>
               </>

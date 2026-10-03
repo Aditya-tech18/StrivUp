@@ -43,14 +43,14 @@ function ProfileStat({
   label: string;
 }) {
   return (
-    <div className="rounded-xl bg-white border border-gray-200 px-2.5 py-2">
+    <div className="rounded-xl bg-surface-container-lowest border border-outline-variant px-2.5 py-2">
       <div className="flex items-center gap-1.5">
-        <Icon size={11} className="text-gray-400 shrink-0" aria-hidden="true" />
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 truncate">
+        <Icon size={11} className="text-on-surface-variant shrink-0" aria-hidden="true" />
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant truncate">
           {label}
         </p>
       </div>
-      <p className="text-sm font-bold text-gray-900 mt-0.5 truncate">{value}</p>
+      <p className="text-sm font-bold text-on-surface mt-0.5 truncate">{value}</p>
     </div>
   );
 }
@@ -169,34 +169,34 @@ export default function BusinessOrderVerificationPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA]">
-        <Loader2 size={26} className="text-blue-600 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <Loader2 size={26} className="text-secondary animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] pb-24">
+    <div className="min-h-screen bg-surface pb-24">
 
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
+      <header className="sticky top-0 z-30 bg-surface-container-lowest border-b border-outline-variant">
         <div className="max-w-5xl mx-auto px-5 lg:px-8 h-14 flex items-center gap-3">
           <Link
             href="/business/dashboard"
             aria-label="Back to dashboard"
-            className="w-9 h-9 rounded-xl hover:bg-gray-100 flex items-center justify-center shrink-0 transition-colors"
+            className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 transition-colors"
           >
-            <ArrowLeft size={18} className="text-gray-600" />
+            <ArrowLeft size={18} className="text-on-surface-variant" />
           </Link>
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-bold text-gray-900">Order Verification</h1>
-            <p className="text-[11px] text-gray-400">
+            <h1 className="text-sm font-bold text-on-surface">Order Verification</h1>
+            <p className="text-[11px] text-on-surface-variant">
               Match a STRIVUP code to an incoming order
             </p>
           </div>
           <button
             onClick={() => loadQueue(questIds)}
             aria-label="Refresh queue"
-            className="h-9 px-3 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 flex items-center gap-1.5 transition-colors"
+            className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center gap-1.5 transition-colors"
           >
             <RefreshCw size={14} /> <span className="hidden sm:inline">Refresh</span>
           </button>
@@ -206,16 +206,16 @@ export default function BusinessOrderVerificationPage() {
       <div className="max-w-5xl mx-auto px-5 lg:px-8 py-6 flex flex-col gap-6">
 
         {/* ── Search ───────────────────────────────────────────────── */}
-        <section className="bg-white rounded-2xl border border-gray-200 p-6">
-          <h2 className="text-[17px] font-bold text-gray-900">Search order code</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+          <h2 className="text-[17px] font-bold text-on-surface">Search order code</h2>
+          <p className="text-sm text-on-surface-variant mt-0.5">
             The customer adds this code to the order description on Zomato or Swiggy.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2.5 mt-4">
             <label htmlFor="order-code" className="sr-only">STRIVUP order code</label>
-            <div className="flex-1 flex items-center gap-2 rounded-xl border-2 border-gray-200 focus-within:border-blue-500 bg-white px-4 h-12 transition-colors">
-              <Search size={17} className="text-gray-400 shrink-0" />
+            <div className="flex-1 flex items-center gap-2 rounded-xl border-2 border-outline-variant focus-within:border-secondary bg-surface-container-lowest px-4 h-12 transition-colors">
+              <Search size={17} className="text-on-surface-variant shrink-0" />
               <input
                 id="order-code"
                 value={code}
@@ -225,13 +225,13 @@ export default function BusinessOrderVerificationPage() {
                 maxLength={10}
                 autoComplete="off"
                 spellCheck={false}
-                className="flex-1 min-w-0 bg-transparent text-lg font-bold tracking-[0.15em] text-gray-900 placeholder:text-gray-300 focus:outline-none"
+                className="flex-1 min-w-0 bg-transparent text-lg font-bold tracking-[0.15em] text-on-surface placeholder:text-on-surface-variant focus:outline-none"
               />
             </div>
             <button
               onClick={() => handleSearch()}
               disabled={searching || !code.trim()}
-              className="h-12 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+              className="h-12 px-6 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
             >
               {searching
                 ? <><Loader2 size={16} className="animate-spin" /> Searching…</>
@@ -248,34 +248,34 @@ export default function BusinessOrderVerificationPage() {
 
           {/* ── Match ──────────────────────────────────────────────── */}
           {match && (
-            <div className="mt-5 rounded-2xl border border-gray-200 overflow-hidden">
+            <div className="mt-5 rounded-2xl border border-outline-variant overflow-hidden">
               {/* Who is asking. Public identity and their progress on THIS
                   quest only: enough to judge whether the order is genuine,
                   without handing over a profile dossier. */}
-              <div className="px-5 py-4 bg-gray-50 border-b border-gray-200">
+              <div className="px-5 py-4 bg-surface-container-low border-b border-outline-variant">
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-full bg-white border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-surface-container-lowest border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center">
                     {match.participant_avatar ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={match.participant_avatar} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <User size={20} className="text-gray-300" aria-hidden="true" />
+                      <User size={20} className="text-on-surface-variant" aria-hidden="true" />
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-[15px] font-bold text-gray-900 truncate">
+                    <p className="text-[15px] font-bold text-on-surface truncate">
                       {match.participant_name ?? "Participant"}
                     </p>
                     {match.participant_username && (
-                      <p className="text-xs text-gray-500">@{match.participant_username}</p>
+                      <p className="text-xs text-on-surface-variant">@{match.participant_username}</p>
                     )}
-                    <p className="text-xs text-gray-500 mt-0.5 truncate">
+                    <p className="text-xs text-on-surface-variant mt-0.5 truncate">
                       {match.quest_title} · {match.task_title}
                     </p>
                   </div>
 
-                  <span className="text-lg font-bold tracking-[0.15em] text-gray-900 shrink-0">
+                  <span className="text-lg font-bold tracking-[0.15em] text-on-surface shrink-0">
                     {match.order_code}
                   </span>
                 </div>
@@ -298,7 +298,7 @@ export default function BusinessOrderVerificationPage() {
                   />
                 </div>
 
-                <p className="text-[11px] text-gray-400 mt-2.5">
+                <p className="text-[11px] text-on-surface-variant mt-2.5">
                   Code issued {timeAgo(match.created_at)} · expires{" "}
                   {new Date(match.expires_at).toLocaleString("en-IN", {
                     day: "numeric", month: "short", hour: "numeric", minute: "2-digit",
@@ -314,24 +314,24 @@ export default function BusinessOrderVerificationPage() {
                       <p className="text-sm font-bold text-green-800">Order verified</p>
                     </div>
 
-                    <p className="text-sm text-gray-600 leading-relaxed mt-4">
+                    <p className="text-sm text-on-surface-variant leading-relaxed mt-4">
                       Write this bill verification code on the customer&apos;s bill.
                       They enter it in STRIVUP to complete the task.
                     </p>
 
-                    <div className="mt-3 rounded-2xl border border-blue-200 bg-blue-50/60 px-5 py-5 text-center">
-                      <div className="flex items-center justify-center gap-2 text-blue-700">
+                    <div className="mt-3 rounded-2xl border border-secondary-fixed-dim bg-secondary-fixed/60 px-5 py-5 text-center">
+                      <div className="flex items-center justify-center gap-2 text-secondary">
                         <Receipt size={16} />
                         <span className="text-[11px] font-bold uppercase tracking-wider">
                           Bill verification code
                         </span>
                       </div>
-                      <p className="text-[34px] leading-none font-bold tracking-[0.18em] text-blue-700 mt-2.5 select-all">
+                      <p className="text-[34px] leading-none font-bold tracking-[0.18em] text-secondary mt-2.5 select-all">
                         {billCode}
                       </p>
                       <button
                         onClick={handleCopyBill}
-                        className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-colors"
+                        className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-secondary hover:opacity-90 text-white text-sm font-bold transition-colors"
                       >
                         {copied ? <><Check size={15} /> Copied</> : <><Copy size={15} /> Copy code</>}
                       </button>
@@ -339,7 +339,7 @@ export default function BusinessOrderVerificationPage() {
 
                     <button
                       onClick={reset}
-                      className="mt-4 w-full h-11 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm font-semibold text-gray-700 transition-colors"
+                      className="mt-4 w-full h-11 rounded-xl border border-outline-variant hover:bg-surface-container-low text-sm font-semibold text-on-surface-variant transition-colors"
                     >
                       Verify another order
                     </button>
@@ -365,7 +365,7 @@ export default function BusinessOrderVerificationPage() {
                       </div>
                     ) : (
                       <>
-                        <p className="text-sm text-gray-600 leading-relaxed">
+                        <p className="text-sm text-on-surface-variant leading-relaxed">
                           Confirm this order actually arrived before verifying. STRIVUP
                           will then generate the bill code to write on the bill.
                         </p>
@@ -381,7 +381,7 @@ export default function BusinessOrderVerificationPage() {
                               onChange={(e) => setRejectReason(e.target.value)}
                               rows={2}
                               placeholder="Reason (optional), for example: no matching order received"
-                              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500 resize-none transition-colors"
+                              className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3.5 py-2.5 text-sm focus:outline-none focus:border-secondary resize-none transition-colors"
                             />
                           </div>
                         )}
@@ -417,23 +417,23 @@ export default function BusinessOrderVerificationPage() {
         </section>
 
         {/* ── Open queue ───────────────────────────────────────────── */}
-        <section className="bg-white rounded-2xl border border-gray-200 p-6">
+        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-[17px] font-bold text-gray-900">Open verifications</h2>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <h2 className="text-[17px] font-bold text-on-surface">Open verifications</h2>
+              <p className="text-sm text-on-surface-variant mt-0.5">
                 Codes issued to participants that are not closed yet.
               </p>
             </div>
             {queue.length > 0 && (
-              <span className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full shrink-0">
+              <span className="text-xs font-bold text-secondary bg-secondary-fixed border border-secondary-fixed-dim px-2.5 py-1 rounded-full shrink-0">
                 {queue.length}
               </span>
             )}
           </div>
 
           {queue.length === 0 ? (
-            <p className="text-sm text-gray-400 mt-6 text-center py-10 border border-dashed border-gray-200 rounded-xl">
+            <p className="text-sm text-on-surface-variant mt-6 text-center py-10 border border-dashed border-outline-variant rounded-xl">
               Nothing waiting right now.
             </p>
           ) : (
@@ -452,19 +452,19 @@ export default function BusinessOrderVerificationPage() {
                       : <Clock size={16} />}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
+                    <p className="text-sm font-semibold text-on-surface truncate">
                       {v.participant_name ?? "Participant"}
                     </p>
-                    <p className="text-xs text-gray-400 truncate">
+                    <p className="text-xs text-on-surface-variant truncate">
                       {v.quest_title} · {v.task_title} · {timeAgo(v.created_at)}
                     </p>
                   </div>
-                  <span className="text-sm font-bold tracking-wider text-gray-700 shrink-0 hidden sm:block">
+                  <span className="text-sm font-bold tracking-wider text-on-surface-variant shrink-0 hidden sm:block">
                     {v.order_code}
                   </span>
                   <button
                     onClick={() => { setCode(v.order_code); void handleSearch(v.order_code); }}
-                    className="h-8 px-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 shrink-0 transition-colors"
+                    className="h-8 px-3 rounded-lg border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant shrink-0 transition-colors"
                   >
                     Open
                   </button>

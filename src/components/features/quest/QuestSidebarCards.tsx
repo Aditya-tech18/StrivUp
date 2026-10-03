@@ -30,11 +30,11 @@ export function QuestProgressCard({
   return (
     <section
       aria-labelledby="quest-progress-heading"
-      className="bg-white rounded-2xl border border-gray-200 p-5"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5"
     >
       <h3
         id="quest-progress-heading"
-        className="text-[11px] font-bold uppercase tracking-wider text-gray-400"
+        className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
       >
         Quest Progress
       </h3>
@@ -52,15 +52,15 @@ export function QuestProgressCard({
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-[26px] leading-none font-bold text-gray-900">
+            <p className="text-[26px] leading-none font-bold text-on-surface">
               {completed}/{total}
             </p>
-            <p className="text-[11px] text-gray-400 mt-1">Tasks Completed</p>
+            <p className="text-[11px] text-on-surface-variant mt-1">Tasks Completed</p>
           </div>
         </div>
       </div>
 
-      <p className="text-xs text-gray-500 leading-relaxed text-center">
+      <p className="text-xs text-on-surface-variant leading-relaxed text-center">
         {joined
           ? "Complete verified tasks to build your progress."
           : "Join the Quest and complete verified tasks to build your progress."}
@@ -99,7 +99,7 @@ export function RewardCard({
   return (
     <section
       aria-labelledby="quest-reward-heading"
-      className="bg-white rounded-2xl border border-gray-200 overflow-hidden"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden"
     >
       <div className="px-5 pt-5 pb-4">
         <h3 id="quest-reward-heading" className="sr-only">Reward</h3>
@@ -108,11 +108,11 @@ export function RewardCard({
             <Trophy size={19} className="text-amber-500" />
           </div>
           <div className="min-w-0">
-            <p className="text-[19px] font-bold text-gray-900 leading-tight">
+            <p className="text-[19px] font-bold text-on-surface leading-tight">
               {reward.headline}
             </p>
             {reward.subline && (
-              <p className="text-sm text-gray-500 mt-0.5">{reward.subline}</p>
+              <p className="text-sm text-on-surface-variant mt-0.5">{reward.subline}</p>
             )}
           </div>
         </div>
@@ -122,10 +122,10 @@ export function RewardCard({
             {stats.map((s) => (
               <div
                 key={s.v}
-                className="rounded-xl bg-gray-50 border border-gray-100 px-2 py-2.5 text-center"
+                className="rounded-xl bg-surface-container-low border border-outline-variant px-2 py-2.5 text-center"
               >
-                <p className="text-[15px] font-bold text-gray-900 leading-tight truncate">{s.k}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{s.v}</p>
+                <p className="text-[15px] font-bold text-on-surface leading-tight truncate">{s.k}</p>
+                <p className="text-[10px] text-on-surface-variant mt-0.5">{s.v}</p>
               </div>
             ))}
           </div>
@@ -136,7 +136,7 @@ export function RewardCard({
         {ended ? (
           <button
             disabled
-            className="w-full h-11 rounded-xl bg-gray-100 text-gray-400 font-bold text-sm cursor-not-allowed"
+            className="w-full h-11 rounded-xl bg-surface-container text-on-surface-variant font-bold text-sm cursor-not-allowed"
           >
             Quest Ended
           </button>
@@ -148,7 +148,7 @@ export function RewardCard({
           <button
             onClick={onJoin}
             disabled={joining}
-            className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm transition-colors"
+            className="w-full h-11 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-50 text-white font-bold text-sm transition-colors"
           >
             {joining ? "Joining…" : "Join Quest"}
           </button>
@@ -187,17 +187,17 @@ export function LeaderboardPreviewCard({
   return (
     <section
       aria-labelledby="quest-leaderboard-heading"
-      className="bg-white rounded-2xl border border-gray-200 p-5"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5"
     >
       <div className="flex items-center justify-between gap-2">
         <h3
           id="quest-leaderboard-heading"
-          className="text-[11px] font-bold uppercase tracking-wider text-gray-400"
+          className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
         >
           Leaderboard Preview
         </h3>
         {isPlaceholder && (
-          <span className="text-[10px] font-semibold text-gray-400 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full shrink-0">
+          <span className="text-[10px] font-semibold text-on-surface-variant bg-surface-container-low border border-outline-variant px-2 py-0.5 rounded-full shrink-0">
             Sample
           </span>
         )}
@@ -210,12 +210,12 @@ export function LeaderboardPreviewCard({
                 <span className="text-base w-6 text-center shrink-0" aria-hidden="true">
                   {MEDALS[i]}
                 </span>
-                <div className="w-8 h-8 rounded-full bg-gray-100 shrink-0" aria-hidden="true" />
+                <div className="w-8 h-8 rounded-full bg-surface-container shrink-0" aria-hidden="true" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-400 truncate">{p.label}</p>
-                  <p className="text-[11px] text-gray-300">{p.tasks}</p>
+                  <p className="text-sm font-semibold text-on-surface-variant truncate">{p.label}</p>
+                  <p className="text-[11px] text-on-surface-variant">{p.tasks}</p>
                 </div>
-                <span className="text-sm font-bold text-gray-300 shrink-0">{p.points} pts</span>
+                <span className="text-sm font-bold text-on-surface-variant shrink-0">{p.points} pts</span>
               </li>
             ))
           : rows.slice(0, 3).map((r, i) => {
@@ -225,23 +225,23 @@ export function LeaderboardPreviewCard({
                   <span className="text-base w-6 text-center shrink-0" aria-hidden="true">
                     {MEDALS[i] ?? r.rank}
                   </span>
-                  <div className="w-8 h-8 rounded-full bg-blue-50 overflow-hidden shrink-0 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-secondary-fixed overflow-hidden shrink-0 flex items-center justify-center">
                     {r.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={r.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-xs font-bold text-blue-600">
+                      <span className="text-xs font-bold text-secondary">
                         {name.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
-                    <p className="text-[11px] text-gray-400">
+                    <p className="text-sm font-semibold text-on-surface truncate">{name}</p>
+                    <p className="text-[11px] text-on-surface-variant">
                       {r.tasks_completed}/{totalTasks}
                     </p>
                   </div>
-                  <span className="text-sm font-bold text-gray-900 shrink-0">
+                  <span className="text-sm font-bold text-on-surface shrink-0">
                     {r.points} pts
                   </span>
                 </li>
@@ -250,14 +250,14 @@ export function LeaderboardPreviewCard({
       </ul>
 
       {isPlaceholder && (
-        <p className="text-[11px] text-gray-400 leading-relaxed mt-2">
+        <p className="text-[11px] text-on-surface-variant leading-relaxed mt-2">
           Sample rows — the leaderboard fills in from verified Quest activity.
         </p>
       )}
 
       <Link
         href={`/quests/${questId}/leaderboard`}
-        className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700"
+        className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-secondary hover:text-secondary"
       >
         View Full Leaderboard →
       </Link>
@@ -296,38 +296,38 @@ export function BusinessProfileCard({
   return (
     <section
       aria-labelledby="business-profile-heading"
-      className="bg-white rounded-2xl border border-gray-200 p-5"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5"
     >
       <h3
         id="business-profile-heading"
-        className="text-[11px] font-bold uppercase tracking-wider text-gray-400"
+        className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
       >
         Business Profile
       </h3>
 
       <div className="flex items-start gap-3 mt-3">
-        <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-xl bg-surface-container-low border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center">
           {business?.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={business.logo_url} alt="" className="w-full h-full object-cover" />
           ) : (
-            <span className="text-lg font-bold text-gray-300">{name.charAt(0)}</span>
+            <span className="text-lg font-bold text-on-surface-variant">{name.charAt(0)}</span>
           )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <p className="text-[15px] font-bold text-gray-900 truncate">{name}</p>
+            <p className="text-[15px] font-bold text-on-surface truncate">{name}</p>
             {/* Blue tick only when STRIVUP has actually verified the business. */}
             {verified && (
               <ShieldCheck
                 size={15}
-                className="text-blue-600 shrink-0"
+                className="text-secondary shrink-0"
                 aria-label="Verified by STRIVUP"
               />
             )}
           </div>
           {business?.category && (
-            <p className="text-xs text-gray-400 mt-0.5">{business.category}</p>
+            <p className="text-xs text-on-surface-variant mt-0.5">{business.category}</p>
           )}
         </div>
       </div>
@@ -335,27 +335,27 @@ export function BusinessProfileCard({
       <dl className="flex flex-col gap-2.5 mt-4">
         {address.length > 0 && (
           <div className="flex items-start gap-2.5">
-            <dt className="shrink-0 mt-0.5"><MapPin size={15} className="text-gray-400" /></dt>
-            <dd className="text-sm text-gray-600 leading-relaxed">
+            <dt className="shrink-0 mt-0.5"><MapPin size={15} className="text-on-surface-variant" /></dt>
+            <dd className="text-sm text-on-surface-variant leading-relaxed">
               {address.map((line) => <span key={line} className="block">{line}</span>)}
             </dd>
           </div>
         )}
         {phones.length > 0 && (
           <div className="flex items-start gap-2.5">
-            <dt className="shrink-0 mt-0.5"><Phone size={15} className="text-gray-400" /></dt>
-            <dd className="text-sm text-gray-600">{phones.join(" / ")}</dd>
+            <dt className="shrink-0 mt-0.5"><Phone size={15} className="text-on-surface-variant" /></dt>
+            <dd className="text-sm text-on-surface-variant">{phones.join(" / ")}</dd>
           </div>
         )}
         {website && (
           <div className="flex items-start gap-2.5">
-            <dt className="shrink-0 mt-0.5"><Globe size={15} className="text-gray-400" /></dt>
+            <dt className="shrink-0 mt-0.5"><Globe size={15} className="text-on-surface-variant" /></dt>
             <dd className="text-sm min-w-0">
               <a
                 href={website.startsWith("http") ? website : `https://${website}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline break-all"
+                className="text-secondary hover:underline break-all"
               >
                 {website.replace(/^https?:\/\//, "")}
               </a>
@@ -368,7 +368,7 @@ export function BusinessProfileCard({
         {business?.id && (
           <Link
             href={`/business/${business.id}`}
-            className="h-9 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 flex items-center justify-center gap-1.5 transition-colors"
+            className="h-9 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center justify-center gap-1.5 transition-colors"
           >
             <Users size={13} /> Profile
           </Link>
@@ -377,14 +377,14 @@ export function BusinessProfileCard({
           href={directionsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="h-9 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 flex items-center justify-center gap-1.5 transition-colors"
+          className="h-9 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center justify-center gap-1.5 transition-colors"
         >
           <Navigation size={13} /> Directions
         </a>
         {phones[0] && (
           <a
             href={`tel:${phones[0].replace(/\s/g, "")}`}
-            className="h-9 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 flex items-center justify-center gap-1.5 transition-colors"
+            className="h-9 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center justify-center gap-1.5 transition-colors"
           >
             <Phone size={13} /> Call
           </a>
@@ -394,7 +394,7 @@ export function BusinessProfileCard({
             href={website.startsWith("http") ? website : `https://${website}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-9 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 flex items-center justify-center gap-1.5 transition-colors"
+            className="h-9 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center justify-center gap-1.5 transition-colors"
           >
             <Globe size={13} /> Website
           </a>
@@ -439,11 +439,11 @@ export function GoogleBusinessCard({
   return (
     <section
       aria-labelledby="google-card-heading"
-      className="bg-white rounded-2xl border border-gray-200 overflow-hidden"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden"
     >
       {/* Static map placeholder — no third-party tiles are loaded, so no key
           is needed and nothing about the viewer leaks to a maps provider. */}
-      <div className="relative h-28 bg-[#E8EDF3] border-b border-gray-200">
+      <div className="relative h-28 bg-[#E8EDF3] border-b border-outline-variant">
         <div
           aria-hidden="true"
           className="absolute inset-0 opacity-70"
@@ -462,41 +462,41 @@ export function GoogleBusinessCard({
           className="absolute right-[24%] top-0 bottom-0 w-4 bg-[#f2f5f9] rotate-6"
         />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex items-center gap-1.5 bg-white rounded-full pl-1.5 pr-3 py-1.5 border border-gray-200 shadow-sm max-w-[85%]">
+          <div className="flex items-center gap-1.5 bg-surface-container-lowest rounded-full pl-1.5 pr-3 py-1.5 border border-outline-variant shadow-sm max-w-[85%]">
             <span className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center shrink-0">
               <MapPin size={11} className="text-white" />
             </span>
-            <span className="text-[11px] font-semibold text-gray-700 truncate">{name}</span>
+            <span className="text-[11px] font-semibold text-on-surface-variant truncate">{name}</span>
           </div>
         </div>
       </div>
 
       <div className="p-5">
-        <p className="text-[15px] font-bold text-gray-900">{name}</p>
+        <p className="text-[15px] font-bold text-on-surface">{name}</p>
         {business?.category && (
-          <p className="text-xs text-gray-400 mt-0.5">{business.category}</p>
+          <p className="text-xs text-on-surface-variant mt-0.5">{business.category}</p>
         )}
 
         <div className="mt-2.5">
           {hasVerifiedGoogle ? (
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-bold text-gray-900">
+              <span className="text-sm font-bold text-on-surface">
                 {business!.google_rating!.toFixed(1)}
               </span>
               <Star size={13} className="text-amber-400 fill-amber-400" aria-hidden="true" />
               {business!.google_review_count != null && (
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-on-surface-variant">
                   ({business!.google_review_count.toLocaleString("en-IN")} reviews)
                 </span>
               )}
             </div>
           ) : (
-            <p className="text-xs text-gray-400">Google rating unavailable</p>
+            <p className="text-xs text-on-surface-variant">Google rating unavailable</p>
           )}
         </div>
 
         {address.length > 0 && (
-          <p className="text-sm text-gray-600 leading-relaxed mt-3">
+          <p className="text-sm text-on-surface-variant leading-relaxed mt-3">
             {address.map((line) => <span key={line} className="block">{line}</span>)}
           </p>
         )}
@@ -505,7 +505,7 @@ export function GoogleBusinessCard({
           href={mapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700"
+          className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-secondary hover:text-secondary"
         >
           <Navigation size={14} /> Open in Maps
         </a>

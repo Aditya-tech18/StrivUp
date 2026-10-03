@@ -41,9 +41,9 @@ export default function BusinessEntryPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8F9FC] gap-3">
-      <div className="w-8 h-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
-      <p className="text-sm text-gray-500">Loading your business…</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-surface gap-3">
+      <div className="w-8 h-8 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
+      <p className="text-sm text-on-surface-variant">Loading your business…</p>
     </div>
   );
 }

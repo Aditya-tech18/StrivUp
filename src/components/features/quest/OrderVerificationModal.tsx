@@ -136,35 +136,35 @@ export default function OrderVerificationModal({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-gray-900/60 backdrop-blur-sm px-0 sm:px-4"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-primary/60 backdrop-blur-sm px-0 sm:px-4"
       role="dialog"
       aria-modal="true"
       aria-label={`${taskTitle} — order verification`}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl border border-gray-200 shadow-xl max-h-[92vh] overflow-y-auto">
+      <div className="w-full sm:max-w-md bg-surface-container-lowest rounded-t-3xl sm:rounded-2xl border border-outline-variant shadow-xl max-h-[92vh] overflow-y-auto">
 
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 rounded-t-3xl sm:rounded-t-2xl">
+        <div className="sticky top-0 bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 rounded-t-3xl sm:rounded-t-2xl">
           {step === "not_yet" && (
             <button
               onClick={() => setStep("ask")}
               aria-label="Back"
-              className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center shrink-0"
+              className="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center shrink-0"
             >
-              <ArrowLeft size={18} className="text-gray-500" />
+              <ArrowLeft size={18} className="text-on-surface-variant" />
             </button>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-bold text-gray-900 truncate">{title}</p>
-            <p className="text-xs text-gray-400 truncate">{taskTitle}</p>
+            <p className="text-[15px] font-bold text-on-surface truncate">{title}</p>
+            <p className="text-xs text-on-surface-variant truncate">{taskTitle}</p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center shrink-0"
+            className="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center shrink-0"
           >
-            <X size={18} className="text-gray-500" />
+            <X size={18} className="text-on-surface-variant" />
           </button>
         </div>
 
@@ -173,12 +173,12 @@ export default function OrderVerificationModal({
           {/* ── Step: ask ─────────────────────────────────────────────── */}
           {step === "ask" && (
             <>
-              <p className="text-[19px] font-bold text-gray-900 leading-snug">
+              <p className="text-[19px] font-bold text-on-surface leading-snug">
                 Hey {userName} <span aria-hidden="true">👋</span>
               </p>
-              <p className="text-sm text-gray-600 leading-relaxed mt-2">
+              <p className="text-sm text-on-surface-variant leading-relaxed mt-2">
                 Did you order from{" "}
-                <span className="font-semibold text-gray-900">{businessName}</span>{" "}
+                <span className="font-semibold text-on-surface">{businessName}</span>{" "}
                 online for this Quest?
               </p>
 
@@ -188,7 +188,7 @@ export default function OrderVerificationModal({
                 <button
                   onClick={handleYes}
                   disabled={busy}
-                  className="h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+                  className="h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
                 >
                   {busy
                     ? <><Loader2 size={16} className="animate-spin" /> Starting…</>
@@ -197,7 +197,7 @@ export default function OrderVerificationModal({
                 <button
                   onClick={() => setStep("not_yet")}
                   disabled={busy}
-                  className="h-12 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-sm transition-colors"
+                  className="h-12 rounded-xl border border-outline-variant hover:bg-surface-container-low text-on-surface-variant font-bold text-sm transition-colors"
                 >
                   NO, NOT YET
                 </button>
@@ -208,26 +208,26 @@ export default function OrderVerificationModal({
           {/* ── Step: not yet ─────────────────────────────────────────── */}
           {step === "not_yet" && (
             <>
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p className="text-sm text-on-surface-variant leading-relaxed">
                 Start the verification when you are ready to order. STRIVUP will
                 give you a code to add to your order description on Zomato or
                 Swiggy, so{" "}
-                <span className="font-semibold text-gray-900">{businessName}</span>{" "}
+                <span className="font-semibold text-on-surface">{businessName}</span>{" "}
                 can match the order to your Quest.
               </p>
               <ol className="mt-4 flex flex-col gap-2.5">
                 {ORDER_STEPS.map((text, i) => (
                   <li key={text} className="flex gap-3 items-start">
-                    <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-500 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="w-5 h-5 rounded-full bg-surface-container text-on-surface-variant text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                       {i + 1}
                     </span>
-                    <span className="text-sm text-gray-600 leading-relaxed">{text}</span>
+                    <span className="text-sm text-on-surface-variant leading-relaxed">{text}</span>
                   </li>
                 ))}
               </ol>
               <button
                 onClick={() => setStep("ask")}
-                className="mt-5 w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors"
+                className="mt-5 w-full h-11 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-sm transition-colors"
               >
                 Got it
               </button>
@@ -248,10 +248,10 @@ export default function OrderVerificationModal({
                     {/* ── Section 1: the code STRIVUP generated ─────────── */}
                     <section aria-labelledby="otp-1-heading">
                       <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">
+                        <span className="w-5 h-5 rounded-full bg-secondary text-white text-[11px] font-bold flex items-center justify-center shrink-0">
                           1
                         </span>
-                        <h3 id="otp-1-heading" className="text-sm font-bold text-gray-900">
+                        <h3 id="otp-1-heading" className="text-sm font-bold text-on-surface">
                           Your STRIVUP order code
                         </h3>
                         <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 bg-green-50 text-green-700">
@@ -259,13 +259,13 @@ export default function OrderVerificationModal({
                         </span>
                       </div>
 
-                      <div className="mt-2.5 rounded-2xl border border-blue-200 bg-blue-50/60 px-5 py-5 text-center">
-                        <p className="text-[34px] leading-none font-bold tracking-[0.18em] text-blue-700 select-all">
+                      <div className="mt-2.5 rounded-2xl border border-secondary-fixed-dim bg-secondary-fixed/60 px-5 py-5 text-center">
+                        <p className="text-[34px] leading-none font-bold tracking-[0.18em] text-secondary select-all">
                           {row.order_code}
                         </p>
                         <button
                           onClick={handleCopy}
-                          className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-colors"
+                          className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-secondary hover:opacity-90 text-white text-sm font-bold transition-colors"
                         >
                           {copied
                             ? <><Check size={15} /> COPIED</>
@@ -273,22 +273,22 @@ export default function OrderVerificationModal({
                         </button>
                       </div>
 
-                      <p className="text-sm text-gray-600 leading-relaxed mt-3">
+                      <p className="text-sm text-on-surface-variant leading-relaxed mt-3">
                         Add this code to the order description on Zomato or Swiggy{" "}
-                        <span className="font-semibold text-gray-900">before</span> placing
+                        <span className="font-semibold text-on-surface">before</span> placing
                         your order.
                       </p>
                     </section>
 
                     {/* ── Section 2: the code the business writes on the bill ─ */}
-                    <section aria-labelledby="otp-2-heading" className="mt-6 pt-5 border-t border-gray-100">
+                    <section aria-labelledby="otp-2-heading" className="mt-6 pt-5 border-t border-outline-variant">
                       <div className="flex items-center gap-2">
                         <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
-                          verified ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"}`}>
+                          verified ? "bg-secondary text-white" : "bg-surface-container-highest text-on-surface-variant"}`}>
                           2
                         </span>
                         <h3 id="otp-2-heading" className={`text-sm font-bold ${
-                          verified ? "text-gray-900" : "text-gray-400"}`}>
+                          verified ? "text-on-surface" : "text-on-surface-variant"}`}>
                           Bill verification code
                         </h3>
                         <span className={`ml-auto inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
@@ -306,9 +306,9 @@ export default function OrderVerificationModal({
                       </label>
                       <div className={`mt-2.5 flex items-center gap-2 rounded-xl border-2 px-4 h-14 transition-colors ${
                         verified
-                          ? "border-gray-200 focus-within:border-blue-500 bg-white"
-                          : "border-gray-150 bg-gray-50"}`}>
-                        <Receipt size={18} className="text-gray-400 shrink-0" />
+                          ? "border-outline-variant focus-within:border-secondary bg-surface-container-lowest"
+                          : "border-outline-variant bg-surface-container-low"}`}>
+                        <Receipt size={18} className="text-on-surface-variant shrink-0" />
                         <input
                           id="bill-code"
                           value={billInput}
@@ -319,11 +319,11 @@ export default function OrderVerificationModal({
                           maxLength={10}
                           autoComplete="off"
                           spellCheck={false}
-                          className="flex-1 min-w-0 bg-transparent text-xl font-bold tracking-[0.18em] text-gray-900 placeholder:text-gray-300 placeholder:text-base placeholder:tracking-normal focus:outline-none disabled:cursor-not-allowed"
+                          className="flex-1 min-w-0 bg-transparent text-xl font-bold tracking-[0.18em] text-on-surface placeholder:text-on-surface-variant placeholder:text-base placeholder:tracking-normal focus:outline-none disabled:cursor-not-allowed"
                         />
                       </div>
 
-                      <p className="text-xs text-gray-400 leading-relaxed mt-2">
+                      <p className="text-xs text-on-surface-variant leading-relaxed mt-2">
                         {verified
                           ? "Enter the code the business wrote on your bill."
                           : "The business writes this on your bill once it has verified your order. Come back then."}
@@ -333,7 +333,7 @@ export default function OrderVerificationModal({
                         <button
                           onClick={handleBillSubmit}
                           disabled={busy || !billInput.trim()}
-                          className="mt-3 w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+                          className="mt-3 w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
                         >
                           {busy
                             ? <><Loader2 size={16} className="animate-spin" /> Verifying...</>
@@ -344,7 +344,7 @@ export default function OrderVerificationModal({
 
                     {error && <ErrorNote message={error} />}
 
-                    <p className="mt-5 text-xs text-gray-400 leading-relaxed bg-gray-50 border border-gray-100 rounded-xl px-3.5 py-3">
+                    <p className="mt-5 text-xs text-on-surface-variant leading-relaxed bg-surface-container-low border border-outline-variant rounded-xl px-3.5 py-3">
                       One code per task. This is your code for this task and it
                       stays the same every time you come back, for as long as the
                       Quest is running.
@@ -353,7 +353,7 @@ export default function OrderVerificationModal({
                     {!verified && (
                       <button
                         onClick={onClose}
-                        className="mt-4 w-full h-11 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-sm transition-colors"
+                        className="mt-4 w-full h-11 rounded-xl bg-primary hover:bg-primary-container text-white font-bold text-sm transition-colors"
                       >
                         Done, I have added the code
                       </button>
@@ -370,15 +370,15 @@ export default function OrderVerificationModal({
               <div className="w-14 h-14 rounded-full bg-green-50 border border-green-200 flex items-center justify-center mx-auto">
                 <ClipboardCheck size={26} className="text-green-600" />
               </div>
-              <p className="text-[19px] font-bold text-gray-900 mt-4">
+              <p className="text-[19px] font-bold text-on-surface mt-4">
                 Task Completed <span aria-hidden="true">✓</span>
               </p>
-              <p className="text-sm text-gray-500 mt-1.5">
+              <p className="text-sm text-on-surface-variant mt-1.5">
                 Your Quest progress has been updated.
               </p>
               <button
                 onClick={onClose}
-                className="mt-6 w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors"
+                className="mt-6 w-full h-12 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-sm transition-colors"
               >
                 Back to Quest
               </button>

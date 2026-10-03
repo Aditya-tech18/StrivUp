@@ -181,8 +181,8 @@ export default function VerifyBusinessPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA]">
-        <Loader2 size={26} className="text-blue-600 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <Loader2 size={26} className="text-secondary animate-spin" />
       </div>
     );
   }
@@ -192,16 +192,16 @@ export default function VerifyBusinessPage() {
     setF((prev) => ({ ...prev, [k]: e.target.value }));
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] pb-24">
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-surface pb-24">
+      <header className="sticky top-0 z-30 bg-surface-container-lowest border-b border-outline-variant">
         <div className="max-w-4xl mx-auto px-5 lg:px-8 h-14 flex items-center gap-3">
           <Link href="/business/dashboard" aria-label="Back to dashboard"
-            className="w-9 h-9 rounded-xl hover:bg-gray-100 flex items-center justify-center shrink-0">
-            <ArrowLeft size={18} className="text-gray-600" />
+            className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0">
+            <ArrowLeft size={18} className="text-on-surface-variant" />
           </Link>
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-bold text-gray-900">Business Verification</h1>
-            <p className="text-[11px] text-gray-400 truncate">{f.business_name || "Your business"}</p>
+            <h1 className="text-sm font-bold text-on-surface">Business Verification</h1>
+            <p className="text-[11px] text-on-surface-variant truncate">{f.business_name || "Your business"}</p>
           </div>
           <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${ui.cls}`}>
             {ui.label}
@@ -234,26 +234,26 @@ export default function VerifyBusinessPage() {
         </section>
 
         {status === "verified" ? (
-          <section className="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 className="text-[17px] font-bold text-gray-900">You&apos;re all set</h2>
-            <p className="text-sm text-gray-500 mt-1">
+          <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+            <h2 className="text-[17px] font-bold text-on-surface">You&apos;re all set</h2>
+            <p className="text-sm text-on-surface-variant mt-1">
               Your blue tick is live on your profile, Quests and Challenges.
             </p>
             <div className="flex flex-wrap gap-2 mt-4">
               <Link href="/business/quests/new"
-                className="h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold flex items-center transition-colors">
+                className="h-10 px-4 rounded-xl bg-secondary hover:opacity-90 text-white text-sm font-bold flex items-center transition-colors">
                 Create a Quest
               </Link>
               <Link href="/business/dashboard"
-                className="h-10 px-4 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm font-semibold text-gray-700 flex items-center transition-colors">
+                className="h-10 px-4 rounded-xl border border-outline-variant hover:bg-surface-container-low text-sm font-semibold text-on-surface-variant flex items-center transition-colors">
                 Business dashboard
               </Link>
             </div>
           </section>
         ) : locked ? (
-          <section className="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 className="text-[17px] font-bold text-gray-900">What happens next</h2>
-            <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+          <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+            <h2 className="text-[17px] font-bold text-on-surface">What happens next</h2>
+            <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">
               A STRIVUP reviewer checks your business information and documents.
               You&apos;ll be notified as soon as there is a decision. You can&apos;t
               edit the application while it is with us.
@@ -264,13 +264,13 @@ export default function VerifyBusinessPage() {
           <>
             {/* Step rail */}
             <nav aria-label="Application steps"
-              className="bg-white rounded-2xl border border-gray-200 px-2 flex gap-1 overflow-x-auto">
+              className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-2 flex gap-1 overflow-x-auto">
               {STEPS.map((label, i) => (
                 <button key={label} onClick={() => setStep(i)}
                   aria-current={step === i ? "step" : undefined}
                   className={`shrink-0 px-4 py-3.5 text-sm font-semibold border-b-2 transition-colors ${
-                    step === i ? "border-blue-600 text-blue-600"
-                               : "border-transparent text-gray-500 hover:text-gray-900"}`}>
+                    step === i ? "border-secondary text-secondary"
+                               : "border-transparent text-on-surface-variant hover:text-on-surface"}`}>
                   {i + 1}. {label}
                 </button>
               ))}
@@ -283,7 +283,7 @@ export default function VerifyBusinessPage() {
               </div>
             )}
 
-            <section className="bg-white rounded-2xl border border-gray-200 p-6">
+            <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
               {step === 0 && (
                 <Fields title="Business information" icon={Building2}>
                   <Field label="Business name *" value={f.business_name} onChange={set("business_name")} />
@@ -314,17 +314,17 @@ export default function VerifyBusinessPage() {
 
               {step === 2 && (
                 <>
-                  <h2 className="text-[17px] font-bold text-gray-900 flex items-center gap-2">
-                    <FileText size={18} className="text-gray-400" /> Business documents
+                  <h2 className="text-[17px] font-bold text-on-surface flex items-center gap-2">
+                    <FileText size={18} className="text-on-surface-variant" /> Business documents
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+                  <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">
                     Upload what applies to your business — not every business needs
                     every document. Files are stored privately and are visible only
                     to you and STRIVUP reviewers.
                   </p>
 
                   {f.category && (
-                    <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-xl px-3.5 py-2.5 mt-3">
+                    <p className="text-xs text-secondary bg-secondary-fixed border border-secondary-fixed-dim rounded-xl px-3.5 py-2.5 mt-3">
                       For <span className="font-semibold">{f.category}</span>, reviewers usually look for:{" "}
                       {required.map((r) => DOC_TYPES.find((d) => d.value === r)?.label).join(", ")}.
                     </p>
@@ -332,19 +332,19 @@ export default function VerifyBusinessPage() {
 
                   <ul className="flex flex-col gap-2.5 mt-4">
                     {DOC_TYPES.map((dt) => (
-                      <li key={dt.value} className="flex items-center gap-3 rounded-xl border border-gray-200 px-4 py-3">
+                      <li key={dt.value} className="flex items-center gap-3 rounded-xl border border-outline-variant px-4 py-3">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900">
+                          <p className="text-sm font-semibold text-on-surface">
                             {dt.label}
                             {required.includes(dt.value) && (
-                              <span className="ml-2 text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded-full">
+                              <span className="ml-2 text-[10px] font-bold text-secondary bg-secondary-fixed border border-secondary-fixed-dim px-1.5 py-0.5 rounded-full">
                                 Suggested
                               </span>
                             )}
                           </p>
-                          <p className="text-xs text-gray-400 mt-0.5">{dt.hint}</p>
+                          <p className="text-xs text-on-surface-variant mt-0.5">{dt.hint}</p>
                         </div>
-                        <label className="shrink-0 inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors">
+                        <label className="shrink-0 inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-outline-variant text-xs font-semibold text-on-surface-variant cursor-pointer hover:bg-surface-container-low transition-colors">
                           {uploading === dt.value
                             ? <><Loader2 size={13} className="animate-spin" /> Uploading…</>
                             : <><Upload size={13} /> Upload</>}
@@ -373,19 +373,19 @@ export default function VerifyBusinessPage() {
 
               {step === 4 && (
                 <>
-                  <h2 className="text-[17px] font-bold text-gray-900">Declaration</h2>
+                  <h2 className="text-[17px] font-bold text-on-surface">Declaration</h2>
                   <label className="flex items-start gap-3 mt-4 cursor-pointer">
                     <input type="checkbox" checked={declared}
                       onChange={(e) => setDeclared(e.target.checked)}
-                      className="w-4 h-4 mt-0.5 rounded border-gray-300 accent-blue-600 shrink-0" />
-                    <span className="text-sm text-gray-600 leading-relaxed">
+                      className="w-4 h-4 mt-0.5 rounded border-outline accent-blue-600 shrink-0" />
+                    <span className="text-sm text-on-surface-variant leading-relaxed">
                       I confirm that the information submitted is accurate and that I
                       am authorized to represent this business.
                     </span>
                   </label>
 
-                  <div className="mt-5 rounded-xl bg-gray-50 border border-gray-100 p-4">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Summary</p>
+                  <div className="mt-5 rounded-xl bg-surface-container-low border border-outline-variant p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Summary</p>
                     <dl className="grid grid-cols-2 gap-x-6 gap-y-2 mt-2">
                       <Summary k="Business" v={f.business_name} />
                       <Summary k="Category" v={f.category} />
@@ -396,7 +396,7 @@ export default function VerifyBusinessPage() {
                   </div>
 
                   <button onClick={handleSubmit} disabled={saving || !declared}
-                    className="mt-5 w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors">
+                    className="mt-5 w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors">
                     {saving ? <><Loader2 size={16} className="animate-spin" /> Submitting…</>
                             : <><ShieldCheck size={16} /> Submit for Verification</>}
                   </button>
@@ -405,17 +405,17 @@ export default function VerifyBusinessPage() {
 
               {/* Step controls */}
               {step < 4 && (
-                <div className="flex gap-2 mt-6 pt-5 border-t border-gray-100">
+                <div className="flex gap-2 mt-6 pt-5 border-t border-outline-variant">
                   {step > 0 && (
                     <button onClick={() => setStep((s) => s - 1)}
-                      className="h-11 px-5 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm font-semibold text-gray-700 transition-colors">
+                      className="h-11 px-5 rounded-xl border border-outline-variant hover:bg-surface-container-low text-sm font-semibold text-on-surface-variant transition-colors">
                       Back
                     </button>
                   )}
                   <button
                     onClick={async () => { if (await saveFields()) setStep((s) => s + 1); }}
                     disabled={saving}
-                    className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-bold transition-colors">
+                    className="flex-1 h-11 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-50 text-white text-sm font-bold transition-colors">
                     {saving ? "Saving…" : "Save & continue"}
                   </button>
                 </div>
@@ -426,23 +426,23 @@ export default function VerifyBusinessPage() {
 
         {/* History — what a reviewer has already said */}
         {history.length > 0 && (
-          <section className="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 className="text-[17px] font-bold text-gray-900">Verification history</h2>
+          <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+            <h2 className="text-[17px] font-bold text-on-surface">Verification history</h2>
             <ol className="mt-3 divide-y divide-gray-100">
               {history.map((h) => (
                 <li key={h.id} className="py-3">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-semibold text-on-surface">
                       {STATUS_UI[h.to_status as VerificationStatus]?.label ?? h.to_status}
                     </span>
-                    <span className="text-[11px] text-gray-400">
+                    <span className="text-[11px] text-on-surface-variant">
                       by {h.actor_role} · {new Date(h.created_at).toLocaleString("en-IN", {
                         day: "numeric", month: "short", year: "numeric",
                         hour: "numeric", minute: "2-digit",
                       })}
                     </span>
                   </div>
-                  {h.reason && <p className="text-sm text-gray-600 mt-1 leading-relaxed">{h.reason}</p>}
+                  {h.reason && <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">{h.reason}</p>}
                 </li>
               ))}
             </ol>
@@ -465,10 +465,10 @@ function Fields({
 }) {
   return (
     <>
-      <h2 className="text-[17px] font-bold text-gray-900 flex items-center gap-2">
-        <Icon size={18} className="text-gray-400" /> {title}
+      <h2 className="text-[17px] font-bold text-on-surface flex items-center gap-2">
+        <Icon size={18} className="text-on-surface-variant" /> {title}
       </h2>
-      {note && <p className="text-sm text-gray-500 mt-1 leading-relaxed">{note}</p>}
+      {note && <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">{note}</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">{children}</div>
     </>
   );
@@ -486,10 +486,10 @@ function Field({
   wide?: boolean;
 }) {
   const cls =
-    "w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-colors";
+    "w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest transition-colors";
   return (
     <label className={wide ? "sm:col-span-2" : undefined}>
-      <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block mb-1">
+      <span className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1">
         {label}
       </span>
       {textarea
@@ -502,8 +502,8 @@ function Field({
 function Summary({ k, v }: { k: string; v: string }) {
   return (
     <div>
-      <dt className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{k}</dt>
-      <dd className="text-sm text-gray-900 mt-0.5">{v || "—"}</dd>
+      <dt className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">{k}</dt>
+      <dd className="text-sm text-on-surface mt-0.5">{v || "—"}</dd>
     </div>
   );
 }
@@ -518,22 +518,22 @@ function DocumentList({
 }) {
   if (docs.length === 0) {
     return (
-      <p className="text-sm text-gray-400 mt-4 text-center py-8 border border-dashed border-gray-200 rounded-xl">
+      <p className="text-sm text-on-surface-variant mt-4 text-center py-8 border border-dashed border-outline-variant rounded-xl">
         No documents uploaded yet.
       </p>
     );
   }
 
   return (
-    <ul className="mt-5 divide-y divide-gray-100 border-t border-gray-100">
+    <ul className="mt-5 divide-y divide-gray-100 border-t border-outline-variant">
       {docs.map((d) => (
         <li key={d.id} className="flex items-center gap-3 py-3">
-          <FileText size={16} className="text-gray-400 shrink-0" />
+          <FileText size={16} className="text-on-surface-variant shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">
+            <p className="text-sm font-semibold text-on-surface truncate">
               {DOC_TYPES.find((t) => t.value === d.doc_type)?.label ?? d.doc_type}
             </p>
-            <p className="text-xs text-gray-400 truncate">{d.file_name}</p>
+            <p className="text-xs text-on-surface-variant truncate">{d.file_name}</p>
           </div>
           {d.status !== "submitted" && (
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
@@ -544,12 +544,12 @@ function DocumentList({
             </span>
           )}
           <button onClick={() => onOpen(d)}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-700 shrink-0">
+            className="text-xs font-semibold text-secondary hover:text-secondary shrink-0">
             View
           </button>
           {!readOnly && onDelete && d.status === "submitted" && (
             <button onClick={() => onDelete(d)} aria-label="Remove document"
-              className="text-gray-300 hover:text-red-500 shrink-0 transition-colors">
+              className="text-on-surface-variant hover:text-red-500 shrink-0 transition-colors">
               <Trash2 size={15} />
             </button>
           )}

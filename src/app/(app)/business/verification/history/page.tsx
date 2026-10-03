@@ -45,30 +45,30 @@ export default function VerificationHistoryPage() {
     approved: { label:"Verified",  cls:"text-green-700 bg-green-50 border-green-200" },
     pending:  { label:"Pending",   cls:"text-amber-700 bg-amber-50 border-amber-200" },
     rejected: { label:"Rejected",  cls:"text-red-700 bg-red-50 border-red-200" },
-    expired:  { label:"Expired",   cls:"text-gray-500 bg-gray-50 border-gray-200" },
+    expired:  { label:"Expired",   cls:"text-on-surface-variant bg-surface-container-low border-outline-variant" },
   } as const;
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#F8F9FC]"><div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-surface"><div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FC] pb-28">
-      <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
-        <Link aria-label="Back" href="/business/verification"><ArrowLeft size={22} className="text-gray-600" /></Link>
-        <h1 className="text-[17px] font-black text-gray-900 flex-1">Verification History</h1>
+    <div className="min-h-screen bg-surface pb-28">
+      <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
+        <Link aria-label="Back" href="/business/verification"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
+        <h1 className="text-[17px] font-black text-on-surface flex-1">Verification History</h1>
       </div>
 
       <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
         {/* Insights */}
         <div className="grid grid-cols-4 gap-2">
           {[
-            { label:"Total",    value:insights.total,    color:"text-gray-900" },
+            { label:"Total",    value:insights.total,    color:"text-on-surface" },
             { label:"Approved", value:insights.approved, color:"text-green-600" },
             { label:"Pending",  value:insights.pending,  color:"text-amber-600" },
             { label:"Rejected", value:insights.rejected, color:"text-red-600" },
           ].map(s => (
-            <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-3 flex flex-col items-center">
+            <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-3 flex flex-col items-center">
               <span className={`text-2xl font-black ${s.color}`}>{s.value}</span>
-              <span className="text-[10px] text-gray-600 font-medium mt-0.5">{s.label}</span>
+              <span className="text-[10px] text-on-surface-variant font-medium mt-0.5">{s.label}</span>
             </div>
           ))}
         </div>
@@ -78,7 +78,7 @@ export default function VerificationHistoryPage() {
           {FILTERS.map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
-                filter===f ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                filter===f ? "bg-secondary text-white border-secondary" : "bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-outline"
               }`}>
               {f.charAt(0).toUpperCase()+f.slice(1)}
             </button>
@@ -87,11 +87,11 @@ export default function VerificationHistoryPage() {
 
         {/* List */}
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center bg-white rounded-2xl border border-gray-100">
-            <p className="text-sm text-gray-500">No {filter==="all" ? "" : filter} verifications yet.</p>
+          <div className="flex flex-col items-center gap-3 py-16 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant">
+            <p className="text-sm text-on-surface-variant">No {filter==="all" ? "" : filter} verifications yet.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-50">
             {filtered.map(req => {
               const participant = req.participant as { full_name: string|null }|undefined;
               const pName = participant?.full_name ?? "Unknown";
@@ -99,13 +99,13 @@ export default function VerificationHistoryPage() {
               const sc = statusCfg[req.status as keyof typeof statusCfg] ?? statusCfg.expired;
               return (
                 <div key={req.id} className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 text-sm font-bold text-blue-600">
+                  <div className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center shrink-0 text-sm font-bold text-secondary">
                     {pName.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">{pName}</p>
-                    <p className="text-xs text-gray-600 truncate">{challenge}</p>
-                    <p className="text-xs text-gray-600">{timeAgo(req.created_at)}</p>
+                    <p className="text-sm font-semibold text-on-surface">{pName}</p>
+                    <p className="text-xs text-on-surface-variant truncate">{challenge}</p>
+                    <p className="text-xs text-on-surface-variant">{timeAgo(req.created_at)}</p>
                   </div>
                   <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${sc.cls}`}>{sc.label}</span>
                 </div>

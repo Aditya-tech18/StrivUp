@@ -8,10 +8,10 @@ const STEPS = [
     title: "Spot the STRIVUP code on the order",
     body: "Quest orders from Zomato or Swiggy carry a STRIVUP order code in the order description or cooking instructions.",
     visual: (
-      <div className="bg-white border border-gray-200 rounded-xl p-4 text-xs text-gray-700">
-        <div className="font-black text-gray-900 uppercase mb-2">New order · #4821</div>
+      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 text-xs text-on-surface-variant">
+        <div className="font-black text-on-surface uppercase mb-2">New order · #4821</div>
         <div className="flex justify-between"><span>Malai Chaap (Full)</span><span>×1</span></div>
-        <div className="mt-2 rounded-lg bg-gray-50 px-2 py-1.5">Instructions: <span className="font-mono font-black text-blue-700">SV-981042</span></div>
+        <div className="mt-2 rounded-lg bg-surface-container-low px-2 py-1.5">Instructions: <span className="font-mono font-black text-secondary">SV-981042</span></div>
       </div>
     ),
   },
@@ -27,11 +27,11 @@ const STEPS = [
     title: "Write the bill code on the bill",
     body: "After you verify, STRIVUP gives you a new bill code. Write or print it on the bill that goes with the order. It's valid for 24 hours and works only for that customer.",
     visual: (
-      <div className="bg-white border border-gray-200 rounded-xl p-4">
-        <div className="text-xs font-black text-gray-800 uppercase mb-2">Veer Ji Malai Chaap Wale</div>
-        <div className="border-t border-gray-200 pt-2 space-y-1">
-          <div className="flex justify-between text-xs text-gray-700"><span>Malai Chaap (Full)</span><span>₹280</span></div>
-          <div className="flex justify-between text-xs font-bold text-gray-900 border-t border-dashed border-gray-300 pt-1 mt-1"><span>Total</span><span>₹280</span></div>
+      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4">
+        <div className="text-xs font-black text-on-surface uppercase mb-2">Veer Ji Malai Chaap Wale</div>
+        <div className="border-t border-outline-variant pt-2 space-y-1">
+          <div className="flex justify-between text-xs text-on-surface-variant"><span>Malai Chaap (Full)</span><span>₹280</span></div>
+          <div className="flex justify-between text-xs font-bold text-on-surface border-t border-dashed border-outline pt-1 mt-1"><span>Total</span><span>₹280</span></div>
         </div>
         <div className="mt-3 font-mono font-black text-2xl text-green-700 text-center border-2 border-dashed border-green-200 rounded-xl py-2 bg-green-50">STRIVUP: BV-642815</div>
       </div>
@@ -46,13 +46,13 @@ const STEPS = [
 export default function HowItWorksPage() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-[#F8F9FC] flex flex-col">
-      <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
+    <div className="min-h-screen bg-surface flex flex-col">
+      <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
         <div className="flex-1">
-          <h1 className="text-[17px] font-black text-gray-900">How Order Verification Works</h1>
+          <h1 className="text-[17px] font-black text-on-surface">How Order Verification Works</h1>
         </div>
-        <button aria-label="Close" onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
-          <X size={18} className="text-gray-600" />
+        <button aria-label="Close" onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center">
+          <X size={18} className="text-on-surface-variant" />
         </button>
       </div>
 
@@ -60,26 +60,26 @@ export default function HowItWorksPage() {
         {STEPS.map((step, i) => (
           <div key={i} className="flex gap-4">
             <div className="flex flex-col items-center">
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0 shadow-sm">
                 <span className="text-sm font-black text-white">{i+1}</span>
               </div>
-              {i < STEPS.length-1 && <div className="w-0.5 flex-1 bg-gray-200 mt-2" />}
+              {i < STEPS.length-1 && <div className="w-0.5 flex-1 bg-surface-container-highest mt-2" />}
             </div>
             <div className="flex-1 pb-5">
-              <p className="text-[15px] font-bold text-gray-900 mb-1">{step.title}</p>
-              <p className="text-sm text-gray-700 mb-3 leading-relaxed">{step.body}</p>
+              <p className="text-[15px] font-bold text-on-surface mb-1">{step.title}</p>
+              <p className="text-sm text-on-surface-variant mb-3 leading-relaxed">{step.body}</p>
               {step.visual}
             </div>
           </div>
         ))}
-        <Link href="/how-quests-work" className="text-center text-sm font-semibold text-blue-700 underline">
+        <Link href="/how-quests-work" className="text-center text-sm font-semibold text-secondary underline">
           Read the full Quest guide
         </Link>
       </div>
 
-      <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4">
+      <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-4">
         <button onClick={() => router.back()}
-          className="w-full h-12 rounded-xl bg-blue-600 text-white font-bold text-[15px]">
+          className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-[15px]">
           Got it
         </button>
       </div>

@@ -19,32 +19,32 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
   onBack?: () => void; onNext: () => void; nextLabel?: string; nextDisabled?: boolean; saving?: boolean;
 }) {
   return (
-    <div className="min-h-screen bg-[#F8F9FC] flex flex-col">
+    <div className="min-h-screen bg-surface flex flex-col">
       {/* Progress bar */}
-      <div className="h-1 bg-gray-200 w-full">
-        <div className="h-1 bg-blue-600 transition-all duration-500" style={{ width: `${(step/TOTAL)*100}%` }} />
+      <div className="h-1 bg-surface-container-highest w-full">
+        <div className="h-1 bg-secondary transition-all duration-500" style={{ width: `${(step/TOTAL)*100}%` }} />
       </div>
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100">
+      <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant">
         {onBack && (
-          <button onClick={onBack} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center" aria-label="Back">
-            <ChevronLeft size={20} className="text-gray-600" />
+          <button onClick={onBack} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center" aria-label="Back">
+            <ChevronLeft size={20} className="text-on-surface-variant" />
           </button>
         )}
         <div className="flex-1">
-          <p className="text-[11px] text-gray-600 font-semibold uppercase tracking-wider">Step {step} of {TOTAL} · {LABELS[step-1]}</p>
-          <h1 className="text-[20px] font-black text-gray-900 leading-tight">{title}</h1>
-          {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+          <p className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Step {step} of {TOTAL} · {LABELS[step-1]}</p>
+          <h1 className="text-[20px] font-black text-on-surface leading-tight">{title}</h1>
+          {subtitle && <p className="text-sm text-on-surface-variant mt-0.5">{subtitle}</p>}
         </div>
       </div>
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-5 py-6 pb-32 max-w-lg mx-auto w-full">{children}</div>
       {/* Sticky CTA */}
-      <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4">
+      <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-4">
         <button
           onClick={onNext}
           disabled={nextDisabled || saving}
-          className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold text-[15px] flex items-center justify-center gap-2 transition-all"
+          className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-[15px] flex items-center justify-center gap-2 transition-all"
         >
           {saving ? "Saving…" : <>{nextLabel}{!saving && <ChevronRight size={18} />}</>}
         </button>
@@ -119,8 +119,8 @@ export default function BusinessOnboardingPage() {
   }, [supabase]);
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8F9FC]">
-      <div className="w-8 h-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-surface">
+      <div className="w-8 h-8 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
     </div>
   );
 
@@ -132,18 +132,18 @@ export default function BusinessOnboardingPage() {
       {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-center mb-2">
-          <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center">
-            <Store size={32} className="text-blue-600" />
+          <div className="w-16 h-16 rounded-2xl bg-secondary-fixed flex items-center justify-center">
+            <Store size={32} className="text-secondary" />
           </div>
         </div>
         <Input label="Business Name *" value={businessName} onChange={e => setBusinessName(e.target.value)} placeholder="e.g. The Brew House" maxLength={80} />
         <Input label="Business Handle" value={businessUsername} onChange={e => setBusinessUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g,""))} placeholder="@thebrewhouse" maxLength={30} hint="Optional · lowercase only" />
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-semibold text-gray-700">Description</label>
+          <label className="text-sm font-semibold text-on-surface-variant">Description</label>
           <textarea aria-label="Description" value={description} onChange={e => setDescription(e.target.value)} maxLength={300} rows={3}
             placeholder="What does your business do? What makes it special?"
-            className="w-full rounded-xl border border-gray-200 bg-white text-gray-900 text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-100 resize-none" />
-          <p className="text-xs text-gray-600 text-right">{description.length}/300</p>
+            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none" />
+          <p className="text-xs text-on-surface-variant text-right">{description.length}/300</p>
         </div>
       </div>
     </StepShell>
@@ -159,7 +159,7 @@ export default function BusinessOnboardingPage() {
         {BUSINESS_CATEGORIES.map(cat => (
           <button key={cat} type="button" onClick={() => setCategory(cat)}
             className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-all ${
-              category === cat ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+              category === cat ? "bg-secondary-fixed border-secondary text-secondary" : "bg-surface-container-lowest border-outline-variant text-on-surface-variant hover:border-outline"
             }`}>
             {category === cat && <Check size={12} className="inline mr-1" />}{cat}
           </button>
@@ -186,7 +186,7 @@ export default function BusinessOnboardingPage() {
     <StepShell step={4} title="Where are you located?" subtitle="Help customers find you on STRIVUP."
       onBack={() => setStep(3)} onNext={() => save({ address: address.trim()||null, city: city.trim()||null, state: stateName.trim()||null, pincode: pincode.trim()||null, country: country||"India" }, 5)} saving={saving}>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-2 text-blue-600 mb-1">
+        <div className="flex items-center gap-2 text-secondary mb-1">
           <MapPin size={18} /> <span className="text-sm font-semibold">Business Address</span>
         </div>
         <Input label="Street Address" value={address} onChange={e => setAddress(e.target.value)} placeholder="123, MG Road" />
@@ -209,14 +209,14 @@ export default function BusinessOnboardingPage() {
       {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
       <div className="flex flex-col items-center gap-6 py-4">
         <label className="relative cursor-pointer group">
-          <div className="w-32 h-32 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 group-hover:border-blue-500 overflow-hidden flex items-center justify-center transition-colors">
+          <div className="w-32 h-32 rounded-2xl bg-surface-container border-2 border-dashed border-outline group-hover:border-secondary overflow-hidden flex items-center justify-center transition-colors">
             {logoUploading ? (
-              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
             ) : logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={logoUrl} alt="logo" className="w-full h-full object-cover" />
             ) : (
-              <div className="flex flex-col items-center gap-2 text-gray-600">
+              <div className="flex flex-col items-center gap-2 text-on-surface-variant">
                 <Camera size={32} />
                 <span className="text-sm">Upload Logo</span>
               </div>
@@ -235,7 +235,7 @@ export default function BusinessOnboardingPage() {
             }} />
         </label>
         {logoUrl && <button type="button" onClick={() => setLogoUrl(null)} className="text-sm text-red-500">Remove logo</button>}
-        <p className="text-sm text-gray-600 text-center max-w-xs">Square image recommended, min 200×200px. JPG, PNG, or WebP.</p>
+        <p className="text-sm text-on-surface-variant text-center max-w-xs">Square image recommended, min 200×200px. JPG, PNG, or WebP.</p>
       </div>
     </StepShell>
   );
@@ -246,10 +246,10 @@ export default function BusinessOnboardingPage() {
       onBack={() => setStep(5)} onNext={() => save({}, 7)} saving={saving}>
       <div className="flex flex-col gap-3">
         {socialLinks.map((link, i) => (
-          <div key={i} className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-gray-200">
+          <div key={i} className="flex items-center gap-3 bg-surface-container-lowest rounded-xl px-4 py-3 border border-outline-variant">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-700 capitalize">{link.platform}</p>
-              <p className="text-xs text-gray-600 truncate">{link.url}</p>
+              <p className="text-sm font-semibold text-on-surface-variant capitalize">{link.platform}</p>
+              <p className="text-xs text-on-surface-variant truncate">{link.url}</p>
             </div>
             <button aria-label="Remove link" type="button" onClick={() => setSocialLinks(p => p.filter((_,j) => j !== i))} className="text-red-500 shrink-0">
               <X size={16} />
@@ -259,37 +259,37 @@ export default function BusinessOnboardingPage() {
         {socialLinks.length < 4 && (
           <div className="flex flex-col gap-2 mt-1">
             <select aria-label="Social platform" value={newPlatform} onChange={e => setNewPlatform(e.target.value)}
-              className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700">
+              className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant">
               {["instagram","linkedin","twitter","youtube","portfolio","other"].map(p => (
                 <option key={p} value={p}>{p.charAt(0).toUpperCase()+p.slice(1)}</option>
               ))}
             </select>
             <div className="flex gap-2">
               <input aria-label="Link URL" value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="https://…"
-                className="flex-1 h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:border-blue-500" />
+                className="flex-1 h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm focus:outline-none focus:border-secondary" />
               <button type="button" onClick={() => { if (!newUrl.trim()) return; setSocialLinks(p => [...p, { platform: newPlatform, url: newUrl.trim() }]); setNewUrl(""); }}
-                className="h-10 px-4 rounded-xl bg-blue-600 text-white text-sm font-semibold">
+                className="h-10 px-4 rounded-xl bg-secondary text-white text-sm font-semibold">
                 Add
               </button>
             </div>
           </div>
         )}
-        {socialLinks.length >= 4 && <p className="text-sm text-gray-600">Maximum 4 social links.</p>}
+        {socialLinks.length >= 4 && <p className="text-sm text-on-surface-variant">Maximum 4 social links.</p>}
       </div>
     </StepShell>
   );
 
   /* ── STEP 7: Review & Submit ──────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-[#F8F9FC] flex flex-col">
-      <div className="h-1 bg-blue-600 w-full" />
-      <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100">
-        <button aria-label="Back" onClick={() => setStep(6)} className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center">
-          <ChevronLeft size={20} className="text-gray-600" />
+    <div className="min-h-screen bg-surface flex flex-col">
+      <div className="h-1 bg-secondary w-full" />
+      <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant">
+        <button aria-label="Back" onClick={() => setStep(6)} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center">
+          <ChevronLeft size={20} className="text-on-surface-variant" />
         </button>
         <div>
-          <p className="text-[11px] text-gray-600 font-semibold uppercase tracking-wider">Step 7 of 7 · Review</p>
-          <h1 className="text-[20px] font-black text-gray-900">Review & Submit</h1>
+          <p className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Step 7 of 7 · Review</p>
+          <h1 className="text-[20px] font-black text-on-surface">Review & Submit</h1>
         </div>
       </div>
 
@@ -302,21 +302,21 @@ export default function BusinessOnboardingPage() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt="logo" className="w-20 h-20 rounded-2xl object-cover" />
           ) : (
-            <div className="w-20 h-20 rounded-2xl bg-blue-50 flex items-center justify-center">
-              <Store size={28} className="text-blue-600" />
+            <div className="w-20 h-20 rounded-2xl bg-secondary-fixed flex items-center justify-center">
+              <Store size={28} className="text-secondary" />
             </div>
           )}
           <div className="text-center">
-            <h2 className="text-xl font-black text-gray-900">{businessName || "—"}</h2>
-            {businessUsername && <p className="text-sm text-gray-500">@{businessUsername}</p>}
+            <h2 className="text-xl font-black text-on-surface">{businessName || "—"}</h2>
+            {businessUsername && <p className="text-sm text-on-surface-variant">@{businessUsername}</p>}
             {category && (
-              <span className="inline-block mt-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">{category}</span>
+              <span className="inline-block mt-1 px-3 py-1 rounded-full bg-secondary-fixed text-secondary text-xs font-semibold">{category}</span>
             )}
           </div>
         </div>
 
         {/* Detail rows */}
-        <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-100">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-100">
           {[
             { label: "Description", value: description },
             { label: "Phone", value: businessPhone },
@@ -325,18 +325,18 @@ export default function BusinessOnboardingPage() {
             { label: "Location", value: [address, city, stateName, pincode, country].filter(Boolean).join(", ") },
           ].filter(r => r.value).map(row => (
             <div key={row.label} className="flex gap-3 px-4 py-3">
-              <span className="text-sm text-gray-600 w-24 shrink-0">{row.label}</span>
-              <span className="text-sm text-gray-800 flex-1 break-words">{row.value}</span>
+              <span className="text-sm text-on-surface-variant w-24 shrink-0">{row.label}</span>
+              <span className="text-sm text-on-surface flex-1 break-words">{row.value}</span>
             </div>
           ))}
         </div>
 
-        <div className="mt-4 bg-blue-50 rounded-2xl px-4 py-3 border border-blue-100">
-          <p className="text-sm text-blue-700 text-center">Your business profile will be submitted for review. Verification usually takes 24–48 hours.</p>
+        <div className="mt-4 bg-secondary-fixed rounded-2xl px-4 py-3 border border-secondary-fixed-dim">
+          <p className="text-sm text-secondary text-center">Your business profile will be submitted for review. Verification usually takes 24–48 hours.</p>
         </div>
       </div>
 
-      <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4 flex flex-col gap-2">
+      <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-4 flex flex-col gap-2">
         <button onClick={async () => {
           setSaving(true); setError(null);
           try {
@@ -345,10 +345,10 @@ export default function BusinessOnboardingPage() {
             router.push("/business/dashboard");
           } catch(e) { setError(e instanceof Error ? e.message : "Failed"); setSaving(false); }
         }} disabled={saving}
-          className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold text-[15px] transition-all">
+          className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-[15px] transition-all">
           {saving ? "Submitting…" : "Submit Business Profile"}
         </button>
-        <button onClick={() => setStep(1)} className="w-full h-10 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium">
+        <button onClick={() => setStep(1)} className="w-full h-10 rounded-xl border border-outline-variant text-on-surface-variant text-sm font-medium">
           Edit Details
         </button>
       </div>
