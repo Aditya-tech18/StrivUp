@@ -150,7 +150,7 @@ export default function OrderVerificationModal({
             <button
               onClick={() => setStep("ask")}
               aria-label="Back"
-              className="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center shrink-0"
+              className="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0"
             >
               <ArrowLeft size={18} className="text-on-surface-variant" />
             </button>
@@ -162,7 +162,7 @@ export default function OrderVerificationModal({
           <button
             onClick={onClose}
             aria-label="Close"
-            className="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center shrink-0"
+            className="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0"
           >
             <X size={18} className="text-on-surface-variant" />
           </button>

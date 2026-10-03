@@ -213,7 +213,7 @@ export default function SettingsPage() {
               </div>
               <button
                 onClick={() => router.push("/settings/edit-profile")}
-                className="shrink-0 px-3.5 py-1.5 rounded-lg border border-outline-variant text-body-md font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
+                className="shrink-0 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-md font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
               >
                 Edit
               </button>
@@ -230,7 +230,7 @@ export default function SettingsPage() {
         <button
           onClick={handleLogOut}
           disabled={loggingOut}
-          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl bg-white border border-outline-variant text-body-md font-semibold text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-white border border-outline-variant text-body-md font-semibold text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
         >
           <LogOut size={16} className="text-on-surface-variant" />
           {loggingOut ? "Signing out…" : "Sign Out"}

@@ -124,7 +124,7 @@ export function QuestProofModal(props: Props) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="presentation">
-      <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-[#0d1c32]/50" tabIndex={-1} />
+      <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-black/50" tabIndex={-1} />
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="proof-modal-title" tabIndex={-1}
         className="relative outline-none w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-surface-container-lowest shadow-[0_24px_64px_-12px_rgba(13,28,50,0.35)] max-h-[92dvh] overflow-y-auto [padding-bottom:max(1.25rem,env(safe-area-inset-bottom))]">
         <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-outline-variant bg-surface-container-lowest px-5 py-3">

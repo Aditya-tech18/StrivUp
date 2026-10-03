@@ -168,7 +168,7 @@ export default function BusinessSettingsPage() {
 
         {/* Sign out */}
         <button onClick={handleSignOut}
-          className="w-full h-12 rounded-2xl border border-error-outline text-on-error-container font-semibold text-sm flex items-center justify-center gap-2 bg-surface-container-lowest hover:bg-error-container transition-colors">
+          className="w-full h-12 rounded-xl border border-error-outline text-on-error-container font-semibold text-sm flex items-center justify-center gap-2 bg-surface-container-lowest hover:bg-error-container transition-colors">
           <LogOut size={16} /> Sign Out
         </button>
       </div>

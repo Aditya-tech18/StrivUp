@@ -277,6 +277,28 @@ body {
   text-transform: uppercase;
 }
 
+/* ─── Entrance fade-up ──────────────────────────────────────────────────────
+   Staggered entrance for the gateway screen. It used to live in an inline
+   <style> block inside the component, which re-injected the keyframe on every
+   render and had no reduced-motion guard. Three delay steps is all any screen
+   here needs; add a step rather than an inline style.                       */
+@keyframes striv-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up {
+  animation: striv-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.fade-up-1 { animation-delay: 80ms; }
+.fade-up-2 { animation-delay: 160ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up, .fade-up-1, .fade-up-2 {
+    animation: none;
+  }
+}
+
 /* ─── StrivCoin earn flourish ───────────────────────────────────────────────
    The "+N" that floats off the coin pill on the first visit of the day. Pure
    CSS so it needs no state, and so prefers-reduced-motion is honoured without

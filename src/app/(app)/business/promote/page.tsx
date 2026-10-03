@@ -128,7 +128,7 @@ export default function PromotePage() {
             <div className="grid grid-cols-2 gap-3">
               {BUDGETS.map(b => (
                 <button key={b.value} type="button" onClick={() => setSelectedBudget(b)}
-                  className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                  className={`p-4 rounded-xl border-2 text-left transition-all ${
                     selectedBudget?.value === b.value
                       ? "border-secondary bg-secondary-fixed"
                       : "border-outline-variant bg-surface-container-low hover:border-outline-variant"

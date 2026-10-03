@@ -238,7 +238,7 @@ export default function CreateQuestPage() {
               onChange={(e) => setDescription(e.target.value)}
               maxLength={1000}
               rows={4}
-              className="w-full text-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary resize-none"
+              className="w-full text-body-md rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary resize-none"
             />
             <p className="text-body-sm text-on-surface-variant mt-1">
               {description.length} / 1000
@@ -290,7 +290,7 @@ export default function CreateQuestPage() {
                 step="0.0001"
                 value={latitude}
                 onChange={(e) => setLatitude(e.target.value)}
-                className="w-full text-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
+                className="w-full text-body-md rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
               />
               <input aria-label="Longitude"
                 type="number"
@@ -298,7 +298,7 @@ export default function CreateQuestPage() {
                 step="0.0001"
                 value={longitude}
                 onChange={(e) => setLongitude(e.target.value)}
-                className="w-full text-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
+                className="w-full text-body-md rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
               />
             </div>
             <p className="text-body-sm text-on-surface-variant text-xs">
@@ -327,7 +327,7 @@ export default function CreateQuestPage() {
               onChange={(e) =>
                 setProofType(e.target.value as "photo" | "checkin" | "none")
               }
-              className="w-full text-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"
+              className="w-full text-body-md rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"
             >
               <option value="photo">Photo Upload</option>
               <option value="checkin">Check-in</option>

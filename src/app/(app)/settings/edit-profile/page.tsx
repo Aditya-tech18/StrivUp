@@ -264,7 +264,7 @@ export default function EditProfilePage() {
             {profile?.avatar_url && (
               <button
                 onClick={handleRemoveAvatar}
-                className="px-4 py-1.5 rounded-lg border border-outline-variant text-body-md font-semibold text-error hover:bg-error-container/50 transition-colors"
+                className="px-4 py-1.5 rounded-xl border border-outline-variant text-body-md font-semibold text-error hover:bg-error-container/50 transition-colors"
               >
                 Remove
               </button>
@@ -375,7 +375,7 @@ export default function EditProfilePage() {
               <select aria-label="Social platform"
                 value={newPlatform}
                 onChange={e => setNewPlatform(e.target.value as SocialPlatform)}
-                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
               >
                 {PLATFORMS.map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -385,7 +385,7 @@ export default function EditProfilePage() {
                 value={newUrl}
                 onChange={e => setNewUrl(e.target.value)}
                 placeholder="https://…"
-                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
               />
               {linkError && (
                 <p className="text-body-sm text-error">{linkError}</p>
@@ -394,13 +394,13 @@ export default function EditProfilePage() {
                 <button
                   onClick={handleAddLink}
                   disabled={!newUrl.trim()}
-                  className="flex-1 h-9 rounded-lg bg-secondary text-white text-body-md font-semibold disabled:opacity-40"
+                  className="flex-1 h-9 rounded-xl bg-secondary text-white text-body-md font-semibold disabled:opacity-40"
                 >
                   Add
                 </button>
                 <button
                   onClick={() => { setAddingLink(false); setNewUrl(""); setLinkError(""); }}
-                  className="flex-1 h-9 rounded-lg border border-outline-variant text-on-surface text-body-md font-semibold"
+                  className="flex-1 h-9 rounded-xl border border-outline-variant text-on-surface text-body-md font-semibold"
                 >
                   Cancel
                 </button>

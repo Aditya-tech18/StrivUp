@@ -386,7 +386,7 @@ function CreateQuestContent() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={task.is_required ?? true}
                     onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, is_required: e.target.checked } : t))}
-                    className="w-4 h-4 rounded border-outline accent-blue-600" />
+                    className="w-4 h-4 rounded-xl border-outline accent-blue-600" />
                   <span className="text-xs font-medium text-on-surface-variant">Required</span>
                 </label>
               </div>
@@ -462,7 +462,7 @@ function CreateQuestContent() {
       <div className="flex flex-col gap-4">
         <label className="flex items-center gap-3 bg-surface-container-lowest rounded-xl border border-outline-variant px-4 py-3 cursor-pointer elev-1 surface-raised">
           <input type="checkbox" checked={isLeaderboard} onChange={e => setIsLeaderboard(e.target.checked)}
-            className="w-4 h-4 rounded border-outline accent-blue-600" />
+            className="w-4 h-4 rounded-xl border-outline accent-blue-600" />
           <div>
             <p className="text-sm font-semibold text-on-surface">Enable Leaderboard Ranking</p>
             <p className="text-xs text-on-surface-variant">Rank participants and assign tiered rewards</p>
@@ -549,7 +549,7 @@ function CreateQuestContent() {
           { value: "invite_only", title: "Invite Only", desc: "Only people with an invite link can join", Icon: LinkIcon },
         ] as const).map(opt => (
           <button key={opt.value} type="button" onClick={() => setVisibility(opt.value)}
-            className={`flex items-start gap-4 p-4 rounded-2xl border-2 text-left transition-all ${
+            className={`flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all ${
               visibility === opt.value ? "border-secondary bg-secondary-fixed" : "border-outline-variant bg-surface-container-lowest hover:border-outline-variant"
             }`}>
             <opt.Icon size={22} className={`mt-0.5 shrink-0 ${visibility === opt.value ? "text-secondary" : "text-on-surface-variant"}`} aria-hidden="true" />

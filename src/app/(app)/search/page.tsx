@@ -100,7 +100,7 @@ export default function SearchPage() {
   const hasResults = users.length > 0 || challenges.length > 0 || quests.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+    <div className="min-h-screen bg-surface-container-low pb-28">
       {/* Header */}
       <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest border-b border-outline-variant">
         <div className="max-w-lg mx-auto px-5 py-3">

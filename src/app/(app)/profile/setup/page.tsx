@@ -207,7 +207,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-surface px-5 py-8 pb-24">
-      <div className="mx-auto max-w-md flex flex-col gap-6">
+      <div className="mx-auto flex measure-form flex-col gap-6">
         {error && (
           <p className="text-body-md text-error text-center" role="alert">
             {error}
@@ -320,7 +320,7 @@ export default function ProfilePage() {
               <select aria-label="Social platform"
                 value={newPlatform}
                 onChange={(e) => setNewPlatform(e.target.value as SocialPlatform)}
-                className="h-10 rounded border border-outline-variant bg-surface-container-lowest px-3 text-body-lg text-on-surface"
+                className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-lg text-on-surface"
               >
                 {PLATFORMS.map((p) => (
                   <option key={p.value} value={p.value}>

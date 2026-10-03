@@ -42,7 +42,7 @@ function GoogleIcon() {
 /* ── Shared class helpers ────────────────────────────────────────────────── */
 const socialBtnCls = [
   "w-full flex items-center justify-center gap-3",
-  "h-11 px-4 rounded border border-outline-variant",
+  "h-11 px-4 rounded-xl border border-outline-variant",
   "bg-surface-container-lowest hover:bg-surface-container",
   "transition-colors duration-150",
   "text-[length:var(--text-body-lg)] font-medium text-on-surface",
@@ -52,7 +52,7 @@ const socialBtnCls = [
 
 function passwordFieldCls(hasError: boolean) {
   return [
-    "w-full h-10 px-3 pr-10 rounded border bg-surface-container-lowest",
+    "w-full h-10 px-3 pr-10 rounded-xl border bg-surface-container-lowest",
     "text-on-surface placeholder:text-on-surface-variant",
     "text-[length:var(--text-body-lg)] leading-6",
     "transition-colors duration-150 focus:outline-none focus:ring-2",
@@ -186,7 +186,7 @@ export function SignupForm() {
       {authError && (
         <div
           role="alert"
-          className="rounded border border-error/30 bg-error-container px-4 py-3 text-body-md text-error"
+          className="rounded-xl border border-error-outline bg-error-container px-4 py-3 text-body-md text-on-error-container"
         >
           {authError}
         </div>

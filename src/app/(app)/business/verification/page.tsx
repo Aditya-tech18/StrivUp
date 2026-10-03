@@ -172,7 +172,7 @@ function VerifyContent() {
         {/* Instruction card */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex items-start gap-3 elev-1 surface-raised">
           <div className="w-10 h-10 rounded-xl bg-secondary-fixed flex items-center justify-center shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><circle cx="18" cy="7" r="3"/><path d="M21 10c0 2-1 3-3 3"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-secondary" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><circle cx="18" cy="7" r="3"/><path d="M21 10c0 2-1 3-3 3"/></svg>
           </div>
           <p className="text-sm text-on-surface-variant leading-relaxed">Quest orders arrive with a STRIVUP code in the order description (e.g. SV-123456). Enter it here to verify the order.</p>
         </div>
@@ -217,7 +217,7 @@ function VerifyContent() {
               value={insightRange}
               onChange={e => setInsightRange(e.target.value as InsightRange)}
               aria-label="Insights time range"
-              className="h-8 rounded-lg border border-outline-variant bg-surface-container-lowest text-xs font-semibold text-on-surface-variant px-2 focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary"
+              className="h-8 rounded-xl border border-outline-variant bg-surface-container-lowest text-xs font-semibold text-on-surface-variant px-2 focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary"
             >
               <option value="7">Last 7 Days</option>
               <option value="30">Last 30 Days</option>

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, UserCheck, UserMinus } from "lucide-react";
+import { ArrowLeft, BadgeCheck, UserCheck, UserMinus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 interface UserRow {
@@ -47,13 +47,13 @@ export default function FollowingPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F5F5F7]">
+    <div className="min-h-screen flex items-center justify-center bg-surface-container-low">
       <div className="w-6 h-6 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+    <div className="min-h-screen bg-surface-container-low pb-28">
       <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-5 py-3.5">
           <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
@@ -83,13 +83,13 @@ export default function FollowingPage() {
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-bold text-on-surface truncate">{user.full_name ?? user.username ?? "Unknown"}</p>
                     {user.verification_status === "verified" && (
-                      <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="9" fill="#3B82F6"/><path d="M5 9l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <BadgeCheck size={14} className="text-secondary" aria-label="Verified" />
                     )}
                   </div>
                   {user.username && <p className="text-xs text-on-surface-variant">@{user.username}</p>}
                 </div>
                 <button onClick={() => handleUnfollow(user.id)}
-                  className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-bold bg-surface-container border border-outline-variant text-on-surface-variant hover:text-error hover:border-error/30 transition-colors">
+                  className="flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-bold bg-surface-container border border-outline-variant text-on-surface-variant hover:text-error hover:border-error/30 transition-colors">
                   <UserCheck size={13} /> Following
                 </button>
               </div>

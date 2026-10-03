@@ -151,13 +151,13 @@ export default function PublicProfilePage({
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F5F5F7]">
+    <div className="min-h-screen flex items-center justify-center bg-surface-container-low">
       <div className="w-8 h-8 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
     </div>
   );
 
   if (!profile) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F5F7] gap-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-surface-container-low gap-4">
       <p className="text-on-surface-variant text-sm">User not found.</p>
       <button onClick={() => router.back()} className="text-secondary text-sm font-semibold">Go back</button>
     </div>
@@ -168,7 +168,7 @@ export default function PublicProfilePage({
   const canViewContent = !profile.is_private || isFollowing;
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+    <div className="min-h-screen bg-surface-container-low pb-28">
       {/* Header */}
       <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-5 py-3.5">

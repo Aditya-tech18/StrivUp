@@ -5,34 +5,25 @@
  * Continue as User      → /login
  * Continue as Business  → /business-login (smart: existing biz → dashboard, new → onboarding)
  */
-"use client";
-
 import Link from "next/link";
 import { ChevronRight, Store, User } from "lucide-react";
 
-const fadeUpStyle = (delay: string): React.CSSProperties => ({
-  animationName: "striv-fade-up",
-  animationDuration: "0.5s",
-  animationTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
-  animationFillMode: "both",
-  animationDelay: delay,
-});
+/* The choice cards are the only two things on this screen, so they sit a step
+   further off the page than a resting card and lift on hover. */
+const choiceCard = [
+  "group flex items-center gap-4 rounded-2xl border border-outline-variant p-5",
+  "bg-surface-container-lowest elev-2 surface-raised lift",
+  "hover:border-outline",
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+].join(" ");
 
 export function GatewayScreen() {
   return (
-    <>
-      <style>{`
-        @keyframes striv-fade-up {
-          from { opacity: 0; transform: translateY(20px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-
-      <div className="min-h-screen bg-surface flex items-center justify-center px-5 py-10">
+      <div className="flex min-h-screen items-center justify-center bg-surface px-gutter py-10">
         <div className="w-full max-w-sm flex flex-col gap-8">
 
           {/* Logo + headline */}
-          <header className="flex flex-col items-center text-center gap-4" style={fadeUpStyle("0ms")}>
+          <header className="flex flex-col items-center gap-4 text-center fade-up">
             {/* STRIVUP wordmark — SVG arrow-up style */}
             <div className="flex flex-col items-center gap-1">
               <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-label="STRIVUP logo">
@@ -52,12 +43,12 @@ export function GatewayScreen() {
           </header>
 
           {/* Choice cards */}
-          <div className="flex flex-col gap-3" style={fadeUpStyle("80ms")}>
+          <div className="flex flex-col gap-3 fade-up fade-up-1">
 
             {/* ── Continue as User ── */}
             <Link
               href="/login"
-              className="group flex items-center gap-4 rounded-2xl p-5 bg-surface-container-low border border-outline-variant hover:bg-surface-container hover:border-outline active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
+              className={choiceCard}
             >
               <div className="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
                 <User size={22} className="text-secondary" aria-hidden="true" />
@@ -74,7 +65,7 @@ export function GatewayScreen() {
             {/* ── Continue as Business ── */}
             <Link
               href="/business-login"
-              className="group flex items-center gap-4 rounded-2xl p-5 bg-surface-container-low border border-outline-variant hover:bg-surface-container hover:border-outline active:scale-[0.98] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
+              className={choiceCard}
             >
               <div className="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
                 <Store size={22} className="text-secondary" aria-hidden="true" />
@@ -90,7 +81,7 @@ export function GatewayScreen() {
           </div>
 
           {/* Footer */}
-          <footer className="text-center" style={fadeUpStyle("160ms")}>
+          <footer className="text-center fade-up fade-up-2">
             <p className="text-body-md text-on-surface-variant">
               Already have an account?{" "}
               <Link href="/login" className="text-secondary font-semibold hover:underline">
@@ -100,6 +91,5 @@ export function GatewayScreen() {
           </footer>
         </div>
       </div>
-    </>
   );
 }

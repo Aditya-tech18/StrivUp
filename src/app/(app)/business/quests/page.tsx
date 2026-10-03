@@ -145,7 +145,7 @@ export default function BusinessQuestsPage() {
                     View
                   </Link>
                   <button onClick={() => router.push(`/business/quests/new?edit=${quest.id}`)}
-                    className="flex-1 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low">
+                    className="flex-1 h-8 flex items-center justify-center rounded-xl border border-outline-variant text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low">
                     Edit
                   </button>
                   <Link href={`/business/analytics?quest=${quest.id}`}
@@ -154,13 +154,13 @@ export default function BusinessQuestsPage() {
                   </Link>
                   {quest.quest_status === "active" && (
                     <button onClick={() => handleStatusChange(quest.id, "paused")}
-                      className="flex-1 h-8 flex items-center justify-center rounded-lg bg-warning-container border border-warning-outline text-xs font-semibold text-on-warning-container">
+                      className="flex-1 h-8 flex items-center justify-center rounded-xl bg-warning-container border border-warning-outline text-xs font-semibold text-on-warning-container">
                       Pause
                     </button>
                   )}
                   {quest.quest_status === "paused" && (
                     <button onClick={() => handleStatusChange(quest.id, "active")}
-                      className="flex-1 h-8 flex items-center justify-center rounded-lg bg-success-container border border-success-outline text-xs font-semibold text-on-success-container">
+                      className="flex-1 h-8 flex items-center justify-center rounded-xl bg-success-container border border-success-outline text-xs font-semibold text-on-success-container">
                       Resume
                     </button>
                   )}

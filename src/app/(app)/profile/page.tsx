@@ -54,7 +54,7 @@ const PLATFORMS: { value: SocialPlatform; label: string }[] = [
 
 // ── Skeleton ───────────────────────────────────────────────────────────────
 function Sk({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-xl bg-[#e4e2e4] ${className}`} />;
+  return <div className={`animate-pulse rounded-xl bg-surface-container-highest ${className}`} />;
 }
 
 // ── Heatmap ────────────────────────────────────────────────────────────────
@@ -89,7 +89,7 @@ function ConsistencyHeatmap({
   });
 
   const cellColor = (n: number) =>
-    n === 0 ? "bg-[#ebedf0]" :
+    n === 0 ? "bg-surface-container-highest" :
     n === 1 ? "bg-secondary/20" :
     n === 2 ? "bg-secondary/45" :
     n === 3 ? "bg-secondary/70" : "bg-secondary";
@@ -165,7 +165,7 @@ function ChallengeCard({ stats }: { stats: ChallengeStats }) {
             </span>
           </div>
         )}
-        <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-[#16a34a] flex items-center justify-center shadow">
+        <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-success flex items-center justify-center shadow">
           <Check size={11} className="text-white" strokeWidth={3} />
         </div>
       </div>
@@ -673,7 +673,7 @@ export default function ProfilePage() {
                 {!editing && (
                   <button
                     onClick={() => router.push("/settings/edit-profile")}
-                    className="mt-2.5 px-3.5 py-1.5 rounded-lg border border-outline-variant text-body-sm font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
+                    className="mt-2.5 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-sm font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
                   >
                     Edit Profile
                   </button>
@@ -735,7 +735,7 @@ export default function ProfilePage() {
 
           {/* Inline edit form */}
           {editing && (
-            <div className="border-t border-outline-variant px-4 py-4 bg-[#FAFAFA] flex flex-col gap-3">
+            <div className="border-t border-outline-variant px-4 py-4 bg-surface-container-low flex flex-col gap-3">
               <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
                 Editing Profile
               </p>
@@ -883,7 +883,7 @@ export default function ProfilePage() {
               <select
                 value={heatId ?? ""}
                 onChange={e => switchHeatmap(e.target.value)}
-                className="text-label-sm font-medium text-on-surface bg-surface-container border border-outline-variant rounded-lg px-2 py-1.5 focus:outline-none max-w-[140px] truncate"
+                className="text-label-sm font-medium text-on-surface bg-surface-container border border-outline-variant rounded-xl px-2 py-1.5 focus:outline-none max-w-[140px] truncate"
               >
                 {allStats.filter(s => s.status === "active").map(s => (
                   <option key={s.challenge_id} value={s.challenge_id}>

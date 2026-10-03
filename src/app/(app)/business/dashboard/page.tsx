@@ -205,7 +205,7 @@ export default function BusinessDashboardPage() {
             </p>
             <p className="text-sm text-on-error-container">{bp.rejection_reason || "Your verification was rejected."}</p>
             <button onClick={() => router.push("/business/onboarding")}
-              className="mt-2 px-4 py-1.5 rounded-lg border border-error-outline text-on-error-container text-sm font-semibold">
+              className="mt-2 px-4 py-1.5 rounded-xl border border-error-outline text-on-error-container text-sm font-semibold">
               Resubmit
             </button>
           </div>
@@ -275,11 +275,11 @@ export default function BusinessDashboardPage() {
         {/* ── Quick Actions ─────────────────────────────────────────── */}
         <div className="grid grid-cols-2 gap-3 md:gap-4">
           <button onClick={() => router.push("/business/quests/new")}
-            className="flex items-center justify-center gap-2 h-12 rounded-2xl bg-secondary hover:opacity-90 text-white font-bold text-sm transition-all elev-brand">
+            className="flex items-center justify-center gap-2 h-12 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-sm transition-all elev-brand">
             <Plus size={18} /> Create Quest
           </button>
           <button onClick={() => router.push("/business/quests")}
-            className="flex items-center justify-center gap-2 h-12 rounded-2xl bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-semibold text-sm hover:bg-surface-container-low transition-all elev-1 surface-raised">
+            className="flex items-center justify-center gap-2 h-12 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-semibold text-sm hover:bg-surface-container-low transition-all elev-1 surface-raised">
             My Quests →
           </button>
         </div>

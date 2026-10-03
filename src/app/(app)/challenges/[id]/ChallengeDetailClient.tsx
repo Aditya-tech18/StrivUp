@@ -707,7 +707,7 @@ function LegacyUploadCard({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="w-full h-11 rounded-lg bg-white text-primary flex items-center justify-center gap-2 font-semibold text-sm hover:bg-white/90 transition-colors"
+            className="w-full h-11 rounded-xl bg-white text-primary flex items-center justify-center gap-2 font-semibold text-sm hover:bg-white/90 transition-colors"
           >
             <Upload size={16} aria-hidden="true" />
             Retry Upload

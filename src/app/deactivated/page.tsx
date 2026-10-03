@@ -54,7 +54,7 @@ export default function DeactivatedPage() {
     const label = enforced.status === "banned" ? "Account Banned" : enforced.status === "suspended" ? "Account Suspended" : "Account Deactivated";
     const Icon = enforced.status === "banned" ? Ban : ShieldAlert;
     return (
-      <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center px-5">
+      <div className="min-h-screen bg-surface-container-low flex items-center justify-center px-5">
         <div className="max-w-sm w-full flex flex-col items-center gap-6 text-center py-10">
           <div className="w-20 h-20 rounded-2xl bg-error-container border border-error-outline flex items-center justify-center">
             <Icon size={36} className="text-on-error-container" strokeWidth={1.5} />

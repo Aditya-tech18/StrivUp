@@ -76,7 +76,7 @@ export function PhysicalActivityConfigFields({
               const type = e.target.value as ActivityType;
               set({ activity_type: type, unit: defaultUnitFor(type) });
             }}
-            className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
+            className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
           >
             {ACTIVITY_TYPES.map((a) => {
               const ready = PRODUCTION_ACTIVITY_TYPES.includes(a.value);
@@ -97,7 +97,7 @@ export function PhysicalActivityConfigFields({
             min={1}
             value={value.target_value}
             onChange={(e) => set({ target_value: Math.max(1, Number(e.target.value) || 0) })}
-            className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm tabular-nums"
+            className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm tabular-nums"
           />
         </div>
 
@@ -106,7 +106,7 @@ export function PhysicalActivityConfigFields({
           <input
             value={value.unit}
             onChange={(e) => set({ unit: e.target.value })}
-            className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
+            className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
           />
         </div>
 
@@ -121,7 +121,7 @@ export function PhysicalActivityConfigFields({
                   e.target.value === "specific_date" ? value.specific_date : null,
               })
             }
-            className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
+            className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
           >
             {ACTIVITY_FREQUENCIES.map((f) => (
               <option key={f.value} value={f.value}>
@@ -138,7 +138,7 @@ export function PhysicalActivityConfigFields({
               type="date"
               value={value.specific_date ?? ""}
               onChange={(e) => set({ specific_date: e.target.value || null })}
-              className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
+              className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
             />
           </div>
         )}
@@ -148,7 +148,7 @@ export function PhysicalActivityConfigFields({
           <select
             value={value.tracking_mode}
             onChange={(e) => set({ tracking_mode: e.target.value as TrackingMode })}
-            className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
+            className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
           >
             <option value="self_reported">
               Phone sensor — counted in the StrivUp app (recommended)

@@ -140,7 +140,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
                   <div className="bg-surface p-4 rounded-xl elev-5 w-full max-w-sm">
                     <h3 className="text-headline-md text-on-surface mb-2 font-semibold">Report Content</h3>
                     <select aria-label="Report reason" 
-                      className="w-full p-2 mb-4 rounded-lg bg-surface-container border border-outline-variant text-on-surface text-body-md"
+                      className="w-full p-2 mb-4 rounded-xl bg-surface-container border border-outline-variant text-on-surface text-body-md"
                       value={reportReason}
                       onChange={(e) => setReportReason(e.target.value)}
                     >
@@ -160,7 +160,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
                         Cancel
                       </button>
                       <button 
-                        className="px-4 py-2 text-body-sm font-medium bg-error text-on-error rounded-lg"
+                        className="px-4 py-2 text-body-sm font-medium bg-error text-on-error rounded-xl"
                         onClick={handleReport}
                       >
                         Submit Report

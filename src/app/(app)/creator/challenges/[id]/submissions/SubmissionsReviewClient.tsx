@@ -163,14 +163,14 @@ function SubmissionRow({
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="Explain why this proof is rejected (required)…"
                 rows={2}
-                className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary"
+                className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary"
               />
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={handleReject}
                   disabled={!rejectionReason.trim() || isPending}
-                  className="flex-1 h-9 rounded-lg bg-error text-white text-sm font-semibold disabled:opacity-50 hover:bg-error transition-colors flex items-center justify-center gap-1.5"
+                  className="flex-1 h-9 rounded-xl bg-error text-white text-sm font-semibold disabled:opacity-50 hover:bg-error transition-colors flex items-center justify-center gap-1.5"
                 >
                   {isPending ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
                   Confirm Reject
@@ -178,7 +178,7 @@ function SubmissionRow({
                 <button
                   type="button"
                   onClick={() => { setShowRejectForm(false); setRejectionReason(""); }}
-                  className="px-4 h-9 rounded-lg border border-outline-variant text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+                  className="px-4 h-9 rounded-xl border border-outline-variant text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
                 >
                   Cancel
                 </button>
@@ -192,7 +192,7 @@ function SubmissionRow({
                 type="button"
                 onClick={handleApprove}
                 disabled={isPending}
-                className="flex-1 h-9 rounded-lg bg-secondary text-on-secondary text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-1.5"
+                className="flex-1 h-9 rounded-xl bg-secondary text-on-secondary text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-1.5"
               >
                 {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 Approve
@@ -201,7 +201,7 @@ function SubmissionRow({
                 type="button"
                 onClick={() => setShowRejectForm(true)}
                 disabled={isPending}
-                className="flex-1 h-9 rounded-lg border border-error-outline text-on-error-container text-sm font-semibold hover:bg-error-container disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 h-9 rounded-xl border border-error-outline text-on-error-container text-sm font-semibold hover:bg-error-container disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
               >
                 <X size={14} />
                 Reject
@@ -229,21 +229,21 @@ function SubmissionRow({
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="Reason for overriding approval…"
                 rows={2}
-                className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm resize-none focus:border-error focus:outline-none focus:ring-2 focus:ring-error/30"
+                className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm resize-none focus:border-error focus:outline-none focus:ring-2 focus:ring-error/30"
               />
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={handleReject}
                   disabled={!rejectionReason.trim() || isPending}
-                  className="h-9 px-4 rounded-lg bg-error text-white text-sm font-semibold disabled:opacity-50 hover:bg-error transition-colors"
+                  className="h-9 px-4 rounded-xl bg-error text-white text-sm font-semibold disabled:opacity-50 hover:bg-error transition-colors"
                 >
                   {isPending ? <Loader2 size={14} className="animate-spin" /> : "Reject"}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setShowRejectForm(false); setRejectionReason(""); }}
-                  className="h-9 px-4 rounded-lg border border-outline-variant text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+                  className="h-9 px-4 rounded-xl border border-outline-variant text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
                 >
                   Cancel
                 </button>

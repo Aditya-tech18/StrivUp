@@ -464,7 +464,7 @@ export default function BusinessOrderVerificationPage() {
                   </span>
                   <button
                     onClick={() => { setCode(v.order_code); void handleSearch(v.order_code); }}
-                    className="h-8 px-3 rounded-lg border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant shrink-0 transition-colors"
+                    className="h-8 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant shrink-0 transition-colors"
                   >
                     Open
                   </button>

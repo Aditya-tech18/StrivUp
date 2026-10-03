@@ -78,14 +78,14 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
         value={task.title}
         onChange={(e) => onChange({ ...task, title: e.target.value })}
         placeholder="Task title (required)"
-        className="w-full h-9 px-3 rounded border border-outline-variant bg-surface text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors"
+        className="w-full h-9 px-3 rounded-xl border border-outline-variant bg-surface text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors"
       />
       <textarea
         value={task.description}
         onChange={(e) => onChange({ ...task, description: e.target.value })}
         placeholder="Description (optional)"
         rows={2}
-        className="w-full px-3 py-2 rounded border border-outline-variant bg-surface text-on-surface text-sm resize-none placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors"
+        className="w-full px-3 py-2 rounded-xl border border-outline-variant bg-surface text-on-surface text-sm resize-none placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors"
       />
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-1 min-w-32">
@@ -93,7 +93,7 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
           <select
             value={task.proofType}
             onChange={(e) => onChange({ ...task, proofType: e.target.value })}
-            className="flex-1 h-8 px-2 rounded border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+            className="flex-1 h-8 px-2 rounded-xl border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
           >
             {PROOF_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>

@@ -377,7 +377,7 @@ export default function VerifyBusinessPage() {
                   <label className="flex items-start gap-3 mt-4 cursor-pointer">
                     <input type="checkbox" checked={declared}
                       onChange={(e) => setDeclared(e.target.checked)}
-                      className="w-4 h-4 mt-0.5 rounded border-outline accent-blue-600 shrink-0" />
+                      className="w-4 h-4 mt-0.5 rounded-xl border-outline accent-blue-600 shrink-0" />
                     <span className="text-sm text-on-surface-variant leading-relaxed">
                       I confirm that the information submitted is accurate and that I
                       am authorized to represent this business.

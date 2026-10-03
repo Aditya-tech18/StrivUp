@@ -442,7 +442,13 @@ export function GoogleBusinessCard({
       className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden elev-1 surface-raised"
     >
       {/* Static map placeholder — no third-party tiles are loaded, so no key
-          is needed and nothing about the viewer leaks to a maps provider. */}
+          is needed and nothing about the viewer leaks to a maps provider.
+
+          The hex values below are illustration, not UI: they are standing in
+          for land, grid and road fills the way a map renderer would colour
+          them. They deliberately sit outside the token set, which has no
+          vocabulary for "cartography", and should not be swapped for surface
+          tokens. */}
       <div className="relative h-28 bg-[#E8EDF3] border-b border-outline-variant">
         <div
           aria-hidden="true"

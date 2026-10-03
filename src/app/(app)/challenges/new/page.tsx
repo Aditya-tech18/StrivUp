@@ -158,7 +158,7 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
           <select aria-label="Proof type"
             value={task.proofType}
             onChange={(e) => onChange({ ...task, proofType: e.target.value })}
-            className="flex-1 h-8 px-2 rounded border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+            className="flex-1 h-8 px-2 rounded-xl border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
           >
             {PROOF_TYPES.map((t) => (
               <option key={t} value={t}>{t}</option>

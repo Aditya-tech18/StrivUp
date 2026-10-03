@@ -172,7 +172,7 @@ function TrendingRow({
       </Link>
       <div className="min-w-0 flex-1 space-y-1">
         <h3 className="line-clamp-1 text-body-md font-semibold leading-tight text-on-surface">
-          <Link href={`/challenges/${challenge.id}`} className={`rounded ${FOCUS_RING}`}>
+          <Link href={`/challenges/${challenge.id}`} className={`rounded-xl ${FOCUS_RING}`}>
             {challenge.title}
           </Link>
         </h3>
@@ -431,7 +431,7 @@ export function ExploreClient({ featured, trending, quests = [] }: ExploreClient
             </h2>
             <Link
               href="/quests"
-              className={`rounded text-body-sm font-semibold text-secondary hover:underline ${FOCUS_RING}`}
+              className={`rounded-lg text-body-sm font-semibold text-secondary hover:underline ${FOCUS_RING}`}
             >
               View all
             </Link>

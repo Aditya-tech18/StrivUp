@@ -42,7 +42,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={[
-              "w-full rounded border bg-surface-container-lowest",
+              "w-full rounded-xl border bg-surface-container-lowest",
               "text-on-surface placeholder:text-on-surface-variant",
               "text-[length:var(--text-body-lg)] leading-6",
               "transition-colors duration-150",
