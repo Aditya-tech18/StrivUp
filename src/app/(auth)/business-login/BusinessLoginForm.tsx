@@ -31,7 +31,7 @@ function GoogleIcon() {
 const socialBtnCls = [
   "w-full flex items-center justify-center gap-3 h-12 px-4 rounded-xl border border-outline-variant",
   "bg-surface-container-lowest hover:bg-surface-container transition-colors duration-150",
-  "text-[length:var(--font-size-body-lg)] font-medium text-on-surface",
+  "text-[length:var(--text-body-lg)] font-medium text-on-surface",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
   "disabled:opacity-50 disabled:cursor-not-allowed",
 ].join(" ");
@@ -39,7 +39,7 @@ const socialBtnCls = [
 function pwdCls(hasErr: boolean) {
   return [
     "w-full h-12 px-4 pr-11 rounded-xl border bg-surface-container-lowest",
-    "text-on-surface placeholder:text-on-surface-variant text-[length:var(--font-size-body-lg)] leading-6",
+    "text-on-surface placeholder:text-on-surface-variant text-[length:var(--text-body-lg)] leading-6",
     "transition-colors focus:outline-none focus:ring-2",
     hasErr ? "border-error focus:ring-error/20" : "border-outline-variant focus:border-secondary focus:ring-secondary/20",
   ].join(" ");

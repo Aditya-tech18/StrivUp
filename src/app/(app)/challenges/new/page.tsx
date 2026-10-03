@@ -91,7 +91,7 @@ function ToggleSwitch({ id, checked, onChange }: {
 const selectCls = [
   "w-full h-10 px-3 rounded border border-outline-variant",
   "bg-surface-container-lowest text-on-surface",
-  "text-[length:var(--font-size-body-lg)]",
+  "text-[length:var(--text-body-lg)]",
   "transition-colors duration-150",
   "focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary",
   "disabled:opacity-40 appearance-none",
@@ -659,7 +659,7 @@ export default function CreateChallengePage() {
                   className={[
                     "w-full px-3 py-2 rounded border border-outline-variant",
                     "bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant",
-                    "text-[length:var(--font-size-body-lg)] resize-none transition-colors duration-150",
+                    "text-[length:var(--text-body-lg)] resize-none transition-colors duration-150",
                     "focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary",
                   ].join(" ")}
                   {...register("description")}

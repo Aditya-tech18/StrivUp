@@ -251,7 +251,7 @@ export function ExploreClient({ featured, trending, quests = [] }: ExploreClient
           className={[
             "w-full h-11 pl-10 pr-4 rounded-full border border-outline-variant",
             "bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant",
-            "text-[length:var(--font-size-body-lg)] transition-colors duration-150",
+            "text-[length:var(--text-body-lg)] transition-colors duration-150",
             "focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary",
           ].join(" ")}
           aria-label="Search challenges, communities or creators"

@@ -44,7 +44,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className={[
               "w-full rounded border bg-surface-container-lowest",
               "text-on-surface placeholder:text-on-surface-variant",
-              "text-[var(--font-size-body-lg)] leading-6",
+              "text-[length:var(--text-body-lg)] leading-6",
               "transition-colors duration-150",
               "h-10 px-3",
               leadingIcon ? "pl-9" : "",

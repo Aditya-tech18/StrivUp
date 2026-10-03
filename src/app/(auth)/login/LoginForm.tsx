@@ -40,7 +40,7 @@ const socialBtnCls = [
   "h-11 px-4 rounded border border-outline-variant",
   "bg-surface-container-lowest hover:bg-surface-container",
   "transition-colors duration-150",
-  "text-[length:var(--font-size-body-lg)] font-medium text-on-surface",
+  "text-[length:var(--text-body-lg)] font-medium text-on-surface",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
   "disabled:opacity-50 disabled:cursor-not-allowed",
 ].join(" ");
@@ -49,7 +49,7 @@ function passwordFieldCls(hasError: boolean) {
   return [
     "w-full h-10 px-3 pr-10 rounded border bg-surface-container-lowest",
     "text-on-surface placeholder:text-on-surface-variant",
-    "text-[length:var(--font-size-body-lg)] leading-6",
+    "text-[length:var(--text-body-lg)] leading-6",
     "transition-colors duration-150 focus:outline-none focus:ring-2",
     hasError
       ? "border-error focus:ring-error/30 focus:border-error"
