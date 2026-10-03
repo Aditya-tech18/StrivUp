@@ -48,9 +48,9 @@ interface QuestInfo {
 }
 
 const STATUS_CFG = {
-  pending:               { label: "Pending Review",   cls: "text-amber-700 bg-amber-50", icon: Clock },
-  approved:              { label: "Approved",          cls: "text-green-700 bg-green-50", icon: CheckCircle2 },
-  rejected:              { label: "Rejected",          cls: "text-red-700 bg-red-50",     icon: XCircle },
+  pending:               { label: "Pending Review",   cls: "text-on-warning-container bg-warning-container", icon: Clock },
+  approved:              { label: "Approved",          cls: "text-on-success-container bg-success-container", icon: CheckCircle2 },
+  rejected:              { label: "Rejected",          cls: "text-on-error-container bg-error-container",     icon: XCircle },
   resubmission_required: { label: "Resubmit Required", cls: "text-purple-700 bg-purple-50", icon: XCircle },
 } as const;
 
@@ -288,7 +288,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
 
       <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-4">
         {uploadError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
+          <div className="bg-error-container border border-error-outline rounded-xl px-4 py-3 text-sm text-on-error-container">
             {uploadError}
           </div>
         )}
@@ -338,18 +338,18 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
           const canAddMore = existingCount + files.length < 2;
 
           return (
-            <div key={task.id} className={`bg-surface-container-lowest rounded-2xl border overflow-hidden ${isApproved ? "border-green-200" : "border-outline-variant"}`}>
+            <div key={task.id} className={`bg-surface-container-lowest rounded-2xl border overflow-hidden ${isApproved ? "border-success-outline" : "border-outline-variant"}`}>
               {/* Task header */}
-              <div className={`px-4 py-3 flex items-start gap-3 border-b ${isApproved ? "bg-green-50 border-green-100" : "border-outline-variant"}`}>
+              <div className={`px-4 py-3 flex items-start gap-3 border-b ${isApproved ? "bg-success-container border-success-outline" : "border-outline-variant"}`}>
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-black text-sm ${
-                  isApproved ? "bg-green-600 text-white" : "bg-secondary-fixed text-secondary"
+                  isApproved ? "bg-success text-white" : "bg-secondary-fixed text-secondary"
                 }`}>
                   {isApproved ? <Check size={14} strokeWidth={3} /> : index + 1}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-bold text-on-surface">{task.title}</p>
-                    {task.is_required && <span className="text-[10px] text-red-500 font-semibold">Required</span>}
+                    {task.is_required && <span className="text-[10px] text-error font-semibold">Required</span>}
                   </div>
                   {task.description && <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">{task.description}</p>}
                   {task.instructions && <p className="text-xs text-secondary mt-1 italic">{task.instructions}</p>}
@@ -394,7 +394,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={url} alt="preview" className="w-20 h-20 rounded-xl object-cover" />
                           <button onClick={() => removeSelectedFile(task.id, i)}
-                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center">
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-error text-white flex items-center justify-center">
                             <X size={11} />
                           </button>
                         </div>
@@ -431,7 +431,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
               {isParticipant && task.proof_type === "none" && !sub && (
                 <div className="p-4">
                   <button onClick={() => handleSubmit(task)}
-                    className="w-full h-10 rounded-xl bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-2">
+                    className="w-full h-10 rounded-xl bg-success text-white font-bold text-sm flex items-center justify-center gap-2">
                     <Check size={15} /> Mark as Complete
                   </button>
                 </div>
@@ -442,12 +442,12 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
 
         {/* All done */}
         {isParticipant && tasks.length > 0 && completedCount === totalRequired && totalRequired > 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-2xl p-5 flex flex-col items-center gap-3 text-center">
-            <div className="w-14 h-14 rounded-full bg-green-600 flex items-center justify-center">
+          <div className="bg-success-container border border-success-outline rounded-2xl p-5 flex flex-col items-center gap-3 text-center">
+            <div className="w-14 h-14 rounded-full bg-success flex items-center justify-center">
               <CheckCircle2 size={28} className="text-white" />
             </div>
-            <h3 className="text-[17px] font-black text-green-900">Quest Completed! 🎉</h3>
-            <p className="text-sm text-green-700">All tasks approved. Rewards will be announced by the business.</p>
+            <h3 className="text-[17px] font-black text-on-success-container">Quest Completed! 🎉</h3>
+            <p className="text-sm text-on-success-container">All tasks approved. Rewards will be announced by the business.</p>
           </div>
         )}
       </div>

@@ -32,7 +32,7 @@ export function ActivityProgressCard({
         <div className="mb-1.5 flex items-center justify-between">
           <span className="text-xs font-medium text-on-surface-variant">{label}</span>
           {done && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-on-success-container">
               <CheckCircle2 className="h-3.5 w-3.5" /> Complete
             </span>
           )}
@@ -58,7 +58,7 @@ export function ActivityProgressCard({
       >
         <div
           className={`h-2 rounded-full transition-all duration-700 ${
-            done ? "bg-green-500" : "bg-secondary"
+            done ? "bg-success" : "bg-secondary"
           }`}
           style={{ width: `${pct}%` }}
         />

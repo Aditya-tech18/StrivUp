@@ -397,13 +397,13 @@ function TaskUploadSlot({
         </div>
         {/* Status badge */}
         {isApproved && (
-          <div className="flex items-center gap-1 text-green-600 flex-shrink-0">
+          <div className="flex items-center gap-1 text-on-success-container flex-shrink-0">
             <CheckCircle2 size={16} aria-hidden="true" />
             <span className="text-xs font-semibold">Approved</span>
           </div>
         )}
         {(isPending || isReviewing) && (
-          <div className="flex items-center gap-1 text-yellow-600 flex-shrink-0">
+          <div className="flex items-center gap-1 text-on-warning-container flex-shrink-0">
             {isReviewing ? (
               <Loader2 size={14} className="animate-spin" aria-hidden="true" />
             ) : (
@@ -413,7 +413,7 @@ function TaskUploadSlot({
           </div>
         )}
         {isRejected && (
-          <div className="flex items-center gap-1 text-red-500 flex-shrink-0">
+          <div className="flex items-center gap-1 text-error flex-shrink-0">
             <XCircle size={14} aria-hidden="true" />
             <span className="text-xs font-semibold">Rejected</span>
           </div>
@@ -422,7 +422,7 @@ function TaskUploadSlot({
 
       {/* Rejection reason */}
       {isRejected && shownRejectionReason && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+        <div className="rounded-lg bg-error-container border border-error-outline px-3 py-2 text-xs text-on-error-container">
           <strong>Reason:</strong> {shownRejectionReason}
         </div>
       )}
@@ -457,7 +457,7 @@ function TaskUploadSlot({
                 "flex items-center justify-center gap-2",
                 "text-sm font-medium transition-colors",
                 isRejected
-                  ? "border-red-300 text-red-500 hover:bg-red-50"
+                  ? "border-error-outline text-error hover:bg-error-container"
                   : "border-secondary/30 text-secondary hover:bg-secondary/5",
                 !userId ? "opacity-50 cursor-not-allowed" : "",
               ].join(" ")}
@@ -485,7 +485,7 @@ function TaskUploadSlot({
 
           {slot.state === "error" && (
             <div className="space-y-2">
-              {slot.error && <p className="text-red-500 text-xs">{slot.error}</p>}
+              {slot.error && <p className="text-error text-xs">{slot.error}</p>}
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
@@ -569,6 +569,10 @@ function LegacyUploadCard({
   const isRejected = slot.state === "rejected";
 
   return (
+    // This card paints its own dark navy gradient, so everything inside it is
+    // light-on-dark: white/NN text and the 300/400 end of each colour ramp.
+    // Do not swap those for the success/warning/error tokens, which are tuned
+    // for a light surface and go nearly invisible here.
     <div
       className="rounded-xl p-5 space-y-4"
       style={{ background: "linear-gradient(135deg, #0d1c32 0%, #1a3a6b 100%)" }}
@@ -927,7 +931,7 @@ export function ChallengeDetailClient({
 
               {/* Rejected submissions notice (task mode) */}
               {hasTasks && userSubmissions.some((s) => s.status === "rejected") && (
-                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 flex gap-2 text-sm text-red-700">
+                <div className="rounded-lg bg-error-container border border-error-outline px-4 py-3 flex gap-2 text-sm text-on-error-container">
                   <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
                     <strong>Some tasks were rejected.</strong> Review the reasons above and
@@ -1016,7 +1020,7 @@ export function ChallengeDetailClient({
                     <span
                       className={[
                         "w-6 text-center font-bold text-sm flex-shrink-0",
-                        entry.rank === 1 ? "text-yellow-500" : "text-on-surface-variant",
+                        entry.rank === 1 ? "text-warning" : "text-on-surface-variant",
                       ].join(" ")}
                     >
                       {entry.rank}
@@ -1038,7 +1042,7 @@ export function ChallengeDetailClient({
                         {entry.badge === "champion" && (
                           <Badge
                             variant="secondary"
-                            className="text-[10px] !bg-yellow-100 !text-yellow-700"
+                            className="text-[10px] !bg-warning-container !text-on-warning-container"
                           >
                             Champion
                           </Badge>
@@ -1058,7 +1062,7 @@ export function ChallengeDetailClient({
                     {entry.rank === 1 && (
                       <Trophy
                         size={18}
-                        className="text-yellow-500 flex-shrink-0"
+                        className="text-warning flex-shrink-0"
                         aria-label="Champion trophy"
                       />
                     )}

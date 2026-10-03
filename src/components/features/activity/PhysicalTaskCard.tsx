@@ -42,7 +42,7 @@ export function PhysicalTaskCard({
   return (
     <div
       className={`rounded-xl border p-4 transition-colors ${
-        done ? "border-green-200 bg-green-50/40" : "border-outline-variant bg-surface-container-lowest"
+        done ? "border-success-outline bg-success-container/40" : "border-outline-variant bg-surface-container-lowest"
       }`}
     >
       <div className="mb-3 flex items-start gap-3">
@@ -52,7 +52,7 @@ export function PhysicalTaskCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="truncate font-semibold text-on-surface">{taskTitle}</h3>
-            {done && <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" />}
+            {done && <CheckCircle2 className="h-4 w-4 shrink-0 text-on-success-container" />}
           </div>
           {taskDescription && (
             <p className="mt-0.5 line-clamp-2 text-xs text-on-surface-variant">{taskDescription}</p>
@@ -75,11 +75,11 @@ export function PhysicalTaskCard({
             unit={config.unit}
             label={config.frequency === "daily" ? "Today" : "Progress"}
           />
-          <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-green-700">
+          <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-on-success-container">
             <CheckCircle2 className="h-3.5 w-3.5" />
             Task completed
             {progress?.completed_at && (
-              <span className="font-normal text-green-600">
+              <span className="font-normal text-on-success-container">
                 ·{" "}
                 {new Date(progress.completed_at).toLocaleString("en-IN", {
                   hour: "numeric",

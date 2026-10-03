@@ -33,7 +33,7 @@ const STEPS: StepDef[] = [
 
 const ACTOR_STYLE: Record<StepDef["actor"], { chip: string; ring: string }> = {
   user:     { chip: "bg-secondary-fixed text-secondary border-secondary-fixed-dim",   ring: "bg-secondary" },
-  business: { chip: "bg-amber-50 text-amber-700 border-amber-100", ring: "bg-amber-500" },
+  business: { chip: "bg-warning-container text-on-warning-container border-warning-outline", ring: "bg-warning" },
   strivup:  { chip: "bg-surface-container text-on-surface-variant border-outline-variant",  ring: "bg-primary" },
 };
 

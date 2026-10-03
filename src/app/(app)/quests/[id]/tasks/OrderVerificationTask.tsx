@@ -94,14 +94,14 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
 
   return (
     <div className="p-4 flex flex-col gap-3">
-      {error && <p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-3 py-2">{error}</p>}
+      {error && <p role="alert" className="text-sm text-on-error-container bg-error-container border border-error-outline rounded-xl px-3 py-2">{error}</p>}
 
       {state === "completed" && (
-        <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
-          <CheckCircle2 size={22} className="text-green-600 shrink-0" />
+        <div className="flex items-center gap-3 rounded-xl bg-success-container border border-success-outline px-4 py-3">
+          <CheckCircle2 size={22} className="text-on-success-container shrink-0" />
           <div>
-            <p className="text-sm font-bold text-green-900">Task Completed ✓</p>
-            <p className="text-xs text-green-800">{justCompleted ? "+1 Quest progress. Nice work!" : "Verified by the business and your bill code."}</p>
+            <p className="text-sm font-bold text-on-success-container">Task Completed ✓</p>
+            <p className="text-xs text-on-success-container">{justCompleted ? "+1 Quest progress. Nice work!" : "Verified by the business and your bill code."}</p>
           </div>
         </div>
       )}
@@ -109,16 +109,16 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
       {(state === "ready" || state === "rejected" || state === "expired") && (
         <>
           {state === "rejected" && (
-            <div className="flex items-start gap-2 rounded-xl bg-red-50 border border-red-100 px-3 py-2.5">
-              <XCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
-              <div className="text-sm text-red-800">
+            <div className="flex items-start gap-2 rounded-xl bg-error-container border border-error-outline px-3 py-2.5">
+              <XCircle size={16} className="text-on-error-container shrink-0 mt-0.5" />
+              <div className="text-sm text-on-error-container">
                 <p className="font-bold">Verification rejected</p>
                 <p>Your order could not be verified for this Quest.{request?.rejection_reason ? ` Reason: ${request.rejection_reason}` : ""}</p>
               </div>
             </div>
           )}
           {state === "expired" && (
-            <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2.5 text-sm text-amber-900">
+            <div className="flex items-start gap-2 rounded-xl bg-warning-container border border-warning-outline px-3 py-2.5 text-sm text-on-warning-container">
               <Clock size={16} className="shrink-0 mt-0.5" />
               <p><span className="font-bold">Code expired.</span> Generate a new code for your next order.</p>
             </div>
@@ -133,13 +133,13 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
             <div className="flex gap-2">
               {task.order_link_zomato && (
                 <a href={task.order_link_zomato} target="_blank" rel="noopener noreferrer"
-                  className="flex-1 h-11 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm font-bold flex items-center justify-center gap-1.5">
+                  className="flex-1 h-11 rounded-xl border border-error-outline bg-error-container text-on-error-container text-sm font-bold flex items-center justify-center gap-1.5">
                   Order on Zomato <ExternalLink size={14} />
                 </a>
               )}
               {task.order_link_swiggy && (
                 <a href={task.order_link_swiggy} target="_blank" rel="noopener noreferrer"
-                  className="flex-1 h-11 rounded-xl border border-orange-200 bg-orange-50 text-orange-700 text-sm font-bold flex items-center justify-center gap-1.5">
+                  className="flex-1 h-11 rounded-xl border border-warning-outline bg-warning-container text-on-warning-container text-sm font-bold flex items-center justify-center gap-1.5">
                   Order on Swiggy <ExternalLink size={14} />
                 </a>
               )}
@@ -169,7 +169,7 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
             The business will verify it when your order arrives.
           </p>
           <div className="flex items-center justify-between rounded-xl bg-surface-container-low px-3 py-2.5">
-            <span className="flex items-center gap-1.5 text-sm font-semibold text-amber-700"><Clock size={15} /> Waiting for business</span>
+            <span className="flex items-center gap-1.5 text-sm font-semibold text-on-warning-container"><Clock size={15} /> Waiting for business</span>
             <span className="text-xs text-on-surface-variant">Valid {expiresIn(request.expires_at, now)}</span>
           </div>
           <button type="button" onClick={refresh} disabled={refreshing}
@@ -181,9 +181,9 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
 
       {state === "verified" && (
         <>
-          <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-3 py-2.5">
-            <CheckCircle2 size={18} className="text-green-600 shrink-0" />
-            <p className="text-sm font-bold text-green-900">Order Verified ✓</p>
+          <div className="flex items-center gap-2 rounded-xl bg-success-container border border-success-outline px-3 py-2.5">
+            <CheckCircle2 size={18} className="text-on-success-container shrink-0" />
+            <p className="text-sm font-bold text-on-success-container">Order Verified ✓</p>
           </div>
           <label htmlFor={`bill-${task.id}`} className="text-sm font-semibold text-on-surface">
             Enter the verification code written on your bill
@@ -194,7 +194,7 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
             className="h-14 rounded-xl border border-outline bg-surface-container-lowest px-4 text-center font-mono text-2xl font-black tracking-widest text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-secondary focus:ring-2 focus:ring-blue-100" />
           <p className="text-xs text-on-surface-variant">Bill code valid for {expiresIn(request?.bill_code_expires_at, now)}.</p>
           <button type="button" onClick={submitBillCode} disabled={busy || billCode.length < 9}
-            className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+            className="w-full h-12 rounded-xl bg-success hover:bg-success text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
             {busy ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />} Verify &amp; Complete Task
           </button>
         </>

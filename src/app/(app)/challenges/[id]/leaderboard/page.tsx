@@ -64,7 +64,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
                 <span
                   className={[
                     "w-7 text-center font-bold flex-shrink-0",
-                    entry.rank === 1 ? "text-yellow-500 text-base" : "text-on-surface-variant text-sm",
+                    entry.rank === 1 ? "text-warning text-base" : "text-on-surface-variant text-sm",
                   ].join(" ")}
                 >
                   {entry.rank}
@@ -94,7 +94,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
                 {/* Badge + trophy */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {entry.badge === "champion" && (
-                    <span className="text-[10px] font-semibold text-yellow-700 bg-yellow-100 rounded-full px-2 py-0.5">
+                    <span className="text-[10px] font-semibold text-on-warning-container bg-warning-container rounded-full px-2 py-0.5">
                       Champion
                     </span>
                   )}
@@ -104,7 +104,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
                     </span>
                   )}
                   {entry.rank === 1 && (
-                    <Trophy size={16} className="text-yellow-500" aria-label="Champion" />
+                    <Trophy size={16} className="text-warning" aria-label="Champion" />
                   )}
                 </div>
               </div>
@@ -112,8 +112,8 @@ export default async function LeaderboardPage({ params }: PageProps) {
           </Card>
         ) : (
           <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-            <div className="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center">
-              <Trophy size={32} className="text-yellow-500" aria-hidden="true" />
+            <div className="w-16 h-16 rounded-full bg-warning-container flex items-center justify-center">
+              <Trophy size={32} className="text-warning" aria-hidden="true" />
             </div>
             <div className="space-y-1">
               <p className="type-headline-sm text-on-surface font-semibold">

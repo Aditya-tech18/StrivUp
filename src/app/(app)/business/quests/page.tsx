@@ -18,13 +18,13 @@ const TABS: { label: string; value: QuestStatus | "all" }[] = [
 
 const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
   draft:          { label: "Draft",          cls: "bg-surface-container text-on-surface-variant" },
-  pending_review: { label: "Under Review",   cls: "bg-yellow-100 text-yellow-700" },
+  pending_review: { label: "Under Review",   cls: "bg-warning-container text-on-warning-container" },
   published:      { label: "Published",      cls: "bg-secondary-fixed text-secondary" },
-  active:         { label: "Active",         cls: "bg-green-100 text-green-700" },
-  paused:         { label: "Paused",         cls: "bg-orange-100 text-orange-700" },
+  active:         { label: "Active",         cls: "bg-success-container text-on-success-container" },
+  paused:         { label: "Paused",         cls: "bg-warning-container text-on-warning-container" },
   completed:      { label: "Completed",      cls: "bg-purple-100 text-purple-700" },
   expired:        { label: "Expired",        cls: "bg-surface-container text-on-surface-variant" },
-  rejected:       { label: "Rejected",       cls: "bg-red-100 text-red-600" },
+  rejected:       { label: "Rejected",       cls: "bg-error-container text-on-error-container" },
   archived:       { label: "Archived",       cls: "bg-surface-container text-on-surface-variant" },
 };
 
@@ -154,13 +154,13 @@ export default function BusinessQuestsPage() {
                   </Link>
                   {quest.quest_status === "active" && (
                     <button onClick={() => handleStatusChange(quest.id, "paused")}
-                      className="flex-1 h-8 flex items-center justify-center rounded-lg bg-orange-50 border border-orange-200 text-xs font-semibold text-orange-600">
+                      className="flex-1 h-8 flex items-center justify-center rounded-lg bg-warning-container border border-warning-outline text-xs font-semibold text-on-warning-container">
                       Pause
                     </button>
                   )}
                   {quest.quest_status === "paused" && (
                     <button onClick={() => handleStatusChange(quest.id, "active")}
-                      className="flex-1 h-8 flex items-center justify-center rounded-lg bg-green-50 border border-green-200 text-xs font-semibold text-green-600">
+                      className="flex-1 h-8 flex items-center justify-center rounded-lg bg-success-container border border-success-outline text-xs font-semibold text-on-success-container">
                       Resume
                     </button>
                   )}

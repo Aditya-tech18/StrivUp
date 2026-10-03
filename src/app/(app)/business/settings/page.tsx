@@ -94,8 +94,8 @@ export default function BusinessSettingsPage() {
       </div>
 
       <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
-        {error && <div role="alert" className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-sm text-red-600">{error}</div>}
-        {success && <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 text-sm text-green-700">✓ Changes saved successfully.</div>}
+        {error && <div role="alert" className="bg-error-container border border-error-outline rounded-2xl px-4 py-3 text-sm text-on-error-container">{error}</div>}
+        {success && <div className="bg-success-container border border-success-outline rounded-2xl px-4 py-3 text-sm text-on-success-container">✓ Changes saved successfully.</div>}
 
         {/* Logo */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col items-center gap-3">
@@ -121,7 +121,7 @@ export default function BusinessSettingsPage() {
                 finally { setLogoUploading(false); }
               }} />
           </label>
-          {logoUrl && <button type="button" onClick={() => setLogoUrl(null)} className="text-sm text-red-500">Remove logo</button>}
+          {logoUrl && <button type="button" onClick={() => setLogoUrl(null)} className="text-sm text-error">Remove logo</button>}
         </div>
 
         {/* Basic Info */}
@@ -168,7 +168,7 @@ export default function BusinessSettingsPage() {
 
         {/* Sign out */}
         <button onClick={handleSignOut}
-          className="w-full h-12 rounded-2xl border border-red-200 text-red-600 font-semibold text-sm flex items-center justify-center gap-2 bg-surface-container-lowest hover:bg-red-50 transition-colors">
+          className="w-full h-12 rounded-2xl border border-error-outline text-on-error-container font-semibold text-sm flex items-center justify-center gap-2 bg-surface-container-lowest hover:bg-error-container transition-colors">
           <LogOut size={16} /> Sign Out
         </button>
       </div>

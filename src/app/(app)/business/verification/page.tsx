@@ -152,9 +152,9 @@ function VerifyContent() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-surface"><div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" /></div>;
 
   const statusCfg = {
-    approved: { label: "Verified",  cls: "text-green-700 bg-green-50 border-green-200" },
-    pending:  { label: "Pending",   cls: "text-amber-700 bg-amber-50 border-amber-200" },
-    rejected: { label: "Rejected",  cls: "text-red-700 bg-red-50 border-red-200" },
+    approved: { label: "Verified",  cls: "text-on-success-container bg-success-container border-success-outline" },
+    pending:  { label: "Pending",   cls: "text-on-warning-container bg-warning-container border-warning-outline" },
+    rejected: { label: "Rejected",  cls: "text-on-error-container bg-error-container border-error-outline" },
     expired:  { label: "Expired",   cls: "text-on-surface-variant bg-surface-container border-outline-variant" },
     completed:{ label: "Completed", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
   } as const;
@@ -196,7 +196,7 @@ function VerifyContent() {
               </button>
             )}
           </div>
-          {searchErr && <p role="alert" className="text-sm text-red-600">{searchErr}</p>}
+          {searchErr && <p role="alert" className="text-sm text-on-error-container">{searchErr}</p>}
           <button onClick={handleSearch} disabled={!svCode.trim() || searching}
             className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold flex items-center justify-center gap-2 transition-all">
             {searching ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Search size={18} /> Search Order →</>}
@@ -227,9 +227,9 @@ function VerifyContent() {
           <div className="grid grid-cols-4 gap-2">
             {[
               { label: "Total",    value: insights.total,    cls: "text-on-surface" },
-              { label: "Approved", value: insights.approved, cls: "text-green-600" },
-              { label: "Pending",  value: insights.pending,  cls: "text-amber-600" },
-              { label: "Rejected", value: insights.rejected, cls: "text-red-600" },
+              { label: "Approved", value: insights.approved, cls: "text-on-success-container" },
+              { label: "Pending",  value: insights.pending,  cls: "text-on-warning-container" },
+              { label: "Rejected", value: insights.rejected, cls: "text-on-error-container" },
             ].map(t => (
               <div key={t.label} className="rounded-xl bg-surface-container-low/50 border border-outline-variant py-3 flex flex-col items-center">
                 <span className={`text-lg font-black ${t.cls}`}>{t.value}</span>
@@ -276,7 +276,7 @@ function VerifyContent() {
             </div>
             <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-50">
               {recentSearches.map((s, i) => {
-                const sCfg = { found: { label: "Found", cls: "text-green-700 bg-green-50" }, invalid: { label: "Invalid", cls: "text-red-600 bg-red-50" }, expired: { label: "Expired", cls: "text-amber-700 bg-amber-50" } } as const;
+                const sCfg = { found: { label: "Found", cls: "text-on-success-container bg-success-container" }, invalid: { label: "Invalid", cls: "text-on-error-container bg-error-container" }, expired: { label: "Expired", cls: "text-on-warning-container bg-warning-container" } } as const;
                 const c = sCfg[s.status];
                 return (
                   <div key={i} className="flex items-center gap-3 px-4 py-3">
@@ -348,7 +348,7 @@ function VerifyContent() {
           <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 text-center">
             <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Order code</p>
             <p className="mt-1 font-mono text-[32px] font-black tracking-widest text-on-surface">{foundReq.sv_code}</p>
-            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">
+            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-warning-container px-3 py-1 text-xs font-bold text-on-warning-container">
               <Clock size={13} /> Awaiting verification
             </span>
           </div>
@@ -367,21 +367,21 @@ function VerifyContent() {
             ))}
           </div>
 
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 flex items-start gap-2">
-            <span className="text-amber-700 shrink-0 mt-0.5" aria-hidden="true">⚠</span>
-            <p className="text-sm text-amber-800">Verify only if this code is on a real order for an eligible item. You&apos;ll get a bill code to write on the customer&apos;s bill.</p>
+          <div className="bg-warning-container border border-warning-outline rounded-2xl px-4 py-3 flex items-start gap-2">
+            <span className="text-on-warning-container shrink-0 mt-0.5" aria-hidden="true">⚠</span>
+            <p className="text-sm text-on-warning-container">Verify only if this code is on a real order for an eligible item. You&apos;ll get a bill code to write on the customer&apos;s bill.</p>
           </div>
 
           {rejectMode && (
-            <div className="bg-surface-container-lowest rounded-2xl border border-red-100 p-4 flex flex-col gap-2">
+            <div className="bg-surface-container-lowest rounded-2xl border border-error-outline p-4 flex flex-col gap-2">
               <label htmlFor="reject-reason" className="text-sm font-bold text-on-surface">Reason for rejecting (shown to the customer)</label>
               <textarea id="reject-reason" value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={2}
                 placeholder="e.g. Item isn't part of this Quest"
-                className="w-full rounded-xl border border-outline-variant px-3 py-2 text-base focus:outline-none focus:border-red-400 resize-none" />
+                className="w-full resize-none rounded-xl border border-outline-variant px-3 py-2 text-base focus:border-error focus:outline-none focus:ring-2 focus:ring-error/30" />
             </div>
           )}
 
-          {searchErr && <p role="alert" className="text-sm text-red-700">{searchErr}</p>}
+          {searchErr && <p role="alert" className="text-sm text-on-error-container">{searchErr}</p>}
         </div>
 
         {/* Reject on the left, Verify on the right — different colour and position. */}
@@ -393,18 +393,18 @@ function VerifyContent() {
                 Cancel
               </button>
               <button onClick={handleReject} disabled={rejecting}
-                className="flex-1 h-12 rounded-xl bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                className="flex-1 h-12 rounded-xl bg-error text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
                 {rejecting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><XCircle size={18} /> Confirm Reject</>}
               </button>
             </>
           ) : (
             <>
               <button onClick={() => setRejectMode(true)} disabled={approving}
-                className="flex-1 h-12 rounded-xl border-2 border-red-500 text-red-700 font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                className="flex-1 h-12 rounded-xl border-2 border-error text-on-error-container font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
                 <XCircle size={18} /> Reject
               </button>
               <button onClick={handleApprove} disabled={approving}
-                className="flex-[1.4] h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                className="flex-[1.4] h-12 rounded-xl bg-success hover:bg-success text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
                 {approving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><CheckCircle2 size={18} /> Verify Order</>}
               </button>
             </>
@@ -423,7 +423,7 @@ function VerifyContent() {
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-8 gap-6 max-w-sm mx-auto w-full">
         {/* Big green check */}
-        <div className="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center shadow-lg shadow-green-200">
+        <div className="w-24 h-24 rounded-full bg-success flex items-center justify-center shadow-lg shadow-green-200">
           <CheckCircle2 size={48} className="text-white" />
         </div>
 
@@ -479,8 +479,8 @@ function VerifyContent() {
   /* ── REJECTED ─────────────────────────────────────────────────────────── */
   return (
     <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-5 gap-6 max-w-sm mx-auto">
-      <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
-        <XCircle size={40} className="text-red-500" />
+      <div className="w-20 h-20 rounded-full bg-error-container flex items-center justify-center">
+        <XCircle size={40} className="text-error" />
       </div>
       <div className="text-center">
         <h2 className="text-[22px] font-black text-on-surface">Order Rejected</h2>

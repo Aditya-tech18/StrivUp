@@ -33,14 +33,14 @@ function compactNum(n: number) {
 
 function StatusBadge({ status }: { status: BusinessProfile["verification_status"] }) {
   const map = {
-    verified:     { icon: "✓", label: "Verified",     cls: "text-green-700 bg-green-50 border-green-200" },
+    verified:     { icon: "✓", label: "Verified",     cls: "text-on-success-container bg-success-container border-success-outline" },
     submitted:    { icon: "⏳", label: "Under Review", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
     under_review: { icon: "⏳", label: "Under Review", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
     needs_more_info: { icon: "?", label: "Needs Info", cls: "text-on-secondary-fixed bg-secondary-fixed border-secondary-fixed-dim" },
     incomplete:   { icon: "○",  label: "Not Verified", cls: "text-on-surface-variant bg-surface-container-low border-outline-variant" },
     draft:        { icon: "○",  label: "Not Verified", cls: "text-on-surface-variant bg-surface-container-low border-outline-variant" },
-    rejected:     { icon: "✕",  label: "Rejected",     cls: "text-red-700 bg-red-50 border-red-200" },
-    suspended:    { icon: "✕",  label: "Suspended",    cls: "text-red-700 bg-red-50 border-red-200" },
+    rejected:     { icon: "✕",  label: "Rejected",     cls: "text-on-error-container bg-error-container border-error-outline" },
+    suspended:    { icon: "✕",  label: "Suspended",    cls: "text-on-error-container bg-error-container border-error-outline" },
   };
   const c = map[status] ?? map.draft;
   return (
@@ -132,8 +132,8 @@ export default function BusinessDashboardPage() {
       badge: 0,
     },
     {
-      icon: <Clock size={22} className="text-amber-500" />,
-      bg: "bg-amber-50",
+      icon: <Clock size={22} className="text-warning" />,
+      bg: "bg-warning-container",
       title: "Pending Requests",
       desc: "Verification requests waiting for your approval.",
       cta: { label: "Review now", href: "/business/verification?filter=pending", primary: false },
@@ -150,10 +150,10 @@ export default function BusinessDashboardPage() {
   ];
 
   const QUICK_LINKS = [
-    { icon: <CheckSquare size={18} className="text-amber-500" />,  bg: "bg-amber-50",  label: "Proofs",       href: "/business/proof-verification" },
-    { icon: <TrendingUp size={18} className="text-green-500" />,   bg: "bg-green-50",  label: "Analytics",    href: "/business/analytics" },
+    { icon: <CheckSquare size={18} className="text-warning" />,  bg: "bg-warning-container",  label: "Proofs",       href: "/business/proof-verification" },
+    { icon: <TrendingUp size={18} className="text-success" />,   bg: "bg-success-container",  label: "Analytics",    href: "/business/analytics" },
     { icon: <Users size={18} className="text-purple-500" />,       bg: "bg-purple-50", label: "Participants", href: "/business/participants" },
-    { icon: <Gift size={18} className="text-orange-500" />,        bg: "bg-orange-50", label: "Rewards",      href: "/business/rewards" },
+    { icon: <Gift size={18} className="text-warning" />,        bg: "bg-warning-container", label: "Rewards",      href: "/business/rewards" },
     { icon: <Zap size={18} className="text-secondary" />,           bg: "bg-secondary-fixed",   label: "Promote",      href: "/business/promote" },
   ];
 
@@ -180,7 +180,7 @@ export default function BusinessDashboardPage() {
             className="relative w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center">
             <Bell size={16} className="text-on-surface-variant" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-white" />
             )}
           </Link>
         </div>
@@ -190,11 +190,11 @@ export default function BusinessDashboardPage() {
 
         {/* ── Rejection Banner ────────────────────────────────────────── */}
         {bp.verification_status === "rejected" && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-4">
-            <p className="text-sm font-bold text-red-700 mb-1">⚠ Verification Rejected</p>
-            <p className="text-sm text-red-600">{bp.rejection_reason || "Your verification was rejected."}</p>
+          <div className="bg-error-container border border-error-outline rounded-2xl px-4 py-4">
+            <p className="text-sm font-bold text-on-error-container mb-1">⚠ Verification Rejected</p>
+            <p className="text-sm text-on-error-container">{bp.rejection_reason || "Your verification was rejected."}</p>
             <button onClick={() => router.push("/business/onboarding")}
-              className="mt-2 px-4 py-1.5 rounded-lg border border-red-300 text-red-700 text-sm font-semibold">
+              className="mt-2 px-4 py-1.5 rounded-lg border border-error-outline text-on-error-container text-sm font-semibold">
               Resubmit
             </button>
           </div>
@@ -280,7 +280,7 @@ export default function BusinessDashboardPage() {
                 <div className="flex items-start justify-between">
                   <div className={`w-10 h-10 rounded-xl ${tool.bg} flex items-center justify-center`}>{tool.icon}</div>
                   {tool.badge > 0 && (
-                    <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-amber-500 text-white text-[11px] font-bold flex items-center justify-center">
+                    <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-warning text-white text-[11px] font-bold flex items-center justify-center">
                       {tool.badge > 99 ? "99+" : tool.badge}
                     </span>
                   )}
@@ -319,9 +319,9 @@ export default function BusinessDashboardPage() {
         <div className="grid grid-cols-4 gap-2">
           {[
             { label: "Total Quests", value: questStats.total,         color: "text-secondary" },
-            { label: "Active",       value: questStats.active,        color: "text-green-600" },
+            { label: "Active",       value: questStats.active,        color: "text-on-success-container" },
             { label: "Participants", value: questStats.participants,   color: "text-purple-600" },
-            { label: "Pending Proof",value: questStats.pending_proofs, color: questStats.pending_proofs > 0 ? "text-amber-600" : "text-on-surface-variant" },
+            { label: "Pending Proof",value: questStats.pending_proofs, color: questStats.pending_proofs > 0 ? "text-on-warning-container" : "text-on-surface-variant" },
           ].map(s => (
             <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-3 flex flex-col items-center">
               <span className={`text-xl font-black ${s.color}`}>{s.value}</span>
@@ -361,8 +361,8 @@ export default function BusinessDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-on-surface truncate">{quest.title}</p>
                       {quest.description && <p className="text-xs text-on-surface-variant truncate mt-0.5">{quest.description}</p>}
-                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Active
+                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-on-success-container bg-success-container px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success" /> Active
                       </span>
                     </div>
                     <div className="text-right shrink-0">
@@ -390,9 +390,9 @@ export default function BusinessDashboardPage() {
                 const pName = participant?.full_name ?? "Unknown";
                 const actionLabel = req.status === "approved" ? "completed a verification" : "requested verification";
                 const statusCfg = {
-                  approved: { label: "Verified",  cls: "text-green-700 bg-green-50" },
-                  pending:  { label: "Pending",   cls: "text-amber-700 bg-amber-50" },
-                  rejected: { label: "Rejected",  cls: "text-red-700 bg-red-50" },
+                  approved: { label: "Verified",  cls: "text-on-success-container bg-success-container" },
+                  pending:  { label: "Pending",   cls: "text-on-warning-container bg-warning-container" },
+                  rejected: { label: "Rejected",  cls: "text-on-error-container bg-error-container" },
                   expired:  { label: "Expired",   cls: "text-on-surface-variant bg-surface-container-low" },
                 } as const;
                 const sc = statusCfg[req.status as keyof typeof statusCfg] ?? statusCfg.expired;

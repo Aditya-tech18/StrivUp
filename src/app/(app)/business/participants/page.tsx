@@ -71,8 +71,8 @@ export default function ParticipantsPage() {
 
   const statusCfg = {
     pending:  { label: "Active",    cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
-    approved: { label: "Completed", cls: "text-green-700 bg-green-50 border-green-200" },
-    rejected: { label: "Dropped",   cls: "text-red-700 bg-red-50 border-red-200" },
+    approved: { label: "Completed", cls: "text-on-success-container bg-success-container border-success-outline" },
+    rejected: { label: "Dropped",   cls: "text-on-error-container bg-error-container border-error-outline" },
   } as const;
 
   if (loading) return (

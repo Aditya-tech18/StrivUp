@@ -136,8 +136,8 @@ export default function BusinessProfilePage() {
               bp.verification_status === "submitted" || bp.verification_status === "under_review"
                 ? "bg-secondary-fixed border border-secondary-fixed-dim"
                 : bp.verification_status === "rejected"
-                ? "bg-red-50 border border-red-100"
-                : "bg-amber-50 border border-amber-100"
+                ? "bg-error-container border border-error-outline"
+                : "bg-warning-container border border-warning-outline"
             }`}>
               <span className="text-lg">
                 {bp.verification_status === "submitted" || bp.verification_status === "under_review" ? "⏳"
@@ -147,8 +147,8 @@ export default function BusinessProfilePage() {
               <div className="flex-1">
                 <p className={`text-sm font-bold ${
                   bp.verification_status === "submitted" || bp.verification_status === "under_review" ? "text-secondary"
-                  : bp.verification_status === "rejected" ? "text-red-700"
-                  : "text-amber-700"
+                  : bp.verification_status === "rejected" ? "text-on-error-container"
+                  : "text-on-warning-container"
                 }`}>
                   {bp.verification_status === "submitted" || bp.verification_status === "under_review"
                     ? "Verification Under Review"
@@ -215,7 +215,7 @@ export default function BusinessProfilePage() {
                         <Users size={11} />{quest.participant_count} participants
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        quest.quest_status === "active" ? "bg-green-50 text-green-700"
+                        quest.quest_status === "active" ? "bg-success-container text-on-success-container"
                         : quest.quest_status === "completed" ? "bg-purple-50 text-purple-700"
                         : "bg-surface-container text-on-surface-variant"
                       }`}>

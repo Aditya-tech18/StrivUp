@@ -34,11 +34,11 @@ type StatusFilter = typeof STATUS_TABS[number]["value"];
 
 const STATUS_CFG = {
   pending:    { label: "Pending",    cls: "text-on-surface-variant bg-surface-container border-outline-variant" },
-  eligible:   { label: "Eligible",   cls: "text-green-700 bg-green-50 border-green-200" },
+  eligible:   { label: "Eligible",   cls: "text-on-success-container bg-success-container border-success-outline" },
   processing: { label: "Processing", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
   fulfilled:  { label: "Fulfilled",  cls: "text-purple-700 bg-purple-50 border-purple-200" },
-  failed:     { label: "Failed",     cls: "text-red-700 bg-red-50 border-red-200" },
-  disputed:   { label: "Disputed",   cls: "text-orange-700 bg-orange-50 border-orange-200" },
+  failed:     { label: "Failed",     cls: "text-on-error-container bg-error-container border-error-outline" },
+  disputed:   { label: "Disputed",   cls: "text-on-warning-container bg-warning-container border-warning-outline" },
 } as const;
 
 function timeAgo(d: string) {
@@ -111,8 +111,8 @@ export default function RewardsPage() {
       <div className="px-5 py-4 max-w-2xl mx-auto">
         <div className="grid grid-cols-3 gap-3 mb-4">
           {[
-            { label: "Eligible", value: claims.filter(c => c.status === "eligible").length, color: "text-green-600" },
-            { label: "Pending",  value: claims.filter(c => c.status === "pending").length,  color: "text-amber-600" },
+            { label: "Eligible", value: claims.filter(c => c.status === "eligible").length, color: "text-on-success-container" },
+            { label: "Pending",  value: claims.filter(c => c.status === "pending").length,  color: "text-on-warning-container" },
             { label: "Fulfilled",value: claims.filter(c => c.status === "fulfilled").length, color: "text-purple-600" },
           ].map(s => (
             <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex flex-col items-center">
@@ -156,8 +156,8 @@ export default function RewardsPage() {
                       <p className="text-xs text-on-surface-variant truncate">{claim.quest?.title ?? "—"}</p>
                       {claim.rank && (
                         <div className="flex items-center gap-1 mt-0.5">
-                          <Trophy size={11} className="text-amber-500" />
-                          <span className="text-xs text-amber-600 font-semibold">Rank #{claim.rank}</span>
+                          <Trophy size={11} className="text-warning" />
+                          <span className="text-xs text-on-warning-container font-semibold">Rank #{claim.rank}</span>
                         </div>
                       )}
                     </div>
@@ -169,19 +169,19 @@ export default function RewardsPage() {
                       <span className="text-xl">🎁</span>
                       <div>
                         <p className="text-sm font-semibold text-on-surface">{reward.title}</p>
-                        {reward.value && <p className="text-xs text-green-600 font-bold">{reward.value}</p>}
+                        {reward.value && <p className="text-xs text-on-success-container font-bold">{reward.value}</p>}
                       </div>
                     </div>
                   )}
 
                   <div className="flex items-center justify-between text-xs text-on-surface-variant mb-3">
                     <span>Claimed {timeAgo(claim.created_at)}</span>
-                    {claim.fulfilled_at && <span className="text-green-600">Fulfilled {timeAgo(claim.fulfilled_at)}</span>}
+                    {claim.fulfilled_at && <span className="text-on-success-container">Fulfilled {timeAgo(claim.fulfilled_at)}</span>}
                   </div>
 
                   {(claim.status === "eligible" || claim.status === "processing") && (
                     <button onClick={() => handleFulfill(claim.id)} disabled={fulfilling === claim.id}
-                      className="w-full h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-bold disabled:opacity-40 transition-all">
+                      className="w-full h-10 rounded-xl bg-success hover:bg-success text-white text-sm font-bold disabled:opacity-40 transition-all">
                       {fulfilling === claim.id ? "Marking…" : "✓ Mark as Fulfilled"}
                     </button>
                   )}

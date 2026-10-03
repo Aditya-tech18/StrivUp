@@ -27,7 +27,7 @@ const PLATFORM_COLORS: Record<string, string> = {
   linkedin:  "bg-secondary-fixed text-secondary",
   github:    "bg-surface-container-low text-on-surface-variant",
   twitter:   "bg-sky-50 text-sky-600",
-  youtube:   "bg-red-50 text-red-600",
+  youtube:   "bg-error-container text-on-error-container",
   portfolio: "bg-violet-50 text-violet-600",
   other:     "bg-surface-container text-on-surface-variant",
 };

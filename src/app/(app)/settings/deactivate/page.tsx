@@ -32,8 +32,8 @@ export default function DeactivatePage() {
       </div>
 
       <div className="max-w-lg mx-auto px-5 py-10 flex flex-col items-center gap-6">
-        <div className="w-20 h-20 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
-          <Clock size={36} className="text-amber-500" strokeWidth={1.5} />
+        <div className="w-20 h-20 rounded-2xl bg-warning-container border border-warning-outline flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
+          <Clock size={36} className="text-warning" strokeWidth={1.5} />
         </div>
 
         <div className="text-center max-w-xs">
@@ -49,14 +49,14 @@ export default function DeactivatePage() {
           </div>
         )}
 
-        <div className="w-full bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-2.5">
+        <div className="w-full bg-warning-container border border-warning-outline rounded-2xl p-4 space-y-2.5">
           {[
             "Your data and progress are preserved",
             "Your profile won't be visible to others",
             "You can reactivate anytime by logging back in",
           ].map(item => (
             <div key={item} className="flex items-center gap-2.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+              <div className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
               <p className="text-[13px] text-on-surface">{item}</p>
             </div>
           ))}

@@ -57,7 +57,7 @@ export function ModeSwitcher() {
       {ctx.is_admin && (
         <Link
           href="/admin"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-on-warning-container bg-warning-container hover:bg-warning-container border border-warning-outline transition-colors"
         >
           <ShieldCheck size={18} strokeWidth={2} aria-hidden="true" className="shrink-0" />
           <span className="truncate">Admin Console</span>

@@ -49,7 +49,7 @@ function ChallengeCard({ c }: { c: CreatedChallenge }) {
                 {c.visibility === "private" ? "PRIVATE" : "PUBLIC"}
               </span>
               {c.featured && (
-                <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-amber-700">FEATURED</span>
+                <span className="rounded bg-warning-container px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-on-warning-container">FEATURED</span>
               )}
             </div>
           </div>
@@ -72,7 +72,7 @@ function ChallengeCard({ c }: { c: CreatedChallenge }) {
           <p className="text-[10px] text-on-surface-variant">Active</p>
         </div>
         <div>
-          <p className="flex items-center justify-center gap-1 text-sm font-black text-green-600"><CheckCircle2 size={13} />{pct(c.completed, c.members)}%</p>
+          <p className="flex items-center justify-center gap-1 text-sm font-black text-on-success-container"><CheckCircle2 size={13} />{pct(c.completed, c.members)}%</p>
           <p className="text-[10px] text-on-surface-variant">Completed</p>
         </div>
       </div>
@@ -86,7 +86,7 @@ function ChallengeCard({ c }: { c: CreatedChallenge }) {
           className="relative flex h-9 items-center justify-center gap-1.5 rounded-xl border border-outline-variant px-3 text-xs font-semibold text-on-surface-variant">
           <ClipboardList size={14} /> Proofs
           {c.pendingProofs > 0 && (
-            <span className="ml-0.5 min-w-[18px] rounded-full bg-amber-500 px-1 text-[10px] font-bold leading-[18px] text-white">
+            <span className="ml-0.5 min-w-[18px] rounded-full bg-warning px-1 text-[10px] font-bold leading-[18px] text-white">
               {c.pendingProofs > 99 ? "99+" : c.pendingProofs}
             </span>
           )}
@@ -170,7 +170,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
                 { label: "Challenges",     value: compact(challenges.length), cls: "text-on-surface" },
                 { label: "Total members",  value: compact(totals.members),    cls: "text-on-surface" },
                 { label: "Active now",     value: `${pct(totals.active, totals.members)}%`,    cls: "text-secondary" },
-                { label: "Completion",     value: `${pct(totals.completed, totals.members)}%`, cls: "text-green-600" },
+                { label: "Completion",     value: `${pct(totals.completed, totals.members)}%`, cls: "text-on-success-container" },
               ].map(s => (
                 <div key={s.label} className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
                   <p className={`text-2xl font-black ${s.cls}`}>{s.value}</p>
@@ -180,9 +180,9 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
             </div>
 
             {totals.pending > 0 && (
-              <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                <ClipboardList size={20} className="shrink-0 text-amber-600" />
-                <p className="flex-1 text-sm text-amber-800">
+              <div className="flex items-center gap-3 rounded-2xl border border-warning-outline bg-warning-container p-4">
+                <ClipboardList size={20} className="shrink-0 text-on-warning-container" />
+                <p className="flex-1 text-sm text-on-warning-container">
                   <span className="font-bold">{totals.pending}</span> proof{totals.pending !== 1 ? "s" : ""} waiting for your review
                 </p>
               </div>

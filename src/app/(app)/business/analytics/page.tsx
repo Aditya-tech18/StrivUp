@@ -131,10 +131,10 @@ export default function AnalyticsPage() {
                 {/* Key metrics grid */}
                 <div className="grid grid-cols-2 gap-3">
                   <MetricCard label="Total Views"       value={analytics.views.toLocaleString()}       color="text-secondary" />
-                  <MetricCard label="Participants"       value={analytics.joins.toLocaleString()}       color="text-green-600" />
+                  <MetricCard label="Participants"       value={analytics.joins.toLocaleString()}       color="text-on-success-container" />
                   <MetricCard label="Completions"        value={analytics.completions.toLocaleString()} color="text-purple-600" />
-                  <MetricCard label="Completion Rate"    value={`${analytics.completionRate}%`}         color="text-amber-600" />
-                  <MetricCard label="Pending Proofs"     value={analytics.pendingProofs}                color="text-orange-500" />
+                  <MetricCard label="Completion Rate"    value={`${analytics.completionRate}%`}         color="text-on-warning-container" />
+                  <MetricCard label="Pending Proofs"     value={analytics.pendingProofs}                color="text-warning" />
                   <MetricCard label="Approval Rate"      value={`${analytics.approvalRate}%`}           color="text-teal-600" />
                 </div>
 
@@ -155,14 +155,14 @@ export default function AnalyticsPage() {
                       { label: "Views",                 value: analytics.views,               color: "bg-blue-400" },
                       { label: "Joins",                 value: analytics.joins,               color: "bg-secondary" },
                       { label: "Proof codes generated", value: analytics.orderCodesGenerated, color: "bg-indigo-500" },
-                      { label: "Orders verified",       value: analytics.ordersVerified,      color: "bg-amber-500" },
-                      { label: "Bill codes entered",    value: analytics.billCodesEntered,    color: "bg-green-500" },
+                      { label: "Orders verified",       value: analytics.ordersVerified,      color: "bg-warning" },
+                      { label: "Bill codes entered",    value: analytics.billCodesEntered,    color: "bg-success" },
                       { label: "Quest completions",     value: analytics.completions,         color: "bg-purple-500" },
                     ] : [
                       { label: "Views",          value: analytics.views,                  color: "bg-blue-400" },
                       { label: "Joins",          value: analytics.joins,                  color: "bg-secondary" },
                       { label: "Proofs Submitted",value: analytics.approvedProofs + analytics.rejectedProofs + analytics.pendingProofs, color: "bg-indigo-500" },
-                      { label: "Proofs Approved",value: analytics.approvedProofs,         color: "bg-green-500" },
+                      { label: "Proofs Approved",value: analytics.approvedProofs,         color: "bg-success" },
                       { label: "Completions",    value: analytics.completions,            color: "bg-purple-500" },
                     ]).map(row => (
                       <FunnelBar key={row.label} label={row.label} value={row.value} max={Math.max(analytics.views, 1)} color={row.color} />
@@ -174,17 +174,17 @@ export default function AnalyticsPage() {
                 <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
                   <h3 className="text-[15px] font-black text-on-surface mb-4">Proof Submissions</h3>
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="flex flex-col items-center p-3 bg-amber-50 rounded-xl">
-                      <span className="text-2xl font-black text-amber-600">{analytics.pendingProofs}</span>
-                      <span className="text-xs text-amber-600 font-medium mt-0.5">Pending</span>
+                    <div className="flex flex-col items-center p-3 bg-warning-container rounded-xl">
+                      <span className="text-2xl font-black text-on-warning-container">{analytics.pendingProofs}</span>
+                      <span className="text-xs text-on-warning-container font-medium mt-0.5">Pending</span>
                     </div>
-                    <div className="flex flex-col items-center p-3 bg-green-50 rounded-xl">
-                      <span className="text-2xl font-black text-green-600">{analytics.approvedProofs}</span>
-                      <span className="text-xs text-green-600 font-medium mt-0.5">Approved</span>
+                    <div className="flex flex-col items-center p-3 bg-success-container rounded-xl">
+                      <span className="text-2xl font-black text-on-success-container">{analytics.approvedProofs}</span>
+                      <span className="text-xs text-on-success-container font-medium mt-0.5">Approved</span>
                     </div>
-                    <div className="flex flex-col items-center p-3 bg-red-50 rounded-xl">
-                      <span className="text-2xl font-black text-red-500">{analytics.rejectedProofs}</span>
-                      <span className="text-xs text-red-500 font-medium mt-0.5">Rejected</span>
+                    <div className="flex flex-col items-center p-3 bg-error-container rounded-xl">
+                      <span className="text-2xl font-black text-error">{analytics.rejectedProofs}</span>
+                      <span className="text-xs text-error font-medium mt-0.5">Rejected</span>
                     </div>
                   </div>
                 </div>

@@ -26,7 +26,7 @@ export function DailyStepsCard({ data }: { data: ActivityDashboard }) {
           </p>
         </div>
         {data.streak > 0 && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
+          <span className="inline-flex items-center gap-1 rounded-full bg-warning-container px-2.5 py-1 text-xs font-semibold text-on-warning-container">
             <Flame className="h-3.5 w-3.5" />
             {data.streak} day{data.streak === 1 ? "" : "s"}
           </span>

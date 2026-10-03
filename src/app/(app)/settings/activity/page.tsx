@@ -70,12 +70,12 @@ export default async function ActivitySettingsPage({
 
       <main className="mx-auto max-w-2xl space-y-5 px-5 py-5">
         {params.connected && (
-          <div className="rounded-xl bg-green-50 p-3 text-sm text-green-800">
+          <div className="rounded-xl bg-success-container p-3 text-sm text-on-success-container">
             Connected. Your activity will now be counted toward physical quests automatically.
           </div>
         )}
         {errorMessage && (
-          <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">{errorMessage}</div>
+          <div className="rounded-xl bg-warning-container p-3 text-sm text-on-warning-container">{errorMessage}</div>
         )}
 
         <section>
@@ -113,7 +113,7 @@ export default async function ActivitySettingsPage({
 
         <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
           <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-on-surface">
-            <ShieldCheck className="h-4 w-4 text-green-600" /> Your privacy
+            <ShieldCheck className="h-4 w-4 text-on-success-container" /> Your privacy
           </h2>
           <ul className="space-y-1.5 text-xs leading-relaxed text-on-surface-variant">
             <li>• We read only the activity needed for quests you have joined.</li>

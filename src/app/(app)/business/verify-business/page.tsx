@@ -277,9 +277,9 @@ export default function VerifyBusinessPage() {
             </nav>
 
             {error && (
-              <div role="alert" className="flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
-                <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700 leading-relaxed">{error}</p>
+              <div role="alert" className="flex items-start gap-2.5 rounded-xl bg-error-container border border-error-outline px-4 py-3">
+                <AlertCircle size={16} className="text-error shrink-0 mt-0.5" />
+                <p className="text-sm text-on-error-container leading-relaxed">{error}</p>
               </div>
             )}
 
@@ -538,8 +538,8 @@ function DocumentList({
           {d.status !== "submitted" && (
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
               d.status === "accepted"
-                ? "text-green-700 bg-green-50 border-green-200"
-                : "text-red-700 bg-red-50 border-red-200"}`}>
+                ? "text-on-success-container bg-success-container border-success-outline"
+                : "text-on-error-container bg-error-container border-error-outline"}`}>
               {d.status === "accepted" ? <Check size={10} className="inline" /> : null} {d.status}
             </span>
           )}
@@ -549,7 +549,7 @@ function DocumentList({
           </button>
           {!readOnly && onDelete && d.status === "submitted" && (
             <button onClick={() => onDelete(d)} aria-label="Remove document"
-              className="text-on-surface-variant hover:text-red-500 shrink-0 transition-colors">
+              className="text-on-surface-variant hover:text-error shrink-0 transition-colors">
               <Trash2 size={15} />
             </button>
           )}

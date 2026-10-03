@@ -56,8 +56,8 @@ export default function DeactivatedPage() {
     return (
       <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center px-5">
         <div className="max-w-sm w-full flex flex-col items-center gap-6 text-center py-10">
-          <div className="w-20 h-20 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center">
-            <Icon size={36} className="text-red-600" strokeWidth={1.5} />
+          <div className="w-20 h-20 rounded-2xl bg-error-container border border-error-outline flex items-center justify-center">
+            <Icon size={36} className="text-on-error-container" strokeWidth={1.5} />
           </div>
           <div>
             <h1 className="text-[22px] font-bold text-on-surface tracking-[-0.02em]">{label}</h1>
@@ -68,9 +68,9 @@ export default function DeactivatedPage() {
             </p>
           </div>
           {enforced.reason && (
-            <div className="w-full rounded-2xl border border-red-100 bg-red-50 p-4 text-left">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-red-800">Reason</p>
-              <p className="mt-1 text-[14px] text-red-900">{enforced.reason}</p>
+            <div className="w-full rounded-2xl border border-error-outline bg-error-container p-4 text-left">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-on-error-container">Reason</p>
+              <p className="mt-1 text-[14px] text-on-error-container">{enforced.reason}</p>
             </div>
           )}
           <p className="text-[13px] text-on-surface-variant">
@@ -88,8 +88,8 @@ export default function DeactivatedPage() {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center px-5">
       <div className="max-w-sm w-full flex flex-col items-center gap-6 text-center py-10">
-        <div className="w-20 h-20 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
-          <Clock size={36} className="text-amber-500" strokeWidth={1.5} />
+        <div className="w-20 h-20 rounded-2xl bg-warning-container border border-warning-outline flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
+          <Clock size={36} className="text-warning" strokeWidth={1.5} />
         </div>
 
         <div className="max-w-xs">
@@ -99,14 +99,14 @@ export default function DeactivatedPage() {
           </p>
         </div>
 
-        <div className="w-full bg-amber-50 border border-amber-100 rounded-2xl p-4 text-left space-y-2">
+        <div className="w-full bg-warning-container border border-warning-outline rounded-2xl p-4 text-left space-y-2">
           {[
             "Your profile and progress are preserved",
             "No one can see your profile while deactivated",
             "Reactivate instantly by signing back in",
           ].map(item => (
             <div key={item} className="flex items-start gap-2.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+              <div className="w-1.5 h-1.5 rounded-full bg-warning mt-1.5 shrink-0" />
               <p className="text-[13px] text-on-surface">{item}</p>
             </div>
           ))}

@@ -282,7 +282,7 @@ function CreateQuestContent() {
     <StepShell step={1} title="Quest Details" subtitle="Tell participants what this Quest is about."
       onBack={() => router.push("/business/quests")}
       onNext={saveBasicInfo} nextDisabled={!title.trim()} saving={saving}>
-      {error && <p className="text-red-600 text-sm mb-4 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
+      {error && <p className="text-on-error-container text-sm mb-4 bg-error-container rounded-xl px-4 py-3">{error}</p>}
       <div className="flex flex-col gap-4">
         {/* Cover upload */}
         <div className="flex flex-col gap-2">
@@ -302,7 +302,7 @@ function CreateQuestContent() {
             </div>
             <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleCoverUpload} />
           </label>
-          {coverUrl && <button type="button" onClick={() => setCoverUrl(null)} className="text-xs text-red-500 self-start">Remove image</button>}
+          {coverUrl && <button type="button" onClick={() => setCoverUrl(null)} className="text-xs text-error self-start">Remove image</button>}
         </div>
         <Input label="Quest Title *" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. 30-Day Morning Run Challenge" maxLength={100} />
         <div className="flex flex-col gap-1">
@@ -335,7 +335,7 @@ function CreateQuestContent() {
     <StepShell step={2} title="Quest Tasks" subtitle="Define what participants need to complete."
       onBack={() => setStep(1)} onNext={saveTasks}
       nextDisabled={tasks.filter(t => t.title?.trim()).length === 0} saving={saving}>
-      {error && <p className="text-red-600 text-sm mb-4 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
+      {error && <p className="text-on-error-container text-sm mb-4 bg-error-container rounded-xl px-4 py-3">{error}</p>}
       <div className="flex flex-col gap-3">
         {tasks.map((task, i) => (
           <div key={i} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex flex-col gap-3">
@@ -348,7 +348,7 @@ function CreateQuestContent() {
                 <button type="button" onClick={() => {
                   if (task.id) deleteQuestTask(supabase, task.id).catch(console.error);
                   setTasks(prev => prev.filter((_, j) => j !== i));
-                }} className="text-red-400 hover:text-red-600 transition-colors">
+                }} className="text-error hover:text-on-error-container transition-colors">
                   <Trash2 size={16} />
                 </button>
               )}
@@ -397,7 +397,7 @@ function CreateQuestContent() {
                   {task.image_url && (
                     <button type="button"
                       onClick={() => setTasks(prev => prev.map((t, j) => j === i ? { ...t, image_url: null } : t))}
-                      className="text-xs font-semibold text-on-surface-variant hover:text-red-500 transition-colors">
+                      className="text-xs font-semibold text-on-surface-variant hover:text-error transition-colors">
                       Remove
                     </button>
                   )}
@@ -442,7 +442,7 @@ function CreateQuestContent() {
   if (step === 3) return (
     <StepShell step={3} title="Rewards" subtitle="Define what participants can win."
       onBack={() => setStep(2)} onNext={saveRewards} nextLabel="Continue" saving={saving}>
-      {error && <p className="text-red-600 text-sm mb-4 bg-red-50 rounded-xl px-4 py-3">{error}</p>}
+      {error && <p className="text-on-error-container text-sm mb-4 bg-error-container rounded-xl px-4 py-3">{error}</p>}
       <div className="flex flex-col gap-4">
         <label className="flex items-center gap-3 bg-surface-container-lowest rounded-xl border border-outline-variant px-4 py-3 cursor-pointer">
           <input type="checkbox" checked={isLeaderboard} onChange={e => setIsLeaderboard(e.target.checked)}
@@ -459,7 +459,7 @@ function CreateQuestContent() {
               <button type="button" onClick={() => {
                 if (reward.id) deleteQuestReward(supabase, reward.id).catch(console.error);
                 setRewards(prev => prev.filter((_, j) => j !== i));
-              }} className="text-red-400 hover:text-red-600"><Trash2 size={16} /></button>
+              }} className="text-error hover:text-on-error-container"><Trash2 size={16} /></button>
             </div>
             <div className="flex gap-3">
               <div className="flex-1">
@@ -560,7 +560,7 @@ function CreateQuestContent() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-5 pb-36 max-w-lg mx-auto w-full flex flex-col gap-4">
-        {error && <p className="text-red-600 text-sm bg-red-50 rounded-xl px-4 py-3">{error}</p>}
+        {error && <p className="text-on-error-container text-sm bg-error-container rounded-xl px-4 py-3">{error}</p>}
 
         {/* Cover preview */}
         {coverUrl && (
@@ -603,16 +603,16 @@ function CreateQuestContent() {
                   <p className="text-sm font-semibold text-on-surface">{r.title}</p>
                   {r.rank_from && <p className="text-xs text-on-surface-variant">Rank {r.rank_from}{r.rank_to ? `–${r.rank_to}` : "+"}</p>}
                 </div>
-                {r.value && <span className="text-sm font-bold text-green-600 shrink-0">{r.value}</span>}
+                {r.value && <span className="text-sm font-bold text-on-success-container shrink-0">{r.value}</span>}
               </div>
             ))}
           </div>
         )}
 
         {!isVerified && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-4">
-            <p className="text-sm font-bold text-amber-800">⚠ Business Verification Required</p>
-            <p className="text-xs text-amber-700 mt-1">Your business must be verified before publishing a Quest. You can save as draft and publish once verified.</p>
+          <div className="bg-warning-container border border-warning-outline rounded-2xl px-4 py-4">
+            <p className="text-sm font-bold text-on-warning-container">⚠ Business Verification Required</p>
+            <p className="text-xs text-on-warning-container mt-1">Your business must be verified before publishing a Quest. You can save as draft and publish once verified.</p>
           </div>
         )}
       </div>

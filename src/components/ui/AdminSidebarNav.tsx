@@ -66,7 +66,7 @@ export function AdminSidebarNav() {
 
   return (
     <nav className="flex-1 px-3 py-3 overflow-y-auto bg-[#0F1420]" aria-label="Admin navigation">
-      <div className="mx-1 mb-3 flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/25 px-3 py-2">
+      <div className="mx-1 mb-3 flex items-center gap-2 rounded-lg bg-warning/10 border border-warning/25 px-3 py-2">
         <ShieldCheck size={15} className="text-amber-400 shrink-0" aria-hidden="true" />
         <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400/80">

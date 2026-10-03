@@ -69,7 +69,7 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
         <span className="text-xs font-semibold text-on-surface-variant flex-shrink-0">Task {index + 1}</span>
         <div className="flex-1" />
         <button type="button" onClick={onRemove} aria-label={`Remove task ${index + 1}`}
-          className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-red-50 hover:text-red-500 transition-colors">
+          className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-error-container hover:text-error transition-colors">
           <Trash2 size={14} aria-hidden="true" />
         </button>
       </div>
@@ -238,7 +238,7 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
           </div>
         )}
         {saved && (
-          <div role="status" className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-green-700 text-sm font-medium">
+          <div role="status" className="rounded-lg bg-success-container border border-success-outline px-4 py-3 text-on-success-container text-sm font-medium">
             ✓ Tasks saved successfully — redirecting…
           </div>
         )}

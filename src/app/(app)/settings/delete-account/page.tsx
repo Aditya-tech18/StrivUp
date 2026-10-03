@@ -36,7 +36,7 @@ export default function DeleteAccountPage() {
       </div>
 
       <div className="max-w-lg mx-auto px-5 py-10 flex flex-col items-center gap-6">
-        <div className="w-20 h-20 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center shadow-[0_4px_20px_rgba(186,26,26,0.12)]">
+        <div className="w-20 h-20 rounded-2xl bg-error-container border border-error-outline flex items-center justify-center shadow-[0_4px_20px_rgba(186,26,26,0.12)]">
           <Trash2 size={36} className="text-error" strokeWidth={1.5} />
         </div>
 
@@ -48,7 +48,7 @@ export default function DeleteAccountPage() {
           </p>
         </div>
 
-        <div className="w-full bg-red-50 border border-red-100 rounded-2xl p-4">
+        <div className="w-full bg-error-container border border-error-outline rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2.5">
             <div className="w-4 h-4 rounded-full bg-error flex items-center justify-center shrink-0">
               <span className="text-white text-[9px] font-black">!</span>

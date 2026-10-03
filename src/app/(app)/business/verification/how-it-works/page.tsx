@@ -33,7 +33,7 @@ const STEPS = [
           <div className="flex justify-between text-xs text-on-surface-variant"><span>Malai Chaap (Full)</span><span>₹280</span></div>
           <div className="flex justify-between text-xs font-bold text-on-surface border-t border-dashed border-outline pt-1 mt-1"><span>Total</span><span>₹280</span></div>
         </div>
-        <div className="mt-3 font-mono font-black text-2xl text-green-700 text-center border-2 border-dashed border-green-200 rounded-xl py-2 bg-green-50">STRIVUP: BV-642815</div>
+        <div className="mt-3 font-mono font-black text-2xl text-on-success-container text-center border-2 border-dashed border-success-outline rounded-xl py-2 bg-success-container">STRIVUP: BV-642815</div>
       </div>
     ),
   },

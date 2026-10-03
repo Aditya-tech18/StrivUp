@@ -141,7 +141,7 @@ function ConsistencyHeatmap({
             <span className="text-[9px] text-on-surface-variant">More</span>
           </div>
           <span className="flex items-center gap-1 text-[11px] font-bold text-on-surface">
-            <Flame size={12} className="text-orange-400" />
+            <Flame size={12} className="text-warning" aria-hidden="true" />
             {currentStreak} day streak
           </span>
         </div>
@@ -902,8 +902,8 @@ export default function ProfilePage() {
           {achievements.length > 0 ? (
             <div>
               {achievements.map((a, i) => {
-                const BG = ["bg-amber-50","bg-secondary-fixed","bg-violet-50","bg-orange-50","bg-green-50","bg-rose-50","bg-teal-50","bg-sky-50"];
-                const FG = ["text-amber-600","text-secondary","text-violet-600","text-orange-600","text-green-600","text-rose-600","text-teal-600","text-sky-600"];
+                const BG = ["bg-warning-container","bg-secondary-fixed","bg-violet-50","bg-warning-container","bg-success-container","bg-error-container","bg-teal-50","bg-sky-50"];
+                const FG = ["text-on-warning-container","text-secondary","text-violet-600","text-on-warning-container","text-on-success-container","text-on-error-container","text-teal-600","text-sky-600"];
                 const idx = i % BG.length;
                 return (
                   <div key={a.challenge_id} className="flex items-center gap-3 py-3 border-b border-outline-variant last:border-0">
@@ -919,7 +919,7 @@ export default function ProfilePage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-success-container text-on-success-container border border-success-outline">
                         Completed
                       </span>
                       <ChevronRight size={14} className="text-outline" />

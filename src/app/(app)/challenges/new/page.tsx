@@ -114,7 +114,7 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
           type="button"
           onClick={onRemove}
           aria-label={`Remove task ${index + 1}`}
-          className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-red-50 hover:text-red-500 transition-colors"
+          className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-error-container hover:text-error transition-colors"
         >
           <Trash2 size={14} aria-hidden="true" />
         </button>

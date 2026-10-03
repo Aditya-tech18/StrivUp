@@ -240,9 +240,9 @@ export default function BusinessOrderVerificationPage() {
           </div>
 
           {error && (
-            <div role="alert" className="mt-4 flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-200 px-3.5 py-3">
-              <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700 leading-relaxed">{error}</p>
+            <div role="alert" className="mt-4 flex items-start gap-2.5 rounded-xl bg-error-container border border-error-outline px-3.5 py-3">
+              <AlertCircle size={16} className="text-error shrink-0 mt-0.5" />
+              <p className="text-sm text-on-error-container leading-relaxed">{error}</p>
             </div>
           )}
 
@@ -309,9 +309,9 @@ export default function BusinessOrderVerificationPage() {
               <div className="p-5">
                 {billCode ? (
                   <>
-                    <div className="flex items-center gap-2.5 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
-                      <CheckCircle2 size={18} className="text-green-600 shrink-0" />
-                      <p className="text-sm font-bold text-green-800">Order verified</p>
+                    <div className="flex items-center gap-2.5 rounded-xl bg-success-container border border-success-outline px-4 py-3">
+                      <CheckCircle2 size={18} className="text-on-success-container shrink-0" />
+                      <p className="text-sm font-bold text-on-success-container">Order verified</p>
                     </div>
 
                     <p className="text-sm text-on-surface-variant leading-relaxed mt-4">
@@ -350,13 +350,13 @@ export default function BusinessOrderVerificationPage() {
                       // A closed code must not offer Verify. Showing an error
                       // banner above a live Verify button is how you end up
                       // clicking it and getting the same error again.
-                      <div className="flex items-center gap-2.5 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
-                        <XCircle size={18} className="text-red-500 shrink-0" />
+                      <div className="flex items-center gap-2.5 rounded-xl bg-error-container border border-error-outline px-4 py-3">
+                        <XCircle size={18} className="text-error shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-red-800">
+                          <p className="text-sm font-bold text-on-error-container">
                             {match.status === "expired" ? "Code no longer valid" : "Order rejected"}
                           </p>
-                          <p className="text-xs text-red-700">
+                          <p className="text-xs text-on-error-container">
                             {match.status === "expired"
                               ? "This Quest has ended, so the code can no longer be verified."
                               : "The participant can request a new code for this task."}
@@ -390,7 +390,7 @@ export default function BusinessOrderVerificationPage() {
                           <button
                             onClick={() => (showReject ? void handleReject() : setShowReject(true))}
                             disabled={rejecting || verifying}
-                            className="h-12 px-4 rounded-xl border-2 border-red-200 hover:bg-red-50 disabled:opacity-40 text-red-600 font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+                            className="h-12 px-4 rounded-xl border-2 border-error-outline hover:bg-error-container disabled:opacity-40 text-on-error-container font-bold text-sm flex items-center justify-center gap-2 transition-colors"
                           >
                             {rejecting
                               ? <Loader2 size={16} className="animate-spin" />
@@ -400,7 +400,7 @@ export default function BusinessOrderVerificationPage() {
                           <button
                             onClick={handleVerify}
                             disabled={verifying || rejecting}
-                            className="flex-1 h-12 rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+                            className="flex-1 h-12 rounded-xl bg-success hover:bg-success disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
                           >
                             {verifying
                               ? <><Loader2 size={16} className="animate-spin" /> Verifying...</>
@@ -443,8 +443,8 @@ export default function BusinessOrderVerificationPage() {
                   <span
                     className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                       v.status === "order_verified"
-                        ? "bg-green-50 text-green-600"
-                        : "bg-amber-50 text-amber-600"
+                        ? "bg-success-container text-on-success-container"
+                        : "bg-warning-container text-on-warning-container"
                     }`}
                   >
                     {v.status === "order_verified"

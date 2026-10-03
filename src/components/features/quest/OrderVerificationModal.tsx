@@ -254,7 +254,7 @@ export default function OrderVerificationModal({
                         <h3 id="otp-1-heading" className="text-sm font-bold text-on-surface">
                           Your STRIVUP order code
                         </h3>
-                        <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 bg-green-50 text-green-700">
+                        <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-outline bg-success-container text-on-success-container">
                           Generated
                         </span>
                       </div>
@@ -293,8 +293,8 @@ export default function OrderVerificationModal({
                         </h3>
                         <span className={`ml-auto inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                           verified
-                            ? "border-green-200 bg-green-50 text-green-700"
-                            : "border-amber-200 bg-amber-50 text-amber-700"}`}>
+                            ? "border-success-outline bg-success-container text-on-success-container"
+                            : "border-warning-outline bg-warning-container text-on-warning-container"}`}>
                           {verified
                             ? <><CheckCircle2 size={10} /> Order verified</>
                             : <><Clock size={10} /> Awaiting business</>}
@@ -367,8 +367,8 @@ export default function OrderVerificationModal({
           {/* ── Step: done ────────────────────────────────────────────── */}
           {step === "done" && (
             <div className="text-center py-3">
-              <div className="w-14 h-14 rounded-full bg-green-50 border border-green-200 flex items-center justify-center mx-auto">
-                <ClipboardCheck size={26} className="text-green-600" />
+              <div className="w-14 h-14 rounded-full bg-success-container border border-success-outline flex items-center justify-center mx-auto">
+                <ClipboardCheck size={26} className="text-on-success-container" />
               </div>
               <p className="text-[19px] font-bold text-on-surface mt-4">
                 Task Completed <span aria-hidden="true">✓</span>
@@ -394,10 +394,10 @@ function ErrorNote({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="mt-4 flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-200 px-3.5 py-3"
+      className="mt-4 flex items-start gap-2.5 rounded-xl bg-error-container border border-error-outline px-3.5 py-3"
     >
-      <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
-      <p className="text-sm text-red-700 leading-relaxed">{message}</p>
+      <AlertCircle size={16} className="text-error shrink-0 mt-0.5" />
+      <p className="text-sm text-on-error-container leading-relaxed">{message}</p>
     </div>
   );
 }

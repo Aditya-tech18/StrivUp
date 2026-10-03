@@ -32,13 +32,13 @@ export function PhysicalQuestAnalytics({
       label: "Completed",
       value: data.completed.toLocaleString("en-IN"),
       icon: TrendingUp,
-      tone: "text-green-600",
+      tone: "text-on-success-container",
     },
     {
       label: "Flagged",
       value: data.suspicious.toLocaleString("en-IN"),
       icon: ShieldAlert,
-      tone: data.suspicious > 0 ? "text-amber-600" : "text-on-surface-variant",
+      tone: data.suspicious > 0 ? "text-on-warning-container" : "text-on-surface-variant",
     },
   ];
 

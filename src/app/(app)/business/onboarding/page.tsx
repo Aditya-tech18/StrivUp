@@ -129,7 +129,7 @@ export default function BusinessOnboardingPage() {
     <StepShell step={1} title="Tell us about your business" subtitle="Start with the basics — you can edit these anytime."
       onNext={() => { if (!businessName.trim()) { setError("Business name is required."); return; } save({ business_name: businessName.trim(), business_username: businessUsername.trim() || null, description: description.trim() || null }, 2); }}
       nextDisabled={!businessName.trim()} saving={saving}>
-      {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p role="alert" className="text-on-error-container text-sm mb-4">{error}</p>}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-center mb-2">
           <div className="w-16 h-16 rounded-2xl bg-secondary-fixed flex items-center justify-center">
@@ -154,7 +154,7 @@ export default function BusinessOnboardingPage() {
     <StepShell step={2} title="What type of business?" subtitle="Choose the category that best describes you."
       onBack={() => setStep(1)} onNext={() => { if (!category) { setError("Please select a category."); return; } save({ category }, 3); }}
       nextDisabled={!category} saving={saving}>
-      {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p role="alert" className="text-on-error-container text-sm mb-4">{error}</p>}
       <div className="grid grid-cols-2 gap-2">
         {BUSINESS_CATEGORIES.map(cat => (
           <button key={cat} type="button" onClick={() => setCategory(cat)}
@@ -172,7 +172,7 @@ export default function BusinessOnboardingPage() {
   if (step === 3) return (
     <StepShell step={3} title="Contact details" subtitle="How can customers reach you?"
       onBack={() => setStep(2)} onNext={() => save({ business_phone: businessPhone.trim()||null, business_email: businessEmail.trim()||null, website: website.trim()||null }, 4)} saving={saving}>
-      {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p role="alert" className="text-on-error-container text-sm mb-4">{error}</p>}
       <div className="flex flex-col gap-4">
         <Input label="Business Phone" type="tel" value={businessPhone} onChange={e => setBusinessPhone(e.target.value)} placeholder="+91 98765 43210" hint="Optional" leadingIcon={<Phone size={16} />} />
         <Input label="Business Email" type="email" value={businessEmail} onChange={e => setBusinessEmail(e.target.value)} placeholder="hello@yourbusiness.com" hint="Optional" />
@@ -206,7 +206,7 @@ export default function BusinessOnboardingPage() {
   if (step === 5) return (
     <StepShell step={5} title="Add your business logo" subtitle="A logo makes your profile stand out."
       onBack={() => setStep(4)} onNext={() => save({ logo_url: logoUrl }, 6)} nextLabel={logoUrl ? "Continue" : "Skip for now"} saving={saving}>
-      {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p role="alert" className="text-on-error-container text-sm mb-4">{error}</p>}
       <div className="flex flex-col items-center gap-6 py-4">
         <label className="relative cursor-pointer group">
           <div className="w-32 h-32 rounded-2xl bg-surface-container border-2 border-dashed border-outline group-hover:border-secondary overflow-hidden flex items-center justify-center transition-colors">
@@ -234,7 +234,7 @@ export default function BusinessOnboardingPage() {
               finally { setLogoUploading(false); }
             }} />
         </label>
-        {logoUrl && <button type="button" onClick={() => setLogoUrl(null)} className="text-sm text-red-500">Remove logo</button>}
+        {logoUrl && <button type="button" onClick={() => setLogoUrl(null)} className="text-sm text-error">Remove logo</button>}
         <p className="text-sm text-on-surface-variant text-center max-w-xs">Square image recommended, min 200×200px. JPG, PNG, or WebP.</p>
       </div>
     </StepShell>
@@ -251,7 +251,7 @@ export default function BusinessOnboardingPage() {
               <p className="text-sm font-semibold text-on-surface-variant capitalize">{link.platform}</p>
               <p className="text-xs text-on-surface-variant truncate">{link.url}</p>
             </div>
-            <button aria-label="Remove link" type="button" onClick={() => setSocialLinks(p => p.filter((_,j) => j !== i))} className="text-red-500 shrink-0">
+            <button aria-label="Remove link" type="button" onClick={() => setSocialLinks(p => p.filter((_,j) => j !== i))} className="text-error shrink-0">
               <X size={16} />
             </button>
           </div>
@@ -294,7 +294,7 @@ export default function BusinessOnboardingPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-6 pb-36 max-w-lg mx-auto w-full">
-        {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
+        {error && <p role="alert" className="text-on-error-container text-sm mb-4">{error}</p>}
 
         {/* Profile preview */}
         <div className="flex flex-col items-center gap-3 mb-6">

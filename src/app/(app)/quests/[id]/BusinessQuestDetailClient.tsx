@@ -653,7 +653,7 @@ export default function BusinessQuestDetailClient({
 /* ── Stat pill ─────────────────────────────────────────────────────────── */
 
 const PILL_TONE = {
-  amber:  { wrap: "bg-amber-50 border-amber-100",   icon: "text-amber-500" },
+  amber:  { wrap: "bg-warning-container border-warning-outline",   icon: "text-warning" },
   blue:   { wrap: "bg-secondary-fixed border-secondary-fixed-dim",     icon: "text-secondary" },
   violet: { wrap: "bg-violet-50 border-violet-100", icon: "text-violet-600" },
 } as const;
@@ -822,11 +822,11 @@ function TaskCard({
   // The status line reflects where this task actually stands, so a user who
   // walks away mid-flow can see what is waiting on whom.
   const state = completed
-    ? { label: "Verified Order", cls: "text-green-700 bg-green-50 border-green-200", Icon: CheckCircle2 }
+    ? { label: "Verified Order", cls: "text-on-success-container bg-success-container border-success-outline", Icon: CheckCircle2 }
     : verification?.status === "order_verified"
       ? { label: "Enter bill code", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim", Icon: Upload }
       : verification?.status === "code_issued"
-        ? { label: "Awaiting business", cls: "text-amber-700 bg-amber-50 border-amber-200", Icon: Clock }
+        ? { label: "Awaiting business", cls: "text-on-warning-container bg-warning-container border-warning-outline", Icon: Clock }
         : null;
 
   return (
@@ -855,7 +855,7 @@ function TaskCard({
             <span
               className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
                 task.is_required
-                  ? "text-red-600 bg-red-50 border-red-100"
+                  ? "text-on-error-container bg-error-container border-error-outline"
                   : "text-on-surface-variant bg-surface-container-low border-outline-variant"
               }`}
             >
@@ -907,7 +907,7 @@ function TaskCard({
         {/* Action */}
         <div className="flex items-center gap-2 shrink-0">
           {completed ? (
-            <span className="h-9 px-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-xs font-bold flex items-center gap-1.5">
+            <span className="h-9 px-4 rounded-xl bg-success-container border border-success-outline text-on-success-container text-xs font-bold flex items-center gap-1.5">
               <Check size={14} /> Completed
             </span>
           ) : (

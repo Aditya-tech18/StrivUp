@@ -60,7 +60,7 @@ export function ActivityProviderCard({
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-on-surface">{label}</h3>
             {connected && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-success-container px-2 py-0.5 text-[11px] font-medium text-on-success-container">
                 <Check className="h-3 w-3" /> Connected
               </span>
             )}
@@ -79,12 +79,12 @@ export function ActivityProviderCard({
             </p>
           )}
           {connection?.status === "expired" && (
-            <p className="mt-1 text-[11px] text-amber-700">
+            <p className="mt-1 text-[11px] text-on-warning-container">
               Access expired — reconnect to resume tracking.
             </p>
           )}
           {connection?.last_sync_error && connected && (
-            <p className="mt-1 text-[11px] text-red-600">Last sync failed: {connection.last_sync_error}</p>
+            <p className="mt-1 text-[11px] text-on-error-container">Last sync failed: {connection.last_sync_error}</p>
           )}
         </div>
 
@@ -110,7 +110,7 @@ export function ActivityProviderCard({
         )}
       </div>
 
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-on-error-container">{error}</p>}
     </div>
   );
 }

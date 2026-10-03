@@ -77,7 +77,7 @@ export function CreatorPlans({ showComparison = true }: { showComparison?: boole
       </div>
 
       {/* Growth */}
-      <div className="relative overflow-hidden rounded-2xl border border-amber-400/60 bg-inverse-surface p-5">
+      <div className="relative overflow-hidden rounded-2xl border border-warning/60 bg-inverse-surface p-5">
         <span className="absolute right-0 top-0 rounded-bl-xl bg-amber-400 px-3 py-1 text-[10px] font-bold tracking-wider text-on-surface">
           POPULAR
         </span>

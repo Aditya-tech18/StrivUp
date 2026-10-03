@@ -21,7 +21,7 @@ function InfoRow({ label, value, chip }: { label: string; value: string; chip?: 
         {chip && (
           <span className={[
             "text-[11px] font-semibold px-2 py-0.5 rounded-full",
-            chip.ok ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700",
+            chip.ok ? "bg-success-container text-on-success-container" : "bg-warning-container text-on-warning-container",
           ].join(" ")}>
             {chip.text}
           </span>
@@ -125,7 +125,7 @@ export default function AccountDetailsPage() {
                 <p className="text-[11px] text-on-surface-variant">Email Address</p>
                 <p className="text-[14px] font-medium text-on-surface truncate">{authEmail ?? "—"}</p>
               </div>
-              <span className={["text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0", emailVerified ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"].join(" ")}>
+              <span className={["text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0", emailVerified ? "bg-success-container text-on-success-container" : "bg-warning-container text-on-warning-container"].join(" ")}>
                 {emailVerified ? "Verified" : "Unverified"}
               </span>
             </div>
@@ -138,7 +138,7 @@ export default function AccountDetailsPage() {
                 <p className="text-[14px] font-medium text-on-surface">{priv?.phone ?? "Not added"}</p>
               </div>
               {priv?.phone && (
-                <span className={["text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0", priv.phone_verified ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"].join(" ")}>
+                <span className={["text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0", priv.phone_verified ? "bg-success-container text-on-success-container" : "bg-warning-container text-on-warning-container"].join(" ")}>
                   {priv.phone_verified ? "Verified" : "Unverified"}
                 </span>
               )}

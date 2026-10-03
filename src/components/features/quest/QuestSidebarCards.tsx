@@ -104,8 +104,8 @@ export function RewardCard({
       <div className="px-5 pt-5 pb-4">
         <h3 id="quest-reward-heading" className="sr-only">Reward</h3>
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
-            <Trophy size={19} className="text-amber-500" />
+          <div className="w-10 h-10 rounded-xl bg-warning-container border border-warning-outline flex items-center justify-center shrink-0">
+            <Trophy size={19} className="text-warning" />
           </div>
           <div className="min-w-0">
             <p className="text-[19px] font-bold text-on-surface leading-tight">
@@ -141,7 +141,7 @@ export function RewardCard({
             Quest Ended
           </button>
         ) : joined ? (
-          <div className="w-full h-11 rounded-xl bg-green-50 border border-green-200 text-green-700 font-bold text-sm flex items-center justify-center gap-2">
+          <div className="w-full h-11 rounded-xl bg-success-container border border-success-outline text-on-success-container font-bold text-sm flex items-center justify-center gap-2">
             <ShieldCheck size={16} /> You&apos;ve Joined
           </div>
         ) : (
@@ -463,7 +463,7 @@ export function GoogleBusinessCard({
         />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="flex items-center gap-1.5 bg-surface-container-lowest rounded-full pl-1.5 pr-3 py-1.5 border border-outline-variant shadow-sm max-w-[85%]">
-            <span className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center shrink-0">
+            <span className="w-5 h-5 rounded-full bg-error flex items-center justify-center shrink-0">
               <MapPin size={11} className="text-white" />
             </span>
             <span className="text-[11px] font-semibold text-on-surface-variant truncate">{name}</span>

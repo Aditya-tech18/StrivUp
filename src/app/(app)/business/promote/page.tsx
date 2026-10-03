@@ -165,9 +165,9 @@ export default function PromotePage() {
         </div>
 
         {/* Payment pending notice */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4">
-          <p className="text-sm font-bold text-amber-800 mb-1">💳 Payment Integration Coming Soon</p>
-          <p className="text-xs text-amber-700 leading-relaxed">
+        <div className="bg-warning-container border border-warning-outline rounded-2xl px-5 py-4">
+          <p className="text-sm font-bold text-on-warning-container mb-1">💳 Payment Integration Coming Soon</p>
+          <p className="text-xs text-on-warning-container leading-relaxed">
             Paid promotion is currently in beta. We&apos;re integrating secure payment infrastructure.
             You can set up your promotion now and it will activate once payment is live.
           </p>

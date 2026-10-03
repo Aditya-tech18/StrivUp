@@ -109,13 +109,13 @@ export function QuestProofModal(props: Props) {
     <div className="flex gap-2">
       {task.order_link_zomato && (
         <a href={task.order_link_zomato} target="_blank" rel="noopener noreferrer"
-          className="flex-1 h-11 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm font-bold flex items-center justify-center gap-1.5">
+          className="flex-1 h-11 rounded-xl border border-error-outline bg-error-container text-on-error-container text-sm font-bold flex items-center justify-center gap-1.5">
           Zomato <ExternalLink size={14} aria-hidden="true" />
         </a>
       )}
       {task.order_link_swiggy && (
         <a href={task.order_link_swiggy} target="_blank" rel="noopener noreferrer"
-          className="flex-1 h-11 rounded-xl border border-orange-200 bg-orange-50 text-orange-800 text-sm font-bold flex items-center justify-center gap-1.5">
+          className="flex-1 h-11 rounded-xl border border-warning-outline bg-warning-container text-on-warning-container text-sm font-bold flex items-center justify-center gap-1.5">
           Swiggy <ExternalLink size={14} aria-hidden="true" />
         </a>
       )}
@@ -139,7 +139,7 @@ export function QuestProofModal(props: Props) {
         </div>
 
         <div className="flex flex-col gap-4 px-5 pt-5">
-          {error && <p role="alert" className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          {error && <p role="alert" className="rounded-xl border border-error-outline bg-error-container px-3 py-2 text-sm text-on-error-container">{error}</p>}
 
           {step === "join" && (
             <>
@@ -217,11 +217,11 @@ export function QuestProofModal(props: Props) {
 
           {step === "bill" && (
             <>
-              <div className="flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-3 py-3">
-                <CheckCircle2 size={20} className="shrink-0 text-green-700" />
+              <div className="flex items-center gap-2 rounded-xl border border-success-outline bg-success-container px-3 py-3">
+                <CheckCircle2 size={20} className="shrink-0 text-on-success-container" />
                 <div>
-                  <h2 id="proof-modal-title" className="text-sm font-black text-green-900">Order Verified ✓</h2>
-                  <p className="text-xs text-green-900">Your business verification is complete.</p>
+                  <h2 id="proof-modal-title" className="text-sm font-black text-on-success-container">Order Verified ✓</h2>
+                  <p className="text-xs text-on-success-container">Your business verification is complete.</p>
                 </div>
               </div>
               <label htmlFor="bill-code" className="text-[15px] font-bold text-on-surface">Enter the verification code written on your bill.</label>
@@ -230,7 +230,7 @@ export function QuestProofModal(props: Props) {
                 placeholder="BV-______" autoCapitalize="characters" autoComplete="one-time-code" maxLength={9}
                 className="h-14 rounded-xl border border-outline px-4 text-center font-mono text-2xl font-black tracking-widest text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-secondary focus:ring-2 focus:ring-blue-100" />
               <button type="button" onClick={verifyBill} disabled={busy || billCode.length < 9}
-                className="h-12 rounded-xl bg-green-600 text-sm font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40">
+                className="h-12 rounded-xl bg-success text-sm font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40">
                 {busy ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />} Verify &amp; Complete Task
               </button>
             </>
@@ -238,7 +238,7 @@ export function QuestProofModal(props: Props) {
 
           {step === "done" && (
             <div className="flex flex-col items-center gap-3 py-4 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-600 shadow-[0_8px_24px_-6px_rgba(22,163,74,0.5)]">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success shadow-[0_8px_24px_-6px_rgba(22,163,74,0.5)]">
                 <CheckCircle2 size={32} className="text-white" />
               </div>
               <h2 id="proof-modal-title" className="text-xl font-black text-on-surface">Task Completed ✓</h2>
@@ -249,11 +249,11 @@ export function QuestProofModal(props: Props) {
 
           {step === "rejected" && (
             <>
-              <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-3">
-                <XCircle size={18} className="mt-0.5 shrink-0 text-red-600" />
+              <div className="flex items-start gap-2 rounded-xl border border-error-outline bg-error-container px-3 py-3">
+                <XCircle size={18} className="mt-0.5 shrink-0 text-on-error-container" />
                 <div>
-                  <h2 id="proof-modal-title" className="text-sm font-black text-red-900">Verification rejected</h2>
-                  <p className="text-sm text-red-800">
+                  <h2 id="proof-modal-title" className="text-sm font-black text-on-error-container">Verification rejected</h2>
+                  <p className="text-sm text-on-error-container">
                     Your order could not be verified for this Quest.{request?.rejection_reason ? ` Reason: ${request.rejection_reason}` : ""}
                   </p>
                 </div>

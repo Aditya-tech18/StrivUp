@@ -22,7 +22,7 @@ type Actor = "user" | "strivup" | "business";
 const ACTOR: Record<Actor, { label: string; cls: string; icon: typeof User }> = {
   user:     { label: "Participant", cls: "bg-secondary-fixed text-on-secondary-fixed border-secondary-fixed-dim",   icon: User },
   strivup:  { label: "STRIVUP",     cls: "bg-primary text-on-primary border-primary",     icon: ShieldCheck },
-  business: { label: "Business",    cls: "bg-amber-50 text-amber-900 border-amber-100", icon: Store },
+  business: { label: "Business",    cls: "bg-warning-container text-on-warning-container border-warning-outline", icon: Store },
 };
 
 const FLOW: { actor: Actor; title: string; body: string; code?: { label: string; value: string; tone: "sv" | "bv" } }[] = [
@@ -69,7 +69,7 @@ const RULES = [
 
 function CodeChip({ label, value, tone }: { label: string; value: string; tone: "sv" | "bv" }) {
   return (
-    <div className={`mt-3 rounded-xl border-2 border-dashed px-4 py-3 ${tone === "sv" ? "border-secondary-fixed-dim bg-secondary-fixed" : "border-green-200 bg-green-50"}`}>
+    <div className={`mt-3 rounded-xl border-2 border-dashed px-4 py-3 ${tone === "sv" ? "border-secondary-fixed-dim bg-secondary-fixed" : "border-success-outline bg-success-container"}`}>
       <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">{label}</p>
       <p className="font-mono text-2xl font-black tracking-widest text-on-surface">{value}</p>
     </div>
@@ -222,7 +222,7 @@ export default function HowQuestsWorkPage() {
         {/* Example */}
         <Section id="example" title="Example: Veer Ji Chaap Explorer">
           <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest">
-            <div className="flex items-center gap-2 border-b border-outline-variant bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-900">
+            <div className="flex items-center gap-2 border-b border-outline-variant bg-warning-container px-4 py-2 text-xs font-semibold text-on-warning-container">
               <Eye size={14} aria-hidden="true" /> Illustrative example. The reward below is a demo configuration, not an offer.
             </div>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 p-4 text-sm">
@@ -269,7 +269,7 @@ export default function HowQuestsWorkPage() {
         <Section id="rewards" title="Leaderboard and rewards">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant">
-              <p className="flex items-center gap-2 font-bold text-on-surface"><Trophy size={16} className="text-amber-600" aria-hidden="true" /> Leaderboard</p>
+              <p className="flex items-center gap-2 font-bold text-on-surface"><Trophy size={16} className="text-on-warning-container" aria-hidden="true" /> Leaderboard</p>
               <p className="mt-1">Ranks by verified tasks only. Ties go to whoever completed their latest verification first. Generating a code or a business approval never moves your rank.</p>
             </div>
             <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant">

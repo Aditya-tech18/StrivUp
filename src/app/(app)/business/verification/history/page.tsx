@@ -42,9 +42,9 @@ export default function VerificationHistoryPage() {
   const filtered = filter === "all" ? verifs : verifs.filter(v => v.status === filter);
 
   const statusCfg = {
-    approved: { label:"Verified",  cls:"text-green-700 bg-green-50 border-green-200" },
-    pending:  { label:"Pending",   cls:"text-amber-700 bg-amber-50 border-amber-200" },
-    rejected: { label:"Rejected",  cls:"text-red-700 bg-red-50 border-red-200" },
+    approved: { label:"Verified",  cls:"text-on-success-container bg-success-container border-success-outline" },
+    pending:  { label:"Pending",   cls:"text-on-warning-container bg-warning-container border-warning-outline" },
+    rejected: { label:"Rejected",  cls:"text-on-error-container bg-error-container border-error-outline" },
     expired:  { label:"Expired",   cls:"text-on-surface-variant bg-surface-container-low border-outline-variant" },
   } as const;
 
@@ -62,9 +62,9 @@ export default function VerificationHistoryPage() {
         <div className="grid grid-cols-4 gap-2">
           {[
             { label:"Total",    value:insights.total,    color:"text-on-surface" },
-            { label:"Approved", value:insights.approved, color:"text-green-600" },
-            { label:"Pending",  value:insights.pending,  color:"text-amber-600" },
-            { label:"Rejected", value:insights.rejected, color:"text-red-600" },
+            { label:"Approved", value:insights.approved, color:"text-on-success-container" },
+            { label:"Pending",  value:insights.pending,  color:"text-on-warning-container" },
+            { label:"Rejected", value:insights.rejected, color:"text-on-error-container" },
           ].map(s => (
             <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-3 flex flex-col items-center">
               <span className={`text-2xl font-black ${s.color}`}>{s.value}</span>

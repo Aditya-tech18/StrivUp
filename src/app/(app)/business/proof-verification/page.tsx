@@ -8,9 +8,9 @@ import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, getQuestSubmissions, reviewSubmission, type QuestTaskSubmission, type Quest } from "@/lib/data/businessQuests";
 
 const TABS = [
-  { value: "pending",                label: "Pending",       cls: "text-amber-700 bg-amber-50 border-amber-200" },
-  { value: "approved",               label: "Approved",      cls: "text-green-700 bg-green-50 border-green-200" },
-  { value: "rejected",               label: "Rejected",      cls: "text-red-700 bg-red-50 border-red-200" },
+  { value: "pending",                label: "Pending",       cls: "text-on-warning-container bg-warning-container border-warning-outline" },
+  { value: "approved",               label: "Approved",      cls: "text-on-success-container bg-success-container border-success-outline" },
+  { value: "rejected",               label: "Rejected",      cls: "text-on-error-container bg-error-container border-error-outline" },
   { value: "resubmission_required",  label: "Resubmission",  cls: "text-purple-700 bg-purple-50 border-purple-200" },
 ] as const;
 type TabValue = typeof TABS[number]["value"];
@@ -105,7 +105,7 @@ export default function ProofVerificationPage() {
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
         <h1 className="text-[17px] font-black text-on-surface flex-1">Proof Verification</h1>
         {tabCounts.pending > 0 && (
-          <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{tabCounts.pending}</span>
+          <span className="bg-error text-white text-xs font-bold px-2 py-0.5 rounded-full">{tabCounts.pending}</span>
         )}
       </div>
 
@@ -163,8 +163,8 @@ export default function ProofVerificationPage() {
                     </div>
                     {sub.verification_status !== "pending" && (
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
-                        sub.verification_status === "approved" ? "text-green-700 bg-green-50 border-green-200" :
-                        sub.verification_status === "rejected" ? "text-red-700 bg-red-50 border-red-200" :
+                        sub.verification_status === "approved" ? "text-on-success-container bg-success-container border-success-outline" :
+                        sub.verification_status === "rejected" ? "text-on-error-container bg-error-container border-error-outline" :
                         "text-purple-700 bg-purple-50 border-purple-200"
                       }`}>
                         {sub.verification_status === "approved" ? "Approved" : sub.verification_status === "rejected" ? "Rejected" : "Resubmission"}
@@ -189,7 +189,7 @@ export default function ProofVerificationPage() {
                     <p className="text-sm text-on-surface-variant bg-surface-container-low rounded-xl px-3 py-2 mb-3">{sub.caption}</p>
                   )}
                   {sub.rejection_reason && (
-                    <p className="text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2 mb-3">Reason: {sub.rejection_reason}</p>
+                    <p className="text-xs text-on-error-container bg-error-container rounded-xl px-3 py-2 mb-3">Reason: {sub.rejection_reason}</p>
                   )}
                 </div>
 
@@ -197,7 +197,7 @@ export default function ProofVerificationPage() {
                 {sub.verification_status === "pending" && (
                   <div className="border-t border-outline-variant px-4 py-3 flex gap-2">
                     <button onClick={() => { setShowRejectModal(sub.id); setRejectReason(""); }}
-                      className="flex-1 h-9 rounded-xl border-2 border-red-200 text-red-600 text-sm font-bold flex items-center justify-center gap-1.5">
+                      className="flex-1 h-9 rounded-xl border-2 border-error-outline text-on-error-container text-sm font-bold flex items-center justify-center gap-1.5">
                       <XCircle size={16} /> Reject
                     </button>
                     <button onClick={() => { setShowRejectModal(`resubmit-${sub.id}`); setRejectReason(""); }}
@@ -205,7 +205,7 @@ export default function ProofVerificationPage() {
                       Resubmit
                     </button>
                     <button onClick={() => handleApprove(sub.id)} disabled={reviewing === sub.id}
-                      className="flex-1 h-9 rounded-xl bg-green-600 text-white text-sm font-bold flex items-center justify-center gap-1.5 disabled:opacity-40">
+                      className="flex-1 h-9 rounded-xl bg-success text-white text-sm font-bold flex items-center justify-center gap-1.5 disabled:opacity-40">
                       {reviewing === sub.id ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><CheckCircle2 size={16} /> Approve</>}
                     </button>
                   </div>
@@ -239,7 +239,7 @@ export default function ProofVerificationPage() {
                   else handleReject(id);
                 }}
                 disabled={!!reviewing}
-                className={`flex-1 h-11 rounded-xl text-white font-bold text-sm disabled:opacity-40 ${showRejectModal.startsWith("resubmit-") ? "bg-purple-600" : "bg-red-500"}`}>
+                className={`flex-1 h-11 rounded-xl text-white font-bold text-sm disabled:opacity-40 ${showRejectModal.startsWith("resubmit-") ? "bg-purple-600" : "bg-error"}`}>
                 {reviewing ? "…" : showRejectModal.startsWith("resubmit-") ? "Request Resubmission" : "Reject"}
               </button>
             </div>
