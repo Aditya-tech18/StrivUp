@@ -6,6 +6,7 @@
  * are fetched in a separate try/catch so they never cause 400 errors.
  */
 import { createClient } from "@/lib/supabase/client";
+import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 
 // ── Public types ───────────────────────────────────────────────────────────
 
@@ -471,12 +472,16 @@ export async function uploadMyAvatar(file: File): Promise<string> {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
     throw new Error("Only JPEG, PNG or WebP images are allowed");
 
-  const ext = file.name.split(".").pop() ?? "jpg";
+  // Avatars render at ~40px in the feed and ~80px on a profile, so there is
+  // no reason to keep a multi-megapixel original. Transparency is preserved,
+  // which matters for logo-style avatars.
+  const { file: avatar } = await compressImage(file, IMAGE_PRESETS.avatar);
+  const ext = avatar.name.split(".").pop() ?? "jpg";
   const path = `${user.id}/avatar.${ext}`;
 
   const { error: upErr } = await supabase.storage
     .from("avatars")
-    .upload(path, file, { upsert: true, cacheControl: "3600" });
+    .upload(path, avatar, { upsert: true, cacheControl: "3600" });
   if (upErr) throw upErr;
 
   const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);

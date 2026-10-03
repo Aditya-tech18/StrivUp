@@ -15,6 +15,7 @@ import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Upload, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { Button, Card, Input } from "@/components/ui";
 import { createQuest, type CreateQuestInput } from "@/lib/data/quests";
 
@@ -115,10 +116,11 @@ export default function CreateQuestPage() {
           // Upload thumbnail if provided
           if (thumbnailFile) {
             setUploadingThumbnail(true);
-            const fileName = `quest_thumbnails/${Date.now()}_${thumbnailFile.name}`;
+            const { file: thumb } = await compressImage(thumbnailFile, IMAGE_PRESETS.thumbnail);
+            const fileName = `quest_thumbnails/${Date.now()}_${thumb.name}`;
             const { error: uploadErr } = await supabase.storage
               .from("proof-media")
-              .upload(fileName, thumbnailFile, { upsert: false });
+              .upload(fileName, thumb, { upsert: false });
 
             if (uploadErr) {
               throw new Error(`Thumbnail upload failed: ${uploadErr.message}`);
