@@ -5,6 +5,13 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   bordered?: boolean;
   /** Padding preset */
   padding?: "none" | "sm" | "md" | "lg";
+  /**
+   * How far off the page the card sits. 1 is the resting state for content,
+   * 3 and up are for things that overlay other content.
+   */
+  elevation?: 0 | 1 | 2 | 3 | 4 | 5;
+  /** Lifts on hover. Only for cards that are themselves a link or button. */
+  interactive?: boolean;
 }
 
 const paddingClasses = {
@@ -14,16 +21,31 @@ const paddingClasses = {
   lg: "p-6",
 };
 
+const elevationClasses = {
+  0: "",
+  1: "elev-1",
+  2: "elev-2",
+  3: "elev-3",
+  4: "elev-4",
+  5: "elev-5",
+} as const;
+
 /**
  * Card — surface container with optional border and padding presets.
  *
  * Usage:
  *   <Card>…</Card>
  *   <Card bordered padding="lg">…</Card>
+ *   <Card elevation={2} interactive>…</Card>
+ *
+ * Defaults to elevation 1 so every existing Card gains depth without being
+ * touched. Pass elevation={0} to opt a card back out.
  */
 export function Card({
   bordered = false,
   padding = "md",
+  elevation = 1,
+  interactive = false,
   className = "",
   children,
   ...props
@@ -31,7 +53,13 @@ export function Card({
   return (
     <div
       className={[
-        "rounded-lg bg-surface-container-low",
+        // The lightest surface in the ramp reads as "nearest" once it has a
+        // shadow under it; the old surface-container-low sat too close to the
+        // page background to look raised.
+        "rounded-xl bg-surface-container-lowest",
+        elevationClasses[elevation],
+        "surface-raised",
+        interactive ? "lift cursor-pointer" : "",
         bordered ? "border border-outline-variant" : "",
         paddingClasses[padding],
         className,

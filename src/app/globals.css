@@ -368,3 +368,106 @@ body {
     outline-offset: 2px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DEPTH SYSTEM
+   ═══════════════════════════════════════════════════════════════════════════
+
+   The app had no elevation tokens at all, which is the main reason it reads
+   flat. This layer gives every surface a believable z-position.
+
+   Deliberately CSS only. A WebGL or canvas 3D layer would cost a multi hundred
+   kB bundle, main thread time and a GPU wake on every scroll, which loses the
+   "keep load times low" constraint to win an aesthetic one. Everything here is
+   box-shadow, gradient and transform: compositor friendly, zero JS, zero bytes
+   over the wire beyond this file.
+
+   Shadows are tinted with the warm neutral of the surface ramp rather than
+   pure black, which is what stops stacked cards looking like grey smudges.
+   ────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Two shadows per level: a tight contact shadow that reads as the object
+     touching the surface, and a wide ambient one that reads as distance.
+     One shadow alone always looks like a sticker. */
+  --shadow-e1: 0 1px 2px -1px rgb(28 20 22 / 0.08),
+               0 1px 3px 0   rgb(28 20 22 / 0.06);
+  --shadow-e2: 0 2px 4px -2px rgb(28 20 22 / 0.10),
+               0 4px 8px -2px rgb(28 20 22 / 0.07);
+  --shadow-e3: 0 4px 8px -4px  rgb(28 20 22 / 0.12),
+               0 10px 20px -6px rgb(28 20 22 / 0.09);
+  --shadow-e4: 0 8px 16px -8px  rgb(28 20 22 / 0.14),
+               0 20px 36px -12px rgb(28 20 22 / 0.12);
+  /* Modals and sheets: dark enough to read as "in front of everything". */
+  --shadow-e5: 0 16px 32px -12px rgb(28 20 22 / 0.18),
+               0 32px 64px -20px rgb(28 20 22 / 0.16);
+
+  /* Brand-tinted glow for the primary action. Blue, never neutral. */
+  --shadow-brand: 0 2px 8px -2px rgb(29 78 216 / 0.32),
+                  0 8px 20px -6px rgb(29 78 216 / 0.24);
+}
+
+@layer utilities {
+  .elev-1 { box-shadow: var(--shadow-e1); }
+  .elev-2 { box-shadow: var(--shadow-e2); }
+  .elev-3 { box-shadow: var(--shadow-e3); }
+  .elev-4 { box-shadow: var(--shadow-e4); }
+  .elev-5 { box-shadow: var(--shadow-e5); }
+
+  /* A raised surface is lit from above: a hairline highlight on the top edge
+     and a slightly darker bottom edge. This is what sells thickness, more than
+     the shadow does. */
+  .surface-raised {
+    background-image: linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.9) 0%,
+      rgb(255 255 255 / 0) 42%
+    );
+    border-top: 1px solid rgb(255 255 255 / 0.85);
+    border-bottom: 1px solid rgb(28 20 22 / 0.06);
+  }
+
+  /* Interactive lift. Transform and shadow only, so it stays on the
+     compositor and never triggers layout. */
+  .lift {
+    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+  .lift:hover  { transform: translateY(-2px); box-shadow: var(--shadow-e3); }
+  .lift:active { transform: translateY(0);    box-shadow: var(--shadow-e1); }
+
+  /* Pressable, for tap targets on mobile where hover does not exist. */
+  .pressable { transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .pressable:active { transform: scale(0.97); }
+
+  /* Frosted layer for sticky headers. backdrop-filter is the one expensive
+     property here, so it is opt-in per element rather than applied broadly,
+     and it always has an opaque colour behind it as a fallback. */
+  .glass {
+    background-color: rgb(251 249 249 / 0.82);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+  }
+
+  /* Depth for the brand action. */
+  .elev-brand { box-shadow: var(--shadow-brand); }
+}
+
+/* Motion is decoration here, never information: with reduced motion the lift
+   and press collapse to nothing and the shadows stay, so hierarchy survives.
+   WCAG 2.3.3. */
+@media (prefers-reduced-motion: reduce) {
+  .lift, .pressable { transition: none; }
+  .lift:hover  { transform: none; }
+  .lift:active { transform: none; }
+  .pressable:active { transform: none; }
+}
+
+/* Forced-colors mode strips box-shadow entirely, so depth must fall back to
+   something the OS honours, or every card merges into the page. WCAG 1.4.11. */
+@media (forced-colors: active) {
+  .elev-1, .elev-2, .elev-3, .elev-4, .elev-5, .surface-raised {
+    border: 1px solid CanvasText;
+  }
+}

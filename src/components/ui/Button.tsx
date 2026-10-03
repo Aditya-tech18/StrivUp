@@ -11,11 +11,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-on-primary hover:opacity-90 active:opacity-80 shadow-sm",
+    "bg-primary text-on-primary hover:opacity-90 active:opacity-80 elev-2 lift",
+  // The brand action carries a blue-tinted glow so it reads as the one thing
+  // on the page you are meant to press.
   secondary:
-    "bg-secondary text-on-secondary hover:opacity-90 active:opacity-80 shadow-sm",
+    "bg-secondary text-on-secondary hover:opacity-90 active:opacity-80 elev-brand lift",
   outline:
-    "bg-transparent text-primary border border-outline hover:bg-surface-variant active:bg-surface-container",
+    "bg-transparent text-primary border border-outline hover:bg-surface-variant active:bg-surface-container pressable",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -43,7 +45,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled}
         className={[
           // Base
-          "inline-flex items-center justify-center font-semibold rounded select-none",
+          "inline-flex items-center justify-center font-semibold rounded-lg select-none",
           "transition-all duration-150 ease-in-out",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
           "disabled:opacity-40 disabled:pointer-events-none",
