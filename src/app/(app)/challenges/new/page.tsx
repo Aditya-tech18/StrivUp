@@ -39,6 +39,11 @@ import {
   type PhysicalConfigDraft,
 } from "@/components/features/activity/PhysicalActivityConfigFields";
 import { upsertChallengeTaskActivityConfig } from "@/lib/data/activity";
+import {
+  ProofRequirementPicker,
+  type ProofRequirementDraft,
+} from "@/components/features/proof/ProofRequirementPicker";
+import { upsertChallengeTaskProofRequirement } from "@/lib/data/proofRequirements";
 
 /* ── Zod schema ─────────────────────────────────────────────────────────── */
 const schema = z.object({
@@ -115,13 +120,15 @@ const selectCls = [
 ].join(" ");
 
 /* ── TaskRowEditor ───────────────────────────────────────────────────────── */
-function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhysicalConfigChange }: {
+function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhysicalConfigChange, proofRequirement, onProofRequirementChange }: {
   task: TaskRow;
   index: number;
   onChange: (updated: TaskRow) => void;
   onRemove: () => void;
   physicalConfig: PhysicalConfigDraft;
   onPhysicalConfigChange: (next: PhysicalConfigDraft) => void;
+  proofRequirement: ProofRequirementDraft | null;
+  onProofRequirementChange: (next: ProofRequirementDraft | null) => void;
 }) {
   return (
     <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
@@ -200,6 +207,17 @@ function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhys
         <PhysicalActivityConfigFields
           value={physicalConfig}
           onChange={onPhysicalConfigChange}
+        />
+      )}
+
+      {/* Steps verify themselves from the counter, and "none" asks for nothing —
+          neither needs a photo spec. Everything else is judged against one. */}
+      {task.proofType !== "physical_activity" && task.proofType !== "none" && (
+        <ProofRequirementPicker
+          value={proofRequirement}
+          onChange={onProofRequirementChange}
+          taskTitle={task.title}
+          taskDescription={task.description}
         />
       )}
     </div>
@@ -340,6 +358,10 @@ export default function CreateChallengePage() {
   // Physical targets, keyed by the task's local React key — a drafted task has
   // no database id until the insert below returns one.
   const [physicalConfigs, setPhysicalConfigs] = useState<Record<string, PhysicalConfigDraft>>({});
+
+  // What each task's proof must show, keyed by local task key like the above.
+  const [proofRequirements, setProofRequirements] =
+    useState<Record<string, ProofRequirementDraft | null>>({});
 
   const addTask = () =>
     setTasks((prev) => [...prev, {
@@ -487,9 +509,34 @@ export default function CreateChallengePage() {
         );
         for (let idx = 0; idx < tasks.length; idx++) {
           const t = tasks[idx];
-          if (t.proofType !== "physical_activity") continue;
           const taskId = bySortOrder.get(idx);
           if (!taskId) continue;
+
+          // Save the proof spec first — it is what the participant is shown and
+          // what the AI reviewer judges against, so a task without it silently
+          // falls back to lenient review.
+          const req = proofRequirements[t.key];
+          if (req && req.required_elements.length > 0) {
+            const { error: reqError } = await upsertChallengeTaskProofRequirement(
+              supabase,
+              taskId,
+              {
+                activity_category: req.activity_category,
+                custom_activity: req.custom_activity,
+                activity_label: req.activity_label,
+                required_elements: req.required_elements,
+                optional_elements: req.optional_elements,
+                reject_if: req.reject_if,
+                participant_hint: req.participant_hint,
+                generated_by: req.generated_by,
+              }
+            );
+            if (reqError) {
+              setSubmitError(`Proof requirements for "${t.title}" could not be saved: ${reqError}`);
+            }
+          }
+
+          if (t.proofType !== "physical_activity") continue;
 
           const cfg = physicalConfigs[t.key] ?? DEFAULT_PHYSICAL_CONFIG;
           const { error: cfgError } = await upsertChallengeTaskActivityConfig(supabase, {
@@ -759,6 +806,10 @@ export default function CreateChallengePage() {
                   physicalConfig={physicalConfigs[task.key] ?? DEFAULT_PHYSICAL_CONFIG}
                   onPhysicalConfigChange={(next) =>
                     setPhysicalConfigs((prev) => ({ ...prev, [task.key]: next }))
+                  }
+                  proofRequirement={proofRequirements[task.key] ?? null}
+                  onProofRequirementChange={(next) =>
+                    setProofRequirements((prev) => ({ ...prev, [task.key]: next }))
                   }
                 />
               ))}

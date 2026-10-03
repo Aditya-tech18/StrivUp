@@ -43,6 +43,8 @@ import { InviteSheet } from "@/components/features/InviteSheet";
 import type { ChallengeTask, TaskSubmission } from "@/lib/data/tasks";
 import { PhysicalTaskCard } from "@/components/features/activity";
 import { currentChallengePeriodProgress } from "@/lib/data/activity";
+import { ProofRequirementsNotice } from "@/components/features/proof/ProofRequirementsNotice";
+import type { ProofRequirement } from "@/lib/data/proofRequirements";
 import type { PhysicalActivityConfig, QuestActivityProgress } from "@/lib/activity/types";
 
 /* ── Public types ─────────────────────────────────────────────────────────── */
@@ -743,7 +745,28 @@ export function ChallengeDetailClient({
   );
   const [activityProgress, setActivityProgress] = useState<QuestActivityProgress[]>([]);
 
+  // What each task's proof must show. Loaded for every challenge with tasks,
+  // not just physical ones — this is what the participant is told before they
+  // upload, and what the AI reviewer is held to.
+  const [proofRequirements, setProofRequirements] = useState<Map<string, ProofRequirement>>(
+    new Map()
+  );
+
   const hasPhysicalTask = tasks.some((t) => t.proofType === "physical_activity");
+
+  useEffect(() => {
+    if (!hasTasks) return;
+    let cancelled = false;
+    (async () => {
+      const { createClient } = await import("@/lib/supabase/client");
+      const { getChallengeProofRequirements } = await import("@/lib/data/proofRequirements");
+      const reqs = await getChallengeProofRequirements(createClient(), challenge.id);
+      if (!cancelled) setProofRequirements(reqs);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [challenge.id, hasTasks]);
 
   useEffect(() => {
     if (!userId || !hasPhysicalTask) return;
@@ -962,15 +985,24 @@ export function ChallengeDetailClient({
                           />
                         );
                       }
+                      const requirement = proofRequirements.get(task.id);
+                      const alreadyApproved =
+                        submissionByTask[task.id]?.status === "approved";
                       return (
-                        <TaskUploadSlot
-                          key={task.id}
-                          task={task}
-                          submission={submissionByTask[task.id]}
-                          challengeId={challenge.id}
-                          userId={userId}
-                          joinedAt={joinedAt}
-                        />
+                        <div key={task.id} className="space-y-2">
+                          {/* Shown before the upload control, and hidden once the
+                              task is approved — at that point it is just noise. */}
+                          {requirement && !alreadyApproved && (
+                            <ProofRequirementsNotice requirement={requirement} />
+                          )}
+                          <TaskUploadSlot
+                            task={task}
+                            submission={submissionByTask[task.id]}
+                            challengeId={challenge.id}
+                            userId={userId}
+                            joinedAt={joinedAt}
+                          />
+                        </div>
                       );
                     })}
                   </div>
