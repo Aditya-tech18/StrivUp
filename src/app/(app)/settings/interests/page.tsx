@@ -59,7 +59,7 @@ export default function InterestsPage() {
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
             <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
@@ -93,7 +93,7 @@ export default function InterestsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search interests…"
-            className="w-full h-11 rounded-xl border border-outline-variant bg-white pl-9 pr-4 text-[14px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors"
+            className="w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest pl-9 pr-4 text-[14px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors"
           />
         </div>
 
@@ -115,7 +115,7 @@ export default function InterestsPage() {
                   "flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-medium border transition-all",
                   on
                     ? "bg-secondary text-white border-secondary shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
-                    : "bg-white text-on-surface border-outline-variant hover:border-secondary/50 hover:bg-surface-container-low",
+                    : "bg-surface-container-lowest text-on-surface border-outline-variant hover:border-secondary/50 hover:bg-surface-container-low",
                 ].join(" ")}
               >
                 {interest.name}
@@ -126,7 +126,7 @@ export default function InterestsPage() {
         </div>
 
         {/* Why card */}
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+        <div className="bg-secondary-fixed border border-secondary-fixed-dim rounded-2xl p-4">
           <p className="text-[13px] font-semibold text-secondary mb-1">Why does this matter?</p>
           <p className="text-[12px] text-on-surface-variant leading-relaxed">
             Your interests power STRIVUP&apos;s recommendation engine — helping us surface challenges and quests that align with your goals, not just what&apos;s popular.
@@ -135,7 +135,7 @@ export default function InterestsPage() {
       </div>
 
       {/* Bottom save bar */}
-      <div className="fixed above-bottom-nav z-40 bg-white/95 backdrop-blur-md border-t border-outline-variant px-5 py-4">
+      <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant px-5 py-4">
         <div className="max-w-lg mx-auto flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <p className="text-[13px] text-on-surface-variant">

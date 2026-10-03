@@ -153,7 +153,7 @@ function ConsistencyHeatmap({
 // ── Challenge Card ─────────────────────────────────────────────────────────
 function ChallengeCard({ stats }: { stats: ChallengeStats }) {
   return (
-    <div className="flex flex-col rounded-xl overflow-hidden border border-outline-variant bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+    <div className="flex flex-col rounded-xl overflow-hidden border border-outline-variant bg-surface-container-lowest shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
       <div className="relative w-full aspect-[4/3] bg-surface-container overflow-hidden">
         {stats.thumbnail_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -224,7 +224,7 @@ function FollowModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl flex flex-col max-h-[80vh] shadow-2xl">
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl flex flex-col max-h-[80vh] shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant shrink-0">
           <h2 className="text-[17px] font-bold text-on-surface">{title}</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
@@ -298,7 +298,7 @@ function ManageModal({
   const active = allStats.filter(s => s.status === "active");
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-5 max-h-[80vh] overflow-y-auto shadow-2xl">
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl p-5 max-h-[80vh] overflow-y-auto shadow-2xl">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-[17px] font-bold text-on-surface">Manage Challenges</h2>
@@ -539,12 +539,12 @@ export default function ProfilePage() {
   // ── Loading skeleton ───────────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen bg-surface pb-28">
-      <div className="flex items-center justify-between px-5 py-3.5 bg-white border-b border-outline-variant">
+      <div className="flex items-center justify-between px-5 py-3.5 bg-surface-container-lowest border-b border-outline-variant">
         <Sk className="h-5 w-24" />
         <div className="flex gap-2"><Sk className="w-9 h-9 rounded-xl" /><Sk className="w-9 h-9 rounded-xl" /></div>
       </div>
       <div className="max-w-lg mx-auto px-4 py-4 flex flex-col gap-3">
-        <div className="bg-white rounded-2xl border border-outline-variant p-5 flex flex-col gap-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4">
           <div className="flex gap-4">
             <Sk className="w-[76px] h-[76px] rounded-full shrink-0" />
             <div className="flex-1 flex flex-col gap-2 pt-1">
@@ -555,7 +555,7 @@ export default function ProfilePage() {
             <Sk className="h-10 w-20" /><Sk className="h-10 w-20" />
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-outline-variant p-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4">
           <Sk className="h-4 w-40 mb-3" />
           <div className="grid grid-cols-3 gap-2">
             <Sk className="aspect-[4/3] rounded-xl" />
@@ -574,7 +574,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-surface pb-28">
 
       {/* ── Sticky header ───────────────────────────────────────────────── */}
-      <div className="sticky top-0 pt-safe z-30 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-30 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
           <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">My Profile</h1>
           <div className="flex items-center gap-2">
@@ -611,7 +611,7 @@ export default function ProfilePage() {
       <div className="max-w-lg mx-auto px-4 py-4 flex flex-col gap-3">
 
         {/* ── Profile card ─────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] overflow-hidden">
           <div className="px-4 pt-5 pb-4">
 
             {/* Avatar + name */}
@@ -746,7 +746,7 @@ export default function ProfilePage() {
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   maxLength={80}
-                  className="w-full h-10 rounded-xl border border-outline-variant bg-white px-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                  className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
                 />
               </div>
 
@@ -758,7 +758,7 @@ export default function ProfilePage() {
                     value={username}
                     onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))}
                     maxLength={30}
-                    className="w-full h-10 rounded-xl border border-outline-variant bg-white pl-7 pr-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                    className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest pl-7 pr-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
                   />
                 </div>
               </div>
@@ -773,7 +773,7 @@ export default function ProfilePage() {
                   onChange={e => setBio(e.target.value)}
                   maxLength={150}
                   rows={3}
-                  className="w-full rounded-xl border border-outline-variant bg-white px-3 py-2 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary resize-none"
+                  className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary resize-none"
                 />
               </div>
 
@@ -783,7 +783,7 @@ export default function ProfilePage() {
                 {links.map(link => {
                   const label = PLATFORM_LABEL[link.platform] ?? link.platform;
                   return (
-                    <div key={link.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-white">
+                    <div key={link.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-surface-container-lowest">
                       <span className="text-[10px] font-bold text-secondary/70 uppercase tracking-wide shrink-0 w-16 truncate">{label}</span>
                       <span className="flex-1 text-[12px] text-on-surface truncate">{link.url}</span>
                       <button onClick={() => handleDelLink(link.id)} className="text-on-surface-variant hover:text-error transition-colors shrink-0">
@@ -802,7 +802,7 @@ export default function ProfilePage() {
                     <select
                       value={newPlat}
                       onChange={e => setNewPlat(e.target.value as SocialPlatform)}
-                      className="h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none"
+                      className="h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-[13px] text-on-surface focus:outline-none"
                     >
                       {PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                     </select>
@@ -811,7 +811,7 @@ export default function ProfilePage() {
                         value={newUrl}
                         onChange={e => setNewUrl(e.target.value)}
                         placeholder="https://…"
-                        className="flex-1 h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                        className="flex-1 h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
                       />
                       <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-[13px] font-semibold disabled:opacity-40">Add</button>
                       <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-[13px]">✕</button>
@@ -837,7 +837,7 @@ export default function ProfilePage() {
         </div>
 
         {/* ── My Active Challenges ─────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em]">
               My Active Challenges
@@ -877,7 +877,7 @@ export default function ProfilePage() {
 
         {/* ── Consistency Heatmap ────────────────────────────────────────── */}
         {allStats.filter(s => s.status === "active").length > 0 && (
-          <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em]">Consistency Heatmap</h3>
               <select
@@ -897,13 +897,13 @@ export default function ProfilePage() {
         )}
 
         {/* ── Achievements ─────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
           <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em] mb-3">Achievements</h3>
           {achievements.length > 0 ? (
             <div>
               {achievements.map((a, i) => {
-                const BG = ["bg-amber-50","bg-blue-50","bg-violet-50","bg-orange-50","bg-green-50","bg-rose-50","bg-teal-50","bg-sky-50"];
-                const FG = ["text-amber-600","text-blue-600","text-violet-600","text-orange-600","text-green-600","text-rose-600","text-teal-600","text-sky-600"];
+                const BG = ["bg-amber-50","bg-secondary-fixed","bg-violet-50","bg-orange-50","bg-green-50","bg-rose-50","bg-teal-50","bg-sky-50"];
+                const FG = ["text-amber-600","text-secondary","text-violet-600","text-orange-600","text-green-600","text-rose-600","text-teal-600","text-sky-600"];
                 const idx = i % BG.length;
                 return (
                   <div key={a.challenge_id} className="flex items-center gap-3 py-3 border-b border-outline-variant last:border-0">

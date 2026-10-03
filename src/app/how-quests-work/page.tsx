@@ -20,8 +20,8 @@ export const metadata: Metadata = {
 type Actor = "user" | "strivup" | "business";
 
 const ACTOR: Record<Actor, { label: string; cls: string; icon: typeof User }> = {
-  user:     { label: "Participant", cls: "bg-blue-50 text-blue-800 border-blue-100",   icon: User },
-  strivup:  { label: "STRIVUP",     cls: "bg-gray-900 text-white border-gray-900",     icon: ShieldCheck },
+  user:     { label: "Participant", cls: "bg-secondary-fixed text-on-secondary-fixed border-secondary-fixed-dim",   icon: User },
+  strivup:  { label: "STRIVUP",     cls: "bg-primary text-on-primary border-primary",     icon: ShieldCheck },
   business: { label: "Business",    cls: "bg-amber-50 text-amber-900 border-amber-100", icon: Store },
 };
 
@@ -69,9 +69,9 @@ const RULES = [
 
 function CodeChip({ label, value, tone }: { label: string; value: string; tone: "sv" | "bv" }) {
   return (
-    <div className={`mt-3 rounded-xl border-2 border-dashed px-4 py-3 ${tone === "sv" ? "border-blue-200 bg-blue-50" : "border-green-200 bg-green-50"}`}>
-      <p className="text-[11px] font-bold uppercase tracking-wider text-gray-700">{label}</p>
-      <p className="font-mono text-2xl font-black tracking-widest text-gray-900">{value}</p>
+    <div className={`mt-3 rounded-xl border-2 border-dashed px-4 py-3 ${tone === "sv" ? "border-secondary-fixed-dim bg-secondary-fixed" : "border-green-200 bg-green-50"}`}>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">{label}</p>
+      <p className="font-mono text-2xl font-black tracking-widest text-on-surface">{value}</p>
     </div>
   );
 }
@@ -79,7 +79,7 @@ function CodeChip({ label, value, tone }: { label: string; value: string; tone: 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
-      <h2 id={id} className="text-[20px] font-black tracking-tight text-gray-900">{title}</h2>
+      <h2 id={id} className="text-[20px] font-black tracking-tight text-on-surface">{title}</h2>
       {children}
     </section>
   );
@@ -87,31 +87,31 @@ function Section({ id, title, children }: { id: string; title: string; children:
 
 export default function HowQuestsWorkPage() {
   return (
-    <div className="min-h-screen bg-[#F8F9FC]">
-      <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-gray-100 bg-white px-3 py-2 [padding-top:max(0.5rem,env(safe-area-inset-top))]">
+    <div className="min-h-screen bg-surface">
+      <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-outline-variant bg-surface-container-lowest px-3 py-2 [padding-top:max(0.5rem,env(safe-area-inset-top))]">
         <Link href="/quests" aria-label="Back to Quests" className="flex h-11 w-11 items-center justify-center rounded-xl">
-          <ArrowLeft size={20} className="text-gray-700" />
+          <ArrowLeft size={20} className="text-on-surface-variant" />
         </Link>
-        <p className="flex-1 text-[15px] font-black text-gray-900">How Quests Work</p>
-        <span className="pr-2 text-[11px] font-black tracking-[0.2em] text-blue-700">STRIVUP</span>
+        <p className="flex-1 text-[15px] font-black text-on-surface">How Quests Work</p>
+        <span className="pr-2 text-[11px] font-black tracking-[0.2em] text-secondary">STRIVUP</span>
       </header>
 
       <main className="mx-auto flex max-w-2xl flex-col gap-10 px-4 pb-16 pt-6">
         {/* Hero */}
         <div className="flex flex-col gap-3">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-700">STRIVUP Quests</p>
-          <h1 className="text-[30px] font-black leading-tight tracking-tight text-gray-900">
+          <p className="text-xs font-bold uppercase tracking-wider text-secondary">STRIVUP Quests</p>
+          <h1 className="text-[30px] font-black leading-tight tracking-tight text-on-surface">
             Business promotions, turned into verified real-world actions.
           </h1>
-          <p className="text-[15px] leading-relaxed text-gray-700">
+          <p className="text-[15px] leading-relaxed text-on-surface-variant">
             Users join a Quest, place an eligible order, generate a unique STRIVUP code, link it to their order, get verified by
             the business, receive a second code on their bill, and complete the task to earn progress and rewards.
           </p>
-          <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-gray-700">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-on-surface-variant">
             {["Discover", "Join", "Act", "Verify", "Progress", "Reward", "Return"].map((s, i, a) => (
               <span key={s} className="flex items-center gap-1.5">
-                <span className="rounded-full border border-gray-200 bg-white px-2.5 py-1">{s}</span>
-                {i < a.length - 1 && <ArrowRight size={12} className="text-gray-400" aria-hidden="true" />}
+                <span className="rounded-full border border-outline-variant bg-surface-container-lowest px-2.5 py-1">{s}</span>
+                {i < a.length - 1 && <ArrowRight size={12} className="text-on-surface-variant" aria-hidden="true" />}
               </span>
             ))}
           </div>
@@ -120,17 +120,17 @@ export default function HowQuestsWorkPage() {
         {/* Challenge vs Quest */}
         <Section id="vs" title="Challenge vs Quest">
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-gray-100 bg-white p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-gray-600">Challenge</p>
-              <p className="mt-1 text-[17px] font-black text-gray-900">Personal growth</p>
-              <p className="mt-1 text-sm text-gray-700">100 Days of LeetCode, 30 Days Fitness, Daily Reading.</p>
-              <p className="mt-3 text-xs font-semibold text-gray-700">Join → Daily task → Upload proof → Streak → Community</p>
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Challenge</p>
+              <p className="mt-1 text-[17px] font-black text-on-surface">Personal growth</p>
+              <p className="mt-1 text-sm text-on-surface-variant">100 Days of LeetCode, 30 Days Fitness, Daily Reading.</p>
+              <p className="mt-3 text-xs font-semibold text-on-surface-variant">Join → Daily task → Upload proof → Streak → Community</p>
             </div>
-            <div className="rounded-2xl border border-blue-100 bg-white p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-blue-700">Quest</p>
-              <p className="mt-1 text-[17px] font-black text-gray-900">Real-world business action</p>
-              <p className="mt-1 text-sm text-gray-700">Order a featured dish, visit an outlet, try a product, attend an event.</p>
-              <p className="mt-3 text-xs font-semibold text-gray-700">Join → Business action → Verify → Progress → Reward</p>
+            <div className="rounded-2xl border border-secondary-fixed-dim bg-surface-container-lowest p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-secondary">Quest</p>
+              <p className="mt-1 text-[17px] font-black text-on-surface">Real-world business action</p>
+              <p className="mt-1 text-sm text-on-surface-variant">Order a featured dish, visit an outlet, try a product, attend an event.</p>
+              <p className="mt-3 text-xs font-semibold text-on-surface-variant">Join → Business action → Verify → Progress → Reward</p>
             </div>
           </div>
         </Section>
@@ -146,10 +146,10 @@ export default function HowQuestsWorkPage() {
               { icon: Gift,           t: "Reward",   d: "What completing the Quest can earn." },
               { icon: Trophy,         t: "Leaderboard", d: "Optional ranking on verified progress." },
             ].map(({ icon: Icon, t, d }) => (
-              <div key={t} className="rounded-2xl border border-gray-100 bg-white p-4">
-                <Icon size={18} className="text-blue-700" aria-hidden="true" />
-                <p className="mt-2 text-sm font-bold text-gray-900">{t}</p>
-                <p className="mt-0.5 text-xs leading-snug text-gray-700">{d}</p>
+              <div key={t} className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+                <Icon size={18} className="text-secondary" aria-hidden="true" />
+                <p className="mt-2 text-sm font-bold text-on-surface">{t}</p>
+                <p className="mt-0.5 text-xs leading-snug text-on-surface-variant">{d}</p>
               </div>
             ))}
           </div>
@@ -157,7 +157,7 @@ export default function HowQuestsWorkPage() {
 
         {/* The flow */}
         <Section id="flow" title="Order Verification, step by step">
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-on-surface-variant">
             Used for restaurant and delivery Quests. STRIVUP doesn&apos;t need a Zomato or Swiggy integration: the code in the order
             note is the bridge between the STRIVUP participant and the real order.
           </p>
@@ -167,15 +167,15 @@ export default function HowQuestsWorkPage() {
               return (
                 <li key={step.title} className="flex gap-3">
                   <div className="flex flex-col items-center">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-black text-white">{i + 1}</span>
-                    {i < FLOW.length - 1 && <span className="w-0.5 flex-1 bg-gray-200" aria-hidden="true" />}
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-black text-white">{i + 1}</span>
+                    {i < FLOW.length - 1 && <span className="w-0.5 flex-1 bg-surface-container-highest" aria-hidden="true" />}
                   </div>
                   <div className="flex-1 pb-5">
                     <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold ${a.cls}`}>
                       <a.icon size={11} aria-hidden="true" /> {a.label}
                     </span>
-                    <p className="mt-1 text-[15px] font-bold text-gray-900">{step.title}</p>
-                    <p className="text-sm leading-relaxed text-gray-700">{step.body}</p>
+                    <p className="mt-1 text-[15px] font-bold text-on-surface">{step.title}</p>
+                    <p className="text-sm leading-relaxed text-on-surface-variant">{step.body}</p>
                     {step.code && <CodeChip {...step.code} />}
                   </div>
                 </li>
@@ -186,16 +186,16 @@ export default function HowQuestsWorkPage() {
 
         {/* Why two codes */}
         <Section id="two" title="Why two codes?">
-          <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white">
+          <div className="overflow-x-auto rounded-2xl border border-outline-variant bg-surface-container-lowest">
             <table className="w-full min-w-[480px] text-sm">
               <thead>
-                <tr className="bg-gray-50 text-left text-xs text-gray-700">
+                <tr className="bg-surface-container-low text-left text-xs text-on-surface-variant">
                   <th className="px-4 py-2.5 font-semibold"> </th>
                   <th className="px-4 py-2.5 font-semibold">OTP 1 · Order code</th>
                   <th className="px-4 py-2.5 font-semibold">OTP 2 · Bill code</th>
                 </tr>
               </thead>
-              <tbody className="text-gray-800">
+              <tbody className="text-on-surface">
                 {[
                   ["Format", "SV-######", "BV-######"],
                   ["Direction", "Participant → Business (via order note)", "Business → Participant (via bill)"],
@@ -203,8 +203,8 @@ export default function HowQuestsWorkPage() {
                   ["Counts toward progress?", "No", "Yes — completes the task"],
                   ["Valid for", "24 hours", "24 hours, single use, only for you"],
                 ].map(([k, a, b]) => (
-                  <tr key={k} className="border-t border-gray-100">
-                    <td className="px-4 py-3 font-semibold text-gray-900">{k}</td>
+                  <tr key={k} className="border-t border-outline-variant">
+                    <td className="px-4 py-3 font-semibold text-on-surface">{k}</td>
                     <td className="px-4 py-3">{a}</td>
                     <td className="px-4 py-3">{b}</td>
                   </tr>
@@ -212,8 +212,8 @@ export default function HowQuestsWorkPage() {
               </tbody>
             </table>
           </div>
-          <div className="rounded-2xl bg-gray-900 p-4 text-sm leading-relaxed text-gray-100">
-            <span className="font-bold text-white">The chain of trust:</span> Intent (OTP 1) → Order → Business verification →
+          <div className="rounded-2xl bg-primary p-4 text-sm leading-relaxed text-on-primary">
+            <span className="font-bold text-on-primary">The chain of trust:</span> Intent (OTP 1) → Order → Business verification →
             Fulfilment (OTP 2 on the bill) → Participant verification → Completed. Two independent signals — the business
             confirms the order, and the participant proves they received it.
           </div>
@@ -221,8 +221,8 @@ export default function HowQuestsWorkPage() {
 
         {/* Example */}
         <Section id="example" title="Example: Veer Ji Chaap Explorer">
-          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
-            <div className="flex items-center gap-2 border-b border-gray-100 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-900">
+          <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest">
+            <div className="flex items-center gap-2 border-b border-outline-variant bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-900">
               <Eye size={14} aria-hidden="true" /> Illustrative example. The reward below is a demo configuration, not an offer.
             </div>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 p-4 text-sm">
@@ -237,12 +237,12 @@ export default function HowQuestsWorkPage() {
                 ["Reward (demo)", "₹100 cash for ranks 1–20 · ₹2,000 pool"],
               ].map(([k, v]) => (
                 <div key={k} className="contents">
-                  <dt className="text-gray-600">{k}</dt>
-                  <dd className="font-semibold text-gray-900">{v}</dd>
+                  <dt className="text-on-surface-variant">{k}</dt>
+                  <dd className="font-semibold text-on-surface">{v}</dd>
                 </div>
               ))}
             </dl>
-            <p className="border-t border-gray-100 px-4 py-3 text-sm text-gray-700">
+            <p className="border-t border-outline-variant px-4 py-3 text-sm text-on-surface-variant">
               Aditya joins, adds Malai Chaap to his Zomato cart, taps Post Proof and gets <span className="font-mono font-bold">SV-981042</span>.
               He puts it in the order note. Veer Ji sees it, searches it, verifies, and writes <span className="font-mono font-bold">BV-642815</span> on
               the bill. Aditya enters it: Task completed ✓ — progress 1/3. Two more verified orders complete the Quest.
@@ -254,12 +254,12 @@ export default function HowQuestsWorkPage() {
         <Section id="faq" title="What if…">
           <div className="flex flex-col gap-2">
             {EDGE_CASES.map(({ q, a }) => (
-              <details key={q} className="group rounded-2xl border border-gray-100 bg-white px-4 py-3">
-                <summary className="cursor-pointer list-none text-sm font-bold text-gray-900 flex items-center justify-between gap-3 min-h-[28px]">
+              <details key={q} className="group rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3">
+                <summary className="cursor-pointer list-none text-sm font-bold text-on-surface flex items-center justify-between gap-3 min-h-[28px]">
                   {q}
-                  <span className="text-gray-500 transition-transform group-open:rotate-90" aria-hidden="true">›</span>
+                  <span className="text-on-surface-variant transition-transform group-open:rotate-90" aria-hidden="true">›</span>
                 </summary>
-                <p className="mt-2 text-sm leading-relaxed text-gray-700">{a}</p>
+                <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">{a}</p>
               </details>
             ))}
           </div>
@@ -268,12 +268,12 @@ export default function HowQuestsWorkPage() {
         {/* Leaderboard & rewards */}
         <Section id="rewards" title="Leaderboard and rewards">
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700">
-              <p className="flex items-center gap-2 font-bold text-gray-900"><Trophy size={16} className="text-amber-600" aria-hidden="true" /> Leaderboard</p>
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant">
+              <p className="flex items-center gap-2 font-bold text-on-surface"><Trophy size={16} className="text-amber-600" aria-hidden="true" /> Leaderboard</p>
               <p className="mt-1">Ranks by verified tasks only. Ties go to whoever completed their latest verification first. Generating a code or a business approval never moves your rank.</p>
             </div>
-            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700">
-              <p className="flex items-center gap-2 font-bold text-gray-900"><Gift size={16} className="text-blue-700" aria-hidden="true" /> Rewards</p>
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant">
+              <p className="flex items-center gap-2 font-bold text-on-surface"><Gift size={16} className="text-secondary" aria-hidden="true" /> Rewards</p>
               <p className="mt-1">Verification answers “did it happen?”; the reward answers “what do I get?”. Completion rewards unlock when all required tasks are verified. Rank-based rewards follow the Quest&apos;s published conditions at the end.</p>
             </div>
           </div>
@@ -281,9 +281,9 @@ export default function HowQuestsWorkPage() {
 
         {/* Rules */}
         <Section id="rules" title="Quest rules">
-          <ol className="grid gap-2 rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-800 sm:grid-cols-2">
+          <ol className="grid gap-2 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface sm:grid-cols-2">
             {RULES.map((r, i) => (
-              <li key={r} className="flex gap-2"><span className="w-5 shrink-0 font-black text-blue-700">{i + 1}</span>{r}</li>
+              <li key={r} className="flex gap-2"><span className="w-5 shrink-0 font-black text-secondary">{i + 1}</span>{r}</li>
             ))}
           </ol>
         </Section>
@@ -291,26 +291,26 @@ export default function HowQuestsWorkPage() {
         {/* For businesses */}
         <Section id="business" title="For businesses">
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700">
-              <p className="flex items-center gap-2 font-bold text-gray-900"><Search size={16} aria-hidden="true" /> Verify Order</p>
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant">
+              <p className="flex items-center gap-2 font-bold text-on-surface"><Search size={16} aria-hidden="true" /> Verify Order</p>
               <p className="mt-1">Search the code from the order note, check the Quest and task, then Verify Order or Reject with a reason. Write the bill code STRIVUP gives you on the bill.</p>
             </div>
-            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700">
-              <p className="flex items-center gap-2 font-bold text-gray-900"><ShieldCheck size={16} aria-hidden="true" /> What you see</p>
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant">
+              <p className="flex items-center gap-2 font-bold text-on-surface"><ShieldCheck size={16} aria-hidden="true" /> What you see</p>
               <p className="mt-1">Only what you need to verify: the participant&apos;s display name, the Quest, the task, the code and its timing. No phone numbers, emails or addresses.</p>
             </div>
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-4">
-            <p className="text-sm font-bold text-gray-900">Your Quest funnel</p>
-            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-semibold text-gray-700">
+          <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+            <p className="text-sm font-bold text-on-surface">Your Quest funnel</p>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-semibold text-on-surface-variant">
               {["Views", "Joins", "Proof codes generated", "Orders verified", "Bill codes entered", "Quest completions"].map((s, i, a) => (
                 <span key={s} className="flex items-center gap-1.5">
-                  <span className="rounded-lg bg-gray-50 px-2 py-1">{s}</span>
-                  {i < a.length - 1 && <ArrowRight size={12} className="text-gray-400" aria-hidden="true" />}
+                  <span className="rounded-lg bg-surface-container-low px-2 py-1">{s}</span>
+                  {i < a.length - 1 && <ArrowRight size={12} className="text-on-surface-variant" aria-hidden="true" />}
                 </span>
               ))}
             </div>
-            <p className="mt-2 text-xs text-gray-600">See exactly where people drop off — not just how many saw your campaign.</p>
+            <p className="mt-2 text-xs text-on-surface-variant">See exactly where people drop off — not just how many saw your campaign.</p>
           </div>
         </Section>
 
@@ -323,19 +323,19 @@ export default function HowQuestsWorkPage() {
               { icon: CheckCircle2, t: "No proof",         d: "Mark done — for simple, low-stakes steps." },
               { icon: XCircle,    t: "Coming later",       d: "QR, event and location codes, and POS integrations." },
             ].map(({ icon: Icon, t, d }) => (
-              <li key={t} className="flex gap-3 rounded-2xl border border-gray-100 bg-white p-4">
-                <Icon size={18} className="shrink-0 text-blue-700" aria-hidden="true" />
-                <div><p className="text-sm font-bold text-gray-900">{t}</p><p className="text-xs text-gray-700">{d}</p></div>
+              <li key={t} className="flex gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+                <Icon size={18} className="shrink-0 text-secondary" aria-hidden="true" />
+                <div><p className="text-sm font-bold text-on-surface">{t}</p><p className="text-xs text-on-surface-variant">{d}</p></div>
               </li>
             ))}
           </ul>
         </Section>
 
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Link href="/quests" className="flex h-12 flex-1 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white">
+          <Link href="/quests" className="flex h-12 flex-1 items-center justify-center rounded-xl bg-secondary text-sm font-bold text-white">
             Explore Quests
           </Link>
-          <Link href="/business" className="flex h-12 flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white text-sm font-bold text-gray-900">
+          <Link href="/business" className="flex h-12 flex-1 items-center justify-center rounded-xl border border-outline-variant bg-surface-container-lowest text-sm font-bold text-on-surface">
             Create a Quest for your business
           </Link>
         </div>

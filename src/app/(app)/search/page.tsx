@@ -102,7 +102,7 @@ export default function SearchPage() {
   return (
     <div className="min-h-screen bg-[#F5F5F7] pb-28">
       {/* Header */}
-      <div className="sticky top-0 pt-safe z-40 bg-white border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest border-b border-outline-variant">
         <div className="max-w-lg mx-auto px-5 py-3">
           <div className="flex items-center gap-2 bg-surface-container rounded-xl border border-outline-variant px-4 h-11 focus-within:ring-2 focus-within:ring-secondary focus-within:border-secondary">
             <Search size={18} className="text-on-surface-variant shrink-0" />
@@ -170,7 +170,7 @@ export default function SearchPage() {
           <div className="flex flex-col gap-2">
             {users.map(user => (
               <Link key={user.id} href={`/profile/${user.id}`}>
-                <div className="bg-white rounded-2xl border border-outline-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container transition-colors">
+                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container transition-colors">
                   <div className="w-11 h-11 rounded-full bg-secondary/10 overflow-hidden shrink-0 flex items-center justify-center">
                     {user.avatar_url
                       // eslint-disable-next-line @next/next/no-img-element
@@ -197,7 +197,7 @@ export default function SearchPage() {
           <div className="flex flex-col gap-2">
             {challenges.map(ch => (
               <Link key={ch.id} href={`/challenges/${ch.id}`}>
-                <div className="bg-white rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3">
+                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3">
                   <div className="w-16 h-16 rounded-xl bg-surface-container overflow-hidden shrink-0 flex items-center justify-center">
                     {ch.thumbnail_url
                       // eslint-disable-next-line @next/next/no-img-element
@@ -224,7 +224,7 @@ export default function SearchPage() {
           <div className="flex flex-col gap-2">
             {quests.map(q => (
               <Link key={q.id} href={`/quests/${q.id}`}>
-                <div className="bg-white rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3">
+                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3">
                   <div className="w-16 h-16 rounded-xl bg-surface-container overflow-hidden shrink-0 flex items-center justify-center">
                     {(q.cover_url || q.thumbnail_url)
                       // eslint-disable-next-line @next/next/no-img-element
@@ -235,7 +235,7 @@ export default function SearchPage() {
                   <div className="flex-1 min-w-0 py-0.5">
                     <p className="text-sm font-bold text-on-surface line-clamp-1">{q.title}</p>
                     {q.business_name && <p className="text-[10px] text-on-surface-variant">by {q.business_name}</p>}
-                    {q.category && <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{q.category}</span>}
+                    {q.category && <span className="text-[10px] font-semibold text-secondary bg-secondary-fixed px-2 py-0.5 rounded-full">{q.category}</span>}
                     <div className="flex items-center gap-1 text-xs text-on-surface-variant mt-1">
                       <Users size={11} />{q.participant_count} participants
                     </div>

@@ -77,7 +77,7 @@ export function CreatorPlans({ showComparison = true }: { showComparison?: boole
       </div>
 
       {/* Growth */}
-      <div className="relative overflow-hidden rounded-2xl border border-amber-400/60 bg-gray-950 p-5">
+      <div className="relative overflow-hidden rounded-2xl border border-amber-400/60 bg-inverse-surface p-5">
         <span className="absolute right-0 top-0 rounded-bl-xl bg-amber-400 px-3 py-1 text-[10px] font-bold tracking-wider text-on-surface">
           POPULAR
         </span>
@@ -86,8 +86,8 @@ export function CreatorPlans({ showComparison = true }: { showComparison?: boole
             <span className="inline-block rounded-md bg-amber-400 px-2 py-0.5 text-[10px] font-bold tracking-wider text-on-surface">
               GROWTH
             </span>
-            <p className="mt-2 text-3xl font-black text-white">
-              ₹299<span className="text-sm font-medium text-on-surface-variant">/month</span>
+            <p className="mt-2 text-3xl font-black text-inverse-on-surface">
+              ₹299<span className="text-sm font-medium text-inverse-on-surface">/month</span>
             </p>
           </div>
           <div className="mt-6 flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container-lowest/10">
@@ -96,7 +96,7 @@ export function CreatorPlans({ showComparison = true }: { showComparison?: boole
         </div>
         <ul className="mt-4 flex flex-col gap-2.5">
           {GROWTH_FEATURES.map(f => (
-            <li key={f} className="flex items-start gap-2 text-sm text-on-surface-variant">
+            <li key={f} className="flex items-start gap-2 text-sm text-inverse-on-surface">
               <Star size={16} className="mt-0.5 shrink-0 text-amber-400" aria-hidden="true" />
               {f}
             </li>

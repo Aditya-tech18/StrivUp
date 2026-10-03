@@ -60,12 +60,12 @@ export default async function ActivitySettingsPage({
             : null;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FC] pb-20">
-      <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-gray-100 bg-white px-5 py-4">
+    <div className="min-h-screen bg-surface pb-20">
+      <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-outline-variant bg-surface-container-lowest px-5 py-4">
         <Link href="/settings" aria-label="Back to settings">
-          <ArrowLeft className="h-5 w-5 text-gray-600" />
+          <ArrowLeft className="h-5 w-5 text-on-surface-variant" />
         </Link>
-        <h1 className="text-base font-semibold text-gray-900">Activity tracking</h1>
+        <h1 className="text-base font-semibold text-on-surface">Activity tracking</h1>
       </header>
 
       <main className="mx-auto max-w-2xl space-y-5 px-5 py-5">
@@ -79,8 +79,8 @@ export default async function ActivitySettingsPage({
         )}
 
         <section>
-          <h2 className="mb-1 text-sm font-semibold text-gray-900">How this works</h2>
-          <p className="mb-3 text-xs leading-relaxed text-gray-500">
+          <h2 className="mb-1 text-sm font-semibold text-on-surface">How this works</h2>
+          <p className="mb-3 text-xs leading-relaxed text-on-surface-variant">
             StrivUp counts your steps using your phone&apos;s motion sensor while the app is
             open. Tap start, put the phone in your pocket, and walk — your physical quest
             tasks complete themselves, with no photo to upload and no other app to install.
@@ -92,8 +92,8 @@ export default async function ActivitySettingsPage({
         </section>
 
         <section>
-          <h2 className="mb-1 text-sm font-semibold text-gray-900">Other sources</h2>
-          <p className="mb-3 text-xs leading-relaxed text-gray-500">
+          <h2 className="mb-1 text-sm font-semibold text-on-surface">Other sources</h2>
+          <p className="mb-3 text-xs leading-relaxed text-on-surface-variant">
             Optional. Only needed if you want runs and rides from a service you already use.
           </p>
 
@@ -111,11 +111,11 @@ export default async function ActivitySettingsPage({
           </div>
         </section>
 
-        <section className="rounded-xl border border-gray-200 bg-white p-4">
-          <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
+        <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
+          <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-on-surface">
             <ShieldCheck className="h-4 w-4 text-green-600" /> Your privacy
           </h2>
-          <ul className="space-y-1.5 text-xs leading-relaxed text-gray-600">
+          <ul className="space-y-1.5 text-xs leading-relaxed text-on-surface-variant">
             <li>• We read only the activity needed for quests you have joined.</li>
             <li>
               • Businesses see your progress toward their own quest — never your health history.
@@ -129,7 +129,7 @@ export default async function ActivitySettingsPage({
         </section>
 
         <section>
-          <h2 className="mb-2 text-sm font-semibold text-gray-900">Recent activity</h2>
+          <h2 className="mb-2 text-sm font-semibold text-on-surface">Recent activity</h2>
           <ActivityHistory records={history} />
         </section>
       </main>

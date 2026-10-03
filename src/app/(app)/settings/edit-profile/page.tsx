@@ -24,8 +24,8 @@ const PLATFORMS: { value: SocialPlatform; label: string }[] = [
 
 const PLATFORM_COLORS: Record<string, string> = {
   instagram: "bg-pink-50 text-pink-600",
-  linkedin:  "bg-blue-50 text-blue-600",
-  github:    "bg-gray-50 text-gray-700",
+  linkedin:  "bg-secondary-fixed text-secondary",
+  github:    "bg-surface-container-low text-on-surface-variant",
   twitter:   "bg-sky-50 text-sky-600",
   youtube:   "bg-red-50 text-red-600",
   portfolio: "bg-violet-50 text-violet-600",
@@ -55,7 +55,7 @@ function Field({
 }
 
 const inputCls =
-  "w-full h-11 rounded-xl border border-outline-variant bg-white px-3.5 text-[14px] " +
+  "w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 text-[14px] " +
   "text-on-surface placeholder:text-on-surface-variant focus:outline-none " +
   "focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors";
 
@@ -178,7 +178,7 @@ export default function EditProfilePage() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
             <button aria-label="Back"
@@ -219,7 +219,7 @@ export default function EditProfilePage() {
       <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-5">
 
         {/* ── Avatar ───────────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col items-center gap-3">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col items-center gap-3">
           <div className="relative">
             <div className={[
               "w-24 h-24 rounded-full overflow-hidden border-2 border-outline-variant bg-surface-container",
@@ -274,7 +274,7 @@ export default function EditProfilePage() {
         </div>
 
         {/* ── Personal information ─────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-4">
           <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
             Personal Information
           </p>
@@ -309,7 +309,7 @@ export default function EditProfilePage() {
                 maxLength={150}
                 rows={3}
                 placeholder="Tell people a bit about yourself"
-                className="w-full rounded-xl border border-outline-variant bg-white px-3.5 py-2.5 text-[14px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors resize-none"
+                className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 py-2.5 text-[14px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors resize-none"
               />
               <span className="absolute bottom-2 right-3 text-[11px] text-on-surface-variant">
                 {bio.length}/150
@@ -319,7 +319,7 @@ export default function EditProfilePage() {
         </div>
 
         {/* ── Social links ─────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-3">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
               Social Links
@@ -375,7 +375,7 @@ export default function EditProfilePage() {
               <select aria-label="Social platform"
                 value={newPlatform}
                 onChange={e => setNewPlatform(e.target.value as SocialPlatform)}
-                className="h-10 rounded-lg border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
               >
                 {PLATFORMS.map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -385,7 +385,7 @@ export default function EditProfilePage() {
                 value={newUrl}
                 onChange={e => setNewUrl(e.target.value)}
                 placeholder="https://…"
-                className="h-10 rounded-lg border border-outline-variant bg-white px-3 text-[13px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-[13px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
               />
               {linkError && (
                 <p className="text-[12px] text-error">{linkError}</p>

@@ -45,7 +45,7 @@ export default function PrivacyPage() {
 
   return (
     <div className="min-h-screen bg-surface pb-28">
-      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-5 py-3.5">
           <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
             <ArrowLeft size={19} className="text-on-surface" />
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
         )}
 
         {/* Toggle row */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-4">
           <div className="flex items-center gap-3.5">
             <div className={[
               "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
@@ -92,7 +92,7 @@ export default function PrivacyPage() {
               ].join(" ")}
             >
               <div className={[
-                "absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200",
+                "absolute top-0.5 w-5 h-5 rounded-full bg-surface-container-lowest shadow transition-transform duration-200",
                 isPrivate ? "translate-x-6" : "translate-x-0.5",
               ].join(" ")} />
               {saving && <Loader2 size={12} className="absolute inset-0 m-auto text-white animate-spin" />}
@@ -103,7 +103,7 @@ export default function PrivacyPage() {
         {/* Info card */}
         <div className={[
           "rounded-2xl border p-4",
-          isPrivate ? "bg-blue-50 border-blue-100" : "bg-surface-container-low border-outline-variant",
+          isPrivate ? "bg-secondary-fixed border-secondary-fixed-dim" : "bg-surface-container-low border-outline-variant",
         ].join(" ")}>
           {isPrivate ? (
             <>

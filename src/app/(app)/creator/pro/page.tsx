@@ -15,31 +15,31 @@ const BENEFITS = [
 
 export default function CreatorProPage() {
   return (
-    <div className="min-h-screen bg-[#F8F9FC]">
-      <header className="sticky top-0 pt-safe z-30 flex items-center gap-3 border-b border-gray-100 bg-white px-4 py-3">
+    <div className="min-h-screen bg-surface">
+      <header className="sticky top-0 pt-safe z-30 flex items-center gap-3 border-b border-outline-variant bg-surface-container-lowest px-4 py-3">
         <Link href="/creator/challenges" aria-label="Back"
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100">
-          <ArrowLeft size={20} className="text-gray-600" />
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-container">
+          <ArrowLeft size={20} className="text-on-surface-variant" />
         </Link>
-        <h1 className="flex-1 text-[17px] font-black text-gray-900">Creator Pro</h1>
+        <h1 className="flex-1 text-[17px] font-black text-on-surface">Creator Pro</h1>
       </header>
 
       <div className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-6">
         <div className="text-center">
-          <h2 className="text-[26px] font-black leading-tight tracking-tight text-gray-900">Scale Your Influence</h2>
-          <p className="mt-2 text-sm text-gray-500">
+          <h2 className="text-[26px] font-black leading-tight tracking-tight text-on-surface">Scale Your Influence</h2>
+          <p className="mt-2 text-sm text-on-surface-variant">
             Turn your audience into an active community with structured challenges.
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           {BENEFITS.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="rounded-2xl border border-gray-100 bg-white p-4">
-              <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50">
-                <Icon size={18} className="text-blue-600" aria-hidden="true" />
+            <div key={title} className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+              <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-secondary-fixed">
+                <Icon size={18} className="text-secondary" aria-hidden="true" />
               </div>
-              <p className="text-sm font-bold text-gray-900">{title}</p>
-              <p className="mt-0.5 text-xs leading-snug text-gray-600">{desc}</p>
+              <p className="text-sm font-bold text-on-surface">{title}</p>
+              <p className="mt-0.5 text-xs leading-snug text-on-surface-variant">{desc}</p>
             </div>
           ))}
         </div>
@@ -47,7 +47,7 @@ export default function CreatorProPage() {
         <CreatorPlans />
 
         <Link href="/challenges/new"
-          className="flex h-12 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white shadow-sm shadow-blue-200 hover:bg-blue-700">
+          className="flex h-12 items-center justify-center rounded-xl bg-secondary text-sm font-bold text-white shadow-sm shadow-blue-200 hover:opacity-90">
           Create a free challenge →
         </Link>
       </div>
