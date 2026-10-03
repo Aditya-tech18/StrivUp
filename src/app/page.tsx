@@ -1,57 +1,34 @@
 /**
  * Root page — /
  *
- * PRIMARY job: Render the STRIVUP gateway (Continue as User / Continue as Business).
+ * Renders the STRIVUP gateway (Continue as User / Continue as Business).
  *
- * SECONDARY job: Handle stray OAuth ?code= from Supabase (when site_url = root).
- * When ?code= is present, forward to /auth/callback. Otherwise show the gateway.
+ * There used to be a second page for this at app/(auth)/page.tsx. Both
+ * resolved to /, so one of them was dead and which one Next served was not
+ * something you could tell by reading the tree. This is the one that survives,
+ * because it also forwards a stray OAuth ?code= (see OAuthCodeForwarder), and
+ * it is a server component now so it can carry the metadata the other one had.
  */
-"use client";
-
-import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import type { Metadata } from "next";
 import { Suspense } from "react";
-import { GatewayScreen } from "@/app/(auth)/GatewayScreen";
+import { GatewayScreen } from "./(auth)/GatewayScreen";
+import { OAuthCodeForwarder } from "./OAuthCodeForwarder";
 
-function RootHandler() {
-  const searchParams = useSearchParams();
-  const code = searchParams.get("code");
-
-  useEffect(() => {
-    if (code) {
-      const isBusinessFlow =
-        document.cookie.split(";").some(c => c.trim().startsWith("strivup_business_intent=1"));
-      const next = isBusinessFlow ? "/business" : "/feed";
-      window.location.replace(
-        `/auth/callback?code=${encodeURIComponent(code)}&next=${next}`
-      );
-    }
-    // No code → just render the gateway below
-  }, [code]);
-
-  // If handling an OAuth code, show a loading spinner
-  if (code) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-surface">
-        <div className="w-8 h-8 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
-      </div>
-    );
-  }
-
-  // No code → show the gateway
-  return <GatewayScreen />;
-}
+export const metadata: Metadata = {
+  title: "India's Platform for Growth",
+  description:
+    "Build discipline, join challenges, and grow with a community that holds you accountable.",
+};
 
 export default function RootPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-surface">
-          <div className="w-8 h-8 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
-        </div>
-      }
-    >
-      <RootHandler />
-    </Suspense>
+    <>
+      {/* useSearchParams opts this subtree into client rendering; the Suspense
+          boundary keeps the gateway below it static. */}
+      <Suspense fallback={null}>
+        <OAuthCodeForwarder />
+      </Suspense>
+      <GatewayScreen />
+    </>
   );
 }
