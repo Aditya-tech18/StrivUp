@@ -97,6 +97,31 @@ screen. Unsupported or refused is non-fatal.
 | Engine (SQL) | `supabase/migrations/20260928_physical_activity_functions.sql` |
 | Tests | `supabase/tests/physical_activity_test.sql` |
 
+## Two domains, one engine
+
+Physical tasks work on **both** business quests and user-created challenges.
+`quest_task_activity_config` and `quest_activity_progress` carry both — the
+table names kept the `quest` prefix because renaming live tables, policies and
+functions would have been churn for a cosmetic gain. The domain is explicit in
+the columns instead, and `qtac_one_domain_check` / `qap_one_domain_check`
+guarantee a row belongs to exactly one.
+
+| | Quest | Challenge |
+|---|---|---|
+| Config ids | `task_id` + `quest_id` | `challenge_task_id` + `challenge_id` |
+| Window | global: `start_date … end_date` | per participant: `joined_at … + duration_days` |
+| Completion writes | `quest_task_submissions` | `proof_submissions` (needs `day_number`) |
+| Then | `evaluate_quest_completion` → reward claim `eligible` | `settle_challenge_completions` → streak / completion |
+
+Because progress is a projection over `activity_records` rather than a balance
+that gets spent, **one walk satisfies both at once**:
+
+```
+Device activity   6,000 steps
+  Quest     "Walk 5,000"      5,000 / 5,000   COMPLETED  -> coupon eligible
+  Challenge "Walk 3,000/day"  3,000 / 3,000   COMPLETED  -> counts toward streak
+```
+
 ## Data model
 
 - **`activity_records`** — source of truth. Never mutated by quest logic.

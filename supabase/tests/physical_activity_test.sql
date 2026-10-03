@@ -273,3 +273,96 @@ BEGIN
   END IF;
   RAISE EXCEPTION 'ALL_TESTS_PASSED_ROLLBACK';
 END $test$;
+
+/*
+ * ── Challenges (Option B: one engine, two domains) ──────────────────────────
+ *
+ * Proves that a user-created challenge can carry a physical task, and — the
+ * reason this was worth doing — that ONE walk satisfies a business quest and a
+ * personal challenge at the same time, because progress is a projection over a
+ * single activity record rather than a balance that gets spent.
+ *
+ * Also a regression guard: recalc_physical_task_progress is now shared, so the
+ * quest assertions here must keep passing.
+ */
+DO $test$
+DECLARE
+  v_user uuid := (SELECT id FROM profiles ORDER BY created_at LIMIT 1);
+  v_ch uuid; v_ct uuid; v_q uuid; v_qt uuid;
+  v_today date := (now() AT TIME ZONE 'Asia/Kolkata')::date;
+  v_val numeric; v_status text; v_cnt integer; v_day integer; v_claims integer;
+  v_fail text[] := ARRAY[]::text[];
+BEGIN
+  IF v_user IS NULL THEN
+    RAISE EXCEPTION 'no profiles exist — seed a user before running these tests';
+  END IF;
+
+  INSERT INTO challenges (creator_id,title,duration_days,visibility)
+  VALUES (v_user,'TEST 7-day walk challenge',7,'public') RETURNING id INTO v_ch;
+  INSERT INTO challenge_tasks (challenge_id,title,proof_type,is_required,sort_order)
+  VALUES (v_ch,'Walk 3000 steps','physical_activity',true,0) RETURNING id INTO v_ct;
+  INSERT INTO quest_task_activity_config
+    (challenge_task_id,challenge_id,activity_type,target_value,unit,frequency,tracking_mode)
+  VALUES (v_ct,v_ch,'steps',3000,'steps','daily','self_reported');
+  INSERT INTO challenge_participants (challenge_id,user_id,joined_at)
+  VALUES (v_ch,v_user, now() - interval '2 days');
+
+  INSERT INTO quests (creator_id,title,quest_status,status,proof_type,start_date,end_date)
+  VALUES (v_user,'TEST quest 5k','active','active','photo',now()-interval '1 day',now()+interval '5 days')
+  RETURNING id INTO v_q;
+  INSERT INTO quest_tasks (quest_id,title,proof_type,is_required,sort_order)
+  VALUES (v_q,'Walk 5000','physical_activity',true,0) RETURNING id INTO v_qt;
+  INSERT INTO quest_task_activity_config
+    (task_id,quest_id,activity_type,target_value,unit,frequency,tracking_mode)
+  VALUES (v_qt,v_q,'steps',5000,'steps','daily','self_reported');
+  INSERT INTO quest_rewards (quest_id,reward_type,title) VALUES (v_q,'discount','Rs 100 off');
+  INSERT INTO quest_participants (quest_id,user_id) VALUES (v_q,v_user);
+
+  /* One 6,000-step walk, two domains. */
+  PERFORM ingest_activity_records(v_user,'device_sensor','DEVICE_SENSOR', jsonb_build_array(
+    jsonb_build_object('dedupe_key','steps:'||v_today,'activity_type','steps','granularity','daily',
+      'local_date',v_today,'started_at',now()-interval '1 hour','ended_at',now(),'steps',6000)));
+
+  SELECT current_value,status INTO v_val,v_status FROM quest_activity_progress
+   WHERE challenge_task_id=v_ct AND user_id=v_user AND period_date=v_today;
+  IF coalesce(v_val,-1) <> 6000 OR v_status <> 'COMPLETED' THEN
+    v_fail := v_fail || format('challenge progress %s/%s', v_val, v_status);
+  END IF;
+
+  /* proof_submissions.day_number is NOT NULL and counts from joined_at, so a
+     participant who joined 2 days ago is on day 3. */
+  SELECT count(*), max(day_number) INTO v_cnt, v_day FROM proof_submissions
+   WHERE challenge_id=v_ch AND task_id=v_ct AND user_id=v_user AND verification_status='approved';
+  IF v_cnt <> 1 THEN v_fail := v_fail || format('challenge proof rows = %s', v_cnt); END IF;
+  IF v_day <> 3 THEN v_fail := v_fail || format('day_number = %s (expected 3)', v_day); END IF;
+
+  SELECT current_value,status INTO v_val,v_status FROM quest_activity_progress
+   WHERE task_id=v_qt AND user_id=v_user AND period_date=v_today;
+  IF coalesce(v_val,-1) <> 6000 OR v_status <> 'COMPLETED' THEN
+    v_fail := v_fail || format('quest progress %s/%s', v_val, v_status);
+  END IF;
+  SELECT count(*) INTO v_claims FROM quest_reward_claims
+   WHERE quest_id=v_q AND user_id=v_user AND status='eligible';
+  IF v_claims <> 1 THEN v_fail := v_fail || format('quest reward claims = %s', v_claims); END IF;
+
+  /* Re-sync must not duplicate the challenge proof. */
+  PERFORM ingest_activity_records(v_user,'device_sensor','DEVICE_SENSOR', jsonb_build_array(
+    jsonb_build_object('dedupe_key','steps:'||v_today,'activity_type','steps','granularity','daily',
+      'local_date',v_today,'started_at',now()-interval '1 hour','ended_at',now(),'steps',6000)));
+  SELECT count(*) INTO v_cnt FROM proof_submissions
+   WHERE challenge_id=v_ch AND task_id=v_ct AND user_id=v_user AND verification_status='approved';
+  IF v_cnt <> 1 THEN v_fail := v_fail || format('challenge proof duplicated: %s', v_cnt); END IF;
+
+  /* A row may belong to one domain only. */
+  BEGIN
+    INSERT INTO quest_task_activity_config (task_id,quest_id,challenge_task_id,challenge_id,target_value)
+    VALUES (v_qt,v_q,v_ct,v_ch,100);
+    v_fail := v_fail || 'mixed-domain config row was accepted';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+
+  IF array_length(v_fail,1) > 0 THEN
+    RAISE EXCEPTION 'FAILURES: %', array_to_string(v_fail,' | ');
+  END IF;
+  RAISE EXCEPTION 'ALL_TESTS_PASSED_ROLLBACK';
+END $test$;

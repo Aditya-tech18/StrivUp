@@ -129,6 +129,10 @@ export async function upsertTaskActivityConfig(
     {
       task_id: config.task_id,
       quest_id: config.quest_id,
+      /* Null the challenge columns explicitly — the one-domain CHECK rejects a
+         row that carries both. */
+      challenge_task_id: null,
+      challenge_id: null,
       activity_type: config.activity_type,
       target_value: config.target_value,
       unit: config.unit,
@@ -142,6 +146,92 @@ export async function upsertTaskActivityConfig(
   );
 
   return { error: error?.message ?? null };
+}
+
+/* ── Challenge side ──────────────────────────────────────────────────────── */
+
+/**
+ * The same config and progress tables serve both domains (see
+ * 20260930_physical_activity_challenges.sql), so these mirror the quest
+ * helpers and only differ in which id column they filter on.
+ */
+export async function getChallengeActivityConfigs(
+  supabase: SupabaseClient,
+  challengeId: string
+): Promise<Map<string, PhysicalActivityConfig>> {
+  const { data, error } = await supabase
+    .from("quest_task_activity_config")
+    .select("*")
+    .eq("challenge_id", challengeId);
+
+  if (error) {
+    console.error("[getChallengeActivityConfigs]", error.message);
+    return new Map();
+  }
+
+  const map = new Map<string, PhysicalActivityConfig>();
+  for (const row of data ?? []) {
+    map.set(row.challenge_task_id as string, row as PhysicalActivityConfig);
+  }
+  return map;
+}
+
+export async function getChallengeActivityProgress(
+  supabase: SupabaseClient,
+  challengeId: string,
+  userId: string
+): Promise<QuestActivityProgress[]> {
+  const { data, error } = await supabase
+    .from("quest_activity_progress")
+    .select("*")
+    .eq("challenge_id", challengeId)
+    .eq("user_id", userId)
+    .order("period_date", { ascending: true });
+
+  if (error) {
+    console.error("[getChallengeActivityProgress]", error.message);
+    return [];
+  }
+  return (data ?? []) as QuestActivityProgress[];
+}
+
+/** Attach a physical target to a challenge task. */
+export async function upsertChallengeTaskActivityConfig(
+  supabase: SupabaseClient,
+  config: PhysicalActivityConfig & { challenge_task_id: string; challenge_id: string }
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.from("quest_task_activity_config").upsert(
+    {
+      challenge_task_id: config.challenge_task_id,
+      challenge_id: config.challenge_id,
+      /* Null the quest columns explicitly — the one-domain CHECK rejects a row
+         that carries both. */
+      task_id: null,
+      quest_id: null,
+      activity_type: config.activity_type,
+      target_value: config.target_value,
+      unit: config.unit,
+      tracking_mode: config.tracking_mode,
+      frequency: config.frequency,
+      specific_date: config.specific_date ?? null,
+      timezone: config.timezone || "Asia/Kolkata",
+      allow_manual_proof: config.allow_manual_proof,
+    },
+    { onConflict: "challenge_task_id" }
+  );
+
+  return { error: error?.message ?? null };
+}
+
+/** The progress row that matters now, for a challenge task. */
+export function currentChallengePeriodProgress(
+  rows: QuestActivityProgress[],
+  challengeTaskId: string,
+  today: string
+): QuestActivityProgress | null {
+  const forTask = rows.filter((r) => r.challenge_task_id === challengeTaskId);
+  if (forTask.length === 0) return null;
+  return forTask.find((r) => r.period_date === today) ?? forTask[forTask.length - 1];
 }
 
 export async function deleteTaskActivityConfig(
