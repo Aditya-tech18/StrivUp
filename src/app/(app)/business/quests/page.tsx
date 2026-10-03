@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight, Clock, Eye, Plus, Users } from "lucide-react";
+import { ArrowLeft, ChevronRight, Clock, Eye, Plus, Trophy, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, type Quest, type QuestStatus } from "@/lib/data/businessQuests";
@@ -22,7 +22,7 @@ const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
   published:      { label: "Published",      cls: "bg-secondary-fixed text-secondary" },
   active:         { label: "Active",         cls: "bg-success-container text-on-success-container" },
   paused:         { label: "Paused",         cls: "bg-warning-container text-on-warning-container" },
-  completed:      { label: "Completed",      cls: "bg-purple-100 text-purple-700" },
+  completed:      { label: "Completed",      cls: "bg-chart-3/10 text-chart-3" },
   expired:        { label: "Expired",        cls: "bg-surface-container text-on-surface-variant" },
   rejected:       { label: "Rejected",       cls: "bg-error-container text-on-error-container" },
   archived:       { label: "Archived",       cls: "bg-surface-container text-on-surface-variant" },
@@ -122,7 +122,7 @@ export default function BusinessQuestsPage() {
                     {quest.cover_url || quest.thumbnail_url
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={quest.cover_url ?? quest.thumbnail_url ?? ""} alt={quest.title} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full flex items-center justify-center text-2xl">🏆</div>
+                      : <div className="flex h-full w-full items-center justify-center bg-surface-container-high"><Trophy size={22} className="text-on-surface-variant opacity-50" aria-hidden="true" /></div>
                     }
                   </div>
                   {/* Info */}

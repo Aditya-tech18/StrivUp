@@ -36,7 +36,7 @@ const STATUS_CFG = {
   pending:    { label: "Pending",    cls: "text-on-surface-variant bg-surface-container border-outline-variant" },
   eligible:   { label: "Eligible",   cls: "text-on-success-container bg-success-container border-success-outline" },
   processing: { label: "Processing", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
-  fulfilled:  { label: "Fulfilled",  cls: "text-purple-700 bg-purple-50 border-purple-200" },
+  fulfilled:  { label: "Fulfilled",  cls: "text-chart-3 bg-chart-3/10 border-chart-3/25" },
   failed:     { label: "Failed",     cls: "text-on-error-container bg-error-container border-error-outline" },
   disputed:   { label: "Disputed",   cls: "text-on-warning-container bg-warning-container border-warning-outline" },
 } as const;
@@ -113,7 +113,7 @@ export default function RewardsPage() {
           {[
             { label: "Eligible", value: claims.filter(c => c.status === "eligible").length, color: "text-on-success-container" },
             { label: "Pending",  value: claims.filter(c => c.status === "pending").length,  color: "text-on-warning-container" },
-            { label: "Fulfilled",value: claims.filter(c => c.status === "fulfilled").length, color: "text-purple-600" },
+            { label: "Fulfilled",value: claims.filter(c => c.status === "fulfilled").length, color: "text-chart-3" },
           ].map(s => (
             <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex flex-col items-center elev-1 surface-raised">
               <span className={`text-2xl font-black ${s.color}`}>{s.value}</span>

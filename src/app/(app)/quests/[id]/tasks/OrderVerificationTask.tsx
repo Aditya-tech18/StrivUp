@@ -191,7 +191,7 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
           <input id={`bill-${task.id}`} value={billCode} onChange={e => { setBillCode(formatCodeInput(e.target.value, "BV")); setError(null); }}
             onKeyDown={e => e.key === "Enter" && billCode.length >= 9 && submitBillCode()}
             placeholder="BV-000000" inputMode="text" autoCapitalize="characters" autoComplete="one-time-code" maxLength={9}
-            className="h-14 rounded-xl border border-outline bg-surface-container-lowest px-4 text-center font-mono text-2xl font-black tracking-widest text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-secondary focus:ring-2 focus:ring-blue-100" />
+            className="h-14 rounded-xl border border-outline bg-surface-container-lowest px-4 text-center font-mono text-2xl font-black tracking-widest text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
           <p className="text-xs text-on-surface-variant">Bill code valid for {expiresIn(request?.bill_code_expires_at, now)}.</p>
           <button type="button" onClick={submitBillCode} disabled={busy || billCode.length < 9}
             className="w-full h-12 rounded-xl bg-success hover:bg-success text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">

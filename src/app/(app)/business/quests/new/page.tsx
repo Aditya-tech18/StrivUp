@@ -5,7 +5,7 @@
  */
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, GripVertical, ImageIcon, Plus, Trash2, Upload, X } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, Globe, GripVertical, ImageIcon, Link as LinkIcon, Plus, Rocket, Trash2, Trophy, Upload, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import {
@@ -33,20 +33,36 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       <div className="h-1 bg-surface-container-highest"><div className="h-1 bg-secondary transition-all duration-500" style={{ width: `${(step/TOTAL_STEPS)*100}%` }} /></div>
-      <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
-        {onBack && <button onClick={onBack} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center"><ChevronLeft size={20} className="text-on-surface-variant" /></button>}
-        <div className="flex-1">
-          <p className="text-label-sm text-on-surface-variant font-semibold uppercase tracking-wider">Step {step} of {TOTAL_STEPS} · {STEP_LABELS[step-1]}</p>
-          <h1 className="text-headline-md font-black text-on-surface leading-tight">{title}</h1>
-          {subtitle && <p className="text-sm text-on-surface-variant mt-0.5">{subtitle}</p>}
+      {/* Header, form and footer all share one measure. They did not before:
+          the header and the sticky footer ran the full viewport while the form
+          was clamped to max-w-lg, so on a laptop the step title sat far left of
+          the fields it described and Next was a 100vw-wide button. */}
+      <div className="sticky top-0 z-30 border-b border-outline-variant bg-surface-container-lowest">
+        <div className="mx-auto flex w-full max-w-lg items-center gap-3 px-5 py-4 md:max-w-2xl">
+          {onBack && (
+            <button
+              onClick={onBack}
+              aria-label="Back"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-container pressable focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+            >
+              <ChevronLeft size={20} className="text-on-surface-variant" aria-hidden="true" />
+            </button>
+          )}
+          <div className="flex-1">
+            <p className="text-overline text-on-surface-variant">Step {step} of {TOTAL_STEPS} · {STEP_LABELS[step-1]}</p>
+            <h1 className="text-headline-md font-black leading-tight text-on-surface">{title}</h1>
+            {subtitle && <p className="mt-0.5 text-body-md text-on-surface-variant">{subtitle}</p>}
+          </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-5 py-5 pb-28 max-w-lg mx-auto w-full">{children}</div>
-      <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-4">
-        <button onClick={onNext} disabled={nextDisabled || saving}
-          className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold flex items-center justify-center gap-2 transition-all">
-          {saving ? "Saving…" : <>{nextLabel} <ChevronRight size={18} /></>}
-        </button>
+      <div className="mx-auto w-full max-w-lg flex-1 overflow-y-auto px-5 py-5 pb-28 md:max-w-2xl">{children}</div>
+      <div className="fixed above-bottom-nav z-40 border-t border-outline-variant bg-surface-container-lowest">
+        <div className="mx-auto w-full max-w-lg px-5 py-4 md:max-w-2xl">
+          <button onClick={onNext} disabled={nextDisabled || saving}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary font-bold text-white transition-all elev-brand hover:opacity-90 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary">
+            {saving ? "Saving…" : <>{nextLabel} <ChevronRight size={18} aria-hidden="true" /></>}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -309,13 +325,13 @@ function CreateQuestContent() {
           <label className="text-sm font-semibold text-on-surface-variant">Description *</label>
           <textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={1000} rows={4}
             placeholder="Describe the quest, what participants need to do, and why they should join..."
-            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none elev-1 surface-raised" />
+            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30 resize-none" />
           <p className="text-xs text-on-surface-variant text-right">{description.length}/1000</p>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-on-surface-variant">Category</label>
           <select value={category} onChange={e => setCategory(e.target.value)}
-            className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary elev-1 surface-raised">
+            className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary">
             <option value="">Select category…</option>
             {QUEST_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -354,10 +370,10 @@ function CreateQuestContent() {
               )}
             </div>
             <input value={task.title ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, title: e.target.value } : t))}
-              placeholder="Task title *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest elev-1 surface-raised" />
+              placeholder="Task title *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest" />
             <textarea value={task.description ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, description: e.target.value } : t))}
               placeholder="Task description..." rows={2}
-              className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest resize-none elev-1 surface-raised" />
+              className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest resize-none" />
             <div className="flex gap-3">
               <div className="flex-1">
                 <label className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">Proof Type</label>
@@ -420,7 +436,7 @@ function CreateQuestContent() {
 
             <textarea value={task.instructions ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, instructions: e.target.value } : t))}
               placeholder="Instructions for participants (optional)..." rows={2}
-              className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest resize-none elev-1 surface-raised" />
+              className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest resize-none" />
 
             {task.proof_type === "physical_activity" && (
               <PhysicalActivityConfigFields
@@ -471,9 +487,9 @@ function CreateQuestContent() {
               </div>
             </div>
             <input value={reward.title ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, title: e.target.value } : r))}
-              placeholder="Reward title (e.g. ₹10,000 Cash Prize) *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest elev-1 surface-raised" />
+              placeholder="Reward title (e.g. ₹10,000 Cash Prize) *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest" />
             <input value={reward.value ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, value: e.target.value } : r))}
-              placeholder="Value (e.g. ₹10,000)" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest elev-1 surface-raised" />
+              placeholder="Value (e.g. ₹10,000)" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest" />
             {isLeaderboard && (
               <div className="grid grid-cols-2 gap-3">
                 <input type="number" value={reward.rank_from ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, rank_from: parseInt(e.target.value) || null } : r))}
@@ -507,13 +523,13 @@ function CreateQuestContent() {
           <label className="text-sm font-semibold text-on-surface-variant">Eligibility</label>
           <textarea value={eligibility} onChange={e => setEligibility(e.target.value)} rows={3}
             placeholder="Who can participate? (e.g. Open to all, 18+ only, Indian residents only...)"
-            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none elev-1 surface-raised" />
+            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30 resize-none" />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-on-surface-variant">Participation Rules</label>
           <textarea value={rules} onChange={e => setRules(e.target.value)} rows={6}
             placeholder="List the rules, proof requirements, reward criteria, disqualification rules..."
-            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none elev-1 surface-raised" />
+            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30 resize-none" />
         </div>
         <div className="bg-secondary-fixed border border-secondary-fixed-dim rounded-xl px-4 py-3">
           <p className="text-xs text-secondary font-medium">By submitting, you confirm that all reward information provided is accurate and you are legally permitted to offer these rewards.</p>
@@ -528,15 +544,15 @@ function CreateQuestContent() {
       onBack={() => setStep(4)} onNext={saveAudience} saving={saving}>
       <div className="flex flex-col gap-3">
         {([
-          { value: "public", title: "Public", desc: "Anyone on STRIVUP can discover and join", icon: "🌍" },
-          { value: "community_only", title: "Community Only", desc: "Only members of your community can join", icon: "👥" },
-          { value: "invite_only", title: "Invite Only", desc: "Only people with an invite link can join", icon: "🔗" },
+          { value: "public", title: "Public", desc: "Anyone on STRIVUP can discover and join", Icon: Globe },
+          { value: "community_only", title: "Community Only", desc: "Only members of your community can join", Icon: Users },
+          { value: "invite_only", title: "Invite Only", desc: "Only people with an invite link can join", Icon: LinkIcon },
         ] as const).map(opt => (
           <button key={opt.value} type="button" onClick={() => setVisibility(opt.value)}
             className={`flex items-start gap-4 p-4 rounded-2xl border-2 text-left transition-all ${
               visibility === opt.value ? "border-secondary bg-secondary-fixed" : "border-outline-variant bg-surface-container-lowest hover:border-outline-variant"
             }`}>
-            <span className="text-2xl mt-0.5">{opt.icon}</span>
+            <opt.Icon size={22} className={`mt-0.5 shrink-0 ${visibility === opt.value ? "text-secondary" : "text-on-surface-variant"}`} aria-hidden="true" />
             <div>
               <p className={`text-sm font-bold ${visibility === opt.value ? "text-secondary" : "text-on-surface"}`}>{opt.title}</p>
               <p className="text-xs text-on-surface-variant mt-0.5">{opt.desc}</p>
@@ -551,15 +567,23 @@ function CreateQuestContent() {
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       <div className="h-1 bg-secondary w-full" />
-      <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
-        <button onClick={() => setStep(5)} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center"><ChevronLeft size={20} className="text-on-surface-variant" /></button>
-        <div>
-          <p className="text-label-sm text-on-surface-variant font-semibold uppercase tracking-wider">Step 6 of 6 · Review</p>
-          <h1 className="text-headline-md font-black text-on-surface">Review & Publish</h1>
+      <div className="sticky top-0 z-30 border-b border-outline-variant bg-surface-container-lowest">
+        <div className="mx-auto flex w-full max-w-lg items-center gap-3 px-5 py-4 md:max-w-2xl">
+          <button
+            onClick={() => setStep(5)}
+            aria-label="Back to visibility"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-container pressable focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            <ChevronLeft size={20} className="text-on-surface-variant" aria-hidden="true" />
+          </button>
+          <div>
+            <p className="text-overline text-on-surface-variant">Step 6 of 6 · Review</p>
+            <h1 className="text-headline-md font-black text-on-surface">Review &amp; Publish</h1>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-5 pb-36 max-w-lg mx-auto w-full flex flex-col gap-4">
+      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 overflow-y-auto px-5 py-5 pb-36 md:max-w-2xl">
         {error && <p className="text-on-error-container text-sm bg-error-container rounded-xl px-4 py-3">{error}</p>}
 
         {/* Cover preview */}
@@ -571,7 +595,7 @@ function CreateQuestContent() {
         )}
 
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-3 elev-1 surface-raised">
-          <h2 className="text-xl font-black text-on-surface">{title}</h2>
+          <h2 className="text-headline-md font-black text-on-surface">{title}</h2>
           {category && <span className="self-start text-xs font-semibold text-secondary bg-secondary-fixed px-3 py-1 rounded-full">{category}</span>}
           {description && <p className="text-sm text-on-surface-variant leading-relaxed">{description}</p>}
         </div>
@@ -598,7 +622,7 @@ function CreateQuestContent() {
             <p className="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider mb-3">Rewards ({rewards.filter(r => r.title?.trim()).length})</p>
             {rewards.filter(r => r.title?.trim()).map((r, i) => (
               <div key={i} className="flex items-center gap-3 py-2 border-b border-outline-variant last:border-0">
-                <span className="text-lg">🏆</span>
+                <Trophy size={16} className="shrink-0 text-warning" aria-hidden="true" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-on-surface">{r.title}</p>
                   {r.rank_from && <p className="text-xs text-on-surface-variant">Rank {r.rank_from}{r.rank_to ? `–${r.rank_to}` : "+"}</p>}
@@ -611,23 +635,27 @@ function CreateQuestContent() {
 
         {!isVerified && (
           <div className="bg-warning-container border border-warning-outline rounded-2xl px-4 py-4">
-            <p className="text-sm font-bold text-on-warning-container">⚠ Business Verification Required</p>
+            <p className="flex items-center gap-1.5 text-body-md font-bold text-on-warning-container">
+              <AlertTriangle size={15} aria-hidden="true" /> Business Verification Required
+            </p>
             <p className="text-xs text-on-warning-container mt-1">Your business must be verified before publishing a Quest. You can save as draft and publish once verified.</p>
           </div>
         )}
       </div>
 
-      <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-4 flex flex-col gap-2">
-        {isVerified && (
-          <button onClick={handlePublish} disabled={saving}
-            className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-body-lg transition-all">
-            {saving ? "Publishing…" : "🚀 Publish Quest"}
+      <div className="fixed above-bottom-nav z-40 border-t border-outline-variant bg-surface-container-lowest">
+        <div className="mx-auto flex w-full max-w-lg flex-col gap-2 px-5 py-4 md:max-w-2xl">
+          {isVerified && (
+            <button onClick={handlePublish} disabled={saving}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary font-bold text-body-lg text-white transition-all elev-brand hover:opacity-90 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary">
+              {saving ? "Publishing…" : <><Rocket size={18} aria-hidden="true" /> Publish Quest</>}
+            </button>
+          )}
+          <button onClick={handleSaveDraft} disabled={saving}
+            className="h-11 w-full rounded-xl border border-outline-variant text-body-md font-semibold text-on-surface-variant transition-colors pressable hover:bg-surface-container-low focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary">
+            Save as Draft
           </button>
-        )}
-        <button onClick={handleSaveDraft} disabled={saving}
-          className="w-full h-11 rounded-xl border border-outline-variant text-on-surface-variant font-semibold text-sm hover:bg-surface-container-low transition-colors">
-          Save as Draft
-        </button>
+        </div>
       </div>
     </div>
   );

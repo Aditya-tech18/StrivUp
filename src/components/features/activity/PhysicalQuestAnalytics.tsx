@@ -26,7 +26,7 @@ export function PhysicalQuestAnalytics({
       label: "Started",
       value: data.started.toLocaleString("en-IN"),
       icon: Activity,
-      tone: "text-indigo-600",
+      tone: "text-chart-3",
     },
     {
       label: "Completed",

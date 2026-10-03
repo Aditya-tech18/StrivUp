@@ -11,7 +11,7 @@ const TABS = [
   { value: "pending",                label: "Pending",       cls: "text-on-warning-container bg-warning-container border-warning-outline" },
   { value: "approved",               label: "Approved",      cls: "text-on-success-container bg-success-container border-success-outline" },
   { value: "rejected",               label: "Rejected",      cls: "text-on-error-container bg-error-container border-error-outline" },
-  { value: "resubmission_required",  label: "Resubmission",  cls: "text-purple-700 bg-purple-50 border-purple-200" },
+  { value: "resubmission_required",  label: "Resubmission",  cls: "text-chart-3 bg-chart-3/10 border-chart-3/25" },
 ] as const;
 type TabValue = typeof TABS[number]["value"];
 
@@ -165,7 +165,7 @@ export default function ProofVerificationPage() {
                       <span className={`text-label-sm font-bold px-2 py-0.5 rounded-full border shrink-0 ${
                         sub.verification_status === "approved" ? "text-on-success-container bg-success-container border-success-outline" :
                         sub.verification_status === "rejected" ? "text-on-error-container bg-error-container border-error-outline" :
-                        "text-purple-700 bg-purple-50 border-purple-200"
+                        "text-chart-3 bg-chart-3/10 border-chart-3/25"
                       }`}>
                         {sub.verification_status === "approved" ? "Approved" : sub.verification_status === "rejected" ? "Rejected" : "Resubmission"}
                       </span>
@@ -201,7 +201,7 @@ export default function ProofVerificationPage() {
                       <XCircle size={16} /> Reject
                     </button>
                     <button onClick={() => { setShowRejectModal(`resubmit-${sub.id}`); setRejectReason(""); }}
-                      className="flex-1 h-9 rounded-xl border-2 border-purple-200 text-purple-600 text-sm font-bold">
+                      className="flex-1 h-9 rounded-xl border-2 border-chart-3/25 text-chart-3 text-sm font-bold">
                       Resubmit
                     </button>
                     <button onClick={() => handleApprove(sub.id)} disabled={reviewing === sub.id}
@@ -239,7 +239,7 @@ export default function ProofVerificationPage() {
                   else handleReject(id);
                 }}
                 disabled={!!reviewing}
-                className={`flex-1 h-11 rounded-xl text-white font-bold text-sm disabled:opacity-40 ${showRejectModal.startsWith("resubmit-") ? "bg-purple-600" : "bg-error"}`}>
+                className={`flex-1 h-11 rounded-xl text-white font-bold text-sm disabled:opacity-40 ${showRejectModal.startsWith("resubmit-") ? "bg-chart-3" : "bg-error"}`}>
                 {reviewing ? "…" : showRejectModal.startsWith("resubmit-") ? "Request Resubmission" : "Reject"}
               </button>
             </div>

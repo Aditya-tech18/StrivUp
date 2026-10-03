@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ChevronDown, Zap } from "lucide-react";
+import { ArrowLeft, ChevronDown, Target, TrendingUp, Trophy, Users, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, type Quest } from "@/lib/data/businessQuests";
@@ -70,12 +70,12 @@ export default function PromotePage() {
           </div>
           <div className="grid grid-cols-3 gap-3">
             {[
-              { icon: "👥", label: "More Participants" },
-              { icon: "📈", label: "Higher Visibility" },
-              { icon: "🎯", label: "Targeted Reach" },
+              { Icon: Users,      label: "More Participants" },
+              { Icon: TrendingUp, label: "Higher Visibility" },
+              { Icon: Target,     label: "Targeted Reach" },
             ].map(item => (
               <div key={item.label} className="bg-surface-container-lowest/70 rounded-xl p-2.5 text-center">
-                <p className="text-xl mb-1">{item.icon}</p>
+                <item.Icon size={20} className="mx-auto mb-1 text-secondary" aria-hidden="true" />
                 <p className="text-label-sm font-semibold text-on-secondary-fixed">{item.label}</p>
               </div>
             ))}
@@ -109,7 +109,7 @@ export default function PromotePage() {
                 {selectedQuestObj.cover_url
                   // eslint-disable-next-line @next/next/no-img-element
                   ? <img src={selectedQuestObj.cover_url} alt="" className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-xl">🏆</div>
+                  : <div className="flex h-full w-full items-center justify-center bg-surface-container-high"><Trophy size={18} className="text-on-surface-variant opacity-50" aria-hidden="true" /></div>
                 }
               </div>
               <div className="flex-1 min-w-0">

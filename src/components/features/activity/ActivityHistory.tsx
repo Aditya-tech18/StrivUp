@@ -21,7 +21,7 @@ export function ActivityHistory({ records }: { records: ActivityRecord[] }) {
   }
 
   return (
-    <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest elev-1 surface-raised">
+    <ul className="divide-y divide-outline-variant overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest elev-1 surface-raised">
       {records.map((r) => (
         <li key={r.id} className="flex items-center gap-3 p-3">
           <span className="text-lg" aria-hidden>

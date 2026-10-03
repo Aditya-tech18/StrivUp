@@ -93,7 +93,7 @@ export default function InterestsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search interests…"
-            className="w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest pl-9 pr-4 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors elev-1 surface-raised"
+            className="w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest pl-9 pr-4 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors"
           />
         </div>
 

@@ -41,7 +41,7 @@ export function DailyStepsCard({ data }: { data: ActivityDashboard }) {
             <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
               <div
                 className={`w-full rounded-t transition-all ${
-                  isToday ? "bg-secondary" : "bg-blue-200"
+                  isToday ? "bg-secondary" : "bg-secondary-fixed-dim"
                 }`}
                 style={{ height: `${heightPct}%` }}
                 title={`${d.steps.toLocaleString("en-IN")} steps`}

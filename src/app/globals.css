@@ -115,6 +115,22 @@
   --color-on-warning-container: #92400e;
   --color-warning-outline: #fde68a;
 
+  /* ── Categorical chart series ────────────────────────────────────────────
+     An analytics funnel needs more hues than the three brand ramps provide,
+     so the charts were picking colours ad hoc (blue-400, indigo-500,
+     purple-500 alongside tokens). Six fixed series instead.
+
+     Each is at least 4.7:1 against the page, so a bar is visible on its own.
+     They are NOT mutually distinguishable in greyscale, and six hues cannot
+     be: every chart that uses them carries a text label per series, so colour
+     is supplementary rather than the only way to read the value.           */
+  --color-chart-1: #1d4ed8;
+  --color-chart-2: #0e7490;
+  --color-chart-3: #6d28d9;
+  --color-chart-4: #b45309;
+  --color-chart-5: #047857;
+  --color-chart-6: #be185d;
+
   /* ── Type scale ──────────────────────────────────────────────────────────
      Each entry carries line-height, tracking and weight, so a single
      `text-headline-sm` is the complete style. The `-mobile` variants are

@@ -746,7 +746,7 @@ export default function ProfilePage() {
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   maxLength={80}
-                  className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary elev-1 surface-raised"
+                  className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
                 />
               </div>
 
@@ -758,7 +758,7 @@ export default function ProfilePage() {
                     value={username}
                     onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))}
                     maxLength={30}
-                    className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest pl-7 pr-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary elev-1 surface-raised"
+                    className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest pl-7 pr-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
                   />
                 </div>
               </div>
@@ -773,7 +773,7 @@ export default function ProfilePage() {
                   onChange={e => setBio(e.target.value)}
                   maxLength={150}
                   rows={3}
-                  className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary resize-none elev-1 surface-raised"
+                  className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary resize-none"
                 />
               </div>
 
@@ -802,7 +802,7 @@ export default function ProfilePage() {
                     <select
                       value={newPlat}
                       onChange={e => setNewPlat(e.target.value as SocialPlatform)}
-                      className="h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none elev-1 surface-raised"
+                      className="h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none"
                     >
                       {PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                     </select>
@@ -811,7 +811,7 @@ export default function ProfilePage() {
                         value={newUrl}
                         onChange={e => setNewUrl(e.target.value)}
                         placeholder="https://…"
-                        className="flex-1 h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary elev-1 surface-raised"
+                        className="flex-1 h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
                       />
                       <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-body-md font-semibold disabled:opacity-40">Add</button>
                       <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-body-md">✕</button>
@@ -902,8 +902,8 @@ export default function ProfilePage() {
           {achievements.length > 0 ? (
             <div>
               {achievements.map((a, i) => {
-                const BG = ["bg-warning-container","bg-secondary-fixed","bg-violet-50","bg-warning-container","bg-success-container","bg-error-container","bg-teal-50","bg-sky-50"];
-                const FG = ["text-on-warning-container","text-secondary","text-violet-600","text-on-warning-container","text-on-success-container","text-on-error-container","text-teal-600","text-sky-600"];
+                const BG = ["bg-warning-container","bg-secondary-fixed","bg-chart-3/10","bg-warning-container","bg-success-container","bg-error-container","bg-chart-2/10","bg-chart-2/10"];
+                const FG = ["text-on-warning-container","text-secondary","text-chart-3","text-on-warning-container","text-on-success-container","text-on-error-container","text-chart-2","text-chart-2"];
                 const idx = i % BG.length;
                 return (
                   <div key={a.challenge_id} className="flex items-center gap-3 py-3 border-b border-outline-variant last:border-0">

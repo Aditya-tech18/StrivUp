@@ -91,7 +91,7 @@ export default function VerificationHistoryPage() {
             <p className="text-sm text-on-surface-variant">No {filter==="all" ? "" : filter} verifications yet.</p>
           </div>
         ) : (
-          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-50 elev-1 surface-raised">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-outline-variant elev-1 surface-raised">
             {filtered.map(req => {
               const participant = req.participant as { full_name: string|null }|undefined;
               const pName = participant?.full_name ?? "Unknown";

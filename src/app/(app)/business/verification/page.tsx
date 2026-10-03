@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, ChevronRight, Clock, Copy, HelpCircle, Search, Shield, Users, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, Clock, Copy, HelpCircle, Info, Search, Shield, Users, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCodeInput } from "@/lib/data/orderVerification";
 import {
@@ -187,7 +187,7 @@ function VerifyContent() {
               onKeyDown={e => e.key === "Enter" && handleSearch()}
               placeholder="SV-000000"
               maxLength={9}
-              className="flex-1 h-12 rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant px-4 font-mono tracking-wider text-lg focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 elev-1 surface-raised"
+              className="flex-1 h-12 rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant px-4 font-mono tracking-wider text-lg focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30"
             />
             {svCode && (
               <button aria-label="Clear code" type="button" onClick={() => setSvCode("")}
@@ -205,7 +205,7 @@ function VerifyContent() {
 
         {/* Info note */}
         <div className="flex items-start gap-2 text-on-surface-variant">
-          <span className="text-blue-500 mt-0.5 shrink-0">ℹ</span>
+          <Info size={15} className="mt-0.5 shrink-0 text-secondary" aria-hidden="true" />
           <p className="text-sm">No code in the order note? The order can&apos;t be linked to a Quest automatically.</p>
         </div>
 
@@ -217,7 +217,7 @@ function VerifyContent() {
               value={insightRange}
               onChange={e => setInsightRange(e.target.value as InsightRange)}
               aria-label="Insights time range"
-              className="h-8 rounded-lg border border-outline-variant bg-surface-container-lowest text-xs font-semibold text-on-surface-variant px-2 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-secondary elev-1 surface-raised"
+              className="h-8 rounded-lg border border-outline-variant bg-surface-container-lowest text-xs font-semibold text-on-surface-variant px-2 focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary"
             >
               <option value="7">Last 7 Days</option>
               <option value="30">Last 30 Days</option>
@@ -274,7 +274,7 @@ function VerifyContent() {
               <h3 className="text-sm font-bold text-on-surface">Recent Searches</h3>
               <button className="text-sm text-secondary font-semibold">View all</button>
             </div>
-            <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-50 elev-1 surface-raised">
+            <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-outline-variant elev-1 surface-raised">
               {recentSearches.map((s, i) => {
                 const sCfg = { found: { label: "Found", cls: "text-on-success-container bg-success-container" }, invalid: { label: "Invalid", cls: "text-on-error-container bg-error-container" }, expired: { label: "Expired", cls: "text-on-warning-container bg-warning-container" } } as const;
                 const c = sCfg[s.status];
@@ -305,7 +305,7 @@ function VerifyContent() {
                 <p className="text-sm text-on-surface-variant">No pending verification requests right now.</p>
               </div>
             )}
-            {recentVerifs.length > 0 && <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-50 elev-1 surface-raised">
+            {recentVerifs.length > 0 && <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-outline-variant elev-1 surface-raised">
               {recentVerifs.map(req => {
                 const participant = req.participant as { full_name: string | null } | undefined;
                 const pName = participant?.full_name ?? "Unknown";
@@ -353,7 +353,7 @@ function VerifyContent() {
             </span>
           </div>
 
-          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-4 divide-y divide-gray-50 elev-1 surface-raised">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-4 divide-y divide-outline-variant elev-1 surface-raised">
             {[
               { label: "Customer", value: pName },
               { label: "Quest",    value: questTitle },
@@ -368,7 +368,7 @@ function VerifyContent() {
           </div>
 
           <div className="bg-warning-container border border-warning-outline rounded-2xl px-4 py-3 flex items-start gap-2">
-            <span className="text-on-warning-container shrink-0 mt-0.5" aria-hidden="true">⚠</span>
+            <AlertTriangle size={15} className="mt-0.5 shrink-0 text-on-warning-container" aria-hidden="true" />
             <p className="text-sm text-on-warning-container">Verify only if this code is on a real order for an eligible item. You&apos;ll get a bill code to write on the customer&apos;s bill.</p>
           </div>
 

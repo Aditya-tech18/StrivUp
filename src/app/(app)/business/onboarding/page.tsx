@@ -142,7 +142,7 @@ export default function BusinessOnboardingPage() {
           <label className="text-sm font-semibold text-on-surface-variant">Description</label>
           <textarea aria-label="Description" value={description} onChange={e => setDescription(e.target.value)} maxLength={300} rows={3}
             placeholder="What does your business do? What makes it special?"
-            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none elev-1 surface-raised" />
+            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30 resize-none" />
           <p className="text-xs text-on-surface-variant text-right">{description.length}/300</p>
         </div>
       </div>
@@ -259,14 +259,14 @@ export default function BusinessOnboardingPage() {
         {socialLinks.length < 4 && (
           <div className="flex flex-col gap-2 mt-1">
             <select aria-label="Social platform" value={newPlatform} onChange={e => setNewPlatform(e.target.value)}
-              className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant elev-1 surface-raised">
+              className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant">
               {["instagram","linkedin","twitter","youtube","portfolio","other"].map(p => (
                 <option key={p} value={p}>{p.charAt(0).toUpperCase()+p.slice(1)}</option>
               ))}
             </select>
             <div className="flex gap-2">
               <input aria-label="Link URL" value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="https://…"
-                className="flex-1 h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm focus:outline-none focus:border-secondary elev-1 surface-raised" />
+                className="flex-1 h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm focus:outline-none focus:border-secondary" />
               <button type="button" onClick={() => { if (!newUrl.trim()) return; setSocialLinks(p => [...p, { platform: newPlatform, url: newUrl.trim() }]); setNewUrl(""); }}
                 className="h-10 px-4 rounded-xl bg-secondary text-white text-sm font-semibold">
                 Add
@@ -316,7 +316,7 @@ export default function BusinessOnboardingPage() {
         </div>
 
         {/* Detail rows */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-100 elev-1 surface-raised">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-outline-variant elev-1 surface-raised">
           {[
             { label: "Description", value: description },
             { label: "Phone", value: businessPhone },

@@ -7,7 +7,7 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, UserCheck, UserMinus, UserPlus } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Trophy, UserCheck, UserMinus, UserPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 interface PublicProfile {
@@ -279,7 +279,7 @@ export default function PublicProfilePage({
                       {ch.thumbnail_url
                         // eslint-disable-next-line @next/next/no-img-element
                         ? <img src={ch.thumbnail_url} alt={ch.title} className="w-full h-full object-cover" />
-                        : <div className="w-full h-full flex items-center justify-center text-2xl">🏆</div>
+                        : <div className="flex h-full w-full items-center justify-center bg-surface-container-high"><Trophy size={22} className="text-on-surface-variant opacity-50" aria-hidden="true" /></div>
                       }
                     </div>
                     <div className="p-2">

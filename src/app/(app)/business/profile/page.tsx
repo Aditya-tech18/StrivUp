@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit2, Globe, MapPin, ShieldCheck, Store, Users } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Clock, Edit2, Globe, MapPin, ShieldCheck, Store, Trophy, Users, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessProfile, type BusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, type Quest } from "@/lib/data/businessQuests";
@@ -140,9 +140,11 @@ export default function BusinessProfilePage() {
                 : "bg-warning-container border border-warning-outline"
             }`}>
               <span className="text-lg">
-                {bp.verification_status === "submitted" || bp.verification_status === "under_review" ? "⏳"
-                 : bp.verification_status === "rejected" ? "✕"
-                 : "⚠"}
+                {bp.verification_status === "submitted" || bp.verification_status === "under_review"
+                  ? <Clock size={18} aria-hidden="true" />
+                  : bp.verification_status === "rejected"
+                  ? <XCircle size={18} aria-hidden="true" />
+                  : <AlertTriangle size={18} aria-hidden="true" />}
               </span>
               <div className="flex-1">
                 <p className={`text-sm font-bold ${
@@ -186,8 +188,8 @@ export default function BusinessProfilePage() {
 
           {quests.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-12 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
-              <div className="w-14 h-14 rounded-2xl bg-secondary-fixed flex items-center justify-center">
-                <span className="text-2xl">🏆</span>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary-fixed">
+                <Trophy size={24} className="text-secondary" aria-hidden="true" />
               </div>
               <p className="text-sm font-semibold text-on-surface-variant">No Quests yet</p>
               <p className="text-xs text-on-surface-variant max-w-xs">Create your first Quest to start attracting participants.</p>
@@ -204,7 +206,7 @@ export default function BusinessProfilePage() {
                     {quest.cover_url || quest.thumbnail_url
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={quest.cover_url ?? quest.thumbnail_url ?? ""} alt={quest.title} className="w-full h-full object-cover" />
-                      : <span className="text-2xl">🏆</span>
+                      : <Trophy size={22} className="text-on-surface-variant opacity-50" aria-hidden="true" />
                     }
                   </div>
                   <div className="flex-1 min-w-0 py-0.5">
@@ -216,7 +218,7 @@ export default function BusinessProfilePage() {
                       </div>
                       <span className={`text-label-sm font-bold px-2 py-0.5 rounded-full ${
                         quest.quest_status === "active" ? "bg-success-container text-on-success-container"
-                        : quest.quest_status === "completed" ? "bg-purple-50 text-purple-700"
+                        : quest.quest_status === "completed" ? "bg-chart-3/10 text-chart-3"
                         : "bg-surface-container text-on-surface-variant"
                       }`}>
                         {quest.quest_status.charAt(0).toUpperCase() + quest.quest_status.slice(1)}

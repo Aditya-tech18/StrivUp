@@ -7,8 +7,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Bell, BookOpen, CheckSquare, ChevronRight, Clock, Gift, HelpCircle,
-  Plus, Search, ShieldCheck, Store, TrendingUp, Users, Zap,
+  AlertTriangle, Bell, BadgeCheck, BookOpen, CheckCircle2, CheckSquare, ChevronRight,
+  Circle, Clock, Gift, HelpCircle, Plus, Search, ShieldCheck, Star, Store, Trophy,
+  TrendingUp, Users, XCircle, Zap,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useUnreadCount } from "@/components/ui/AlertsContext";
@@ -33,19 +34,19 @@ function compactNum(n: number) {
 
 function StatusBadge({ status }: { status: BusinessProfile["verification_status"] }) {
   const map = {
-    verified:     { icon: "✓", label: "Verified",     cls: "text-on-success-container bg-success-container border-success-outline" },
-    submitted:    { icon: "⏳", label: "Under Review", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
-    under_review: { icon: "⏳", label: "Under Review", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
-    needs_more_info: { icon: "?", label: "Needs Info", cls: "text-on-secondary-fixed bg-secondary-fixed border-secondary-fixed-dim" },
-    incomplete:   { icon: "○",  label: "Not Verified", cls: "text-on-surface-variant bg-surface-container-low border-outline-variant" },
-    draft:        { icon: "○",  label: "Not Verified", cls: "text-on-surface-variant bg-surface-container-low border-outline-variant" },
-    rejected:     { icon: "✕",  label: "Rejected",     cls: "text-on-error-container bg-error-container border-error-outline" },
-    suspended:    { icon: "✕",  label: "Suspended",    cls: "text-on-error-container bg-error-container border-error-outline" },
+    verified:     { Icon: CheckCircle2,  label: "Verified",     cls: "text-on-success-container bg-success-container border-success-outline" },
+    submitted:    { Icon: Clock,         label: "Under Review", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
+    under_review: { Icon: Clock,         label: "Under Review", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
+    needs_more_info: { Icon: HelpCircle, label: "Needs Info",   cls: "text-on-secondary-fixed bg-secondary-fixed border-secondary-fixed-dim" },
+    incomplete:   { Icon: Circle,        label: "Not Verified", cls: "text-on-surface-variant bg-surface-container-low border-outline-variant" },
+    draft:        { Icon: Circle,        label: "Not Verified", cls: "text-on-surface-variant bg-surface-container-low border-outline-variant" },
+    rejected:     { Icon: XCircle,       label: "Rejected",     cls: "text-on-error-container bg-error-container border-error-outline" },
+    suspended:    { Icon: XCircle,       label: "Suspended",    cls: "text-on-error-container bg-error-container border-error-outline" },
   };
   const c = map[status] ?? map.draft;
   return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${c.cls}`}>
-      {c.icon} {c.label}
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-body-sm font-semibold ${c.cls}`}>
+      <c.Icon size={13} aria-hidden="true" /> {c.label}
     </span>
   );
 }
@@ -140,8 +141,8 @@ export default function BusinessDashboardPage() {
       badge: insights.pending,
     },
     {
-      icon: <HelpCircle size={22} className="text-purple-500" />,
-      bg: "bg-purple-50",
+      icon: <HelpCircle size={22} className="text-chart-3" />,
+      bg: "bg-chart-3/10",
       title: "How Verification Works",
       desc: "Learn the step-by-step verification process.",
       cta: { label: "Learn more", href: "/business/verification/how-it-works", primary: false },
@@ -152,7 +153,7 @@ export default function BusinessDashboardPage() {
   const QUICK_LINKS = [
     { icon: <CheckSquare size={18} className="text-warning" />,  bg: "bg-warning-container",  label: "Proofs",       href: "/business/proof-verification" },
     { icon: <TrendingUp size={18} className="text-success" />,   bg: "bg-success-container",  label: "Analytics",    href: "/business/analytics" },
-    { icon: <Users size={18} className="text-purple-500" />,       bg: "bg-purple-50", label: "Participants", href: "/business/participants" },
+    { icon: <Users size={18} className="text-chart-3" />,       bg: "bg-chart-3/10", label: "Participants", href: "/business/participants" },
     { icon: <Gift size={18} className="text-warning" />,        bg: "bg-warning-container", label: "Rewards",      href: "/business/rewards" },
     { icon: <Zap size={18} className="text-secondary" />,           bg: "bg-secondary-fixed",   label: "Promote",      href: "/business/promote" },
   ];
@@ -160,7 +161,8 @@ export default function BusinessDashboardPage() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* ── Top Nav ──────────────────────────────────────────────────── */}
-      <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 grid grid-cols-3 items-center sticky top-0 z-30">
+      <div className="sticky top-0 z-30 border-b border-outline-variant bg-surface-container-lowest">
+        <div className="mx-auto grid max-w-lg grid-cols-3 items-center px-5 py-4 md:max-w-3xl lg:max-w-6xl lg:px-8">
         <div className="flex items-center">
           <Link href="/business/profile" aria-label="Business profile">
             {bp.logo_url
@@ -180,18 +182,27 @@ export default function BusinessDashboardPage() {
             className="relative w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center">
             <Bell size={16} className="text-on-surface-variant" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-white" />
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-error ring-2 ring-surface-container-lowest" />
             )}
           </Link>
+          </div>
         </div>
       </div>
 
-      <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
+      {/* The dashboard was capped at max-w-lg, so a business owner on a laptop
+          read a 512px column with four stat tiles crammed into it. It now
+          widens in two steps and splits into a main column plus an aside at lg:
+          the things you act on stay left, the things you monitor move right. */}
+      <div className="mx-auto max-w-lg px-5 py-5 md:max-w-3xl lg:max-w-6xl lg:px-8">
+        <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-6">
+        <div className="flex flex-col gap-5">
 
         {/* ── Rejection Banner ────────────────────────────────────────── */}
         {bp.verification_status === "rejected" && (
           <div className="bg-error-container border border-error-outline rounded-2xl px-4 py-4">
-            <p className="text-sm font-bold text-on-error-container mb-1">⚠ Verification Rejected</p>
+            <p className="mb-1 flex items-center gap-1.5 text-sm font-bold text-on-error-container">
+              <AlertTriangle size={15} aria-hidden="true" /> Verification Rejected
+            </p>
             <p className="text-sm text-on-error-container">{bp.rejection_reason || "Your verification was rejected."}</p>
             <button onClick={() => router.push("/business/onboarding")}
               className="mt-2 px-4 py-1.5 rounded-lg border border-error-outline text-on-error-container text-sm font-semibold">
@@ -216,7 +227,7 @@ export default function BusinessDashboardPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-headline-md font-black text-on-surface">{name}</h1>
                 {bp.verification_status === "verified" && (
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-label="Verified"><circle cx="9" cy="9" r="9" fill="#3B82F6"/><path d="M5 9l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <BadgeCheck size={18} className="text-secondary" aria-label="Verified business" />
                 )}
               </div>
               {bp.business_username && <p className="text-sm text-on-surface-variant">@{bp.business_username}</p>}
@@ -236,10 +247,13 @@ export default function BusinessDashboardPage() {
               { label: "Customers",    value: compactNum(bp.total_customers) },
               { label: "Challenges",   value: compactNum(bp.total_challenges) },
               { label: "Participants", value: compactNum(bp.total_participants) },
-              { label: "Rating",       value: bp.rating > 0 ? `${bp.rating}★` : "—" },
+              { label: "Rating",       value: bp.rating > 0 ? bp.rating.toString() : "—", icon: bp.rating > 0 },
             ].map((s, i) => (
               <div key={s.label} className={`flex flex-col items-center py-3 bg-surface-container-low/50 ${i > 0 ? "border-l border-outline-variant" : ""}`}>
-                <span className="text-lg font-black text-on-surface">{s.value}</span>
+                <span className="flex items-center gap-1 text-headline-sm font-black text-on-surface">
+                  {s.value}
+                  {s.icon && <Star size={13} className="text-warning" aria-hidden="true" />}
+                </span>
                 <span className="text-label-sm text-on-surface-variant font-medium mt-0.5">{s.label}</span>
               </div>
             ))}
@@ -259,7 +273,7 @@ export default function BusinessDashboardPage() {
         </div>
 
         {/* ── Quick Actions ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:gap-4">
           <button onClick={() => router.push("/business/quests/new")}
             className="flex items-center justify-center gap-2 h-12 rounded-2xl bg-secondary hover:opacity-90 text-white font-bold text-sm transition-all elev-brand">
             <Plus size={18} /> Create Quest
@@ -269,6 +283,58 @@ export default function BusinessDashboardPage() {
             My Quests →
           </button>
         </div>
+
+        {/* ── Active Quests ─────────────────────────────────────────── */}
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5 elev-1 surface-raised">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-body-lg font-black text-on-surface">Your Active Campaigns</h2>
+            <Link href="/business/quests" className="text-sm text-secondary font-semibold">View all</Link>
+          </div>
+          {activeQuests.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <TrendingUp size={32} className="text-on-surface-variant" />
+              <p className="text-sm font-semibold text-on-surface-variant">No active Quests yet</p>
+              <p className="text-xs text-on-surface-variant">Create your first Quest to start attracting participants.</p>
+              <button onClick={() => router.push("/business/quests/new")}
+                className="h-9 px-5 rounded-xl bg-secondary text-white text-sm font-bold flex items-center gap-2">
+                <Plus size={16} /> Create Quest
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {activeQuests.map(quest => (
+                <Link key={quest.id} href={`/quests/${quest.id}`}>
+                  <div className="flex items-center gap-3 p-3 rounded-xl border border-outline-variant hover:bg-surface-container-low transition-colors">
+                    <div className="w-14 h-14 rounded-xl bg-surface-container overflow-hidden shrink-0">
+                      {quest.cover_url
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={quest.cover_url} alt={quest.title} className="w-full h-full object-cover" />
+                        : <div className="flex h-full w-full items-center justify-center bg-surface-container-high"><Trophy size={20} className="text-on-surface-variant opacity-50" aria-hidden="true" /></div>
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-on-surface truncate">{quest.title}</p>
+                      {quest.description && <p className="text-xs text-on-surface-variant truncate mt-0.5">{quest.description}</p>}
+                      <span className="inline-flex items-center gap-1 mt-1 text-label-sm font-semibold text-on-success-container bg-success-container px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success" /> Active
+                      </span>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-black text-on-surface">{quest.participant_count}</p>
+                      <p className="text-label-sm text-on-surface-variant">Participants</p>
+                    </div>
+                    <ChevronRight size={16} className="text-on-surface-variant shrink-0" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        </div>
+
+        {/* ── Aside: monitoring ──────────────────────────────────────── */}
+        <div className="flex flex-col gap-5">
 
         {/* ── Business Tools ───────────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5 elev-1 surface-raised">
@@ -305,7 +371,7 @@ export default function BusinessDashboardPage() {
           </div>
 
           {/* ── More tools ───────────────────────────────────────────── */}
-          <div className="grid grid-cols-5 gap-2 mt-4 pt-4 border-t border-outline-variant">
+          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-outline-variant pt-4 sm:grid-cols-5 lg:grid-cols-3">
             {QUICK_LINKS.map(q => (
               <Link key={q.href} href={q.href} className="flex flex-col items-center gap-1.5 rounded-xl py-2 hover:bg-surface-container-low transition-colors">
                 <div className={`w-9 h-9 rounded-xl ${q.bg} flex items-center justify-center`}>{q.icon}</div>
@@ -316,11 +382,11 @@ export default function BusinessDashboardPage() {
         </div>
 
         {/* ── Quest Stats Row ───────────────────────────────────────── */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
             { label: "Total Quests", value: questStats.total,         color: "text-secondary" },
             { label: "Active",       value: questStats.active,        color: "text-on-success-container" },
-            { label: "Participants", value: questStats.participants,   color: "text-purple-600" },
+            { label: "Participants", value: questStats.participants,   color: "text-chart-3" },
             { label: "Pending Proof",value: questStats.pending_proofs, color: questStats.pending_proofs > 0 ? "text-on-warning-container" : "text-on-surface-variant" },
           ].map(s => (
             <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-3 flex flex-col items-center elev-1 surface-raised">
@@ -328,53 +394,6 @@ export default function BusinessDashboardPage() {
               <span className="text-label-sm text-on-surface-variant font-medium mt-0.5 text-center leading-tight">{s.label}</span>
             </div>
           ))}
-        </div>
-
-        {/* ── Active Quests ─────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5 elev-1 surface-raised">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-body-lg font-black text-on-surface">Your Active Campaigns</h2>
-            <Link href="/business/quests" className="text-sm text-secondary font-semibold">View all</Link>
-          </div>
-          {activeQuests.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-8 text-center">
-              <TrendingUp size={32} className="text-on-surface-variant" />
-              <p className="text-sm font-semibold text-on-surface-variant">No active Quests yet</p>
-              <p className="text-xs text-on-surface-variant">Create your first Quest to start attracting participants.</p>
-              <button onClick={() => router.push("/business/quests/new")}
-                className="h-9 px-5 rounded-xl bg-secondary text-white text-sm font-bold flex items-center gap-2">
-                <Plus size={16} /> Create Quest
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {activeQuests.map(quest => (
-                <Link key={quest.id} href={`/quests/${quest.id}`}>
-                  <div className="flex items-center gap-3 p-3 rounded-xl border border-outline-variant hover:bg-surface-container-low transition-colors">
-                    <div className="w-14 h-14 rounded-xl bg-surface-container overflow-hidden shrink-0">
-                      {quest.cover_url
-                        // eslint-disable-next-line @next/next/no-img-element
-                        ? <img src={quest.cover_url} alt={quest.title} className="w-full h-full object-cover" />
-                        : <div className="w-full h-full flex items-center justify-center text-2xl">🏆</div>
-                      }
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-on-surface truncate">{quest.title}</p>
-                      {quest.description && <p className="text-xs text-on-surface-variant truncate mt-0.5">{quest.description}</p>}
-                      <span className="inline-flex items-center gap-1 mt-1 text-label-sm font-semibold text-on-success-container bg-success-container px-2 py-0.5 rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-success" /> Active
-                      </span>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-black text-on-surface">{quest.participant_count}</p>
-                      <p className="text-label-sm text-on-surface-variant">Participants</p>
-                    </div>
-                    <ChevronRight size={16} className="text-on-surface-variant shrink-0" />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* ── Recent Activity ───────────────────────────────────────────── */}
@@ -414,6 +433,8 @@ export default function BusinessDashboardPage() {
             </div>
           </div>
         )}
+        </div>
+        </div>
       </div>
     </div>
   );

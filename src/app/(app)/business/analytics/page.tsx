@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
           <>
             <div className="relative">
               <select aria-label="Quest" value={selectedQuestId ?? ""} onChange={e => handleQuestChange(e.target.value)}
-                className="w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 pr-10 text-sm font-semibold text-on-surface focus:outline-none focus:border-secondary appearance-none elev-1 surface-raised">
+                className="w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 pr-10 text-sm font-semibold text-on-surface focus:outline-none focus:border-secondary appearance-none">
                 {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
               </select>
               <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
@@ -132,10 +132,10 @@ export default function AnalyticsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <MetricCard label="Total Views"       value={analytics.views.toLocaleString()}       color="text-secondary" />
                   <MetricCard label="Participants"       value={analytics.joins.toLocaleString()}       color="text-on-success-container" />
-                  <MetricCard label="Completions"        value={analytics.completions.toLocaleString()} color="text-purple-600" />
+                  <MetricCard label="Completions"        value={analytics.completions.toLocaleString()} color="text-chart-3" />
                   <MetricCard label="Completion Rate"    value={`${analytics.completionRate}%`}         color="text-on-warning-container" />
                   <MetricCard label="Pending Proofs"     value={analytics.pendingProofs}                color="text-warning" />
-                  <MetricCard label="Approval Rate"      value={`${analytics.approvalRate}%`}           color="text-teal-600" />
+                  <MetricCard label="Approval Rate"      value={`${analytics.approvalRate}%`}           color="text-chart-2" />
                 </div>
 
                 {/* Physical quest performance — only for quests that have a
@@ -152,18 +152,18 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="flex flex-col gap-3">
                     {(analytics.orderCodesGenerated > 0 ? [
-                      { label: "Views",                 value: analytics.views,               color: "bg-blue-400" },
-                      { label: "Joins",                 value: analytics.joins,               color: "bg-secondary" },
-                      { label: "Proof codes generated", value: analytics.orderCodesGenerated, color: "bg-indigo-500" },
-                      { label: "Orders verified",       value: analytics.ordersVerified,      color: "bg-warning" },
-                      { label: "Bill codes entered",    value: analytics.billCodesEntered,    color: "bg-success" },
-                      { label: "Quest completions",     value: analytics.completions,         color: "bg-purple-500" },
+                      { label: "Views",                 value: analytics.views,               color: "bg-chart-1" },
+                      { label: "Joins",                 value: analytics.joins,               color: "bg-chart-2" },
+                      { label: "Proof codes generated", value: analytics.orderCodesGenerated, color: "bg-chart-3" },
+                      { label: "Orders verified",       value: analytics.ordersVerified,      color: "bg-chart-4" },
+                      { label: "Bill codes entered",    value: analytics.billCodesEntered,    color: "bg-chart-5" },
+                      { label: "Quest completions",     value: analytics.completions,         color: "bg-chart-6" },
                     ] : [
-                      { label: "Views",          value: analytics.views,                  color: "bg-blue-400" },
-                      { label: "Joins",          value: analytics.joins,                  color: "bg-secondary" },
-                      { label: "Proofs Submitted",value: analytics.approvedProofs + analytics.rejectedProofs + analytics.pendingProofs, color: "bg-indigo-500" },
-                      { label: "Proofs Approved",value: analytics.approvedProofs,         color: "bg-success" },
-                      { label: "Completions",    value: analytics.completions,            color: "bg-purple-500" },
+                      { label: "Views",          value: analytics.views,                  color: "bg-chart-1" },
+                      { label: "Joins",          value: analytics.joins,                  color: "bg-chart-2" },
+                      { label: "Proofs Submitted",value: analytics.approvedProofs + analytics.rejectedProofs + analytics.pendingProofs, color: "bg-chart-3" },
+                      { label: "Proofs Approved",value: analytics.approvedProofs,         color: "bg-chart-5" },
+                      { label: "Completions",    value: analytics.completions,            color: "bg-chart-6" },
                     ]).map(row => (
                       <FunnelBar key={row.label} label={row.label} value={row.value} max={Math.max(analytics.views, 1)} color={row.color} />
                     ))}

@@ -132,12 +132,12 @@ export default function BusinessSettingsPage() {
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-on-surface-variant">Description</label>
             <textarea aria-label="Description" value={description} onChange={e => setDescription(e.target.value)} maxLength={300} rows={3}
-              className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none elev-1 surface-raised" />
+              className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30 resize-none" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-on-surface-variant">Category</label>
             <select aria-label="Category" value={category} onChange={e => setCategory(e.target.value)}
-              className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary elev-1 surface-raised">
+              className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary">
               <option value="">Select category…</option>
               {BUSINESS_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>

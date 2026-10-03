@@ -428,7 +428,7 @@ export default function VerifyBusinessPage() {
         {history.length > 0 && (
           <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
             <h2 className="text-body-lg font-bold text-on-surface">Verification history</h2>
-            <ol className="mt-3 divide-y divide-gray-100">
+            <ol className="mt-3 divide-y divide-outline-variant">
               {history.map((h) => (
                 <li key={h.id} className="py-3">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -525,7 +525,7 @@ function DocumentList({
   }
 
   return (
-    <ul className="mt-5 divide-y divide-gray-100 border-t border-outline-variant">
+    <ul className="mt-5 divide-y divide-outline-variant border-t border-outline-variant">
       {docs.map((d) => (
         <li key={d.id} className="flex items-center gap-3 py-3">
           <FileText size={16} className="text-on-surface-variant shrink-0" />

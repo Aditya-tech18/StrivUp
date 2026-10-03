@@ -153,7 +153,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
           </div>
         ) : tab === "created" ? (
           <>
-            <label className="flex h-11 items-center gap-2 rounded-xl bg-surface-container-lowest px-3 ring-1 ring-gray-100 focus-within:ring-2 focus-within:ring-blue-600">
+            <label className="flex h-11 items-center gap-2 rounded-xl bg-surface-container-lowest px-3 ring-1 ring-outline-variant focus-within:ring-2 focus-within:ring-secondary">
               <Search size={16} className="text-on-surface-variant" />
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search challenges…"
                 className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none" />
@@ -190,7 +190,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
 
             <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest elev-1 surface-raised">
               <p className="px-4 pt-4 text-body-lg font-black text-on-surface">Performance by challenge</p>
-              <div className="mt-2 divide-y divide-gray-50">
+              <div className="mt-2 divide-y divide-outline-variant">
                 {[...challenges].sort((a, b) => b.members - a.members).map(c => (
                   <Link key={c.id} href={`/challenges/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low">
                     <div className="min-w-0 flex-1">

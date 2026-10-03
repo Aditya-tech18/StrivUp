@@ -348,11 +348,11 @@ export default function BusinessQuestDetailClient({
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900" />
+                <div className="absolute inset-0 bg-inverse-surface" />
               )}
               <div
                 aria-hidden="true"
-                className="absolute inset-0 bg-gradient-to-r from-gray-950/95 via-gray-950/80 to-gray-950/35"
+                className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/75 to-black/35"
               />
 
               <div className="relative z-10 p-7 lg:p-9 flex flex-col justify-center gap-3 max-w-2xl">
@@ -655,7 +655,7 @@ export default function BusinessQuestDetailClient({
 const PILL_TONE = {
   amber:  { wrap: "bg-warning-container border-warning-outline",   icon: "text-warning" },
   blue:   { wrap: "bg-secondary-fixed border-secondary-fixed-dim",     icon: "text-secondary" },
-  violet: { wrap: "bg-violet-50 border-violet-100", icon: "text-violet-600" },
+  violet: { wrap: "bg-chart-3/10 border-chart-3/25", icon: "text-chart-3" },
 } as const;
 
 function StatPill({
@@ -954,7 +954,7 @@ function LeaderboardPanel({
             complete tasks.
           </p>
         ) : (
-          <ol className="mt-4 divide-y divide-gray-100">
+          <ol className="mt-4 divide-y divide-outline-variant">
             {rows.map((r) => {
               const name = r.full_name ?? r.username ?? "Participant";
               return (

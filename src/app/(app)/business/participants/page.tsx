@@ -93,7 +93,7 @@ export default function ParticipantsPage() {
         {/* Quest filter */}
         <div className="relative">
           <select aria-label="Filter by quest" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
-            className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none elev-1 surface-raised">
+            className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none">
             <option value="all">All Quests</option>
             {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
           </select>
@@ -118,7 +118,7 @@ export default function ParticipantsPage() {
             <p className="text-sm text-on-surface-variant">No participants yet.</p>
           </div>
         ) : (
-          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-50 elev-1 surface-raised">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-outline-variant elev-1 surface-raised">
             {filtered.map(p => {
               const pName = p.profile?.full_name ?? "Unknown";
               const sc = statusCfg[p.verification_status as keyof typeof statusCfg] ?? { label: "Unknown", cls: "text-on-surface-variant bg-surface-container-low border-outline-variant" };

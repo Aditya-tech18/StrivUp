@@ -437,7 +437,7 @@ export default function BusinessOrderVerificationPage() {
               Nothing waiting right now.
             </p>
           ) : (
-            <ul className="mt-4 divide-y divide-gray-100">
+            <ul className="mt-4 divide-y divide-outline-variant">
               {queue.map((v) => (
                 <li key={v.id} className="flex items-center gap-4 py-3">
                   <span

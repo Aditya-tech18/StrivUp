@@ -23,12 +23,12 @@ const PLATFORMS: { value: SocialPlatform; label: string }[] = [
 ];
 
 const PLATFORM_COLORS: Record<string, string> = {
-  instagram: "bg-pink-50 text-pink-600",
+  instagram: "bg-chart-6/10 text-chart-6",
   linkedin:  "bg-secondary-fixed text-secondary",
   github:    "bg-surface-container-low text-on-surface-variant",
-  twitter:   "bg-sky-50 text-sky-600",
+  twitter:   "bg-chart-2/10 text-chart-2",
   youtube:   "bg-error-container text-on-error-container",
-  portfolio: "bg-violet-50 text-violet-600",
+  portfolio: "bg-chart-3/10 text-chart-3",
   other:     "bg-surface-container text-on-surface-variant",
 };
 
@@ -309,7 +309,7 @@ export default function EditProfilePage() {
                 maxLength={150}
                 rows={3}
                 placeholder="Tell people a bit about yourself"
-                className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 py-2.5 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors resize-none elev-1 surface-raised"
+                className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 py-2.5 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors resize-none"
               />
               <span className="absolute bottom-2 right-3 text-label-sm text-on-surface-variant">
                 {bio.length}/150
@@ -375,7 +375,7 @@ export default function EditProfilePage() {
               <select aria-label="Social platform"
                 value={newPlatform}
                 onChange={e => setNewPlatform(e.target.value as SocialPlatform)}
-                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary elev-1 surface-raised"
+                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
               >
                 {PLATFORMS.map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -385,7 +385,7 @@ export default function EditProfilePage() {
                 value={newUrl}
                 onChange={e => setNewUrl(e.target.value)}
                 placeholder="https://…"
-                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary elev-1 surface-raised"
+                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
               />
               {linkError && (
                 <p className="text-body-sm text-error">{linkError}</p>

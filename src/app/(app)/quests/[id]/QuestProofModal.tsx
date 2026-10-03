@@ -228,7 +228,7 @@ export function QuestProofModal(props: Props) {
               <input id="bill-code" value={billCode} onChange={e => { setBillCode(formatCodeInput(e.target.value, "BV")); setError(null); }}
                 onKeyDown={e => e.key === "Enter" && billCode.length >= 9 && verifyBill()}
                 placeholder="BV-______" autoCapitalize="characters" autoComplete="one-time-code" maxLength={9}
-                className="h-14 rounded-xl border border-outline px-4 text-center font-mono text-2xl font-black tracking-widest text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-secondary focus:ring-2 focus:ring-blue-100" />
+                className="h-14 rounded-xl border border-outline px-4 text-center font-mono text-2xl font-black tracking-widest text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
               <button type="button" onClick={verifyBill} disabled={busy || billCode.length < 9}
                 className="h-12 rounded-xl bg-success text-sm font-bold text-white flex items-center justify-center gap-2 disabled:opacity-40">
                 {busy ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />} Verify &amp; Complete Task

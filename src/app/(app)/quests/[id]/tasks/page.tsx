@@ -51,7 +51,7 @@ const STATUS_CFG = {
   pending:               { label: "Pending Review",   cls: "text-on-warning-container bg-warning-container", icon: Clock },
   approved:              { label: "Approved",          cls: "text-on-success-container bg-success-container", icon: CheckCircle2 },
   rejected:              { label: "Rejected",          cls: "text-on-error-container bg-error-container",     icon: XCircle },
-  resubmission_required: { label: "Resubmit Required", cls: "text-purple-700 bg-purple-50", icon: XCircle },
+  resubmission_required: { label: "Resubmit Required", cls: "text-chart-3 bg-chart-3/10", icon: XCircle },
 } as const;
 
 const PROOF_LABEL: Record<string, string> = {

@@ -5,7 +5,7 @@
 import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, ShieldCheck, Users, X } from "lucide-react";
+import { Search, ShieldCheck, Target, Trophy, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Tab = "users" | "challenges" | "quests";
@@ -202,7 +202,7 @@ export default function SearchPage() {
                     {ch.thumbnail_url
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={ch.thumbnail_url} alt={ch.title} className="w-full h-full object-cover" />
-                      : <span className="text-2xl">🏆</span>
+                      : <Trophy size={22} className="text-on-surface-variant opacity-50" aria-hidden="true" />
                     }
                   </div>
                   <div className="flex-1 min-w-0 py-0.5">
@@ -229,7 +229,7 @@ export default function SearchPage() {
                     {(q.cover_url || q.thumbnail_url)
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={q.cover_url ?? q.thumbnail_url ?? ""} alt={q.title} className="w-full h-full object-cover" />
-                      : <span className="text-2xl">🎯</span>
+                      : <Target size={22} className="text-on-surface-variant opacity-50" aria-hidden="true" />
                     }
                   </div>
                   <div className="flex-1 min-w-0 py-0.5">
