@@ -30,7 +30,7 @@ export function QuestProgressCard({
   return (
     <section
       aria-labelledby="quest-progress-heading"
-      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised"
     >
       <h3
         id="quest-progress-heading"
@@ -99,7 +99,7 @@ export function RewardCard({
   return (
     <section
       aria-labelledby="quest-reward-heading"
-      className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden elev-1 surface-raised"
     >
       <div className="px-5 pt-5 pb-4">
         <h3 id="quest-reward-heading" className="sr-only">Reward</h3>
@@ -187,7 +187,7 @@ export function LeaderboardPreviewCard({
   return (
     <section
       aria-labelledby="quest-leaderboard-heading"
-      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised"
     >
       <div className="flex items-center justify-between gap-2">
         <h3
@@ -296,7 +296,7 @@ export function BusinessProfileCard({
   return (
     <section
       aria-labelledby="business-profile-heading"
-      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised"
     >
       <h3
         id="business-profile-heading"
@@ -439,7 +439,7 @@ export function GoogleBusinessCard({
   return (
     <section
       aria-labelledby="google-card-heading"
-      className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden elev-1 surface-raised"
     >
       {/* Static map placeholder — no third-party tiles are loaded, so no key
           is needed and nothing about the viewer leaks to a maps provider. */}
@@ -462,7 +462,7 @@ export function GoogleBusinessCard({
           className="absolute right-[24%] top-0 bottom-0 w-4 bg-[#f2f5f9] rotate-6"
         />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex items-center gap-1.5 bg-surface-container-lowest rounded-full pl-1.5 pr-3 py-1.5 border border-outline-variant shadow-sm max-w-[85%]">
+          <div className="flex items-center gap-1.5 bg-surface-container-lowest rounded-full pl-1.5 pr-3 py-1.5 border border-outline-variant elev-1 max-w-[85%] surface-raised">
             <span className="w-5 h-5 rounded-full bg-error flex items-center justify-center shrink-0">
               <MapPin size={11} className="text-white" />
             </span>

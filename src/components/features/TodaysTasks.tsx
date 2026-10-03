@@ -108,7 +108,7 @@ function TaskRow({ task }: { task: TodayTask }) {
       ) : (
         <span
           className={[
-            "flex shrink-0 items-center gap-1 rounded-lg px-3 py-1.5 text-label-sm font-semibold shadow-sm",
+            "flex shrink-0 items-center gap-1 rounded-lg px-3 py-1.5 text-label-sm font-semibold elev-1",
             task.state === "rejected"
               ? "bg-error-container text-on-error-container"
               : "bg-surface-container-lowest text-secondary",
@@ -146,7 +146,7 @@ export function TodaysTasks({ summary }: { summary: TodaySummary }) {
     return (
       <section className="flex flex-col gap-space-sm" aria-label="Today's tasks">
         <h3 className="text-headline-sm text-on-surface">Today&apos;s Tasks</h3>
-        <div className="rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
+        <div className="rounded-xl bg-surface-container-lowest p-space-md elev-1 surface-raised">
           <p className="text-body-md text-on-surface">You have nothing due today.</p>
           <p className="mt-1 text-body-sm text-on-surface-variant">
             Join a challenge and it&apos;ll show up here every day until you finish it.
@@ -158,7 +158,7 @@ export function TodaysTasks({ summary }: { summary: TodaySummary }) {
           <div className="mt-space-md grid grid-cols-2 gap-space-sm">
             <Link
               href="/explore"
-              className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-primary px-space-sm text-label-lg text-on-primary shadow-sm transition-transform active:scale-[0.99]"
+              className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-primary px-space-sm text-label-lg text-on-primary elev-1 transition-transform active:scale-[0.99]"
             >
               <Compass size={16} aria-hidden="true" />
               Browse
@@ -192,7 +192,7 @@ export function TodaysTasks({ summary }: { summary: TodaySummary }) {
         </span>
       </div>
 
-      <div className="flex flex-col gap-space-md rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
+      <div className="flex flex-col gap-space-md rounded-xl bg-surface-container-lowest p-space-md elev-1 surface-raised">
         {/* ── Discipline Index ─────────────────────────────────────────── */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-label-sm text-on-surface-variant">

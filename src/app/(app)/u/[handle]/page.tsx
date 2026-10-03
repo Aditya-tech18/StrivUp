@@ -82,7 +82,7 @@ function ChallengeRow({ stat }: { stat: ProfileChallengeStat }) {
   return (
     <Link
       href={`/challenges/${stat.challenge_id}`}
-      className="flex items-center gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-3 transition-colors hover:bg-surface-container-low"
+      className="flex items-center gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-3 transition-colors hover:bg-surface-container-low elev-1 surface-raised"
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary/8">
         <Flame size={18} className="text-secondary" aria-hidden="true" />

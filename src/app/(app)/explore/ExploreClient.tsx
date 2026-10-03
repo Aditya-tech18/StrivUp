@@ -88,7 +88,7 @@ function FeaturedCard({ challenge }: { challenge: FeaturedChallenge }) {
             <Badge variant="secondary" className="elev-1">Featured</Badge>
           </div>
           {challenge.verified && (
-            <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest/85 px-2 py-0.5 backdrop-blur-sm">
+            <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest/85 px-2 py-0.5 backdrop-blur-sm elev-1 surface-raised">
               <CheckCircle2 size={11} className="text-secondary" aria-hidden="true" />
               <span className="text-body-sm font-semibold leading-none text-secondary">
                 Verified

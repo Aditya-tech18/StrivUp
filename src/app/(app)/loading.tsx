@@ -30,7 +30,7 @@ export default function AppLoading() {
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4"
+            className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised"
           >
             <div className="mb-3 flex items-center gap-3">
               <Skeleton className="h-9 w-9 rounded-full" />

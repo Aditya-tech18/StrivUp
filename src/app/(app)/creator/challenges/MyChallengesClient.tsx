@@ -33,7 +33,7 @@ function compact(n: number) {
 function ChallengeCard({ c }: { c: CreatedChallenge }) {
   const activePct = pct(c.active, c.members);
   return (
-    <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+    <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
       <div className="flex gap-3">
         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-surface-container">
           {c.thumbnailUrl
@@ -140,7 +140,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
 
       <div className="mx-auto flex max-w-lg flex-col gap-4 px-4 pt-4 pb-24">
         {challenges.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-10 text-center">
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-10 text-center elev-1 surface-raised">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary-fixed">
               <Trophy size={26} className="text-secondary" />
             </div>
@@ -172,7 +172,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
                 { label: "Active now",     value: `${pct(totals.active, totals.members)}%`,    cls: "text-secondary" },
                 { label: "Completion",     value: `${pct(totals.completed, totals.members)}%`, cls: "text-on-success-container" },
               ].map(s => (
-                <div key={s.label} className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+                <div key={s.label} className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
                   <p className={`text-2xl font-black ${s.cls}`}>{s.value}</p>
                   <p className="text-xs text-on-surface-variant">{s.label}</p>
                 </div>
@@ -188,7 +188,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
               </div>
             )}
 
-            <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest">
+            <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest elev-1 surface-raised">
               <p className="px-4 pt-4 text-body-lg font-black text-on-surface">Performance by challenge</p>
               <div className="mt-2 divide-y divide-gray-50">
                 {[...challenges].sort((a, b) => b.members - a.members).map(c => (
@@ -214,7 +214,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
 
       {challenges.length > 0 && (
         <Link href="/challenges/new" aria-label="Create challenge"
-          className="fixed right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-white shadow-lg shadow-blue-300 [bottom:calc(var(--bottom-nav-h)+1rem)] md:[bottom:1.5rem]">
+          className="fixed right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-white elev-brand [bottom:calc(var(--bottom-nav-h)+1rem)] md:[bottom:1.5rem]">
           <Plus size={26} />
         </Link>
       )}

@@ -170,7 +170,7 @@ export default function SearchPage() {
           <div className="flex flex-col gap-2">
             {users.map(user => (
               <Link key={user.id} href={`/profile/${user.id}`}>
-                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container transition-colors">
+                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container transition-colors elev-1 surface-raised">
                   <div className="w-11 h-11 rounded-full bg-secondary/10 overflow-hidden shrink-0 flex items-center justify-center">
                     {user.avatar_url
                       // eslint-disable-next-line @next/next/no-img-element
@@ -197,7 +197,7 @@ export default function SearchPage() {
           <div className="flex flex-col gap-2">
             {challenges.map(ch => (
               <Link key={ch.id} href={`/challenges/${ch.id}`}>
-                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3">
+                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3 elev-1 surface-raised">
                   <div className="w-16 h-16 rounded-xl bg-surface-container overflow-hidden shrink-0 flex items-center justify-center">
                     {ch.thumbnail_url
                       // eslint-disable-next-line @next/next/no-img-element
@@ -224,7 +224,7 @@ export default function SearchPage() {
           <div className="flex flex-col gap-2">
             {quests.map(q => (
               <Link key={q.id} href={`/quests/${q.id}`}>
-                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3">
+                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3 elev-1 surface-raised">
                   <div className="w-16 h-16 rounded-xl bg-surface-container overflow-hidden shrink-0 flex items-center justify-center">
                     {(q.cover_url || q.thumbnail_url)
                       // eslint-disable-next-line @next/next/no-img-element

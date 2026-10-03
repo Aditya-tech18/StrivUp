@@ -28,7 +28,7 @@ interface Analytics {
 
 function MetricCard({ label, value, sub, color = "text-on-surface" }: { label: string; value: string | number; sub?: string; color?: string }) {
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4">
+    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 elev-1 surface-raised">
       <p className="text-xs text-on-surface-variant font-semibold uppercase tracking-wider mb-1">{label}</p>
       <p className={`text-2xl font-black ${color}`}>{value}</p>
       {sub && <p className="text-xs text-on-surface-variant mt-0.5">{sub}</p>}
@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
           <>
             <div className="relative">
               <select aria-label="Quest" value={selectedQuestId ?? ""} onChange={e => handleQuestChange(e.target.value)}
-                className="w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 pr-10 text-sm font-semibold text-on-surface focus:outline-none focus:border-secondary appearance-none">
+                className="w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 pr-10 text-sm font-semibold text-on-surface focus:outline-none focus:border-secondary appearance-none elev-1 surface-raised">
                 {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
               </select>
               <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
@@ -145,7 +145,7 @@ export default function AnalyticsPage() {
                 )}
 
                 {/* Funnel */}
-                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
+                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
                   <div className="flex items-center gap-2 mb-4">
                     <TrendingUp size={18} className="text-secondary" />
                     <h3 className="text-body-lg font-black text-on-surface">Quest Funnel</h3>
@@ -171,7 +171,7 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Proof breakdown */}
-                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
+                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
                   <h3 className="text-body-lg font-black text-on-surface mb-4">Proof Submissions</h3>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="flex flex-col items-center p-3 bg-warning-container rounded-xl">
@@ -191,7 +191,7 @@ export default function AnalyticsPage() {
 
                 {/* Quest details */}
                 {selectedQuest && (
-                  <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
+                  <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
                     <h3 className="text-body-lg font-black text-on-surface mb-3">Quest Info</h3>
                     <div className="flex flex-col gap-2">
                       {[
@@ -213,7 +213,7 @@ export default function AnalyticsPage() {
             ) : null}
           </>
         ) : (
-          <div className="flex flex-col items-center gap-4 py-20 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant">
+          <div className="flex flex-col items-center gap-4 py-20 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
             <BarChart2 size={36} className="text-on-surface-variant" />
             <p className="text-body-lg font-black text-on-surface">No Analytics Yet</p>
             <p className="text-sm text-on-surface-variant max-w-xs">Analytics will appear once people start interacting with your Quest.</p>

@@ -21,7 +21,7 @@ export function CoinPill({
   earnedToday?: number;
 }) {
   return (
-    <div className="relative flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 shadow-sm">
+    <div className="relative flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1">
       <Coins size={15} className="text-on-tertiary-container" aria-hidden="true" />
       <span className="text-label-md font-bold tabular-nums text-on-surface" aria-hidden="true">
         {balance}

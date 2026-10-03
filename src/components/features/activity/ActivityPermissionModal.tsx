@@ -44,7 +44,7 @@ export function ActivityPermissionModal({
       aria-modal="true"
       aria-labelledby="activity-permission-title"
     >
-      <div className="w-full max-w-md rounded-t-2xl bg-surface-container-lowest p-6 shadow-xl sm:rounded-2xl">
+      <div className="w-full max-w-md rounded-t-2xl bg-surface-container-lowest p-6 elev-5 sm:rounded-2xl">
         <div className="mb-4 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary-fixed">

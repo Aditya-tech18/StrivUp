@@ -14,7 +14,7 @@ export function DailyStepsCard({ data }: { data: ActivityDashboard }) {
   const max = Math.max(1, ...data.days.map((d) => d.steps));
 
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
       <div className="mb-4 flex items-start justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-on-surface-variant">

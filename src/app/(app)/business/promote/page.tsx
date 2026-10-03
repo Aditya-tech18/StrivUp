@@ -83,7 +83,7 @@ export default function PromotePage() {
         </div>
 
         {/* Quest selector */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
           <p className="text-sm font-bold text-on-surface mb-3">Select Quest to Promote</p>
           {quests.length === 0 ? (
             <div className="text-center py-6">
@@ -122,7 +122,7 @@ export default function PromotePage() {
 
         {/* Budget selection */}
         {quests.length > 0 && (
-          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
             <p className="text-sm font-bold text-on-surface mb-1">Select Budget & Duration</p>
             <p className="text-xs text-on-surface-variant mb-4">Estimated reach is based on historical data and may vary.</p>
             <div className="grid grid-cols-2 gap-3">
@@ -145,7 +145,7 @@ export default function PromotePage() {
         )}
 
         {/* How it works */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
           <p className="text-sm font-bold text-on-surface mb-4">How Promotion Works</p>
           <div className="flex flex-col gap-3">
             {[

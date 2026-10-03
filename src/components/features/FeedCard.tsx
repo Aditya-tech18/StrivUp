@@ -137,7 +137,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
               {/* Reporting UI Overlay */}
               {isReporting && (
                 <div className="absolute inset-0 z-10 bg-black/60 flex items-center justify-center p-4">
-                  <div className="bg-surface p-4 rounded-xl shadow-lg w-full max-w-sm">
+                  <div className="bg-surface p-4 rounded-xl elev-5 w-full max-w-sm">
                     <h3 className="text-headline-md text-on-surface mb-2 font-semibold">Report Content</h3>
                     <select aria-label="Report reason" 
                       className="w-full p-2 mb-4 rounded-lg bg-surface-container border border-outline-variant text-on-surface text-body-md"

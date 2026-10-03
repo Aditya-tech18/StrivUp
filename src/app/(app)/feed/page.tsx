@@ -56,7 +56,7 @@ function ChallengeCard({ task }: { task: TodayTask }) {
   return (
     <Link
       href={`/challenges/${task.challengeId}`}
-      className="relative flex w-[280px] shrink-0 snap-start flex-col justify-between gap-space-md overflow-hidden rounded-xl bg-surface-container-lowest p-space-md shadow-sm"
+      className="relative flex w-[280px] shrink-0 snap-start flex-col justify-between gap-space-md overflow-hidden rounded-xl bg-surface-container-lowest p-space-md elev-1 surface-raised"
     >
       <div
         className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-bl-full bg-secondary/5"
@@ -185,7 +185,7 @@ export default async function FeedPage() {
           {/* Reward and consistency read in one glance. */}
           <div className="flex shrink-0 items-center gap-space-xs">
             {today.bestStreak > 0 ? (
-              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 shadow-sm">
+              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1">
                 <Flame size={15} className="text-secondary" aria-hidden="true" />
                 <span className="text-label-md font-bold text-on-surface">
                   {today.bestStreak}
@@ -203,7 +203,7 @@ export default async function FeedPage() {
         {today.justCompleted > 0 ? (
           <section
             aria-label="Challenge completed"
-            className="flex items-center gap-space-md rounded-xl bg-primary p-space-md text-on-primary shadow-sm"
+            className="flex items-center gap-space-md rounded-xl bg-primary p-space-md text-on-primary elev-1"
           >
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-on-tertiary-container/20">
               <Trophy size={22} className="text-tertiary-fixed" aria-hidden="true" />
@@ -283,7 +283,7 @@ export default async function FeedPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-xl bg-surface-container-lowest px-space-md py-space-xl text-center shadow-sm">
+            <div className="rounded-xl bg-surface-container-lowest px-space-md py-space-xl text-center elev-1 surface-raised">
               <p className="text-headline-sm text-on-surface">No proof posted yet</p>
               <p className="mx-auto mt-1 max-w-xs text-body-sm text-on-surface-variant">
                 This is where verified proof from everyone in your challenges shows up. Be

@@ -48,7 +48,7 @@ export default function VerificationStepper() {
     <section
       id="how-verification-works"
       aria-labelledby="verification-heading"
-      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6"
+      className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>

@@ -219,7 +219,7 @@ export default function EditProfilePage() {
       <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-5">
 
         {/* ── Avatar ───────────────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col items-center gap-3">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col items-center gap-3 elev-1 surface-raised">
           <div className="relative">
             <div className={[
               "w-24 h-24 rounded-full overflow-hidden border-2 border-outline-variant bg-surface-container",
@@ -236,7 +236,7 @@ export default function EditProfilePage() {
                 </div>
               )}
             </div>
-            <label className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-secondary border-2 border-white flex items-center justify-center cursor-pointer shadow-md">
+            <label className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-secondary border-2 border-white flex items-center justify-center cursor-pointer elev-2">
               {uploading
                 ? <Loader2 size={12} className="text-white animate-spin" />
                 : <Camera size={12} className="text-white" />
@@ -274,7 +274,7 @@ export default function EditProfilePage() {
         </div>
 
         {/* ── Personal information ─────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-4 elev-1 surface-raised">
           <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
             Personal Information
           </p>
@@ -309,7 +309,7 @@ export default function EditProfilePage() {
                 maxLength={150}
                 rows={3}
                 placeholder="Tell people a bit about yourself"
-                className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 py-2.5 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors resize-none"
+                className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 py-2.5 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors resize-none elev-1 surface-raised"
               />
               <span className="absolute bottom-2 right-3 text-label-sm text-on-surface-variant">
                 {bio.length}/150
@@ -319,7 +319,7 @@ export default function EditProfilePage() {
         </div>
 
         {/* ── Social links ─────────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-3">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-3 elev-1 surface-raised">
           <div className="flex items-center justify-between">
             <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
               Social Links
@@ -375,7 +375,7 @@ export default function EditProfilePage() {
               <select aria-label="Social platform"
                 value={newPlatform}
                 onChange={e => setNewPlatform(e.target.value as SocialPlatform)}
-                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary elev-1 surface-raised"
               >
                 {PLATFORMS.map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -385,7 +385,7 @@ export default function EditProfilePage() {
                 value={newUrl}
                 onChange={e => setNewUrl(e.target.value)}
                 placeholder="https://…"
-                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                className="h-10 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary elev-1 surface-raised"
               />
               {linkError && (
                 <p className="text-body-sm text-error">{linkError}</p>

@@ -98,7 +98,7 @@ export default function BusinessSettingsPage() {
         {success && <div className="bg-success-container border border-success-outline rounded-2xl px-4 py-3 text-sm text-on-success-container">✓ Changes saved successfully.</div>}
 
         {/* Logo */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col items-center gap-3">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col items-center gap-3 elev-1 surface-raised">
           <p className="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider self-start">Business Logo</p>
           <label className="relative cursor-pointer group">
             <div className="w-24 h-24 rounded-2xl bg-surface-container border-2 border-dashed border-outline group-hover:border-secondary overflow-hidden flex items-center justify-center transition-colors">
@@ -125,19 +125,19 @@ export default function BusinessSettingsPage() {
         </div>
 
         {/* Basic Info */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4 elev-1 surface-raised">
           <p className="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Business Information</p>
           <Input label="Business Name *" value={businessName} onChange={e => setBusinessName(e.target.value)} maxLength={80} />
           <Input label="Username" value={businessUsername} onChange={e => setBusinessUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g,""))} maxLength={30} hint="Optional · lowercase only" />
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-on-surface-variant">Description</label>
             <textarea aria-label="Description" value={description} onChange={e => setDescription(e.target.value)} maxLength={300} rows={3}
-              className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none" />
+              className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none elev-1 surface-raised" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-on-surface-variant">Category</label>
             <select aria-label="Category" value={category} onChange={e => setCategory(e.target.value)}
-              className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary">
+              className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary elev-1 surface-raised">
               <option value="">Select category…</option>
               {BUSINESS_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -145,7 +145,7 @@ export default function BusinessSettingsPage() {
         </div>
 
         {/* Contact */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4 elev-1 surface-raised">
           <p className="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Contact</p>
           <Input label="Phone" type="tel" value={businessPhone} onChange={e => setBusinessPhone(e.target.value)} />
           <Input label="Email" type="email" value={businessEmail} onChange={e => setBusinessEmail(e.target.value)} />
@@ -153,7 +153,7 @@ export default function BusinessSettingsPage() {
         </div>
 
         {/* Location */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4 elev-1 surface-raised">
           <p className="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Location</p>
           <Input label="Street Address" value={address} onChange={e => setAddress(e.target.value)} />
           <div className="grid grid-cols-2 gap-3">

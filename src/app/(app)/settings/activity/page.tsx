@@ -111,7 +111,7 @@ export default async function ActivitySettingsPage({
           </div>
         </section>
 
-        <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
+        <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
           <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-on-surface">
             <ShieldCheck className="h-4 w-4 text-on-success-container" /> Your privacy
           </h2>

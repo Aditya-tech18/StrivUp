@@ -78,7 +78,7 @@ function ToggleSwitch({ id, checked, onChange }: {
       ].join(" ")}
     >
       <span className={[
-        "absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm",
+        "absolute top-1 left-1 w-4 h-4 rounded-full bg-white elev-1",
         "transition-transform duration-200",
         checked ? "translate-x-5" : "translate-x-0",
       ].join(" ")} />
@@ -105,7 +105,7 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
   onRemove: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3 elev-1 surface-raised">
       <div className="flex items-center gap-2">
         <GripVertical size={16} className="text-on-surface-variant/40 flex-shrink-0 cursor-grab" aria-hidden="true" />
         <span className="text-xs font-semibold text-on-surface-variant flex-shrink-0">Task {index + 1}</span>
@@ -266,7 +266,7 @@ function BusinessPanel() {
           Businesses create Quests — real-world actions at your store, café, gym or restaurant that customers complete for a reward.
         </p>
       </div>
-      <ol className="rounded-2xl border border-outline-variant bg-surface-container-lowest divide-y divide-outline-variant">
+      <ol className="rounded-2xl border border-outline-variant bg-surface-container-lowest divide-y divide-outline-variant elev-1 surface-raised">
         {BUSINESS_STEPS.map(({ icon: Icon, title, desc }, i) => (
           <li key={title} className="flex items-start gap-3 p-4">
             <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">

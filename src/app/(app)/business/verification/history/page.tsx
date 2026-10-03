@@ -66,7 +66,7 @@ export default function VerificationHistoryPage() {
             { label:"Pending",  value:insights.pending,  color:"text-on-warning-container" },
             { label:"Rejected", value:insights.rejected, color:"text-on-error-container" },
           ].map(s => (
-            <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-3 flex flex-col items-center">
+            <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-3 flex flex-col items-center elev-1 surface-raised">
               <span className={`text-2xl font-black ${s.color}`}>{s.value}</span>
               <span className="text-label-sm text-on-surface-variant font-medium mt-0.5">{s.label}</span>
             </div>
@@ -87,11 +87,11 @@ export default function VerificationHistoryPage() {
 
         {/* List */}
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant">
+          <div className="flex flex-col items-center gap-3 py-16 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
             <p className="text-sm text-on-surface-variant">No {filter==="all" ? "" : filter} verifications yet.</p>
           </div>
         ) : (
-          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-50">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-gray-50 elev-1 surface-raised">
             {filtered.map(req => {
               const participant = req.participant as { full_name: string|null }|undefined;
               const pName = participant?.full_name ?? "Unknown";

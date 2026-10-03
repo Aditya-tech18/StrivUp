@@ -118,16 +118,16 @@ export default function FeedPreviewPage() {
               Streak + StrivCoin. Second row shows the first-visit-of-day flourish.
             </p>
           </div>
-          <div className="flex flex-col gap-space-sm rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
+          <div className="flex flex-col gap-space-sm rounded-xl bg-surface-container-lowest p-space-md elev-1 surface-raised">
             <div className="flex items-center justify-end gap-space-xs">
-              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 shadow-sm">
+              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1">
                 <Flame size={15} className="text-secondary" aria-hidden="true" />
                 <span className="text-label-md font-bold text-on-surface">14</span>
               </div>
               <CoinPill balance={248} earnedToday={0} />
             </div>
             <div className="flex items-center justify-end gap-space-xs">
-              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 shadow-sm">
+              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1">
                 <Flame size={15} className="text-secondary" aria-hidden="true" />
                 <span className="text-label-md font-bold text-on-surface">14</span>
               </div>

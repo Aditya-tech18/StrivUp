@@ -98,7 +98,7 @@ export default function BusinessQuestsPage() {
 
       <div className="px-5 py-5 max-w-2xl mx-auto flex flex-col gap-3">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-4 py-20 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant">
+          <div className="flex flex-col items-center gap-4 py-20 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
             <div className="w-16 h-16 rounded-2xl bg-secondary-fixed flex items-center justify-center">
               <Plus size={28} className="text-secondary" />
             </div>
@@ -115,7 +115,7 @@ export default function BusinessQuestsPage() {
           filtered.map(quest => {
             const sc = STATUS_CONFIG[quest.quest_status] ?? STATUS_CONFIG.draft;
             return (
-              <div key={quest.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden">
+              <div key={quest.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden elev-1 surface-raised">
                 <div className="flex gap-4 p-4">
                   {/* Cover */}
                   <div className="w-20 h-20 rounded-xl bg-surface-container overflow-hidden shrink-0">

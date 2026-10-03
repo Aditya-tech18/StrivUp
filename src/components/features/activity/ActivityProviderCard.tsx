@@ -54,7 +54,7 @@ export function ActivityProviderCard({
   }
 
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">

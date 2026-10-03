@@ -43,7 +43,7 @@ export function PhysicalQuestAnalytics({
   ];
 
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
       <h3 className="mb-3 text-sm font-semibold text-on-surface">Physical quest performance</h3>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

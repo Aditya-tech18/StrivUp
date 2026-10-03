@@ -92,7 +92,7 @@ export function InviteSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="invite-sheet-title"
-        className="w-full max-w-md rounded-xl bg-surface-container-lowest p-space-md shadow-2xl"
+        className="w-full max-w-md rounded-xl bg-surface-container-lowest p-space-md elev-5"
       >
         <div className="flex items-start justify-between">
           <div>

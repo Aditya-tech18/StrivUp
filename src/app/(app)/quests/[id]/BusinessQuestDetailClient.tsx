@@ -438,7 +438,7 @@ export default function BusinessQuestDetailClient({
             {totalTasks > 0 && (
               <Link
                 href={hasJoined ? `/quests/${quest.id}/tasks` : `#tasks`}
-                className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-4 flex items-center gap-4 hover:border-outline transition-colors"
+                className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-4 flex items-center gap-4 hover:border-outline transition-colors elev-1 surface-raised"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-3">
@@ -461,7 +461,7 @@ export default function BusinessQuestDetailClient({
             {/* Tabs */}
             <nav
               aria-label="Quest sections"
-              className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-2 flex gap-1 overflow-x-auto"
+              className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-2 flex gap-1 overflow-x-auto elev-1 surface-raised"
             >
               {TABS.map((t) => (
                 <button
@@ -528,7 +528,7 @@ export default function BusinessQuestDetailClient({
 
             {/* ── Rules ─────────────────────────────────────────────── */}
             {tab === "rules" && (
-              <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+              <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
                 <h2 className="text-body-lg font-bold text-on-surface">Quest Rules</h2>
                 {quest.eligibility && (
                   <>
@@ -708,7 +708,7 @@ function AboutQuestCard({
   ].filter(Boolean) as { k: string; v: string }[];
 
   return (
-    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
       <h2 className="text-body-lg font-bold text-on-surface">About This Quest</h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-6 mt-3">
@@ -765,7 +765,7 @@ function TaskSection({
   if (tasks.length === 0) return null;
 
   return (
-    <section id="tasks" className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 scroll-mt-20">
+    <section id="tasks" className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 scroll-mt-20 elev-1 surface-raised">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-body-lg font-bold text-on-surface">
@@ -830,7 +830,7 @@ function TaskCard({
         : null;
 
   return (
-    <li className="group rounded-2xl border border-outline-variant hover:border-outline bg-surface-container-lowest transition-colors">
+    <li className="group rounded-2xl border border-outline-variant hover:border-outline bg-surface-container-lowest transition-colors elev-1 surface-raised">
       <div className="flex items-center gap-4 p-4">
 
         {/* Number */}
@@ -939,7 +939,7 @@ function LeaderboardPanel({
   enabled: boolean;
 }) {
   return (
-    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
       <h2 className="text-body-lg font-bold text-on-surface">Leaderboard</h2>
       <p className="text-sm text-on-surface-variant mt-0.5">
         {enabled
@@ -1005,7 +1005,7 @@ function AboutBusinessPanel({
   const phones = [b?.business_phone, b?.business_phone_alt].filter(Boolean);
 
   return (
-    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
       <div className="flex items-start gap-4">
         <div className="w-14 h-14 rounded-xl bg-surface-container-low border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center">
           {b?.logo_url ?? quest.business_logo ? (

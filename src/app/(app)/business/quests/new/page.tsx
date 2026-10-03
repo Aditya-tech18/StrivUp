@@ -309,13 +309,13 @@ function CreateQuestContent() {
           <label className="text-sm font-semibold text-on-surface-variant">Description *</label>
           <textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={1000} rows={4}
             placeholder="Describe the quest, what participants need to do, and why they should join..."
-            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none" />
+            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none elev-1 surface-raised" />
           <p className="text-xs text-on-surface-variant text-right">{description.length}/1000</p>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-on-surface-variant">Category</label>
           <select value={category} onChange={e => setCategory(e.target.value)}
-            className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary">
+            className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary elev-1 surface-raised">
             <option value="">Select category…</option>
             {QUEST_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -338,7 +338,7 @@ function CreateQuestContent() {
       {error && <p className="text-on-error-container text-sm mb-4 bg-error-container rounded-xl px-4 py-3">{error}</p>}
       <div className="flex flex-col gap-3">
         {tasks.map((task, i) => (
-          <div key={i} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex flex-col gap-3">
+          <div key={i} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex flex-col gap-3 elev-1 surface-raised">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <GripVertical size={16} className="text-on-surface-variant" />
@@ -354,10 +354,10 @@ function CreateQuestContent() {
               )}
             </div>
             <input value={task.title ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, title: e.target.value } : t))}
-              placeholder="Task title *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest" />
+              placeholder="Task title *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest elev-1 surface-raised" />
             <textarea value={task.description ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, description: e.target.value } : t))}
               placeholder="Task description..." rows={2}
-              className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest resize-none" />
+              className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest resize-none elev-1 surface-raised" />
             <div className="flex gap-3">
               <div className="flex-1">
                 <label className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">Proof Type</label>
@@ -420,7 +420,7 @@ function CreateQuestContent() {
 
             <textarea value={task.instructions ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, instructions: e.target.value } : t))}
               placeholder="Instructions for participants (optional)..." rows={2}
-              className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest resize-none" />
+              className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest resize-none elev-1 surface-raised" />
 
             {task.proof_type === "physical_activity" && (
               <PhysicalActivityConfigFields
@@ -444,7 +444,7 @@ function CreateQuestContent() {
       onBack={() => setStep(2)} onNext={saveRewards} nextLabel="Continue" saving={saving}>
       {error && <p className="text-on-error-container text-sm mb-4 bg-error-container rounded-xl px-4 py-3">{error}</p>}
       <div className="flex flex-col gap-4">
-        <label className="flex items-center gap-3 bg-surface-container-lowest rounded-xl border border-outline-variant px-4 py-3 cursor-pointer">
+        <label className="flex items-center gap-3 bg-surface-container-lowest rounded-xl border border-outline-variant px-4 py-3 cursor-pointer elev-1 surface-raised">
           <input type="checkbox" checked={isLeaderboard} onChange={e => setIsLeaderboard(e.target.checked)}
             className="w-4 h-4 rounded border-outline accent-blue-600" />
           <div>
@@ -453,7 +453,7 @@ function CreateQuestContent() {
           </div>
         </label>
         {rewards.map((reward, i) => (
-          <div key={i} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex flex-col gap-3">
+          <div key={i} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex flex-col gap-3 elev-1 surface-raised">
             <div className="flex items-center justify-between">
               <span className="text-sm font-bold text-on-surface-variant">Reward {i + 1}</span>
               <button type="button" onClick={() => {
@@ -471,9 +471,9 @@ function CreateQuestContent() {
               </div>
             </div>
             <input value={reward.title ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, title: e.target.value } : r))}
-              placeholder="Reward title (e.g. ₹10,000 Cash Prize) *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest" />
+              placeholder="Reward title (e.g. ₹10,000 Cash Prize) *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest elev-1 surface-raised" />
             <input value={reward.value ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, value: e.target.value } : r))}
-              placeholder="Value (e.g. ₹10,000)" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest" />
+              placeholder="Value (e.g. ₹10,000)" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest elev-1 surface-raised" />
             {isLeaderboard && (
               <div className="grid grid-cols-2 gap-3">
                 <input type="number" value={reward.rank_from ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, rank_from: parseInt(e.target.value) || null } : r))}
@@ -507,13 +507,13 @@ function CreateQuestContent() {
           <label className="text-sm font-semibold text-on-surface-variant">Eligibility</label>
           <textarea value={eligibility} onChange={e => setEligibility(e.target.value)} rows={3}
             placeholder="Who can participate? (e.g. Open to all, 18+ only, Indian residents only...)"
-            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none" />
+            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none elev-1 surface-raised" />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-on-surface-variant">Participation Rules</label>
           <textarea value={rules} onChange={e => setRules(e.target.value)} rows={6}
             placeholder="List the rules, proof requirements, reward criteria, disqualification rules..."
-            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none" />
+            className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-blue-100 resize-none elev-1 surface-raised" />
         </div>
         <div className="bg-secondary-fixed border border-secondary-fixed-dim rounded-xl px-4 py-3">
           <p className="text-xs text-secondary font-medium">By submitting, you confirm that all reward information provided is accurate and you are legally permitted to offer these rewards.</p>
@@ -570,14 +570,14 @@ function CreateQuestContent() {
           </div>
         )}
 
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-3">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-3 elev-1 surface-raised">
           <h2 className="text-xl font-black text-on-surface">{title}</h2>
           {category && <span className="self-start text-xs font-semibold text-secondary bg-secondary-fixed px-3 py-1 rounded-full">{category}</span>}
           {description && <p className="text-sm text-on-surface-variant leading-relaxed">{description}</p>}
         </div>
 
         {tasks.filter(t => t.title?.trim()).length > 0 && (
-          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
             <p className="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider mb-3">Tasks ({tasks.filter(t => t.title?.trim()).length})</p>
             <div className="flex flex-col gap-2">
               {tasks.filter(t => t.title?.trim()).map((t, i) => (
@@ -594,7 +594,7 @@ function CreateQuestContent() {
         )}
 
         {rewards.filter(r => r.title?.trim()).length > 0 && (
-          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
             <p className="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider mb-3">Rewards ({rewards.filter(r => r.title?.trim()).length})</p>
             {rewards.filter(r => r.title?.trim()).map((r, i) => (
               <div key={i} className="flex items-center gap-3 py-2 border-b border-outline-variant last:border-0">

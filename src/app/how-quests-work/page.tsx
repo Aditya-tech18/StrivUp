@@ -110,7 +110,7 @@ export default function HowQuestsWorkPage() {
           <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-on-surface-variant">
             {["Discover", "Join", "Act", "Verify", "Progress", "Reward", "Return"].map((s, i, a) => (
               <span key={s} className="flex items-center gap-1.5">
-                <span className="rounded-full border border-outline-variant bg-surface-container-lowest px-2.5 py-1">{s}</span>
+                <span className="rounded-full border border-outline-variant bg-surface-container-lowest px-2.5 py-1 elev-1 surface-raised">{s}</span>
                 {i < a.length - 1 && <ArrowRight size={12} className="text-on-surface-variant" aria-hidden="true" />}
               </span>
             ))}
@@ -120,7 +120,7 @@ export default function HowQuestsWorkPage() {
         {/* Challenge vs Quest */}
         <Section id="vs" title="Challenge vs Quest">
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
               <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Challenge</p>
               <p className="mt-1 text-body-lg font-black text-on-surface">Personal growth</p>
               <p className="mt-1 text-sm text-on-surface-variant">100 Days of LeetCode, 30 Days Fitness, Daily Reading.</p>
@@ -146,7 +146,7 @@ export default function HowQuestsWorkPage() {
               { icon: Gift,           t: "Reward",   d: "What completing the Quest can earn." },
               { icon: Trophy,         t: "Leaderboard", d: "Optional ranking on verified progress." },
             ].map(({ icon: Icon, t, d }) => (
-              <div key={t} className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+              <div key={t} className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
                 <Icon size={18} className="text-secondary" aria-hidden="true" />
                 <p className="mt-2 text-sm font-bold text-on-surface">{t}</p>
                 <p className="mt-0.5 text-xs leading-snug text-on-surface-variant">{d}</p>
@@ -186,7 +186,7 @@ export default function HowQuestsWorkPage() {
 
         {/* Why two codes */}
         <Section id="two" title="Why two codes?">
-          <div className="overflow-x-auto rounded-2xl border border-outline-variant bg-surface-container-lowest">
+          <div className="overflow-x-auto rounded-2xl border border-outline-variant bg-surface-container-lowest elev-1 surface-raised">
             <table className="w-full min-w-[480px] text-sm">
               <thead>
                 <tr className="bg-surface-container-low text-left text-xs text-on-surface-variant">
@@ -221,7 +221,7 @@ export default function HowQuestsWorkPage() {
 
         {/* Example */}
         <Section id="example" title="Example: Veer Ji Chaap Explorer">
-          <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest">
+          <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest elev-1 surface-raised">
             <div className="flex items-center gap-2 border-b border-outline-variant bg-warning-container px-4 py-2 text-xs font-semibold text-on-warning-container">
               <Eye size={14} aria-hidden="true" /> Illustrative example. The reward below is a demo configuration, not an offer.
             </div>
@@ -254,7 +254,7 @@ export default function HowQuestsWorkPage() {
         <Section id="faq" title="What if…">
           <div className="flex flex-col gap-2">
             {EDGE_CASES.map(({ q, a }) => (
-              <details key={q} className="group rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3">
+              <details key={q} className="group rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3 elev-1 surface-raised">
                 <summary className="cursor-pointer list-none text-sm font-bold text-on-surface flex items-center justify-between gap-3 min-h-[28px]">
                   {q}
                   <span className="text-on-surface-variant transition-transform group-open:rotate-90" aria-hidden="true">›</span>
@@ -268,11 +268,11 @@ export default function HowQuestsWorkPage() {
         {/* Leaderboard & rewards */}
         <Section id="rewards" title="Leaderboard and rewards">
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant">
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant elev-1 surface-raised">
               <p className="flex items-center gap-2 font-bold text-on-surface"><Trophy size={16} className="text-on-warning-container" aria-hidden="true" /> Leaderboard</p>
               <p className="mt-1">Ranks by verified tasks only. Ties go to whoever completed their latest verification first. Generating a code or a business approval never moves your rank.</p>
             </div>
-            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant">
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant elev-1 surface-raised">
               <p className="flex items-center gap-2 font-bold text-on-surface"><Gift size={16} className="text-secondary" aria-hidden="true" /> Rewards</p>
               <p className="mt-1">Verification answers “did it happen?”; the reward answers “what do I get?”. Completion rewards unlock when all required tasks are verified. Rank-based rewards follow the Quest&apos;s published conditions at the end.</p>
             </div>
@@ -281,7 +281,7 @@ export default function HowQuestsWorkPage() {
 
         {/* Rules */}
         <Section id="rules" title="Quest rules">
-          <ol className="grid gap-2 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface sm:grid-cols-2">
+          <ol className="grid gap-2 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface sm:grid-cols-2 elev-1 surface-raised">
             {RULES.map((r, i) => (
               <li key={r} className="flex gap-2"><span className="w-5 shrink-0 font-black text-secondary">{i + 1}</span>{r}</li>
             ))}
@@ -291,16 +291,16 @@ export default function HowQuestsWorkPage() {
         {/* For businesses */}
         <Section id="business" title="For businesses">
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant">
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant elev-1 surface-raised">
               <p className="flex items-center gap-2 font-bold text-on-surface"><Search size={16} aria-hidden="true" /> Verify Order</p>
               <p className="mt-1">Search the code from the order note, check the Quest and task, then Verify Order or Reject with a reason. Write the bill code STRIVUP gives you on the bill.</p>
             </div>
-            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant">
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 text-sm text-on-surface-variant elev-1 surface-raised">
               <p className="flex items-center gap-2 font-bold text-on-surface"><ShieldCheck size={16} aria-hidden="true" /> What you see</p>
               <p className="mt-1">Only what you need to verify: the participant&apos;s display name, the Quest, the task, the code and its timing. No phone numbers, emails or addresses.</p>
             </div>
           </div>
-          <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+          <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
             <p className="text-sm font-bold text-on-surface">Your Quest funnel</p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-semibold text-on-surface-variant">
               {["Views", "Joins", "Proof codes generated", "Orders verified", "Bill codes entered", "Quest completions"].map((s, i, a) => (
@@ -323,7 +323,7 @@ export default function HowQuestsWorkPage() {
               { icon: CheckCircle2, t: "No proof",         d: "Mark done — for simple, low-stakes steps." },
               { icon: XCircle,    t: "Coming later",       d: "QR, event and location codes, and POS integrations." },
             ].map(({ icon: Icon, t, d }) => (
-              <li key={t} className="flex gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+              <li key={t} className="flex gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
                 <Icon size={18} className="shrink-0 text-secondary" aria-hidden="true" />
                 <div><p className="text-sm font-bold text-on-surface">{t}</p><p className="text-xs text-on-surface-variant">{d}</p></div>
               </li>
@@ -335,7 +335,7 @@ export default function HowQuestsWorkPage() {
           <Link href="/quests" className="flex h-12 flex-1 items-center justify-center rounded-xl bg-secondary text-sm font-bold text-white">
             Explore Quests
           </Link>
-          <Link href="/business" className="flex h-12 flex-1 items-center justify-center rounded-xl border border-outline-variant bg-surface-container-lowest text-sm font-bold text-on-surface">
+          <Link href="/business" className="flex h-12 flex-1 items-center justify-center rounded-xl border border-outline-variant bg-surface-container-lowest text-sm font-bold text-on-surface elev-1 surface-raised">
             Create a Quest for your business
           </Link>
         </div>

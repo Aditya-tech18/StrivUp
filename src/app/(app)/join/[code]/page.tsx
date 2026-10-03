@@ -93,7 +93,7 @@ export default async function JoinPage({ params, searchParams }: PageProps) {
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center px-gutter py-space-xl">
-      <div className="rounded-xl bg-surface-container-lowest p-space-lg text-center shadow-sm">
+      <div className="rounded-xl bg-surface-container-lowest p-space-lg text-center elev-1 surface-raised">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
           <Flame size={26} className="text-secondary" aria-hidden="true" />
         </div>

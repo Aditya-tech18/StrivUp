@@ -91,7 +91,7 @@ export default async function BusinessExplorePage({ searchParams }: { searchPara
         </nav>
 
         {rows.length === 0 ? (
-          <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-12 text-center">
+          <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-12 text-center elev-1 surface-raised">
             <Store size={28} className="text-on-surface-variant" aria-hidden="true" />
             <p className="text-body-lg font-bold text-on-surface">No Quests from other businesses yet</p>
             <p className="max-w-sm text-sm text-on-surface-variant">{q || category ? "Try a different search or category." : "Be the first in your area — create a Quest and it will show up here for others."}</p>
@@ -106,7 +106,7 @@ export default async function BusinessExplorePage({ searchParams }: { searchPara
               const participants = r.participant_count ?? 0;
               const pct = participants > 0 ? Math.round(((r.completion_count ?? 0) / participants) * 100) : null;
               return (
-                <li key={r.id} className="flex flex-col overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest">
+                <li key={r.id} className="flex flex-col overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest elev-1 surface-raised">
                   <Link href={`/quests/${r.id}`} className="relative block aspect-video bg-surface-container">
                     {img
                       // eslint-disable-next-line @next/next/no-img-element

@@ -365,7 +365,7 @@ export default function ProfilePage() {
 
       {interestsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md bg-surface-container-lowest rounded-t-xl sm:rounded-xl p-5 max-h-[85vh] overflow-y-auto">
+          <div className="w-full max-w-md bg-surface-container-lowest rounded-t-xl sm:rounded-xl p-5 max-h-[85vh] overflow-y-auto elev-5">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-headline-md text-on-surface">Choose your interests</h2>
               <button type="button" onClick={() => setInterestsModalOpen(false)} aria-label="Close" className="text-on-surface-variant">
@@ -410,7 +410,7 @@ export default function ProfilePage() {
 
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-sm bg-surface-container-lowest rounded-xl p-5">
+          <div className="w-full max-w-sm bg-surface-container-lowest rounded-xl p-5 elev-5">
             <h2 className="text-headline-md text-on-surface mb-2">Delete your StrivUp account?</h2>
             <p className="text-body-md text-on-surface-variant mb-4">
               This permanently removes your profile and account data. This action cannot be undone.

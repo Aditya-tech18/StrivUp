@@ -8,7 +8,7 @@ const STEPS = [
     title: "Spot the STRIVUP code on the order",
     body: "Quest orders from Zomato or Swiggy carry a STRIVUP order code in the order description or cooking instructions.",
     visual: (
-      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 text-xs text-on-surface-variant">
+      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 text-xs text-on-surface-variant elev-1 surface-raised">
         <div className="font-black text-on-surface uppercase mb-2">New order · #4821</div>
         <div className="flex justify-between"><span>Malai Chaap (Full)</span><span>×1</span></div>
         <div className="mt-2 rounded-lg bg-surface-container-low px-2 py-1.5">Instructions: <span className="font-mono font-black text-secondary">SV-981042</span></div>
@@ -27,7 +27,7 @@ const STEPS = [
     title: "Write the bill code on the bill",
     body: "After you verify, STRIVUP gives you a new bill code. Write or print it on the bill that goes with the order. It's valid for 24 hours and works only for that customer.",
     visual: (
-      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4">
+      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 elev-1 surface-raised">
         <div className="text-xs font-black text-on-surface uppercase mb-2">Veer Ji Malai Chaap Wale</div>
         <div className="border-t border-outline-variant pt-2 space-y-1">
           <div className="flex justify-between text-xs text-on-surface-variant"><span>Malai Chaap (Full)</span><span>₹280</span></div>
@@ -60,7 +60,7 @@ export default function HowItWorksPage() {
         {STEPS.map((step, i) => (
           <div key={i} className="flex gap-4">
             <div className="flex flex-col items-center">
-              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0 shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0 elev-1">
                 <span className="text-sm font-black text-white">{i+1}</span>
               </div>
               {i < STEPS.length-1 && <div className="w-0.5 flex-1 bg-surface-container-highest mt-2" />}

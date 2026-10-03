@@ -374,7 +374,7 @@ function TaskUploadSlot({
   const shownRejectionReason = slot.rejectionReason ?? submission?.rejectionReason ?? null;
 
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3 elev-1 surface-raised">
       {/* Task header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -945,7 +945,7 @@ export function ChallengeDetailClient({
             <section aria-label="Join this challenge">
               {challenge.visibility === "public" ? (
                 <div
-                  className="rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-8 text-center space-y-4"
+                  className="rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-8 text-center space-y-4 elev-1 surface-raised"
                   style={{ background: "linear-gradient(135deg, #0d1c32 0%, #1a3a6b 100%)" }}
                 >
                   <div>

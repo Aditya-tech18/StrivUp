@@ -43,7 +43,7 @@ function ProfileStat({
   label: string;
 }) {
   return (
-    <div className="rounded-xl bg-surface-container-lowest border border-outline-variant px-2.5 py-2">
+    <div className="rounded-xl bg-surface-container-lowest border border-outline-variant px-2.5 py-2 elev-1 surface-raised">
       <div className="flex items-center gap-1.5">
         <Icon size={11} className="text-on-surface-variant shrink-0" aria-hidden="true" />
         <p className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant truncate">
@@ -206,7 +206,7 @@ export default function BusinessOrderVerificationPage() {
       <div className="max-w-5xl mx-auto px-5 lg:px-8 py-6 flex flex-col gap-6">
 
         {/* ── Search ───────────────────────────────────────────────── */}
-        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
           <h2 className="text-body-lg font-bold text-on-surface">Search order code</h2>
           <p className="text-sm text-on-surface-variant mt-0.5">
             The customer adds this code to the order description on Zomato or Swiggy.
@@ -214,7 +214,7 @@ export default function BusinessOrderVerificationPage() {
 
           <div className="flex flex-col sm:flex-row gap-2.5 mt-4">
             <label htmlFor="order-code" className="sr-only">STRIVUP order code</label>
-            <div className="flex-1 flex items-center gap-2 rounded-xl border-2 border-outline-variant focus-within:border-secondary bg-surface-container-lowest px-4 h-12 transition-colors">
+            <div className="flex-1 flex items-center gap-2 rounded-xl border-2 border-outline-variant focus-within:border-secondary bg-surface-container-lowest px-4 h-12 transition-colors elev-1 surface-raised">
               <Search size={17} className="text-on-surface-variant shrink-0" />
               <input
                 id="order-code"
@@ -254,7 +254,7 @@ export default function BusinessOrderVerificationPage() {
                   without handing over a profile dossier. */}
               <div className="px-5 py-4 bg-surface-container-low border-b border-outline-variant">
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-full bg-surface-container-lowest border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-surface-container-lowest border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center elev-1 surface-raised">
                     {match.participant_avatar ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={match.participant_avatar} alt="" className="w-full h-full object-cover" />
@@ -417,7 +417,7 @@ export default function BusinessOrderVerificationPage() {
         </section>
 
         {/* ── Open queue ───────────────────────────────────────────── */}
-        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-body-lg font-bold text-on-surface">Open verifications</h2>

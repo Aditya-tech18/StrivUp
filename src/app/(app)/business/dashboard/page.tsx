@@ -201,7 +201,7 @@ export default function BusinessDashboardPage() {
         )}
 
         {/* ── Profile Header ───────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5 elev-1 surface-raised">
           <div className="flex items-start gap-4">
             {/* Logo */}
             <div className="w-16 h-16 rounded-2xl bg-surface-container overflow-hidden flex items-center justify-center shrink-0 border border-outline-variant">
@@ -225,7 +225,7 @@ export default function BusinessDashboardPage() {
               )}
             </div>
             <button onClick={() => router.push("/business/settings")}
-              className="px-4 py-1.5 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant bg-surface-container-lowest hover:bg-surface-container-low shrink-0">
+              className="px-4 py-1.5 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant bg-surface-container-lowest hover:bg-surface-container-low shrink-0 elev-1 surface-raised">
               Edit Profile
             </button>
           </div>
@@ -261,17 +261,17 @@ export default function BusinessDashboardPage() {
         {/* ── Quick Actions ─────────────────────────────────────────── */}
         <div className="grid grid-cols-2 gap-3">
           <button onClick={() => router.push("/business/quests/new")}
-            className="flex items-center justify-center gap-2 h-12 rounded-2xl bg-secondary hover:opacity-90 text-white font-bold text-sm transition-all shadow-sm shadow-blue-200">
+            className="flex items-center justify-center gap-2 h-12 rounded-2xl bg-secondary hover:opacity-90 text-white font-bold text-sm transition-all elev-brand">
             <Plus size={18} /> Create Quest
           </button>
           <button onClick={() => router.push("/business/quests")}
-            className="flex items-center justify-center gap-2 h-12 rounded-2xl bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-semibold text-sm hover:bg-surface-container-low transition-all">
+            className="flex items-center justify-center gap-2 h-12 rounded-2xl bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-semibold text-sm hover:bg-surface-container-low transition-all elev-1 surface-raised">
             My Quests →
           </button>
         </div>
 
         {/* ── Business Tools ───────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5 elev-1 surface-raised">
           <h2 className="text-body-lg font-black text-on-surface mb-1">Business Tools</h2>
           <p className="text-sm text-on-surface-variant mb-4">Manage your challenges, verify participants and track your impact on STRIVUP.</p>
           <div className="grid grid-cols-2 gap-3">
@@ -323,7 +323,7 @@ export default function BusinessDashboardPage() {
             { label: "Participants", value: questStats.participants,   color: "text-purple-600" },
             { label: "Pending Proof",value: questStats.pending_proofs, color: questStats.pending_proofs > 0 ? "text-on-warning-container" : "text-on-surface-variant" },
           ].map(s => (
-            <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-3 flex flex-col items-center">
+            <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-3 flex flex-col items-center elev-1 surface-raised">
               <span className={`text-xl font-black ${s.color}`}>{s.value}</span>
               <span className="text-label-sm text-on-surface-variant font-medium mt-0.5 text-center leading-tight">{s.label}</span>
             </div>
@@ -331,7 +331,7 @@ export default function BusinessDashboardPage() {
         </div>
 
         {/* ── Active Quests ─────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5 elev-1 surface-raised">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-body-lg font-black text-on-surface">Your Active Campaigns</h2>
             <Link href="/business/quests" className="text-sm text-secondary font-semibold">View all</Link>
@@ -379,7 +379,7 @@ export default function BusinessDashboardPage() {
 
         {/* ── Recent Activity ───────────────────────────────────────────── */}
         {verifs.length > 0 && (
-          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5 elev-1 surface-raised">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-body-lg font-black text-on-surface">Recent Activity</h2>
               <Link href="/business/verification/history" className="text-sm text-secondary font-semibold">View all</Link>

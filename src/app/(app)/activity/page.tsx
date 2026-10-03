@@ -79,7 +79,7 @@ export default async function ActivityDashboardPage() {
             <h2 className="mb-2 text-sm font-semibold text-on-surface">Physical quests</h2>
             <div className="space-y-2.5">
               {activeTasks.slice(0, 10).map((t) => (
-                <div key={t.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
+                <div key={t.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
                   <div className="mb-2">
                     <p className="text-sm font-semibold text-on-surface">
                       {t.task_title ?? "Activity task"}

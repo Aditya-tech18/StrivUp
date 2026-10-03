@@ -82,7 +82,7 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
             ].join(" ")}
           >
             {isCreate ? (
-              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center shadow-md shadow-blue-200 -mt-6">
+              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center elev-brand -mt-6">
                 <Icon size={22} strokeWidth={2.5} className="text-white" />
               </div>
             ) : (

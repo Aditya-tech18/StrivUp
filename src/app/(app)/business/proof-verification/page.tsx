@@ -140,7 +140,7 @@ export default function ProofVerificationPage() {
 
       <div className="px-5 py-5 max-w-2xl mx-auto flex flex-col gap-3">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant">
+          <div className="flex flex-col items-center gap-3 py-16 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
             <CheckCircle2 size={32} className="text-on-surface-variant" />
             <p className="text-sm text-on-surface-variant">No {tab === "pending" ? "pending" : tab} submissions.</p>
           </div>
@@ -150,7 +150,7 @@ export default function ProofVerificationPage() {
             const taskTitle = (sub.task as { title: string } | undefined)?.title ?? "—";
             const isImg = sub.media_url && /\.(jpg|jpeg|png|webp|gif)/i.test(sub.media_url);
             return (
-              <div key={sub.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden">
+              <div key={sub.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden elev-1 surface-raised">
                 <div className="p-4">
                   <div className="flex items-start gap-3 mb-3">
                     <div className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center shrink-0 font-bold text-secondary text-sm">
@@ -219,7 +219,7 @@ export default function ProofVerificationPage() {
       {/* Reject / Resubmit Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center px-4">
-          <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl p-5">
+          <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl p-5 elev-5">
             <h3 className="text-body-lg font-black text-on-surface mb-1">
               {showRejectModal.startsWith("resubmit-") ? "Request Resubmission" : "Reject Submission"}
             </h3>

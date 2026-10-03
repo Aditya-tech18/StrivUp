@@ -81,7 +81,7 @@ function SubmissionRow({
   };
 
   return (
-    <div className="border border-outline-variant rounded-xl overflow-hidden bg-surface-container-lowest">
+    <div className="border border-outline-variant rounded-xl overflow-hidden bg-surface-container-lowest elev-1 surface-raised">
       {/* Header row */}
       <div className="flex items-center gap-3 px-4 py-3">
         {/* Avatar */}
@@ -313,7 +313,7 @@ export function SubmissionsReviewClient({
               "flex-1 h-8 rounded-lg text-sm font-medium transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
               activeTab === tab.value
-                ? "bg-surface text-on-surface shadow-sm"
+                ? "bg-surface text-on-surface elev-1"
                 : "text-on-surface-variant hover:text-on-surface",
             ].join(" ")}
           >

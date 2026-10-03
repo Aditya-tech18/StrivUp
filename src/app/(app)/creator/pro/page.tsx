@@ -34,7 +34,7 @@ export default function CreatorProPage() {
 
         <div className="grid grid-cols-2 gap-3">
           {BENEFITS.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+            <div key={title} className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
               <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-secondary-fixed">
                 <Icon size={18} className="text-secondary" aria-hidden="true" />
               </div>
@@ -47,7 +47,7 @@ export default function CreatorProPage() {
         <CreatorPlans />
 
         <Link href="/challenges/new"
-          className="flex h-12 items-center justify-center rounded-xl bg-secondary text-sm font-bold text-white shadow-sm shadow-blue-200 hover:opacity-90">
+          className="flex h-12 items-center justify-center rounded-xl bg-secondary text-sm font-bold text-white elev-brand hover:opacity-90">
           Create a free challenge →
         </Link>
       </div>

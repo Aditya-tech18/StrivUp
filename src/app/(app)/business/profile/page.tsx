@@ -65,7 +65,7 @@ export default function BusinessProfilePage() {
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
         <h1 className="text-body-lg font-black text-on-surface flex-1">Business Profile</h1>
         <button onClick={() => router.push("/business/settings")}
-          className="flex items-center gap-1.5 h-9 px-4 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant bg-surface-container-lowest hover:bg-surface-container-low">
+          className="flex items-center gap-1.5 h-9 px-4 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant bg-surface-container-lowest hover:bg-surface-container-low elev-1 surface-raised">
           <Edit2 size={14} /> Edit
         </button>
       </div>
@@ -185,7 +185,7 @@ export default function BusinessProfilePage() {
           </div>
 
           {quests.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-12 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant">
+            <div className="flex flex-col items-center gap-3 py-12 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
               <div className="w-14 h-14 rounded-2xl bg-secondary-fixed flex items-center justify-center">
                 <span className="text-2xl">🏆</span>
               </div>
@@ -199,7 +199,7 @@ export default function BusinessProfilePage() {
           ) : (
             <div className="flex flex-col gap-3">
               {(activeQuests.length > 0 ? activeQuests : quests).slice(0, 5).map(quest => (
-                <div key={quest.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden flex gap-3 p-3">
+                <div key={quest.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden flex gap-3 p-3 elev-1 surface-raised">
                   <div className="w-16 h-16 rounded-xl bg-surface-container overflow-hidden shrink-0 flex items-center justify-center">
                     {quest.cover_url || quest.thumbnail_url
                       // eslint-disable-next-line @next/next/no-img-element

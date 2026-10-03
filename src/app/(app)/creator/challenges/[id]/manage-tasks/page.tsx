@@ -52,7 +52,7 @@ function ToggleSwitch({ id, checked, onChange }: {
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
         checked ? "bg-secondary" : "bg-outline-variant",
       ].join(" ")}>
-      <span className={["absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200", checked ? "translate-x-5" : "translate-x-0"].join(" ")} />
+      <span className={["absolute top-1 left-1 w-4 h-4 rounded-full bg-white elev-1 transition-transform duration-200", checked ? "translate-x-5" : "translate-x-0"].join(" ")} />
       <span className="sr-only">{checked ? "On" : "Off"}</span>
     </button>
   );
@@ -63,7 +63,7 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
   task: TaskRow; index: number; onChange: (u: TaskRow) => void; onRemove: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3 elev-1 surface-raised">
       <div className="flex items-center gap-2">
         <GripVertical size={16} className="text-on-surface-variant/40 flex-shrink-0 cursor-grab" aria-hidden="true" />
         <span className="text-xs font-semibold text-on-surface-variant flex-shrink-0">Task {index + 1}</span>

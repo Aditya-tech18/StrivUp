@@ -142,7 +142,7 @@ export default function OrderVerificationModal({
       aria-label={`${taskTitle} — order verification`}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full sm:max-w-md bg-surface-container-lowest rounded-t-3xl sm:rounded-2xl border border-outline-variant shadow-xl max-h-[92vh] overflow-y-auto">
+      <div className="w-full sm:max-w-md bg-surface-container-lowest rounded-t-3xl sm:rounded-2xl border border-outline-variant elev-5 max-h-[92vh] overflow-y-auto">
 
         {/* Header */}
         <div className="sticky top-0 bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 rounded-t-3xl sm:rounded-t-2xl">

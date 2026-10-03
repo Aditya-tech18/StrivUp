@@ -115,7 +115,7 @@ export default function RewardsPage() {
             { label: "Pending",  value: claims.filter(c => c.status === "pending").length,  color: "text-on-warning-container" },
             { label: "Fulfilled",value: claims.filter(c => c.status === "fulfilled").length, color: "text-purple-600" },
           ].map(s => (
-            <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex flex-col items-center">
+            <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex flex-col items-center elev-1 surface-raised">
               <span className={`text-2xl font-black ${s.color}`}>{s.value}</span>
               <span className="text-xs text-on-surface-variant mt-0.5">{s.label}</span>
             </div>
@@ -135,7 +135,7 @@ export default function RewardsPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant">
+          <div className="flex flex-col items-center gap-3 py-16 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
             <Gift size={32} className="text-on-surface-variant" />
             <p className="text-sm text-on-surface-variant">No reward claims yet.</p>
           </div>
@@ -146,7 +146,7 @@ export default function RewardsPage() {
               const sc = STATUS_CFG[claim.status] ?? STATUS_CFG.pending;
               const reward = claim.reward;
               return (
-                <div key={claim.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4">
+                <div key={claim.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 elev-1 surface-raised">
                   <div className="flex items-start gap-3 mb-3">
                     <div className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center shrink-0 font-bold text-secondary text-sm">
                       {pName.charAt(0)}

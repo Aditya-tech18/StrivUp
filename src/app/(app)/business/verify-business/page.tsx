@@ -234,7 +234,7 @@ export default function VerifyBusinessPage() {
         </section>
 
         {status === "verified" ? (
-          <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+          <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
             <h2 className="text-body-lg font-bold text-on-surface">You&apos;re all set</h2>
             <p className="text-sm text-on-surface-variant mt-1">
               Your blue tick is live on your profile, Quests and Challenges.
@@ -251,7 +251,7 @@ export default function VerifyBusinessPage() {
             </div>
           </section>
         ) : locked ? (
-          <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+          <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
             <h2 className="text-body-lg font-bold text-on-surface">What happens next</h2>
             <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">
               A STRIVUP reviewer checks your business information and documents.
@@ -264,7 +264,7 @@ export default function VerifyBusinessPage() {
           <>
             {/* Step rail */}
             <nav aria-label="Application steps"
-              className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-2 flex gap-1 overflow-x-auto">
+              className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-2 flex gap-1 overflow-x-auto elev-1 surface-raised">
               {STEPS.map((label, i) => (
                 <button key={label} onClick={() => setStep(i)}
                   aria-current={step === i ? "step" : undefined}
@@ -283,7 +283,7 @@ export default function VerifyBusinessPage() {
               </div>
             )}
 
-            <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+            <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
               {step === 0 && (
                 <Fields title="Business information" icon={Building2}>
                   <Field label="Business name *" value={f.business_name} onChange={set("business_name")} />
@@ -426,7 +426,7 @@ export default function VerifyBusinessPage() {
 
         {/* History — what a reviewer has already said */}
         {history.length > 0 && (
-          <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6">
+          <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
             <h2 className="text-body-lg font-bold text-on-surface">Verification history</h2>
             <ol className="mt-3 divide-y divide-gray-100">
               {history.map((h) => (
