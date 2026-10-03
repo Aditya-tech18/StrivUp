@@ -65,7 +65,7 @@ export function ActivityVerificationStatus({
   if (verification === "SELF_REPORTED") {
     return (
       <span
-        className={`inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 ${className}`}
+        className={`inline-flex items-center gap-1 rounded-full bg-secondary-fixed px-2 py-0.5 text-[11px] font-medium text-secondary ${className}`}
       >
         <Smartphone className="h-3 w-3" /> Self-reported · {sourceLabel(source)}
       </span>
@@ -74,7 +74,7 @@ export function ActivityVerificationStatus({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600 ${className}`}
+      className={`inline-flex items-center gap-1 rounded-full bg-surface-container px-2 py-0.5 text-[11px] font-medium text-on-surface-variant ${className}`}
     >
       <ShieldQuestion className="h-3 w-3" /> Unverified
     </span>

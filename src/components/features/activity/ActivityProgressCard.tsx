@@ -30,7 +30,7 @@ export function ActivityProgressCard({
     <div className="w-full">
       {label && (
         <div className="mb-1.5 flex items-center justify-between">
-          <span className="text-xs font-medium text-gray-500">{label}</span>
+          <span className="text-xs font-medium text-on-surface-variant">{label}</span>
           {done && (
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600">
               <CheckCircle2 className="h-3.5 w-3.5" /> Complete
@@ -40,16 +40,16 @@ export function ActivityProgressCard({
       )}
 
       <div className="mb-1 flex items-baseline justify-between gap-2">
-        <span className="text-lg font-bold tabular-nums text-gray-900">
+        <span className="text-lg font-bold tabular-nums text-on-surface">
           {formatActivityValue(current, unit)}
         </span>
-        <span className="text-sm text-gray-500 tabular-nums">
+        <span className="text-sm text-on-surface-variant tabular-nums">
           / {formatActivityValue(target, unit)}
         </span>
       </div>
 
       <div
-        className="h-2 w-full overflow-hidden rounded-full bg-gray-200"
+        className="h-2 w-full overflow-hidden rounded-full bg-surface-container-highest"
         role="progressbar"
         aria-valuenow={pct}
         aria-valuemin={0}
@@ -58,14 +58,14 @@ export function ActivityProgressCard({
       >
         <div
           className={`h-2 rounded-full transition-all duration-700 ${
-            done ? "bg-green-500" : "bg-blue-600"
+            done ? "bg-green-500" : "bg-secondary"
           }`}
           style={{ width: `${pct}%` }}
         />
       </div>
 
       {!compact && (
-        <div className="mt-1.5 flex items-center justify-between text-xs text-gray-500">
+        <div className="mt-1.5 flex items-center justify-between text-xs text-on-surface-variant">
           <span className="tabular-nums">{pct}%</span>
           <span className="tabular-nums">
             {done ? "Target reached" : `${formatActivityValue(remaining, unit)} to go`}

@@ -62,21 +62,21 @@ export function PhysicalActivityConfigFields({
   const set = (patch: Partial<PhysicalConfigDraft>) => onChange({ ...value, ...patch });
 
   return (
-    <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50/50 p-3">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-blue-900">
+    <div className="mt-3 rounded-lg border border-secondary-fixed-dim bg-secondary-fixed/50 p-3">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-on-secondary-fixed">
         Physical activity configuration
       </p>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Activity</label>
+          <label className="mb-1 block text-xs font-medium text-on-surface-variant">Activity</label>
           <select
             value={value.activity_type}
             onChange={(e) => {
               const type = e.target.value as ActivityType;
               set({ activity_type: type, unit: defaultUnitFor(type) });
             }}
-            className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-2 text-sm"
+            className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
           >
             {ACTIVITY_TYPES.map((a) => {
               const ready = PRODUCTION_ACTIVITY_TYPES.includes(a.value);
@@ -91,27 +91,27 @@ export function PhysicalActivityConfigFields({
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Target</label>
+          <label className="mb-1 block text-xs font-medium text-on-surface-variant">Target</label>
           <input
             type="number"
             min={1}
             value={value.target_value}
             onChange={(e) => set({ target_value: Math.max(1, Number(e.target.value) || 0) })}
-            className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-2 text-sm tabular-nums"
+            className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm tabular-nums"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Unit</label>
+          <label className="mb-1 block text-xs font-medium text-on-surface-variant">Unit</label>
           <input
             value={value.unit}
             onChange={(e) => set({ unit: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-2 text-sm"
+            className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Frequency</label>
+          <label className="mb-1 block text-xs font-medium text-on-surface-variant">Frequency</label>
           <select
             value={value.frequency}
             onChange={(e) =>
@@ -121,7 +121,7 @@ export function PhysicalActivityConfigFields({
                   e.target.value === "specific_date" ? value.specific_date : null,
               })
             }
-            className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-2 text-sm"
+            className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
           >
             {ACTIVITY_FREQUENCIES.map((f) => (
               <option key={f.value} value={f.value}>
@@ -133,22 +133,22 @@ export function PhysicalActivityConfigFields({
 
         {value.frequency === "specific_date" && (
           <div className="col-span-2">
-            <label className="mb-1 block text-xs font-medium text-gray-600">Date</label>
+            <label className="mb-1 block text-xs font-medium text-on-surface-variant">Date</label>
             <input
               type="date"
               value={value.specific_date ?? ""}
               onChange={(e) => set({ specific_date: e.target.value || null })}
-              className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-2 text-sm"
+              className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
             />
           </div>
         )}
 
         <div className="col-span-2">
-          <label className="mb-1 block text-xs font-medium text-gray-600">Verification</label>
+          <label className="mb-1 block text-xs font-medium text-on-surface-variant">Verification</label>
           <select
             value={value.tracking_mode}
             onChange={(e) => set({ tracking_mode: e.target.value as TrackingMode })}
-            className="w-full rounded-lg border border-gray-300 bg-white px-2.5 py-2 text-sm"
+            className="w-full rounded-lg border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
           >
             <option value="self_reported">
               Phone sensor — counted in the StrivUp app (recommended)
@@ -160,12 +160,12 @@ export function PhysicalActivityConfigFields({
         </div>
       </div>
 
-      <p className="mt-2 text-[11px] text-gray-500">
+      <p className="mt-2 text-[11px] text-on-surface-variant">
         {ACTIVITY_FREQUENCIES.find((f) => f.value === value.frequency)?.hint}
       </p>
 
-      <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-white/70 p-2 text-[11px] leading-relaxed text-gray-600">
-        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-600" />
+      <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-surface-container-lowest/70 p-2 text-[11px] leading-relaxed text-on-surface-variant">
+        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-secondary" />
         <span>
           Participants tap start in the StrivUp app and walk — their phone&apos;s motion sensor
           counts the steps and the task completes itself. Counting only runs while the app is

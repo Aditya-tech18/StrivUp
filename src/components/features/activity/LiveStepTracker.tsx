@@ -126,8 +126,8 @@ export function LiveStepTracker({
 
   if (status === "unsupported") {
     return (
-      <div className="rounded-lg bg-gray-50 p-3">
-        <p className="flex items-start gap-2 text-xs leading-relaxed text-gray-600">
+      <div className="rounded-lg bg-surface-container-low p-3">
+        <p className="flex items-start gap-2 text-xs leading-relaxed text-on-surface-variant">
           <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>
             This browser can&apos;t read motion sensors. Open StrivUp on your phone to track
@@ -139,9 +139,9 @@ export function LiveStepTracker({
   }
 
   return (
-    <div className="rounded-lg border border-blue-100 bg-blue-50/40 p-3">
+    <div className="rounded-lg border border-secondary-fixed-dim bg-secondary-fixed/40 p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-blue-900">
+        <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-on-secondary-fixed">
           <Footprints className="h-3.5 w-3.5" />
           Today&apos;s steps
         </span>
@@ -166,13 +166,13 @@ export function LiveStepTracker({
       {targetSteps ? (
         <ActivityProgressCard current={total} target={targetSteps} unit="steps" />
       ) : (
-        <p className="text-2xl font-bold tabular-nums text-gray-900">
+        <p className="text-2xl font-bold tabular-nums text-on-surface">
           {total.toLocaleString("en-IN")}
         </p>
       )}
 
       {isRunning && sessionSteps > 0 && (
-        <p className="mt-1.5 text-[11px] text-gray-500">
+        <p className="mt-1.5 text-[11px] text-on-surface-variant">
           +{sessionSteps.toLocaleString("en-IN")} this session
           {saving && " · saving…"}
         </p>
@@ -205,7 +205,7 @@ export function LiveStepTracker({
       )}
 
       {!isRunning && status !== "denied" && (
-        <p className="mt-2 text-[11px] leading-relaxed text-gray-500">
+        <p className="mt-2 text-[11px] leading-relaxed text-on-surface-variant">
           Keep StrivUp open while you walk — a browser can only count steps on the screen
           you&apos;re looking at.
         </p>

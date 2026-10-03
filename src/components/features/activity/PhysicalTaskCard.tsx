@@ -42,7 +42,7 @@ export function PhysicalTaskCard({
   return (
     <div
       className={`rounded-xl border p-4 transition-colors ${
-        done ? "border-green-200 bg-green-50/40" : "border-gray-200 bg-white"
+        done ? "border-green-200 bg-green-50/40" : "border-outline-variant bg-surface-container-lowest"
       }`}
     >
       <div className="mb-3 flex items-start gap-3">
@@ -51,13 +51,13 @@ export function PhysicalTaskCard({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="truncate font-semibold text-gray-900">{taskTitle}</h3>
+            <h3 className="truncate font-semibold text-on-surface">{taskTitle}</h3>
             {done && <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" />}
           </div>
           {taskDescription && (
-            <p className="mt-0.5 line-clamp-2 text-xs text-gray-500">{taskDescription}</p>
+            <p className="mt-0.5 line-clamp-2 text-xs text-on-surface-variant">{taskDescription}</p>
           )}
-          <p className="mt-1 text-[11px] uppercase tracking-wide text-gray-400">
+          <p className="mt-1 text-[11px] uppercase tracking-wide text-on-surface-variant">
             {config.frequency === "daily"
               ? "Resets daily"
               : config.frequency === "total"

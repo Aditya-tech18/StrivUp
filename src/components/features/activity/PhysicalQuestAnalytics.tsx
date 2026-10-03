@@ -20,7 +20,7 @@ export function PhysicalQuestAnalytics({
       label: "Participants",
       value: data.participants.toLocaleString("en-IN"),
       icon: Users,
-      tone: "text-blue-600",
+      tone: "text-secondary",
     },
     {
       label: "Started",
@@ -38,34 +38,34 @@ export function PhysicalQuestAnalytics({
       label: "Flagged",
       value: data.suspicious.toLocaleString("en-IN"),
       icon: ShieldAlert,
-      tone: data.suspicious > 0 ? "text-amber-600" : "text-gray-400",
+      tone: data.suspicious > 0 ? "text-amber-600" : "text-on-surface-variant",
     },
   ];
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
-      <h3 className="mb-3 text-sm font-semibold text-gray-900">Physical quest performance</h3>
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
+      <h3 className="mb-3 text-sm font-semibold text-on-surface">Physical quest performance</h3>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {tiles.map((t) => (
-          <div key={t.label} className="rounded-lg bg-gray-50 p-3">
+          <div key={t.label} className="rounded-lg bg-surface-container-low p-3">
             <t.icon className={`mb-1 h-4 w-4 ${t.tone}`} />
-            <p className="text-lg font-bold tabular-nums text-gray-900">{t.value}</p>
-            <p className="text-[11px] text-gray-500">{t.label}</p>
+            <p className="text-lg font-bold tabular-nums text-on-surface">{t.value}</p>
+            <p className="text-[11px] text-on-surface-variant">{t.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-3 border-t border-gray-100 pt-3">
+      <div className="mt-3 grid grid-cols-2 gap-3 border-t border-outline-variant pt-3">
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-gray-400">Completion rate</p>
-          <p className="text-sm font-semibold tabular-nums text-gray-900">
+          <p className="text-[11px] uppercase tracking-wide text-on-surface-variant">Completion rate</p>
+          <p className="text-sm font-semibold tabular-nums text-on-surface">
             {data.completion_rate}%
           </p>
         </div>
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-gray-400">Average {unit}</p>
-          <p className="text-sm font-semibold tabular-nums text-gray-900">
+          <p className="text-[11px] uppercase tracking-wide text-on-surface-variant">Average {unit}</p>
+          <p className="text-sm font-semibold tabular-nums text-on-surface">
             {Number(data.average_value).toLocaleString("en-IN")}
           </p>
         </div>
