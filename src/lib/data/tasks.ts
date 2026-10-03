@@ -12,7 +12,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 /* ── Public types ────────────────────────────────────────────────────────── */
 
-export type ProofType = "photo" | "video" | "text" | "link" | "none";
+export type ProofType = "photo" | "video" | "text" | "link" | "none" | "physical_activity";
 export type SubmissionStatus = "pending" | "approved" | "rejected";
 
 export interface ChallengeTask {

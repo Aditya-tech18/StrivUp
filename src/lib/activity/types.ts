@@ -62,10 +62,19 @@ export type TrackingMode = "device_verified" | "self_reported";
 export type ActivityFrequency = "daily" | "total" | "specific_date";
 export type ProgressStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
 
+/**
+ * One physical target, attached to either a quest task or a challenge task.
+ *
+ * Exactly one pair of ids is set — the database enforces this with
+ * qtac_one_domain_check, so these are optional here rather than two separate
+ * interfaces the UI would have to branch on.
+ */
 export interface PhysicalActivityConfig {
   id?: string;
-  task_id: string;
-  quest_id: string;
+  task_id?: string | null;
+  quest_id?: string | null;
+  challenge_task_id?: string | null;
+  challenge_id?: string | null;
   activity_type: ActivityType;
   target_value: number;
   unit: string;
@@ -110,8 +119,10 @@ export interface ActivityRecord {
 
 export interface QuestActivityProgress {
   id: string;
-  quest_id: string;
-  task_id: string;
+  quest_id?: string | null;
+  task_id?: string | null;
+  challenge_id?: string | null;
+  challenge_task_id?: string | null;
   user_id: string;
   period_date: string;
   current_value: number;

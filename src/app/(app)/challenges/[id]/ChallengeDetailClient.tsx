@@ -14,7 +14,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState, useCallback, useTransition } from "react";
+import { useEffect, useRef, useState, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
@@ -41,6 +41,9 @@ import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
 import { createClient } from "@/lib/supabase/client";
 import { InviteSheet } from "@/components/features/InviteSheet";
 import type { ChallengeTask, TaskSubmission } from "@/lib/data/tasks";
+import { PhysicalTaskCard } from "@/components/features/activity";
+import { currentChallengePeriodProgress } from "@/lib/data/activity";
+import type { PhysicalActivityConfig, QuestActivityProgress } from "@/lib/activity/types";
 
 /* ── Public types ─────────────────────────────────────────────────────────── */
 export interface ChallengeDetail {
@@ -737,6 +740,37 @@ export function ChallengeDetailClient({
   const [joinError, setJoinError] = useState<string | null>(null);
   const hasTasks = tasks.length > 0;
 
+  // Physical activity is additive: a challenge with no physical task simply
+  // gets two empty results and renders exactly as it did before.
+  const [activityConfigs, setActivityConfigs] = useState<Map<string, PhysicalActivityConfig>>(
+    new Map()
+  );
+  const [activityProgress, setActivityProgress] = useState<QuestActivityProgress[]>([]);
+
+  const hasPhysicalTask = tasks.some((t) => t.proofType === "physical_activity");
+
+  useEffect(() => {
+    if (!userId || !hasPhysicalTask) return;
+    let cancelled = false;
+    (async () => {
+      const { createClient } = await import("@/lib/supabase/client");
+      const { getChallengeActivityConfigs, getChallengeActivityProgress } = await import(
+        "@/lib/data/activity"
+      );
+      const supabase = createClient();
+      const [configs, progress] = await Promise.all([
+        getChallengeActivityConfigs(supabase, challenge.id),
+        getChallengeActivityProgress(supabase, challenge.id, userId),
+      ]);
+      if (cancelled) return;
+      setActivityConfigs(configs);
+      setActivityProgress(progress);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, challenge.id, hasPhysicalTask]);
+
   // Join this challenge (client-side insert)
   const handleJoin = () => {
     if (!userId) {
@@ -908,16 +942,41 @@ export function ChallengeDetailClient({
                     </div>
                   )}
                   <div className="space-y-3">
-                    {tasks.map((task) => (
-                      <TaskUploadSlot
-                        key={task.id}
-                        task={task}
-                        submission={submissionByTask[task.id]}
-                        challengeId={challenge.id}
-                        userId={userId}
-                        joinedAt={joinedAt}
-                      />
-                    ))}
+                    {tasks.map((task) => {
+                      // A physical task owns its whole card: the step counter
+                      // replaces the upload slot, and the task completes itself
+                      // once the target is reached. Falls through to the normal
+                      // slot if the target was never configured.
+                      const activityConfig = activityConfigs.get(task.id);
+                      if (task.proofType === "physical_activity" && activityConfig) {
+                        return (
+                          <PhysicalTaskCard
+                            key={task.id}
+                            taskTitle={task.title}
+                            taskDescription={task.description}
+                            config={activityConfig}
+                            progress={currentChallengePeriodProgress(
+                              activityProgress,
+                              task.id,
+                              new Date().toLocaleDateString("en-CA", {
+                                timeZone: activityConfig.timezone || "Asia/Kolkata",
+                              })
+                            )}
+                            questTitle={challenge.title}
+                          />
+                        );
+                      }
+                      return (
+                        <TaskUploadSlot
+                          key={task.id}
+                          task={task}
+                          submission={submissionByTask[task.id]}
+                          challengeId={challenge.id}
+                          userId={userId}
+                          joinedAt={joinedAt}
+                        />
+                      );
+                    })}
                   </div>
                 </section>
               ) : (
