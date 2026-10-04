@@ -10,6 +10,7 @@ import { Eye, EyeOff, Flame, Loader2, Smartphone } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { safeRedirect } from "@/lib/safeRedirect";
+import { friendlyAuthError, isExistingUserSignup } from "@/lib/auth/authErrors";
 
 /* ── Zod v4 schema ────────────────────────────────────────────────────── */
 const signupSchema = z.object({
@@ -90,24 +91,40 @@ export function SignupForm() {
       password: data.password,
       options: {
         data: { full_name: data.name },
+        // Where the confirmation link comes back to. /auth/confirm exchanges
+        // the token for a session; without a server route to land on, the
+        // session only ever exists in a URL fragment the server cannot read.
+        emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(destination)}`,
       },
     });
 
     if (error) {
-      setAuthError(error.message);
+      setAuthError(friendlyAuthError(error));
       return;
     }
 
-    // Detect whether email confirmation is required.
-    // When confirmation is ON, session is null and identities array is empty.
-    const needsConfirmation =
-      !signUpData.session && signUpData.user?.identities?.length === 0;
+    // An empty `identities` array is Supabase declining to confirm that an
+    // address is already registered. It is NOT the signal that confirmation is
+    // pending — the previous version read it that way, which inverted the
+    // whole screen: real new signups fell through to router.push() with no
+    // session and were bounced straight back to /login by proxy.ts, while the
+    // "check your inbox" screen only ever appeared for people who already had
+    // an account.
+    if (isExistingUserSignup(signUpData.user)) {
+      setAuthError(
+        "An account with this email already exists. Log in instead — or reset your password if you've forgotten it."
+      );
+      return;
+    }
 
-    if (needsConfirmation) {
+    // No session means email confirmation is switched on and the link is in
+    // flight. There is nothing to redirect to yet.
+    if (!signUpData.session) {
       setCheckEmail(true);
       return;
     }
 
+    // Confirmation off: signUp returned a live session, so go.
     router.push(destination);
     router.refresh();
   };
@@ -208,17 +225,16 @@ export function SignupForm() {
           )}
           Continue with Google
         </button>
-        {/* Mobile number — not in scope yet */}
-        <button
+        {/* Phone OTP lives on its own two-step screen rather than inline, so
+            the "enter the code" state has room and a back button. */}
+        <Link
           id="signup-mobile-btn"
-          type="button"
-          disabled
-          className={`${socialBtnCls} opacity-40 cursor-not-allowed`}
-          title="Coming soon"
+          href={`/phone?redirectTo=${encodeURIComponent(destination)}`}
+          className={socialBtnCls}
         >
           <Smartphone size={20} className="text-on-surface-variant" aria-hidden="true" />
           Continue with Mobile Number
-        </button>
+        </Link>
       </div>
 
       {/* ── OR divider ───────────────────────────────────────────────── */}

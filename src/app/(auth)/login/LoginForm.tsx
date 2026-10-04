@@ -10,6 +10,20 @@ import { Eye, EyeOff, Flame, Loader2, Smartphone } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { safeRedirect } from "@/lib/safeRedirect";
+import { friendlyAuthError } from "@/lib/auth/authErrors";
+
+/**
+ * Failures that happen on a *different* route — the OAuth and email-link
+ * callbacks — can only report themselves by bouncing here with ?error=<code>.
+ * Without this map they arrived as a silent redirect and the person saw a
+ * login page that gave no reason for being there.
+ */
+const REDIRECT_ERRORS: Record<string, string> = {
+  invalid_link: "That link isn't valid. Request a new one.",
+  link_expired:
+    "That link has expired or was already used. Links work once and last an hour — request a fresh one.",
+  oauth_callback_failed: "Google sign-in didn't complete. Please try again.",
+};
 
 /* ── Zod v4 schema ────────────────────────────────────────────────────── */
 const loginSchema = z.object({
@@ -62,9 +76,13 @@ export function LoginForm() {
   const router = useRouter();
   // Where to land after auth. Comes from ?redirectTo (set by proxy.ts when it
   // bounces a signed-out visitor) and is validated to a same-origin path.
-  const destination = safeRedirect(useSearchParams().get("redirectTo"));
+  const searchParams = useSearchParams();
+  const destination = safeRedirect(searchParams.get("redirectTo"));
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  // Read straight from the URL rather than copied into state, so it needs no
+  // effect and clears itself the moment anything else goes wrong.
+  const redirectError = REDIRECT_ERRORS[searchParams.get("error") ?? ""] ?? null;
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const {
@@ -85,7 +103,7 @@ export function LoginForm() {
     });
 
     if (error) {
-      setAuthError(error.message);
+      setAuthError(friendlyAuthError(error));
       return;
     }
 
@@ -136,13 +154,14 @@ export function LoginForm() {
         </p>
       </div>
 
-      {/* ── Supabase error banner ─────────────────────────────────────── */}
-      {authError && (
+      {/* ── Error banner: this form's own failures first, then any carried
+             in from a callback redirect ───────────────────────────────── */}
+      {(authError ?? redirectError) && (
         <div
           role="alert"
           className="rounded-xl border border-error-outline bg-error-container px-4 py-3 text-body-md text-on-error-container"
         >
-          {authError}
+          {authError ?? redirectError}
         </div>
       )}
 
@@ -162,17 +181,16 @@ export function LoginForm() {
           )}
           Continue with Google
         </button>
-        {/* Mobile number — not in scope yet */}
-        <button
+        {/* Phone OTP lives on its own two-step screen rather than inline, so
+            the "enter the code" state has room and a back button. */}
+        <Link
           id="login-mobile-btn"
-          type="button"
-          disabled
-          className={`${socialBtnCls} opacity-40 cursor-not-allowed`}
-          title="Coming soon"
+          href={`/phone?redirectTo=${encodeURIComponent(destination)}`}
+          className={socialBtnCls}
         >
           <Smartphone size={20} className="text-on-surface-variant" aria-hidden="true" />
           Continue with Mobile Number
-        </button>
+        </Link>
       </div>
 
       {/* ── OR divider ───────────────────────────────────────────────── */}
