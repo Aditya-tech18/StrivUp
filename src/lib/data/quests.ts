@@ -583,6 +583,12 @@ export async function markQuestVisited(
 
 /* ── Business Quest Detail (supports quest_status column) ─────────────── */
 
+export interface OrderPlatformLink {
+  platform: string;
+  label: string;
+  url: string | null;
+}
+
 export interface BusinessQuestDetail {
   id: string;
   title: string;
@@ -594,6 +600,12 @@ export interface BusinessQuestDetail {
   thumbnail_url: string | null;
   location_name: string | null;
   destination_link: string | null;
+  /**
+   * Ordering channels for order_verification tasks:
+   * [{platform,label,url}]. Labels and outbound links only — STRIVUP has no
+   * integration with any ordering platform.
+   */
+  order_platforms: OrderPlatformLink[] | null;
   start_date: string | null;
   end_date: string | null;
   visibility: string;
@@ -613,6 +625,7 @@ export interface BusinessQuestDetail {
     is_required: boolean;
     sort_order: number;
     instructions: string | null;
+    image_url: string | null;
   }[];
   rewards: {
     id: string;
@@ -625,6 +638,42 @@ export interface BusinessQuestDetail {
   }[];
   business_logo: string | null;
   business_verification: string | null;
+  /**
+   * Business contact block, read from business_profiles. Every field is
+   * nullable: the detail page renders only what the business actually filled
+   * in rather than inventing a placeholder.
+   */
+  business: BusinessQuestContact | null;
+}
+
+/**
+ * The business-profile slice the Quest detail page renders.
+ *
+ * The google_* fields stay null until somebody verifies them for this exact
+ * outlet — a chain can have a dozen outlets and Google data from the wrong one
+ * is worse than none. Null renders as "Google rating unavailable".
+ */
+export interface BusinessQuestContact {
+  id: string;
+  business_name: string | null;
+  category: string | null;
+  description: string | null;
+  logo_url: string | null;
+  verification_status: string | null;
+  business_phone: string | null;
+  business_phone_alt: string | null;
+  website: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  google_place_id: string | null;
+  google_maps_url: string | null;
+  google_rating: number | null;
+  google_review_count: number | null;
+  google_verified_at: string | null;
 }
 
 export async function getBusinessQuestDetail(
@@ -635,7 +684,7 @@ export async function getBusinessQuestDetail(
     .from("quests")
     .select(`
       id, title, description, category, business_name, business_id,
-      cover_url, thumbnail_url, location_name, destination_link,
+      cover_url, thumbnail_url, location_name, destination_link, order_platforms,
       start_date, end_date, visibility, quest_status, rules, eligibility,
       participant_count, view_count, completion_count, creator_id, created_at
     `)
@@ -651,7 +700,9 @@ export async function getBusinessQuestDetail(
   // Fetch tasks
   const { data: tasks } = await supabase
     .from("quest_tasks")
-    .select("id,title,description,proof_type,is_required,sort_order,instructions")
+    .select(
+      "id,title,description,proof_type,is_required,sort_order,instructions,image_url"
+    )
     .eq("quest_id", id)
     .order("sort_order");
 
@@ -661,17 +712,25 @@ export async function getBusinessQuestDetail(
     .select("id,title,reward_type,value,rank_from,rank_to,is_leaderboard")
     .eq("quest_id", id);
 
-  // Fetch business logo if business_id exists
+  // Fetch the business profile if the quest is attached to one
   let businessLogo: string | null = null;
   let businessVerification: string | null = null;
+  let business: BusinessQuestContact | null = null;
   if (data.business_id) {
     const { data: bp } = await supabase
       .from("business_profiles")
-      .select("logo_url, verification_status")
+      .select(
+        `id, business_name, category, description, logo_url, verification_status,
+         business_phone, business_phone_alt, website,
+         address, city, state, pincode, latitude, longitude,
+         google_place_id, google_maps_url, google_rating, google_review_count,
+         google_verified_at`
+      )
       .eq("id", data.business_id)
       .maybeSingle();
     businessLogo = bp?.logo_url ?? null;
     businessVerification = bp?.verification_status ?? null;
+    business = (bp as BusinessQuestContact | null) ?? null;
   }
 
   // Track view event
@@ -686,5 +745,6 @@ export async function getBusinessQuestDetail(
     rewards: (rewards ?? []) as BusinessQuestDetail["rewards"],
     business_logo: businessLogo,
     business_verification: businessVerification,
+    business,
   } as BusinessQuestDetail;
 }

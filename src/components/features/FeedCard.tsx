@@ -198,6 +198,7 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
                       Report Content
                     </h3>
                     <select
+                      aria-label="Report reason"
                       className="w-full p-2 mb-4 rounded-lg bg-surface-container border border-outline-variant text-on-surface type-body-md"
                       value={reportReason}
                       onChange={(e) => setReportReason(e.target.value)}

@@ -13,7 +13,7 @@
 
 import type { ReactNode } from "react";
 import { Flame } from "lucide-react";
-import { BottomNav, SidebarNav, AlertsProvider } from "@/components/ui";
+import { AppSidebar, BottomNav, AlertsProvider } from "@/components/ui";
 
 export default function AppShellLayout({ children }: { children: ReactNode }) {
   return (
@@ -35,8 +35,8 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
             </span>
           </div>
 
-          {/* Nav items — pathname-aware via SidebarNav client component */}
-          <SidebarNav />
+          {/* Nav items — AppSidebar serves business navigation on /business/* */}
+          <AppSidebar />
         </aside>
 
         {/* ── Main content ────────────────────────────────────────────── */}

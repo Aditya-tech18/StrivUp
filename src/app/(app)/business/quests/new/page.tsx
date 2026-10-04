@@ -5,7 +5,7 @@
  */
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, GripVertical, Plus, Trash2, Upload, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, GripVertical, ImageIcon, Plus, Trash2, Upload, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import {
@@ -15,6 +15,12 @@ import {
   type QuestTask, type QuestReward, type ProofType, type RewardType,
 } from "@/lib/data/businessQuests";
 import { Input } from "@/components/ui";
+import {
+  PhysicalActivityConfigFields,
+  DEFAULT_PHYSICAL_CONFIG,
+  type PhysicalConfigDraft,
+} from "@/components/features/activity/PhysicalActivityConfigFields";
+import { upsertTaskActivityConfig } from "@/lib/data/activity";
 
 const TOTAL_STEPS = 6;
 const STEP_LABELS = ["Basic Info","Tasks","Rewards","Rules","Audience","Review"];
@@ -67,6 +73,7 @@ function CreateQuestContent() {
   const [category, setCategory] = useState("");
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [taskImageUploading, setTaskImageUploading] = useState<number | null>(null);
   const [destinationLink, setDestinationLink] = useState("");
   const [locationName, setLocationName] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -74,8 +81,12 @@ function CreateQuestContent() {
 
   // Step 2 — Tasks
   const [tasks, setTasks] = useState<Partial<QuestTask>[]>([
-    { title: "", description: "", proof_type: "photo", is_required: true, instructions: "", sort_order: 0 }
+    { title: "", description: "", proof_type: "photo", is_required: true, instructions: "", image_url: null, sort_order: 0 }
   ]);
+
+  // Physical config is keyed by task index, not task id: a task being drafted
+  // has no id until saveTasks runs. The two are married up there.
+  const [physicalConfigs, setPhysicalConfigs] = useState<Record<number, PhysicalConfigDraft>>({});
 
   // Step 3 — Rewards
   const [rewards, setRewards] = useState<Partial<QuestReward>[]>([]);
@@ -151,12 +162,31 @@ function CreateQuestContent() {
       for (let i = 0; i < tasks.length; i++) {
         const t = tasks[i];
         if (!t.title?.trim()) continue;
-        await upsertQuestTask(supabase, { ...t, quest_id: questId, sort_order: i } as Partial<QuestTask> & { quest_id: string });
+        const saved = await upsertQuestTask(supabase, { ...t, quest_id: questId, sort_order: i } as Partial<QuestTask> & { quest_id: string });
+
+        // A physical task is only meaningful with its target attached, so the
+        // config is written in the same pass as the task itself.
+        if (t.proof_type === "physical_activity" && saved?.id) {
+          const cfg = physicalConfigs[i] ?? DEFAULT_PHYSICAL_CONFIG;
+          const { error: cfgError } = await upsertTaskActivityConfig(supabase, {
+            task_id: saved.id,
+            quest_id: questId,
+            activity_type: cfg.activity_type,
+            target_value: cfg.target_value,
+            unit: cfg.unit,
+            tracking_mode: cfg.tracking_mode,
+            frequency: cfg.frequency,
+            specific_date: cfg.specific_date,
+            timezone: "Asia/Kolkata",
+            allow_manual_proof: cfg.allow_manual_proof,
+          });
+          if (cfgError) throw new Error(`Activity settings for "${t.title}": ${cfgError}`);
+        }
       }
       setStep(3);
     } catch(e) { setError(e instanceof Error ? e.message : "Failed to save tasks"); }
     finally { setSaving(false); }
-  }, [questId, tasks, supabase]);
+  }, [questId, tasks, physicalConfigs, supabase]);
 
   const saveRewards = useCallback(async () => {
     if (!questId) return;
@@ -202,6 +232,27 @@ function CreateQuestContent() {
 
   const handleSaveDraft = async () => {
     router.push("/business/quests");
+  };
+
+  /**
+   * Per-task thumbnail. The Quest detail page renders one image per task, so a
+   * Quest whose tasks all look alike reads as a single repeated item — this is
+   * what makes each task visually distinct.
+   */
+  const handleTaskImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    setTaskImageUploading(index);
+    try {
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `${user.id}/quest-tasks/${Date.now()}-${index}.${ext}`;
+      const { error } = await supabase.storage.from("proof-media").upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from("proof-media").getPublicUrl(path);
+      setTasks(prev => prev.map((t, j) => j === index ? { ...t, image_url: data.publicUrl } : t));
+    } catch (err) { setError(err instanceof Error ? err.message : "Upload failed"); }
+    finally { setTaskImageUploading(null); }
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -324,12 +375,62 @@ function CreateQuestContent() {
                 </label>
               </div>
             </div>
+            {/* Per-task thumbnail */}
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-50 border border-gray-200 shrink-0 flex items-center justify-center">
+                {task.image_url
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={task.image_url} alt="" className="w-full h-full object-cover" />
+                  : <ImageIcon size={18} className="text-gray-300" aria-hidden="true" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block mb-1">
+                  Task image
+                </label>
+                <div className="flex items-center gap-2">
+                  <label className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors">
+                    <Upload size={12} />
+                    {taskImageUploading === i ? "Uploading…" : task.image_url ? "Replace" : "Upload"}
+                    <input type="file" accept="image/*" className="hidden"
+                      onChange={e => handleTaskImageUpload(i, e)} />
+                  </label>
+                  {task.image_url && (
+                    <button type="button"
+                      onClick={() => setTasks(prev => prev.map((t, j) => j === i ? { ...t, image_url: null } : t))}
+                      className="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors">
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* What an order-verification task actually does, stated where it is chosen */}
+            {task.proof_type === "order_verification" && (
+              <div className="rounded-xl bg-blue-50 border border-blue-200 px-3.5 py-3">
+                <p className="text-xs font-bold text-blue-800">STRIVUP order verification</p>
+                <p className="text-xs text-blue-700 leading-relaxed mt-1">
+                  Participants get a code to put in their Zomato / Swiggy order
+                  description. You confirm it at{" "}
+                  <span className="font-semibold">Order Verification</span>, then write
+                  the bill code STRIVUP gives you on their bill to complete the task.
+                </p>
+              </div>
+            )}
+
             <textarea value={task.instructions ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, instructions: e.target.value } : t))}
               placeholder="Instructions for participants (optional)..." rows={2}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:bg-white resize-none" />
+
+            {task.proof_type === "physical_activity" && (
+              <PhysicalActivityConfigFields
+                value={physicalConfigs[i] ?? DEFAULT_PHYSICAL_CONFIG}
+                onChange={next => setPhysicalConfigs(prev => ({ ...prev, [i]: next }))}
+              />
+            )}
           </div>
         ))}
-        <button type="button" onClick={() => setTasks(prev => [...prev, { title: "", description: "", proof_type: "photo", is_required: true, instructions: "", sort_order: prev.length }])}
+        <button type="button" onClick={() => setTasks(prev => [...prev, { title: "", description: "", proof_type: "photo", is_required: true, instructions: "", image_url: null, sort_order: prev.length }])}
           className="flex items-center justify-center gap-2 h-11 rounded-xl border-2 border-dashed border-blue-300 text-blue-600 text-sm font-semibold hover:bg-blue-50 transition-colors">
           <Plus size={18} /> Add Another Task
         </button>

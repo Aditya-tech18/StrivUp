@@ -181,7 +181,7 @@ export default function EditProfilePage() {
       <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
-            <button
+            <button aria-label="Back"
               onClick={() => router.back()}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
             >
@@ -206,10 +206,10 @@ export default function EditProfilePage() {
 
       {/* ── Error banner ─────────────────────────────────────────────────── */}
       {error && (
-        <div className="max-w-lg mx-auto px-5 mt-4">
+        <div role="alert" className="max-w-lg mx-auto px-5 mt-4">
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-error-container border border-error/20">
             <p className="text-[13px] text-error flex-1">{error}</p>
-            <button onClick={() => setError(null)}>
+            <button aria-label="Dismiss error" onClick={() => setError(null)}>
               <X size={14} className="text-error" />
             </button>
           </div>
@@ -279,7 +279,7 @@ export default function EditProfilePage() {
             Personal Information
           </p>
           <Field label="Full Name" required>
-            <input
+            <input aria-label="Full name"
               value={fullName}
               onChange={e => setFullName(e.target.value)}
               maxLength={80}
@@ -290,7 +290,7 @@ export default function EditProfilePage() {
           <Field label="Username" hint="Lowercase letters, numbers, . and _ only">
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[14px] select-none">@</span>
-              <input
+              <input aria-label="Username"
                 value={username}
                 onChange={e =>
                   setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))
@@ -303,7 +303,7 @@ export default function EditProfilePage() {
           </Field>
           <Field label="Bio">
             <div className="relative">
-              <textarea
+              <textarea aria-label="Bio"
                 value={bio}
                 onChange={e => setBio(e.target.value)}
                 maxLength={150}
@@ -351,7 +351,7 @@ export default function EditProfilePage() {
                   {pl?.label ?? link.platform}
                 </span>
                 <p className="flex-1 text-[13px] text-on-surface truncate">{displayUrl}</p>
-                <button
+                <button aria-label="Remove link"
                   onClick={() => handleDeleteLink(link.id)}
                   className="text-on-surface-variant hover:text-error transition-colors shrink-0"
                 >
@@ -372,7 +372,7 @@ export default function EditProfilePage() {
 
           {addingLink && (
             <div className="flex flex-col gap-2.5 p-3.5 rounded-xl border border-secondary/20 bg-secondary/4">
-              <select
+              <select aria-label="Social platform"
                 value={newPlatform}
                 onChange={e => setNewPlatform(e.target.value as SocialPlatform)}
                 className="h-10 rounded-lg border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
@@ -381,7 +381,7 @@ export default function EditProfilePage() {
                   <option key={p.value} value={p.value}>{p.label}</option>
                 ))}
               </select>
-              <input
+              <input aria-label="Link URL"
                 value={newUrl}
                 onChange={e => setNewUrl(e.target.value)}
                 placeholder="https://…"

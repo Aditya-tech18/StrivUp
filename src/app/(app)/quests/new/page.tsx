@@ -207,7 +207,7 @@ export default function CreateQuestPage() {
       {/* Form */}
       <div className="mx-auto max-w-2xl px-4 py-6">
         {error && (
-          <div className="flex gap-2 rounded-lg bg-error/10 border border-error/30 px-3 py-2 mb-4">
+          <div role="alert" className="flex gap-2 rounded-lg bg-error/10 border border-error/30 px-3 py-2 mb-4">
             <AlertCircle
               size={16}
               className="shrink-0 mt-0.5 text-error"
@@ -234,7 +234,7 @@ export default function CreateQuestPage() {
             <label className="block type-label-caps text-on-surface-variant mb-2">
               Description
             </label>
-            <textarea
+            <textarea aria-label="Description"
               placeholder="Describe the quest and what participants need to do…"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -286,7 +286,7 @@ export default function CreateQuestPage() {
               Coordinates
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <input
+              <input aria-label="Latitude"
                 type="number"
                 placeholder="Latitude"
                 step="0.0001"
@@ -294,7 +294,7 @@ export default function CreateQuestPage() {
                 onChange={(e) => setLatitude(e.target.value)}
                 className="w-full type-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
               />
-              <input
+              <input aria-label="Longitude"
                 type="number"
                 placeholder="Longitude"
                 step="0.0001"
@@ -324,7 +324,7 @@ export default function CreateQuestPage() {
             <label className="block type-label-caps text-on-surface-variant mb-2">
               Proof Type
             </label>
-            <select
+            <select aria-label="Proof Type"
               value={proofType}
               onChange={(e) =>
                 setProofType(e.target.value as "photo" | "checkin" | "none")

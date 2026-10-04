@@ -6,8 +6,9 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, ChevronRight, Copy, HelpCircle, Search, Shield, Users, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronRight, Clock, Copy, HelpCircle, Search, Shield, Users, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { formatCodeInput } from "@/lib/data/orderVerification";
 import {
   getMyBusinessProfile, findVerificationBySvCode,
   approveVerificationRequest, rejectVerificationRequest,
@@ -42,6 +43,9 @@ function VerifyContent() {
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [billCode, setBillCode] = useState<string | null>(null);
+  const [billExpiresAt, setBillExpiresAt] = useState<string | null>(null);
+  const [rejectMode, setRejectMode] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
   const [recentVerifs, setRecentVerifs] = useState<VerificationRequest[]>([]);
   const [insights, setInsights] = useState({ total: 0, approved: 0, pending: 0, rejected: 0 });
   const [insightRange, setInsightRange] = useState<InsightRange>("30");
@@ -93,10 +97,21 @@ function VerifyContent() {
 
     if (!req) {
       setRecentSearches(p => [{ code, status: "invalid", time: timeStr }, ...p.slice(0,4)]);
-      setSearchErr("No verification request found with this code. Ask the participant to check their code.");
+      setSearchErr("No Quest order found with this code. Check the code in the order description.");
+    } else if (req.status === "approved") {
+      // Already verified — show the bill code again in case it was lost.
+      setRecentSearches(p => [{ code, status: "found", time: timeStr }, ...p.slice(0,4)]);
+      try {
+        const { billCode: bc, expiresAt } = await approveVerificationRequest(supabase, req.sv_code);
+        setBillCode(bc); setBillExpiresAt(expiresAt); setScreen("approved");
+      } catch (e) { setSearchErr(e instanceof Error ? e.message : "Couldn't load the bill code."); }
+    } else if (req.status === "completed") {
+      setSearchErr("This order is already complete — the customer has entered their bill code.");
+    } else if (req.status === "rejected") {
+      setSearchErr("This order was already rejected. The customer can generate a new code.");
     } else if (new Date(req.expires_at) < now || req.status === "expired") {
       setRecentSearches(p => [{ code, status: "expired", time: timeStr }, ...p.slice(0,4)]);
-      setSearchErr("This verification code has expired. Ask the participant to generate a new one.");
+      setSearchErr("This code has expired. Ask the customer to tap Post Proof again for a new code.");
     } else {
       setRecentSearches(p => [{ code, status: "found", time: timeStr }, ...p.slice(0,4)]);
       setFoundReq(req);
@@ -109,11 +124,12 @@ function VerifyContent() {
     if (!foundReq || !bp) return;
     setApproving(true);
     try {
-      const { billCode: code } = await approveVerificationRequest(supabase, foundReq.id, bp.id);
+      const { billCode: code, expiresAt } = await approveVerificationRequest(supabase, foundReq.sv_code);
       setBillCode(code);
+      setBillExpiresAt(expiresAt);
       setScreen("approved");
       await refreshAfterDecision(bp.id);
-    } catch { setSearchErr("Failed to approve."); }
+    } catch (e) { setSearchErr(e instanceof Error ? e.message : "Couldn't verify this order. Please try again."); }
     finally { setApproving(false); }
   };
 
@@ -121,14 +137,17 @@ function VerifyContent() {
     if (!foundReq || !bp) return;
     setRejecting(true);
     try {
-      await rejectVerificationRequest(supabase, foundReq.id, bp.id);
+      await rejectVerificationRequest(supabase, foundReq.id, rejectReason);
       setScreen("rejected");
       await refreshAfterDecision(bp.id);
-    } catch { setSearchErr("Failed to reject."); }
+    } catch (e) { setSearchErr(e instanceof Error ? e.message : "Couldn't reject this order. Please try again."); }
     finally { setRejecting(false); }
   };
 
-  const reset = () => { setSvCode(""); setFoundReq(null); setBillCode(null); setSearchErr(null); setScreen("search"); };
+  const reset = () => {
+    setSvCode(""); setFoundReq(null); setBillCode(null); setBillExpiresAt(null);
+    setSearchErr(null); setRejectMode(false); setRejectReason(""); setScreen("search");
+  };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#F8F9FC]"><div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
 
@@ -137,15 +156,16 @@ function VerifyContent() {
     pending:  { label: "Pending",   cls: "text-amber-700 bg-amber-50 border-amber-200" },
     rejected: { label: "Rejected",  cls: "text-red-700 bg-red-50 border-red-200" },
     expired:  { label: "Expired",   cls: "text-gray-500 bg-gray-100 border-gray-200" },
+    completed:{ label: "Completed", cls: "text-blue-700 bg-blue-50 border-blue-200" },
   } as const;
 
   /* ── SEARCH SCREEN ────────────────────────────────────────────────────── */
   if (screen === "search") return (
     <div className="min-h-screen bg-[#F8F9FC] pb-28">
       <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
-        <Link href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
         <h1 className="text-[17px] font-black text-gray-900 flex-1">Verify Participant</h1>
-        <Link href="/business/verification/how-it-works"><HelpCircle size={22} className="text-gray-400" /></Link>
+        <Link aria-label="How verification works" href="/business/verification/how-it-works"><HelpCircle size={22} className="text-gray-400" /></Link>
       </div>
 
       <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-5">
@@ -154,39 +174,39 @@ function VerifyContent() {
           <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><circle cx="18" cy="7" r="3"/><path d="M21 10c0 2-1 3-3 3"/></svg>
           </div>
-          <p className="text-sm text-gray-600 leading-relaxed">Enter the verification code provided by the participant to find their STRIVUP verification request.</p>
+          <p className="text-sm text-gray-600 leading-relaxed">Quest orders arrive with a STRIVUP code in the order description (e.g. SV-123456). Enter it here to verify the order.</p>
         </div>
 
         {/* OTP Input */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-gray-700">Verification OTP</label>
+          <label className="text-sm font-semibold text-gray-700">Order verification code</label>
           <div className="flex gap-2">
-            <input
+            <input aria-label="Order verification code"
               value={svCode}
-              onChange={e => { setSvCode(e.target.value.toUpperCase()); setSearchErr(null); }}
+              onChange={e => { setSvCode(formatCodeInput(e.target.value, "SV")); setSearchErr(null); }}
               onKeyDown={e => e.key === "Enter" && handleSearch()}
               placeholder="SV-000000"
               maxLength={9}
-              className="flex-1 h-12 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 px-4 font-mono tracking-wider text-lg focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-100"
+              className="flex-1 h-12 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder:text-gray-500 px-4 font-mono tracking-wider text-lg focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-100"
             />
             {svCode && (
-              <button type="button" onClick={() => setSvCode("")}
-                className="w-12 h-12 flex items-center justify-center text-gray-400 border border-gray-200 rounded-xl bg-white">
+              <button aria-label="Clear code" type="button" onClick={() => setSvCode("")}
+                className="w-12 h-12 flex items-center justify-center text-gray-600 border border-gray-200 rounded-xl bg-white">
                 <XCircle size={18} />
               </button>
             )}
           </div>
-          {searchErr && <p className="text-sm text-red-600">{searchErr}</p>}
+          {searchErr && <p role="alert" className="text-sm text-red-600">{searchErr}</p>}
           <button onClick={handleSearch} disabled={!svCode.trim() || searching}
             className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold flex items-center justify-center gap-2 transition-all">
-            {searching ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Search size={18} /> Search Verification →</>}
+            {searching ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Search size={18} /> Search Order →</>}
           </button>
         </div>
 
         {/* Info note */}
         <div className="flex items-start gap-2 text-gray-500">
           <span className="text-blue-500 mt-0.5 shrink-0">ℹ</span>
-          <p className="text-sm">Ask the participant to show you the verification code generated by STRIVUP.</p>
+          <p className="text-sm">No code in the order note? The order can&apos;t be linked to a Quest automatically.</p>
         </div>
 
         {/* Verification Insights */}
@@ -213,7 +233,7 @@ function VerifyContent() {
             ].map(t => (
               <div key={t.label} className="rounded-xl bg-gray-50/50 border border-gray-100 py-3 flex flex-col items-center">
                 <span className={`text-lg font-black ${t.cls}`}>{t.value}</span>
-                <span className="text-[10px] text-gray-400 font-medium mt-0.5">{t.label}</span>
+                <span className="text-[10px] text-gray-600 font-medium mt-0.5">{t.label}</span>
               </div>
             ))}
           </div>
@@ -227,7 +247,7 @@ function VerifyContent() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-gray-900">How does verification work?</p>
-              <p className="text-xs text-gray-400">Learn the step-by-step process</p>
+              <p className="text-xs text-gray-600">Learn the step-by-step process</p>
             </div>
             <ChevronRight size={16} className="text-gray-300" />
           </div>
@@ -241,7 +261,7 @@ function VerifyContent() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-gray-900">Build a more active community</p>
-              <p className="text-xs text-gray-400">Create a Quest to bring more participants to your business.</p>
+              <p className="text-xs text-gray-600">Create a Quest to bring more participants to your business.</p>
             </div>
             <span className="h-8 px-3 rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center shrink-0">Create Quest</span>
           </div>
@@ -263,7 +283,7 @@ function VerifyContent() {
                     <Search size={16} className="text-gray-400 shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-mono font-semibold text-gray-900">{s.code}</p>
-                      <p className="text-xs text-gray-400">Today, {s.time}</p>
+                      <p className="text-xs text-gray-600">Today, {s.time}</p>
                     </div>
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${c.cls}`}>{c.label}</span>
                   </div>
@@ -296,8 +316,8 @@ function VerifyContent() {
                     <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 text-sm font-bold text-blue-600">{pName.charAt(0)}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900">{pName}</p>
-                      <p className="text-xs text-gray-400 truncate">{challenge}</p>
-                      <p className="text-xs text-gray-400">{timeAgo(req.created_at)}</p>
+                      <p className="text-xs text-gray-600 truncate">{challenge}</p>
+                      <p className="text-xs text-gray-600">{timeAgo(req.created_at)}</p>
                     </div>
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${sc.cls} shrink-0`}>{sc.label}</span>
                     <ChevronRight size={14} className="text-gray-300 shrink-0" />
@@ -313,79 +333,82 @@ function VerifyContent() {
 
   /* ── REQUEST DETAILS ──────────────────────────────────────────────────── */
   if (screen === "request" && foundReq) {
-    const participant = foundReq.participant as { full_name: string | null; avatar_url: string | null; username: string | null } | undefined;
-    const pName = participant?.full_name ?? "Unknown";
-    const pUsername = participant?.username ?? "";
-    const challengeTitle = (foundReq.challenge as { title: string } | null)?.title ?? (foundReq.quest as { title: string } | null)?.title ?? "—";
+    const participant = foundReq.participant as { full_name: string | null; username: string | null } | undefined;
+    const pName = participant?.full_name ?? participant?.username ?? "Participant";
+    const questTitle = (foundReq.quest as { title: string } | null)?.title ?? (foundReq.challenge as { title: string } | null)?.title ?? "—";
+    const taskTitle = (foundReq.task as { title: string } | null)?.title ?? null;
     return (
-      <div className="min-h-screen bg-[#F8F9FC] pb-32">
+      <div className="min-h-screen bg-[#F8F9FC] pb-40">
         <div className="flex items-center gap-3 px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
-          <button onClick={reset}><ArrowLeft size={22} className="text-gray-600" /></button>
-          <h1 className="text-[17px] font-black text-gray-900 flex-1">Verification Request</h1>
-          <button className="text-gray-400">⋮</button>
+          <button aria-label="Back" onClick={reset} className="w-11 h-11 -ml-2 flex items-center justify-center"><ArrowLeft size={22} className="text-gray-600" /></button>
+          <h1 className="text-[17px] font-black text-gray-900 flex-1">Verify Quest Order</h1>
         </div>
 
         <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-4">
-          {/* Status banner */}
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-            <div>
-              <p className="text-sm font-bold text-amber-800">Pending Business Approval</p>
-              <p className="text-xs text-amber-700 mt-0.5">Verify the details below and approve if genuine.</p>
-            </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-gray-600">Order code</p>
+            <p className="mt-1 font-mono text-[32px] font-black tracking-widest text-gray-900">{foundReq.sv_code}</p>
+            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">
+              <Clock size={13} /> Awaiting verification
+            </span>
           </div>
 
-          {/* Participant */}
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Participant</p>
-            <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center shrink-0 text-lg font-black text-blue-600">{pName.charAt(0)}</div>
-              <div className="flex-1">
-                <p className="text-[15px] font-bold text-gray-900">{pName}</p>
-                {pUsername && <p className="text-sm text-gray-500">@{pUsername}</p>}
+          <div className="bg-white rounded-2xl border border-gray-100 px-4 divide-y divide-gray-50">
+            {[
+              { label: "Customer", value: pName },
+              { label: "Quest",    value: questTitle },
+              ...(taskTitle ? [{ label: "Task", value: taskTitle }] : []),
+              { label: "Code created", value: new Date(foundReq.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) },
+            ].map(row => (
+              <div key={row.label} className="flex items-start gap-4 py-3">
+                <span className="text-sm text-gray-600 w-28 shrink-0">{row.label}</span>
+                <span className="text-sm text-gray-900 font-semibold flex-1">{row.value}</span>
               </div>
-              <ChevronRight size={16} className="text-gray-300" />
-            </div>
+            ))}
           </div>
 
-          {/* Activity Details */}
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Activity Details</p>
-            <div className="bg-white rounded-2xl border border-gray-100 px-4 divide-y divide-gray-50">
-              {[
-                { label: "Business", value: bp?.business_name ?? "This Business" },
-                { label: "Date",     value: new Date(foundReq.created_at).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }) },
-                { label: "Time",     value: new Date(foundReq.created_at).toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit" }) },
-                { label: "Verification Type", value: foundReq.verification_type.replace("_"," ").replace(/\b\w/g, c => c.toUpperCase()) },
-                { label: "Challenge", value: challengeTitle },
-              ].map(row => (
-                <div key={row.label} className="flex items-center gap-4 py-3">
-                  <span className="text-sm text-gray-400 w-32 shrink-0">{row.label}</span>
-                  <span className="text-sm text-gray-800 font-medium flex-1">{row.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Warning */}
           <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 flex items-start gap-2">
-            <span className="text-amber-600 shrink-0 mt-0.5">⚠</span>
-            <p className="text-sm text-amber-700">Only approve this request if you have personally verified the participant and their activity.</p>
+            <span className="text-amber-700 shrink-0 mt-0.5" aria-hidden="true">⚠</span>
+            <p className="text-sm text-amber-800">Verify only if this code is on a real order for an eligible item. You&apos;ll get a bill code to write on the customer&apos;s bill.</p>
           </div>
 
-          {searchErr && <p className="text-sm text-red-600">{searchErr}</p>}
+          {rejectMode && (
+            <div className="bg-white rounded-2xl border border-red-100 p-4 flex flex-col gap-2">
+              <label htmlFor="reject-reason" className="text-sm font-bold text-gray-900">Reason for rejecting (shown to the customer)</label>
+              <textarea id="reject-reason" value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={2}
+                placeholder="e.g. Item isn't part of this Quest"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-base focus:outline-none focus:border-red-400 resize-none" />
+            </div>
+          )}
+
+          {searchErr && <p role="alert" className="text-sm text-red-700">{searchErr}</p>}
         </div>
 
-        {/* Sticky buttons */}
+        {/* Reject on the left, Verify on the right — different colour and position. */}
         <div className="fixed above-bottom-nav z-40 bg-white border-t border-gray-100 px-5 py-4 flex gap-3">
-          <button onClick={handleReject} disabled={rejecting || approving}
-            className="flex-1 h-12 rounded-xl border-2 border-red-500 text-red-600 font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
-            {rejecting ? <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" /> : <><XCircle size={18} /> Reject</>}
-          </button>
-          <button onClick={handleApprove} disabled={approving || rejecting}
-            className="flex-1 h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
-            {approving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><CheckCircle2 size={18} /> Approve Verification</>}
-          </button>
+          {rejectMode ? (
+            <>
+              <button onClick={() => { setRejectMode(false); setRejectReason(""); }} disabled={rejecting}
+                className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm">
+                Cancel
+              </button>
+              <button onClick={handleReject} disabled={rejecting}
+                className="flex-1 h-12 rounded-xl bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                {rejecting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><XCircle size={18} /> Confirm Reject</>}
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => setRejectMode(true)} disabled={approving}
+                className="flex-1 h-12 rounded-xl border-2 border-red-500 text-red-700 font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                <XCircle size={18} /> Reject
+              </button>
+              <button onClick={handleApprove} disabled={approving}
+                className="flex-[1.4] h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                {approving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><CheckCircle2 size={18} /> Verify Order</>}
+              </button>
+            </>
+          )}
         </div>
       </div>
     );
@@ -395,7 +418,7 @@ function VerifyContent() {
   if (screen === "approved" && billCode) return (
     <div className="min-h-screen bg-[#F8F9FC] flex flex-col">
       <div className="flex items-center justify-center px-5 py-4 bg-white border-b border-gray-100">
-        <h1 className="text-[17px] font-black text-gray-900">Verification Approved</h1>
+        <h1 className="text-[17px] font-black text-gray-900">Order Verified</h1>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-8 gap-6 max-w-sm mx-auto w-full">
@@ -405,25 +428,27 @@ function VerifyContent() {
         </div>
 
         <div className="text-center">
-          <h2 className="text-[22px] font-black text-gray-900">Verification Approved!</h2>
-          <p className="text-sm text-gray-500 mt-1">The participant has been successfully verified.</p>
+          <h2 className="text-[22px] font-black text-gray-900">Verification Successful</h2>
+          <p className="text-sm text-gray-600 mt-1">Now write the bill code below on the customer&apos;s bill.</p>
         </div>
 
         {/* Bill code card */}
         <div className="w-full bg-white rounded-2xl border border-gray-100 p-5">
           <p className="text-sm font-bold text-gray-900 mb-1">Bill Verification Code</p>
-          <p className="text-xs text-gray-500 mb-4">Write this code clearly on the participant&apos;s physical bill or receipt.</p>
+          <p className="text-xs text-gray-600 mb-4">Write or print this clearly on the customer&apos;s bill. They enter it in STRIVUP to complete their task.</p>
           <div className="flex items-center justify-between bg-gray-50 rounded-xl px-5 py-4 border border-gray-100">
             <span className="font-mono font-black text-[28px] text-gray-900 tracking-widest">{billCode}</span>
             <button type="button" onClick={() => navigator.clipboard.writeText(billCode).catch(()=>{})}
-              className="text-gray-400 hover:text-gray-600 ml-3" aria-label="Copy">
+              className="w-11 h-11 -mr-2 flex items-center justify-center text-gray-600 hover:text-gray-900 ml-3" aria-label="Copy bill code">
               <Copy size={20} />
             </button>
           </div>
           <div className="flex items-center gap-6 mt-4">
             <div className="flex items-center gap-1.5 text-gray-500">
               <span className="text-base">⏱</span>
-              <span className="text-xs">Valid for 30 minutes</span>
+              <span className="text-xs">
+                Valid until {billExpiresAt ? new Date(billExpiresAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "24 hours from now"}
+              </span>
             </div>
             <div className="flex items-center gap-1.5 text-gray-500">
               <Shield size={14} />
@@ -434,7 +459,7 @@ function VerifyContent() {
 
         <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
           <p className="text-xs text-blue-700 text-center leading-relaxed">
-            ✏️ Write this code on the participant&apos;s bill. Give the bill/receipt to them. They will upload it to STRIVUP.
+✏️ Write this code on the bill that goes with the order. The customer types it into STRIVUP — the task only completes when they do.
           </p>
         </div>
       </div>
@@ -458,10 +483,10 @@ function VerifyContent() {
         <XCircle size={40} className="text-red-500" />
       </div>
       <div className="text-center">
-        <h2 className="text-[22px] font-black text-gray-900">Verification Rejected</h2>
-        <p className="text-sm text-gray-500 mt-1">The participant has been notified.</p>
+        <h2 className="text-[22px] font-black text-gray-900">Order Rejected</h2>
+        <p className="text-sm text-gray-600 mt-1">The customer has been notified{rejectReason.trim() ? " with your reason" : ""}.</p>
       </div>
-      <button onClick={reset} className="w-full h-12 rounded-xl bg-blue-600 text-white font-bold">Verify Another Participant</button>
+      <button onClick={reset} className="w-full h-12 rounded-xl bg-blue-600 text-white font-bold">Verify Another Order</button>
       <button onClick={() => router.push("/business/dashboard")} className="w-full h-12 rounded-xl border border-gray-200 text-gray-700 font-semibold">Back to Dashboard</button>
     </div>
   );

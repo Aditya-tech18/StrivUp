@@ -36,8 +36,9 @@ function StatusBadge({ status }: { status: BusinessProfile["verification_status"
     verified:     { icon: "✓", label: "Verified",     cls: "text-green-700 bg-green-50 border-green-200" },
     submitted:    { icon: "⏳", label: "Under Review", cls: "text-blue-700 bg-blue-50 border-blue-200" },
     under_review: { icon: "⏳", label: "Under Review", cls: "text-blue-700 bg-blue-50 border-blue-200" },
-    incomplete:   { icon: "⚠",  label: "Incomplete",  cls: "text-amber-700 bg-amber-50 border-amber-200" },
-    draft:        { icon: "○",  label: "Draft",        cls: "text-gray-500 bg-gray-50 border-gray-200" },
+    needs_more_info: { icon: "?", label: "Needs Info", cls: "text-blue-800 bg-blue-50 border-blue-200" },
+    incomplete:   { icon: "○",  label: "Not Verified", cls: "text-gray-700 bg-gray-50 border-gray-200" },
+    draft:        { icon: "○",  label: "Not Verified", cls: "text-gray-700 bg-gray-50 border-gray-200" },
     rejected:     { icon: "✕",  label: "Rejected",     cls: "text-red-700 bg-red-50 border-red-200" },
     suspended:    { icon: "✕",  label: "Suspended",    cls: "text-red-700 bg-red-50 border-red-200" },
   };
@@ -239,16 +240,22 @@ export default function BusinessDashboardPage() {
             ].map((s, i) => (
               <div key={s.label} className={`flex flex-col items-center py-3 bg-gray-50/50 ${i > 0 ? "border-l border-gray-100" : ""}`}>
                 <span className="text-lg font-black text-gray-900">{s.value}</span>
-                <span className="text-[10px] text-gray-400 font-medium mt-0.5">{s.label}</span>
+                <span className="text-[10px] text-gray-600 font-medium mt-0.5">{s.label}</span>
               </div>
             ))}
           </div>
 
-          {/* Verification status */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-            <span className="text-sm text-gray-500">Business Verification</span>
-            <StatusBadge status={bp.verification_status} />
-          </div>
+          {/* Verification status → blue tick request */}
+          <Link href="/business/verify-business"
+            className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-100 min-h-11 hover:opacity-80">
+            <span className="text-sm text-gray-700">Business Verification</span>
+            <span className="flex items-center gap-2">
+              <StatusBadge status={bp.verification_status} />
+              {["draft", "incomplete", "rejected", "needs_more_info"].includes(bp.verification_status) && (
+                <span className="text-sm font-semibold text-blue-700">Verify now →</span>
+              )}
+            </span>
+          </Link>
         </div>
 
         {/* ── Quick Actions ─────────────────────────────────────────── */}
@@ -280,7 +287,7 @@ export default function BusinessDashboardPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-bold text-gray-900">{tool.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 leading-snug">{tool.desc}</p>
+                  <p className="text-xs text-gray-600 mt-0.5 leading-snug">{tool.desc}</p>
                 </div>
                 {tool.cta.primary ? (
                   <Link href={tool.cta.href}>
@@ -314,11 +321,11 @@ export default function BusinessDashboardPage() {
             { label: "Total Quests", value: questStats.total,         color: "text-blue-600" },
             { label: "Active",       value: questStats.active,        color: "text-green-600" },
             { label: "Participants", value: questStats.participants,   color: "text-purple-600" },
-            { label: "Pending Proof",value: questStats.pending_proofs, color: questStats.pending_proofs > 0 ? "text-amber-600" : "text-gray-400" },
+            { label: "Pending Proof",value: questStats.pending_proofs, color: questStats.pending_proofs > 0 ? "text-amber-600" : "text-gray-600" },
           ].map(s => (
             <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-3 flex flex-col items-center">
               <span className={`text-xl font-black ${s.color}`}>{s.value}</span>
-              <span className="text-[9px] text-gray-400 font-medium mt-0.5 text-center leading-tight">{s.label}</span>
+              <span className="text-[9px] text-gray-600 font-medium mt-0.5 text-center leading-tight">{s.label}</span>
             </div>
           ))}
         </div>
@@ -333,7 +340,7 @@ export default function BusinessDashboardPage() {
             <div className="flex flex-col items-center gap-3 py-8 text-center">
               <TrendingUp size={32} className="text-gray-300" />
               <p className="text-sm font-semibold text-gray-700">No active Quests yet</p>
-              <p className="text-xs text-gray-400">Create your first Quest to start attracting participants.</p>
+              <p className="text-xs text-gray-600">Create your first Quest to start attracting participants.</p>
               <button onClick={() => router.push("/business/quests/new")}
                 className="h-9 px-5 rounded-xl bg-blue-600 text-white text-sm font-bold flex items-center gap-2">
                 <Plus size={16} /> Create Quest
@@ -353,14 +360,14 @@ export default function BusinessDashboardPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-gray-900 truncate">{quest.title}</p>
-                      {quest.description && <p className="text-xs text-gray-400 truncate mt-0.5">{quest.description}</p>}
+                      {quest.description && <p className="text-xs text-gray-600 truncate mt-0.5">{quest.description}</p>}
                       <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Active
                       </span>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-sm font-black text-gray-900">{quest.participant_count}</p>
-                      <p className="text-[10px] text-gray-400">Participants</p>
+                      <p className="text-[10px] text-gray-600">Participants</p>
                     </div>
                     <ChevronRight size={16} className="text-gray-300 shrink-0" />
                   </div>
@@ -398,7 +405,7 @@ export default function BusinessDashboardPage() {
                       <p className="text-sm text-gray-900">
                         <span className="font-semibold">{pName}</span>{" "}{actionLabel}
                       </p>
-                      <p className="text-xs text-gray-400">{timeAgo(req.created_at)}</p>
+                      <p className="text-xs text-gray-600">{timeAgo(req.created_at)}</p>
                     </div>
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${sc.cls}`}>{sc.label}</span>
                   </div>
