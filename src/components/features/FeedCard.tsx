@@ -93,14 +93,22 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
 
     const { error } = await supabase.from("proof_reports").insert({
       proof_id: post.id,
-      reporter_id: user.id,
+      // The live column is reported_by, not reporter_id. With the wrong name
+      // PostgREST rejects the whole insert, so every report failed.
+      reported_by: user.id,
       reason: reportReason,
       status: "pending",
     });
 
     if (error) {
-      alert("Failed to submit report.");
-      console.error(error);
+      // (proof_id, reported_by) is unique, so a second report on the same post
+      // is a conflict rather than a fault — say so instead of "failed".
+      alert(
+        error.code === "23505"
+          ? "You've already reported this post. Our moderators are on it."
+          : "Failed to submit report."
+      );
+      setIsReporting(false);
     } else {
       setReportSubmitted(true);
       setIsReporting(false);
