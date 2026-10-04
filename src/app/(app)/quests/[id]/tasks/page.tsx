@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, CheckCircle2, Clock, Lock, Upload, X, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { PhysicalTaskCard } from "@/components/features/activity";
 import {
   currentPeriodProgress,
@@ -203,7 +204,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
       let url2 = existingSub?.media_url_2 ?? null;
 
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+        const { file } = await compressImage(files[i], IMAGE_PRESETS.proof);
         const ext = file.name.split(".").pop() ?? "jpg";
         const path = `${userId}/quest-proofs/${questId}/${task.id}-${Date.now()}-${i}.${ext}`;
         const { error: upErr } = await supabase.storage.from("proof-media").upload(path, file, { upsert: true });

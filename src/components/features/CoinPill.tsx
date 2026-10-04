@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Coins } from "lucide-react";
 
 /**
@@ -21,7 +22,11 @@ export function CoinPill({
   earnedToday?: number;
 }) {
   return (
-    <div className="relative flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1">
+    <Link
+      href="/coins"
+      aria-label={`${balance} StrivCoins. See how to earn and what they unlock.`}
+      className="relative flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1 transition-transform active:scale-95"
+    >
       <Coins size={15} className="text-on-tertiary-container" aria-hidden="true" />
       <span className="text-label-md font-bold tabular-nums text-on-surface" aria-hidden="true">
         {balance}
@@ -39,6 +44,6 @@ export function CoinPill({
           +{earnedToday}
         </span>
       ) : null}
-    </div>
+    </Link>
   );
 }

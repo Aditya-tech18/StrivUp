@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { Badge, Button, Card, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { CreatorPlans } from "@/components/features/CreatorPlans";
 import {
   PhysicalActivityConfigFields,
@@ -422,11 +423,14 @@ export default function CreateChallengePage() {
     // 2. Upload thumbnail
     let thumbnailUrl: string | null = null;
     if (thumbnailFile) {
-      const ext = thumbnailFile.name.split(".").pop() ?? "jpg";
+      // Compress before upload — a raw 10 MB phone photo used to land in
+      // Storage at full size for a card rendered a few hundred pixels wide.
+      const { file: thumb } = await compressImage(thumbnailFile, IMAGE_PRESETS.thumbnail);
+      const ext = thumb.name.split(".").pop() ?? "jpg";
       const path = `${user.id}/thumbnails/${crypto.randomUUID()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from("proof-media")
-        .upload(path, thumbnailFile, { upsert: false });
+        .upload(path, thumb, { upsert: false });
       if (uploadError) {
         setSubmitError(`Thumbnail upload failed: ${uploadError.message}`);
         return;

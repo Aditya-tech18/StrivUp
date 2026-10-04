@@ -112,3 +112,81 @@ export async function getCoinHistory(
     })
   );
 }
+
+/**
+ * The live economy constants.
+ *
+ * Read from striv_coin_rules() — the same function the award triggers call —
+ * so the "how you earn" table can never drift from what actually pays out. If
+ * a rate changes in the database, this page changes with it.
+ */
+export interface CoinRules {
+  daily_checkin: number;
+  proof_approved: number;
+  proof_approved_daily_max: number;
+  challenge_joined: number;
+  challenge_joined_weekly_max: number;
+  challenge_complete_base: number;
+  challenge_complete_per_day: number;
+  challenge_complete_max: number;
+  challenge_min_duration: number;
+  challenge_min_consistency: number;
+  self_created_multiplier: number;
+  quest_joined: number;
+  quest_completed: number;
+  daily_global_cap: number;
+}
+
+export async function getCoinRules(supabase: SupabaseClient): Promise<CoinRules | null> {
+  const { data, error } = await supabase.rpc("striv_coin_rules");
+  if (error || !data) {
+    console.error("[coins] rules", error?.message);
+    return null;
+  }
+  return data as CoinRules;
+}
+
+/**
+ * What coins can be spent on.
+ *
+ * Every item is zero cost of goods to StrivUp by design — that is what keeps
+ * StrivCoin a loyalty point with no balance-sheet liability rather than a
+ * financial product. Real-world quest rewards are funded by the sponsoring
+ * business and are claimed on the quest itself, not from here.
+ *
+ * `available: false` means the redemption path is not built yet. Shown rather
+ * than hidden so people know what the balance is FOR, which is the whole point
+ * of earning it.
+ */
+export interface CoinReward {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  available: boolean;
+}
+
+export const COIN_REWARDS: CoinReward[] = [
+  {
+    id: "streak_freeze",
+    name: "Streak freeze",
+    description:
+      "Miss a day without losing your streak. One freeze covers one missed day.",
+    cost: 50,
+    available: false,
+  },
+  {
+    id: "profile_frame",
+    name: "Profile frame",
+    description: "A badge frame on your avatar, visible to everyone who opens your profile.",
+    cost: 120,
+    available: false,
+  },
+  {
+    id: "challenge_boost",
+    name: "Challenge boost",
+    description: "Push a challenge you created to the top of Explore for 48 hours.",
+    cost: 200,
+    available: false,
+  },
+];

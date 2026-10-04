@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, MapPin, Users, CheckCircle2, AlertCircle, Upload, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { Button, Card, Badge, Input } from "@/components/ui";
 import type { QuestDetail } from "@/lib/data/quests";
 import {
@@ -178,10 +179,11 @@ export default function QuestDetailClient({
     setUploadError(null);
 
     try {
-      const fileName = `${quest.id}/${participation.id}/${Date.now()}_${uploadedFile.name}`;
+      const { file: proof } = await compressImage(uploadedFile, IMAGE_PRESETS.proof);
+      const fileName = `${quest.id}/${participation.id}/${Date.now()}_${proof.name}`;
       const { error: uploadErr } = await supabase.storage
         .from("proof-media")
-        .upload(fileName, uploadedFile, { upsert: false });
+        .upload(fileName, proof, { upsert: false });
 
       if (uploadErr) {
         throw new Error(uploadErr.message);

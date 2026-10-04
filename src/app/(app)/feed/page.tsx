@@ -123,7 +123,7 @@ export default async function FeedPage() {
           bestStreak: 0,
           justCompleted: 0,
         }),
-    getFeedPosts(supabase, { limit: 20 }),
+    getFeedPosts(supabase, { limit: 20, viewerId: user?.id }),
     // Claims the daily check-in as a side effect. Deduped on the IST calendar
     // date in Postgres, so opening the feed twice earns one coin, not two.
     user
@@ -185,12 +185,16 @@ export default async function FeedPage() {
           {/* Reward and consistency read in one glance. */}
           <div className="flex shrink-0 items-center gap-space-xs">
             {today.bestStreak > 0 ? (
-              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1">
+              <Link
+                href="/profile#consistency"
+                aria-label={`${today.bestStreak} day streak. See your consistency heatmap.`}
+                className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1 transition-transform active:scale-95"
+              >
                 <Flame size={15} className="text-secondary" aria-hidden="true" />
                 <span className="text-label-md font-bold text-on-surface">
                   {today.bestStreak}
                 </span>
-              </div>
+              </Link>
             ) : null}
             <CoinPill balance={coins.balance} earnedToday={coins.earnedToday} />
           </div>
@@ -279,7 +283,7 @@ export default async function FeedPage() {
           {posts.length > 0 ? (
             <div className="flex flex-col gap-space-md">
               {posts.map((post) => (
-                <FeedCard key={post.id} post={post} />
+                <FeedCard key={post.id} post={post} viewerId={user?.id ?? null} />
               ))}
             </div>
           ) : (
