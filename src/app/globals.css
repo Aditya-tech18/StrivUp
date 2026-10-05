@@ -595,6 +595,20 @@ body {
 
   @media (min-width: 768px) {
     .rail {
+      /* The rail expands OVER the page, so it has to win against page chrome
+         and lose to anything modal. The bands in use:
+
+           10      in-page content
+           30, 40  sticky page headers and fixed bottom action bars
+           45      this rail
+           50      modals, toasts, the mobile BottomNav
+           60      modals opened from inside a modal
+
+         It was 40 — the same as the challenge and creator page headers — and
+         an equal z-index is settled by document order, which the rail loses
+         because it is markup-ordered before <main>. That is why the headers
+         were painting across the top of it. */
+      z-index: 45;
       width: var(--rail-collapsed);
       /* Labels keep their natural width and are clipped, so nothing reflows
          as the rail widens — the text is simply revealed. */

@@ -23,7 +23,7 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
         {/* ── Desktop sidebar (md+) ───────────────────────────────────── */}
         <aside
           aria-label="Sidebar navigation"
-          className="rail z-40 hidden md:fixed md:inset-y-0 md:flex md:flex-col md:border-r md:border-outline-variant md:bg-surface-container-low"
+          className="rail hidden md:fixed md:inset-y-0 md:flex md:flex-col md:border-r md:border-outline-variant md:bg-surface-container-low"
         >
           {/* Brand mark. The icon is centred in the collapsed rail, so its
               padding matches the nav items' rather than the old wider inset. */}
