@@ -8,9 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default function ForgotPasswordPage() {
-  // No value-prop panel: this is a single-purpose detour, not a front door.
   return (
-    <AuthScreen showPanel={false}>
+    <AuthScreen>
       <ForgotPasswordForm />
     </AuthScreen>
   );

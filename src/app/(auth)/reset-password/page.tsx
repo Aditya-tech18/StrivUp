@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function ResetPasswordPage() {
   return (
-    <AuthScreen showPanel={false}>
+    <AuthScreen>
       <ResetPasswordForm />
     </AuthScreen>
   );

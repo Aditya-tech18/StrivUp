@@ -13,6 +13,16 @@ import { Flame } from "lucide-react";
  * Slightly translucent with a blur behind it, so the mesh colour reads through
  * the card edges instead of the card punching a flat white hole in it.
  */
+/**
+ * The card shell on its own, for screens that bring their own header — the
+ * business sign-in forms render their own logo and headline, so they use this
+ * rather than <AuthCard>.
+ */
+export const authCardCls = [
+  "w-full max-w-sm rounded-2xl border border-outline-variant",
+  "bg-surface-container-lowest/85 p-8 elev-3 backdrop-blur-xl",
+].join(" ");
+
 export function AuthCard({
   title,
   subtitle,
@@ -28,7 +38,7 @@ export function AuthCard({
   footer?: React.ReactNode;
 }) {
   return (
-    <div className="w-full max-w-sm space-y-7 rounded-2xl border border-outline-variant bg-surface-container-lowest/85 p-8 elev-3 backdrop-blur-xl">
+    <div className={`${authCardCls} space-y-7`}>
       <div className="space-y-4 text-center">
         <div className="flex justify-center">
           <Link
