@@ -19,51 +19,52 @@ const features = [
     Icon: Flame,
     title: "Daily streaks",
     body: "Show up, log it, keep the chain unbroken.",
-    tint: "text-secondary-fixed-dim",
-    bg: "bg-secondary/15",
+    tint: "text-secondary",
+    bg: "bg-secondary/8",
   },
   {
     Icon: Zap,
     title: "Challenges",
     body: "Join a run with a start date and a finish line.",
-    tint: "text-tertiary-fixed",
-    bg: "bg-tertiary-fixed/10",
+    tint: "text-success",
+    bg: "bg-success-container",
   },
   {
     Icon: Users,
     title: "A community",
     body: "People doing the same thing, visible to each other.",
-    tint: "text-on-primary",
-    bg: "bg-white/10",
+    tint: "text-on-surface",
+    bg: "bg-surface-container",
   },
   {
     Icon: TrendingUp,
     title: "Your progress",
     body: "Every submission, kept and counted.",
-    tint: "text-secondary-fixed-dim",
-    bg: "bg-secondary/15",
+    tint: "text-secondary",
+    bg: "bg-secondary/8",
   },
 ];
 
 export function ValuePropPanel() {
   return (
-    // Translucent rather than solid: the shader behind the auth screen carries
-    // through, so the two halves read as one surface. Sizing and the
-    // hide-on-mobile rule belong to AuthScreen, which owns the layout.
+    // No background of its own: the mesh behind the auth screen carries
+    // through, so the two halves read as one surface rather than a form
+    // bolted to a panel. Sizing and the hide-on-mobile rule belong to
+    // AuthScreen, which owns the layout.
     <aside
-      className="flex h-full w-full flex-col items-center justify-center border-l border-white/10 bg-primary-container/70 p-12 backdrop-blur-md"
+      className="flex h-full w-full flex-col items-center justify-center border-l border-outline-variant/60 p-12"
       aria-label="What StrivUp does"
     >
       <div className="w-full max-w-sm space-y-8">
         {/* Logo mark + headline */}
         <div className="space-y-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
-            <Flame size={24} className="text-secondary-fixed" aria-hidden="true" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/10">
+            <Flame size={24} className="text-secondary" aria-hidden="true" />
           </div>
-          <h2 className="text-display-mobile leading-tight text-on-primary">
+          <h2 className="text-display-mobile leading-tight text-on-surface">
             Build it<br />day by day
           </h2>
-          <p className="text-body-md leading-relaxed text-on-primary-container">
+          <p className="text-body-md leading-relaxed text-on-surface-variant">
             Track streaks, build habits and push your limits with a community
             that holds you accountable every single day.
           </p>
@@ -74,24 +75,21 @@ export function ValuePropPanel() {
           {features.map(({ Icon, title, body, tint, bg }) => (
             <li
               key={title}
-              className={`flex items-start gap-4 rounded-xl ${bg} border border-white/20 px-4 py-3`}
+              className={`flex items-start gap-4 rounded-xl ${bg} border border-outline-variant px-4 py-3`}
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-container-lowest">
                 <Icon size={20} className={tint} aria-hidden="true" />
               </div>
               <div>
-                <p className="text-body-lg font-semibold text-on-primary">{title}</p>
-                {/* on-primary-container (#848484) on primary-container (#1b1b1b)
-                    is 4.61:1, so it clears AA. The old footer line faded it to
-                    60%, which took it to 2.50:1. */}
-                <p className="text-body-md text-on-primary-container">{body}</p>
+                <p className="text-body-lg font-semibold text-on-surface">{title}</p>
+                <p className="text-body-md text-on-surface-variant">{body}</p>
               </div>
             </li>
           ))}
         </ul>
 
         {/* Footer tagline */}
-        <p className="text-center text-overline tracking-widest text-on-primary-container">
+        <p className="text-center text-overline tracking-widest text-on-surface-variant">
           StrivUp · Build better, every day
         </p>
       </div>

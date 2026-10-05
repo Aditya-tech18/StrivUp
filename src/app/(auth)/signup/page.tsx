@@ -17,7 +17,7 @@ export default function SignupPage() {
       <Suspense
         fallback={
           <div
-            className="h-[34rem] w-full max-w-sm animate-pulse rounded-2xl border border-white/10 bg-white/5"
+            className="h-[34rem] w-full max-w-sm animate-pulse rounded-2xl border border-outline-variant bg-surface-container-low"
             aria-hidden="true"
           />
         }

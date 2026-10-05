@@ -2,15 +2,16 @@ import Link from "next/link";
 import { Flame } from "lucide-react";
 
 /**
- * AuthCard — the glass panel every auth screen sits in.
+ * AuthCard — the panel every auth screen sits in.
  *
- * Dark-on-dark by design. The right-hand ValuePropPanel was already
- * near-black (primary-container) with white/10 glass cards, so making the form
- * side match turns the auth screen into one continuous dark surface instead of
- * a white rectangle bolted to a black one.
+ * Light, on the app's own palette: a near-white card over the same mesh
+ * background the entry screen uses. An earlier version made these screens
+ * dark, which looked good on its own but meant signing in was the one dark
+ * moment in an otherwise white-and-blue product — you noticed the change of
+ * theme more than the screen.
  *
- * Colours come from the existing tokens — primary-container for the ink,
- * secondary (#1d4ed8) for the action — not from the reference's raw blues.
+ * Slightly translucent with a blur behind it, so the mesh colour reads through
+ * the card edges instead of the card punching a flat white hole in it.
  */
 export function AuthCard({
   title,
@@ -27,29 +28,27 @@ export function AuthCard({
   footer?: React.ReactNode;
 }) {
   return (
-    <div className="w-full max-w-sm space-y-7 rounded-2xl border border-white/15 bg-white/10 p-8 elev-5 backdrop-blur-lg">
+    <div className="w-full max-w-sm space-y-7 rounded-2xl border border-outline-variant bg-surface-container-lowest/85 p-8 elev-3 backdrop-blur-xl">
       <div className="space-y-4 text-center">
         <div className="flex justify-center">
           <Link
             href="/"
             aria-label="StrivUp home"
-            className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20 transition-colors hover:bg-white/15"
+            className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/10 transition-colors hover:bg-secondary/15"
           >
-            <Flame size={24} className="text-secondary-fixed" aria-hidden="true" />
+            <Flame size={24} className="text-secondary" aria-hidden="true" />
           </Link>
         </div>
         <div className="space-y-1">
-          <h1 className="text-headline-lg-mobile text-on-primary">{title}</h1>
-          {subtitle ? (
-            <p className="text-body-md text-on-primary-container">{subtitle}</p>
-          ) : null}
+          <h1 className="text-headline-lg-mobile text-on-surface">{title}</h1>
+          {subtitle ? <p className="text-body-md text-on-surface-variant">{subtitle}</p> : null}
         </div>
       </div>
 
       {error ? (
         <div
           role="alert"
-          className="rounded-xl border border-error-outline/40 bg-error/20 px-4 py-3 text-body-md text-white"
+          className="rounded-xl border border-error-outline bg-error-container px-4 py-3 text-body-md text-on-error-container"
         >
           {error}
         </div>
@@ -58,22 +57,20 @@ export function AuthCard({
       {children}
 
       {footer ? (
-        <p className="text-center text-body-md text-on-primary-container">{footer}</p>
+        <p className="text-center text-body-md text-on-surface-variant">{footer}</p>
       ) : null}
     </div>
   );
 }
 
 /**
- * AuthField — a floating-label input for the glass panel.
+ * AuthField — a floating-label input.
  *
  * The label starts sitting on the field and lifts away once there is a value
- * or focus, which is the pattern in the reference design. It works off the
- * `placeholder-shown` state, so the placeholder must stay a single space —
- * that is load-bearing, not a typo.
- *
- * The label is a real <label htmlFor>, so clicking it focuses the input and
- * screen readers announce it normally; the icon inside is decorative.
+ * or focus. It works off the `placeholder-shown` state, so the placeholder
+ * must stay a single space — that is load-bearing, not a typo. The lift itself
+ * lives in .float-label in globals.css; see the note there on why it is one
+ * CSS rule rather than a pair of Tailwind peer variants.
  */
 export function AuthField({
   id,
@@ -106,11 +103,11 @@ export function AuthField({
           className={[
             "float-field block w-full appearance-none border-0 border-b-2 bg-transparent px-0 pt-5 pb-2",
             trailing ? "pr-9" : "",
-            "text-body-lg text-on-primary",
+            "text-body-lg text-on-surface",
             "transition-colors duration-200 focus:outline-none focus:ring-0",
             error
-              ? "border-error-outline focus:border-error-outline"
-              : "border-white/25 focus:border-secondary-fixed-dim",
+              ? "border-error focus:border-error"
+              : "border-outline-variant focus:border-secondary",
             "disabled:opacity-40",
           ]
             .filter(Boolean)
@@ -119,9 +116,8 @@ export function AuthField({
         />
         <label
           htmlFor={id}
-          // Positioning and the lift live in .float-label (globals.css) —
-          // see the note there on why this is not a set of peer variants.
-          className="float-label text-body-md text-on-primary-container"
+          // Positioning and the lift live in .float-label (globals.css).
+          className="float-label text-body-md text-on-surface-variant"
         >
           {icon ? <span className="mr-1.5 inline-block align-middle">{icon}</span> : null}
           {label}
@@ -132,11 +128,11 @@ export function AuthField({
       </div>
 
       {error ? (
-        <p id={`${id}-error`} role="alert" className="text-body-md text-error-outline">
+        <p id={`${id}-error`} role="alert" className="text-body-md text-error">
           {error}
         </p>
       ) : hint ? (
-        <p id={`${id}-hint`} className="text-label-sm text-on-primary-container">
+        <p id={`${id}-hint`} className="text-label-sm text-on-surface-variant">
           {hint}
         </p>
       ) : null}
@@ -147,9 +143,10 @@ export function AuthField({
 /** The Google button, identical on login and signup. */
 export const authSocialBtnCls = [
   "w-full flex items-center justify-center gap-3 h-11 px-4 rounded-xl",
-  "bg-white/90 hover:bg-white text-body-lg font-semibold text-[#1b1c1c]",
+  "border border-outline-variant bg-surface-container-lowest hover:bg-surface-container",
+  "text-body-lg font-semibold text-on-surface",
   "transition-colors duration-150",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary-fixed-dim focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
   "disabled:opacity-50 disabled:cursor-not-allowed",
 ].join(" ");
 
@@ -157,7 +154,7 @@ export const authSocialBtnCls = [
 export const authSubmitBtnCls = [
   "group w-full flex items-center justify-center gap-2 h-11 px-4 rounded-xl",
   "bg-secondary hover:bg-secondary-container text-on-secondary text-body-lg font-semibold",
-  "transition-all duration-200",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary-fixed-dim focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+  "elev-brand transition-all duration-200",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
   "disabled:opacity-50 disabled:cursor-not-allowed",
 ].join(" ");

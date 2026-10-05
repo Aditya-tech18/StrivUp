@@ -87,7 +87,7 @@ export function ResetPasswordForm() {
     return (
       <AuthCard title="One moment">
         <div className="flex justify-center py-4">
-          <Loader2 size={22} className="animate-spin text-secondary-fixed-dim" aria-hidden="true" />
+          <Loader2 size={22} className="animate-spin text-secondary" aria-hidden="true" />
         </div>
       </AuthCard>
     );
@@ -101,7 +101,7 @@ export function ResetPasswordForm() {
         footer={
           <Link
             href="/forgot-password"
-            className="font-semibold text-secondary-fixed-dim transition-colors hover:text-white"
+            className="font-semibold text-secondary transition-colors hover:underline"
           >
             Send a new link
           </Link>
@@ -133,7 +133,7 @@ export function ResetPasswordForm() {
               type="button"
               onClick={() => setShow((v) => !v)}
               aria-label={show ? "Hide password" : "Show password"}
-              className="p-1 text-on-primary-container transition-colors hover:text-white"
+              className="p-1 text-on-surface-variant transition-colors hover:text-on-surface"
             >
               {show ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
             </button>

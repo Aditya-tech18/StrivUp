@@ -143,7 +143,7 @@ export function PhoneAuthForm() {
           Prefer email?{" "}
           <Link
             href="/login"
-            className="font-semibold text-secondary-fixed-dim transition-colors hover:text-white"
+            className="font-semibold text-secondary transition-colors hover:underline"
           >
             Log in another way
           </Link>
@@ -181,7 +181,7 @@ export function PhoneAuthForm() {
             </>
           )}
         </button>
-        <p className="text-center text-label-sm text-on-primary-container">
+        <p className="text-center text-label-sm text-on-surface-variant">
           Signing in with a new number creates your StrivUp account.
         </p>
       </form>

@@ -81,7 +81,7 @@ export function OtpStep({
     <AuthCard title={title} subtitle={`We sent a ${OTP_LENGTH}-digit code to ${sentTo}.`} error={error}>
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <div className="flex flex-col gap-1">
-          <label htmlFor="otp-code" className="text-body-md font-medium text-on-primary">
+          <label htmlFor="otp-code" className="text-body-md font-medium text-on-surface">
             Verification code
           </label>
           <input
@@ -98,18 +98,18 @@ export function OtpStep({
             aria-invalid={!!fieldError}
             aria-describedby={fieldError ? "otp-code-error" : undefined}
             className={[
-              "h-12 w-full rounded-xl border bg-white/5 px-3",
-              "text-center text-headline-md tracking-[0.5em] text-on-primary",
-              "placeholder:tracking-[0.5em] placeholder:text-white/30",
+              "h-12 w-full rounded-xl border bg-surface-container-lowest px-3",
+              "text-center text-headline-md tracking-[0.5em] text-on-surface",
+              "placeholder:tracking-[0.5em] placeholder:text-outline",
               "transition-colors duration-150 focus:outline-none focus:ring-2",
               fieldError
-                ? "border-error-outline focus:border-error-outline focus:ring-error/30"
-                : "border-white/25 focus:border-secondary-fixed-dim focus:ring-secondary/30",
+                ? "border-error focus:border-error focus:ring-error/20"
+                : "border-outline-variant focus:border-secondary focus:ring-secondary/20",
               "disabled:opacity-50",
             ].join(" ")}
           />
           {fieldError ? (
-            <p id="otp-code-error" role="alert" className="text-body-md text-error-outline">
+            <p id="otp-code-error" role="alert" className="text-body-md text-error">
               {fieldError}
             </p>
           ) : null}
@@ -137,7 +137,7 @@ export function OtpStep({
           <button
             type="button"
             onClick={onBack}
-            className="flex items-center gap-1 text-body-md text-secondary-fixed-dim transition-colors hover:text-white"
+            className="flex items-center gap-1 text-body-md text-secondary transition-colors hover:underline"
           >
             <ArrowLeft size={14} aria-hidden="true" />
             {backLabel}
@@ -147,7 +147,7 @@ export function OtpStep({
             type="button"
             disabled={cooldown > 0 || busy}
             onClick={handleResend}
-            className="text-body-md text-secondary-fixed-dim transition-colors hover:text-white disabled:text-on-primary-container disabled:hover:text-on-primary-container"
+            className="text-body-md text-secondary transition-colors hover:underline disabled:text-on-surface-variant disabled:no-underline"
           >
             {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
           </button>

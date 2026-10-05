@@ -177,7 +177,7 @@ export function SignupForm() {
           Already have an account?{" "}
           <Link
             href={`/login${destination !== "/feed" ? `?redirectTo=${encodeURIComponent(destination)}` : ""}`}
-            className="font-semibold text-secondary-fixed-dim transition-colors hover:text-white"
+            className="font-semibold text-secondary transition-colors hover:underline"
           >
             Log in
           </Link>
@@ -221,7 +221,7 @@ export function SignupForm() {
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? "Hide password" : "Show password"}
-              className="p-1 text-on-primary-container transition-colors hover:text-white"
+              className="p-1 text-on-surface-variant transition-colors hover:text-on-surface"
             >
               {showPassword ? (
                 <EyeOff size={16} aria-hidden="true" />
@@ -233,7 +233,7 @@ export function SignupForm() {
           {...register("password")}
         />
 
-        <button id="signup-submit-btn" type="submit" disabled={busy} className={authSubmitBtnCls}>
+        <button id="signup-submit-btn" type="submit" disabled={busy} data-magnetic className={authSubmitBtnCls}>
           {isSubmitting ? (
             <>
               <Loader2 size={16} className="animate-spin" aria-hidden="true" />
@@ -252,11 +252,11 @@ export function SignupForm() {
         </button>
 
         <div className="flex items-center gap-3" aria-hidden="true">
-          <span className="h-px flex-1 bg-white/20" />
-          <span className="text-overline tracking-widest text-on-primary-container">
+          <span className="h-px flex-1 bg-outline-variant" />
+          <span className="text-overline tracking-widest text-on-surface-variant">
             or continue with
           </span>
-          <span className="h-px flex-1 bg-white/20" />
+          <span className="h-px flex-1 bg-outline-variant" />
         </div>
 
         {/* Google only. The phone flow is built (/phone) but unlinked while
@@ -266,6 +266,7 @@ export function SignupForm() {
           type="button"
           onClick={handleGoogleSignup}
           disabled={busy}
+          data-magnetic
           className={authSocialBtnCls}
         >
           {googleLoading ? (

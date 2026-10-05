@@ -53,16 +53,16 @@ export function ForgotPasswordForm() {
         subtitle="If that address has an account, a password reset link is on its way. The link works once and expires in an hour."
       >
         <div className="flex justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
-            <MailCheck size={26} className="text-secondary-fixed-dim" aria-hidden="true" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary/10">
+            <MailCheck size={26} className="text-secondary" aria-hidden="true" />
           </div>
         </div>
-        <p className="text-center text-body-md text-on-primary-container">
+        <p className="text-center text-body-md text-on-surface-variant">
           Didn&apos;t get it? Check spam, or{" "}
           <button
             type="button"
             onClick={() => setSent(false)}
-            className="font-semibold text-secondary-fixed-dim transition-colors hover:text-white"
+            className="font-semibold text-secondary transition-colors hover:underline"
           >
             try a different address
           </button>
@@ -82,7 +82,7 @@ export function ForgotPasswordForm() {
           Remembered it?{" "}
           <Link
             href="/login"
-            className="font-semibold text-secondary-fixed-dim transition-colors hover:text-white"
+            className="font-semibold text-secondary transition-colors hover:underline"
           >
             Back to login
           </Link>

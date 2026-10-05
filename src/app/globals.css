@@ -566,7 +566,7 @@ body {
     scale: 1;
   }
 
-  .float-field:focus ~ .float-label { color: var(--color-secondary-fixed-dim); }
+  .float-field:focus ~ .float-label { color: var(--color-secondary); }
 }
 
 @media (prefers-reduced-motion: reduce) {

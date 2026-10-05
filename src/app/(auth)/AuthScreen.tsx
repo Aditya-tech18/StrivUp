@@ -1,17 +1,18 @@
-import { ShaderBackground } from "@/components/ui/ShaderBackground";
+import { MagneticCursor } from "@/components/ui/MagneticCursor";
+import { MeshBackground } from "@/components/ui/MeshBackground";
 import { ValuePropPanel } from "./ValuePropPanel";
 
 /**
- * AuthScreen — the full-bleed dark shell behind every user auth screen.
+ * AuthScreen — the shell behind every user auth screen.
+ *
+ * Shares the entry screen's mesh background and magnetic cursor, so signing in
+ * is visibly the same product as the page that sent you there. The cursor was
+ * previously mounted only on the entry screen, which made it look broken the
+ * moment anyone clicked through to /login.
  *
  * Deliberately not applied in (auth)/layout.tsx: that layout also wraps the
  * business sign-in routes, which are disabled for v1 and are not mine to
- * restyle. Composing a shell instead keeps this change to the five user-facing
- * screens.
- *
- * The shader spans the whole viewport and the value-prop panel sits on top of
- * it with a translucent backdrop, so the two halves read as one surface rather
- * than two panels with a seam down the middle.
+ * restyle. Composing a shell instead keeps this to the user-facing screens.
  */
 export function AuthScreen({
   children,
@@ -22,25 +23,27 @@ export function AuthScreen({
   showPanel?: boolean;
 }) {
   return (
-    <div className="relative flex min-h-screen bg-[#0b0b0d]">
-      <ShaderBackground />
+    <MagneticCursor>
+      <div className="relative isolate flex min-h-screen overflow-hidden bg-surface">
+        <MeshBackground />
 
-      <section
-        className={[
-          "relative z-10 flex w-full items-center justify-center px-6 py-12 lg:px-16",
-          showPanel ? "lg:w-1/2" : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-      >
-        {children}
-      </section>
+        <section
+          className={[
+            "relative z-10 flex w-full items-center justify-center px-gutter py-12 lg:px-16",
+            showPanel ? "lg:w-1/2" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {children}
+        </section>
 
-      {showPanel ? (
-        <div className="relative z-10 hidden lg:block lg:w-1/2">
-          <ValuePropPanel />
-        </div>
-      ) : null}
-    </div>
+        {showPanel ? (
+          <div className="relative z-10 hidden lg:block lg:w-1/2">
+            <ValuePropPanel />
+          </div>
+        ) : null}
+      </div>
+    </MagneticCursor>
   );
 }

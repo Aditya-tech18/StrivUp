@@ -59,7 +59,15 @@ export function MagneticCursor({
     // A coarse pointer means a finger: there is no cursor to decorate, and the
     // blob would sit frozen wherever the last tap landed.
     if (window.matchMedia("(pointer: coarse)").matches) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    // Reduced motion does not mean "no cursor". The pointer is already moving;
+    // what that setting is protecting against is the *extra* motion — the lag,
+    // the stretch, the spring overshoot. So the blob stays, pinned exactly to
+    // the pointer with no easing and no deformation. Switching the feature off
+    // entirely, as the first version did, left anyone with animation effects
+    // disabled wondering why nothing happened.
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const lerp = reduced ? 1 : LERP;
 
     blob.style.opacity = "0";
 
@@ -107,31 +115,38 @@ export function MagneticCursor({
         previous.y = current.y;
         blob.style.transform = `translate(${current.x}px, ${current.y}px) translate(-50%, -50%)`;
       } else {
-        current.x += (pointer.x - current.x) * LERP;
-        current.y += (pointer.y - current.y) * LERP;
+        current.x += (pointer.x - current.x) * lerp;
+        current.y += (pointer.y - current.y) * lerp;
 
         const dx = current.x - previous.x;
         const dy = current.y - previous.y;
         previous.x = current.x;
         previous.y = current.y;
 
-        // Stretch along the direction of travel — the "liquid" part.
-        const speed = Math.hypot(dx, dy) * SPEED_SCALE;
-        const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-        const sx = 1 + Math.min(speed, MAX_STRETCH);
-        const sy = 1 - Math.min(speed, MAX_SQUASH);
+        if (reduced) {
+          blob.style.transform = `translate(${current.x}px, ${current.y}px) translate(-50%, -50%)`;
+        } else {
+          // Stretch along the direction of travel — the "liquid" part.
+          const speed = Math.hypot(dx, dy) * SPEED_SCALE;
+          const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+          const sx = 1 + Math.min(speed, MAX_STRETCH);
+          const sy = 1 - Math.min(speed, MAX_SQUASH);
 
-        blob.style.transform =
-          `translate(${current.x}px, ${current.y}px) translate(-50%, -50%) ` +
-          `rotate(${angle}deg) scale(${sx}, ${sy})`;
+          blob.style.transform =
+            `translate(${current.x}px, ${current.y}px) translate(-50%, -50%) ` +
+            `rotate(${angle}deg) scale(${sx}, ${sy})`;
+        }
       }
 
       // Magnetic elements lean toward the pointer and spring back on release.
       magnets.forEach((spring, el) => {
         const b = el.getBoundingClientRect();
         const isHovered = el === hovered;
-        const targetX = isHovered ? (pointer.x - (b.left + b.width / 2)) * MAGNET_FACTOR : 0;
-        const targetY = isHovered ? (pointer.y - (b.top + b.height / 2)) * MAGNET_FACTOR : 0;
+        // Reduced motion keeps the snap-on highlight but drops the lean, which
+        // is the part that moves something the person did not move themselves.
+        const pull = reduced ? 0 : MAGNET_FACTOR;
+        const targetX = isHovered ? (pointer.x - (b.left + b.width / 2)) * pull : 0;
+        const targetY = isHovered ? (pointer.y - (b.top + b.height / 2)) * pull : 0;
 
         spring.vx = (spring.vx + (targetX - spring.x) * STIFFNESS) * DAMPING;
         spring.vy = (spring.vy + (targetY - spring.y) * STIFFNESS) * DAMPING;
