@@ -23,14 +23,15 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
         {/* ── Desktop sidebar (md+) ───────────────────────────────────── */}
         <aside
           aria-label="Sidebar navigation"
-          className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:border-r md:border-outline-variant md:bg-surface-container-low"
+          className="rail z-40 hidden md:fixed md:inset-y-0 md:flex md:flex-col md:border-r md:border-outline-variant md:bg-surface-container-low"
         >
-          {/* Brand mark */}
-          <div className="flex items-center gap-2 px-5 py-4 border-b border-outline-variant">
-            <div className="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+          {/* Brand mark. The icon is centred in the collapsed rail, so its
+              padding matches the nav items' rather than the old wider inset. */}
+          <div className="flex items-center gap-3 border-b border-outline-variant px-5 py-4">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-container">
               <Flame size={18} className="text-on-primary" aria-hidden="true" />
             </div>
-            <span className="text-overline text-secondary tracking-widest text-sm font-semibold">
+            <span className="rail-label text-overline text-sm font-semibold tracking-widest text-secondary">
               STRIVUP
             </span>
           </div>
@@ -39,8 +40,11 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
           <AppSidebar />
         </aside>
 
-        {/* ── Main content ────────────────────────────────────────────── */}
-        <main className="flex-1 min-w-0 md:ml-64 pb-bottom-nav">
+        {/* ── Main content ────────────────────────────────────────────────
+            Reserves the collapsed rail width only. The rail overlays this
+            column when it expands, so hovering the nav never reflows the
+            page behind it. */}
+        <main className="min-w-0 flex-1 pb-bottom-nav md:ml-[var(--rail-collapsed)]">
           {children}
         </main>
 

@@ -50,7 +50,7 @@ export function ModeSwitcher() {
 
   return (
     <div className="px-3 pb-4 mt-auto space-y-1.5">
-      <p className="px-3 pb-0.5 text-label-sm font-bold uppercase tracking-wider text-on-surface-variant/60">
+      <p className="rail-label px-3 pb-0.5 text-label-sm font-bold uppercase tracking-wider text-on-surface-variant/60">
         Account
       </p>
 
@@ -60,7 +60,7 @@ export function ModeSwitcher() {
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-on-warning-container bg-warning-container hover:bg-warning-container border border-warning-outline transition-colors"
         >
           <ShieldCheck size={18} strokeWidth={2} aria-hidden="true" className="shrink-0" />
-          <span className="truncate">Admin Console</span>
+          <span className="rail-label truncate">Admin Console</span>
         </Link>
       )}
 
@@ -70,7 +70,7 @@ export function ModeSwitcher() {
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-secondary bg-secondary/10 hover:bg-secondary/15 transition-colors"
         >
           <Briefcase size={18} strokeWidth={2} aria-hidden="true" className="shrink-0" />
-          <div className="min-w-0 flex-1">
+          <div className="rail-label min-w-0 flex-1">
             <p className="truncate">Business Mode</p>
             {ctx.business_name && (
               <p className="text-label-sm font-medium text-on-surface-variant truncate">
@@ -87,7 +87,7 @@ export function ModeSwitcher() {
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-colors"
         >
           <Lock size={18} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />
-          <div className="min-w-0 flex-1">
+          <div className="rail-label min-w-0 flex-1">
             <p className="truncate">Business Mode</p>
             <p className="text-label-sm text-on-surface-variant/70 truncate">
               Verification required
@@ -100,7 +100,7 @@ export function ModeSwitcher() {
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-colors"
         >
           <Plus size={18} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />
-          <span className="truncate">Create Business Profile</span>
+          <span className="rail-label truncate">Create Business Profile</span>
         </Link>
       )}
     </div>

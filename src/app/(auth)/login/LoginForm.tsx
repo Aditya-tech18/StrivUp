@@ -233,7 +233,7 @@ export function LoginForm() {
           </Link>
         </div>
 
-        <button id="login-submit-btn" type="submit" disabled={busy} data-magnetic className={authSubmitBtnCls}>
+        <button id="login-submit-btn" type="submit" disabled={busy} className={authSubmitBtnCls}>
           {isSubmitting ? (
             <>
               <Loader2 size={16} className="animate-spin" aria-hidden="true" />
@@ -267,8 +267,7 @@ export function LoginForm() {
           type="button"
           onClick={handleGoogleLogin}
           disabled={busy}
-          data-magnetic
-          className={authSocialBtnCls}
+                   className={authSocialBtnCls}
         >
           {googleLoading ? (
             <Loader2 size={20} className="animate-spin" aria-hidden="true" />

@@ -573,6 +573,62 @@ body {
   .float-label { transition: none; }
 }
 
+/* ─── Desktop sidebar rail ──────────────────────────────────────────────────
+   An icon rail that widens to a full sidebar while the pointer is over it, or
+   while anything inside it has keyboard focus.
+
+   Done in CSS rather than React state on purpose. The three navigation
+   components — SidebarNav, BusinessSidebarNav, ModeSwitcher — each build their
+   own items, badges and gating, and none of them should have to know whether
+   the rail is open. They mark their text with .rail-label and the rail does
+   the rest, so the collapse cannot fall out of step with the navigation and no
+   component re-renders on hover.
+
+   The rail is fixed and overlays the page when it expands; the main column
+   reserves only the collapsed width. Animating the content's margin instead
+   would reflow the whole page every time the pointer crossed the edge.      */
+@layer utilities {
+  :root {
+    --rail-collapsed: 4.5rem;
+    --rail-expanded: 16rem;
+  }
+
+  @media (min-width: 768px) {
+    .rail {
+      width: var(--rail-collapsed);
+      /* Labels keep their natural width and are clipped, so nothing reflows
+         as the rail widens — the text is simply revealed. */
+      overflow-x: hidden;
+      transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+                  box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .rail:hover,
+    .rail:focus-within {
+      width: var(--rail-expanded);
+      box-shadow: var(--shadow-e3);
+    }
+
+    .rail-label {
+      opacity: 0;
+      translate: -4px 0;
+      white-space: nowrap;
+      transition: opacity 140ms ease-out, translate 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .rail:hover .rail-label,
+    .rail:focus-within .rail-label {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail, .rail-label { transition: none; }
+  .rail-label { translate: none; }
+}
+
 @layer utilities {
   /* The swapping word on the entry screen. The overshoot in the easing is what
      stands in for framer-motion's spring — it settles slightly past the mark

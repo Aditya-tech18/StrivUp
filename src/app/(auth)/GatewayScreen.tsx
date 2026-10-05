@@ -15,7 +15,6 @@
  */
 import Link from "next/link";
 import { ChevronRight, MoveRight, Store, User } from "lucide-react";
-import { MagneticCursor } from "@/components/ui/MagneticCursor";
 import { MeshBackground } from "@/components/ui/MeshBackground";
 import { RotatingWord } from "@/components/ui/RotatingWord";
 
@@ -56,7 +55,6 @@ function StrivUpMark() {
 
 export function GatewayScreen() {
   return (
-    <MagneticCursor>
       <div className="relative isolate min-h-screen overflow-hidden bg-surface">
         <MeshBackground />
 
@@ -87,7 +85,7 @@ export function GatewayScreen() {
 
           {/* ── Role selection ────────────────────────────────────────────── */}
           <div className="fade-up fade-up-2 grid w-full max-w-2xl gap-3 md:grid-cols-2">
-            <Link href="/login" data-magnetic className={choiceCard}>
+            <Link href="/login" className={choiceCard}>
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10">
                 <User size={22} className="text-secondary" aria-hidden="true" />
               </div>
@@ -100,7 +98,7 @@ export function GatewayScreen() {
               <ChevronRight size={20} aria-hidden="true" className={chevronCls} />
             </Link>
 
-            <Link href="/business-login" data-magnetic className={choiceCard}>
+            <Link href="/business-login" className={choiceCard}>
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10">
                 <Store size={22} className="text-secondary" aria-hidden="true" />
               </div>
@@ -128,6 +126,5 @@ export function GatewayScreen() {
           </footer>
         </main>
       </div>
-    </MagneticCursor>
   );
 }

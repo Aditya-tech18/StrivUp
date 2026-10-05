@@ -89,7 +89,7 @@ export function SidebarNav() {
                 </span>
               )}
             </span>
-            {label}
+            <span className="rail-label">{label}</span>
           </Link>
         );
       })}

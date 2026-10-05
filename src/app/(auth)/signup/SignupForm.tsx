@@ -233,7 +233,7 @@ export function SignupForm() {
           {...register("password")}
         />
 
-        <button id="signup-submit-btn" type="submit" disabled={busy} data-magnetic className={authSubmitBtnCls}>
+        <button id="signup-submit-btn" type="submit" disabled={busy} className={authSubmitBtnCls}>
           {isSubmitting ? (
             <>
               <Loader2 size={16} className="animate-spin" aria-hidden="true" />
@@ -266,8 +266,7 @@ export function SignupForm() {
           type="button"
           onClick={handleGoogleSignup}
           disabled={busy}
-          data-magnetic
-          className={authSocialBtnCls}
+                   className={authSocialBtnCls}
         >
           {googleLoading ? (
             <Loader2 size={20} className="animate-spin" aria-hidden="true" />
