@@ -157,6 +157,20 @@
      `text-headline-sm` is the complete style. The `-mobile` variants are
      tighter display sizes used on narrow viewports.                        */
 
+  /* Hero sizes, one step above display. Only the entry screen uses these —
+     display (40px) is not large enough to carry a landing page on a laptop,
+     and the rotating word needs the room. Tracking tightens as size grows,
+     which is why these are separate entries rather than a scale factor. */
+  --text-hero: 68px;
+  --text-hero--line-height: 72px;
+  --text-hero--letter-spacing: -0.035em;
+  --text-hero--font-weight: 800;
+
+  --text-hero-mobile: 40px;
+  --text-hero-mobile--line-height: 44px;
+  --text-hero-mobile--letter-spacing: -0.03em;
+  --text-hero-mobile--font-weight: 800;
+
   --text-display: 40px;
   --text-display--line-height: 48px;
   --text-display--letter-spacing: -0.02em;
@@ -557,6 +571,24 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .float-label { transition: none; }
+}
+
+@layer utilities {
+  /* The swapping word on the entry screen. The overshoot in the easing is what
+     stands in for framer-motion's spring — it settles slightly past the mark
+     and comes back, which a plain ease-out does not do. Transform and opacity
+     only, so it stays on the compositor. */
+  .rotating-word {
+    transition: translate 520ms cubic-bezier(0.22, 1.4, 0.36, 1),
+                opacity 320ms ease-out;
+    will-change: translate, opacity;
+  }
+}
+
+/* The headline still swaps words with reduced motion — it just cuts instead of
+   sliding, so the information is never lost. */
+@media (prefers-reduced-motion: reduce) {
+  .rotating-word { transition: opacity 200ms linear; translate: none !important; }
 }
 
 /* Motion is decoration here, never information: with reduced motion the lift

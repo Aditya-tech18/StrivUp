@@ -1,95 +1,132 @@
 /**
- * GatewayScreen — the STRIVUP entry screen.
- * Shown at both / (root) and the (auth) group index.
+ * GatewayScreen — the STRIVUP entry screen, shown at /.
  *
  * Continue as User      → /login
- * Continue as Business  → /business-login (smart: existing biz → dashboard, new → onboarding)
+ * Continue as Business  → /business-login (existing biz → dashboard, new → onboarding)
+ *
+ * Laid out as a centred hero with a rotating word in the headline, per the
+ * supplied reference. The palette stays white-and-blue — surface, on-surface
+ * and secondary from the token set — rather than the dark treatment the auth
+ * screens use, because this is the first thing anyone sees and it should read
+ * as bright and open.
+ *
+ * Both role cards are kept exactly as they were, including where they link.
+ * Nothing about the business flow changes here; this is a restyle.
  */
 import Link from "next/link";
-import { ChevronRight, Store, User } from "lucide-react";
+import { ChevronRight, MoveRight, Store, User } from "lucide-react";
+import { RotatingWord } from "@/components/ui/RotatingWord";
 
-/* The choice cards are the only two things on this screen, so they sit a step
-   further off the page than a resting card and lift on hover. */
+/* The words the headline cycles. Each one is something the product actually
+   does, so the line stays true whichever word is showing. */
+const HEADLINE_WORDS = ["Growth", "Discipline", "Streaks", "Challenges", "Consistency"];
+
 const choiceCard = [
-  "group flex items-center gap-4 rounded-2xl border border-outline-variant p-5",
+  "group relative flex items-center gap-4 rounded-2xl border border-outline-variant p-5 text-left",
   "bg-surface-container-lowest elev-2 surface-raised lift",
-  "hover:border-outline",
+  "hover:border-secondary/40",
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
 ].join(" ");
 
+/* Kept at the card's trailing edge rather than inline after the title: inline,
+   a two-line title pushes it to the end of the wrapped line and the two cards
+   stop agreeing with each other. */
+const chevronCls = [
+  "shrink-0 text-on-surface-variant transition-all duration-200",
+  "group-hover:translate-x-0.5 group-hover:text-secondary",
+].join(" ");
+
+function StrivUpMark() {
+  return (
+    <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <rect width="48" height="48" rx="14" fill="#0F172A" />
+      <path
+        d="M24 36V18M24 18L17 25M24 18L31 25"
+        stroke="white"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="24" cy="13" r="3" fill="#3B82F6" />
+    </svg>
+  );
+}
+
 export function GatewayScreen() {
   return (
-      <div className="flex min-h-screen items-center justify-center bg-surface px-gutter py-10">
-        <div className="w-full max-w-sm flex flex-col gap-8">
+    <div className="relative isolate min-h-screen overflow-hidden bg-surface">
+      {/* Two soft blue washes behind the headline. Pure CSS gradients — the
+          brightness of the screen comes from the palette, not from an image. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute left-1/2 top-[-18rem] h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-secondary/10 blur-3xl" />
+        <div className="absolute bottom-[-20rem] left-[-10rem] h-[32rem] w-[32rem] rounded-full bg-secondary/5 blur-3xl" />
+      </div>
 
-          {/* Logo + headline */}
-          <header className="flex flex-col items-center gap-4 text-center fade-up">
-            {/* STRIVUP wordmark — SVG arrow-up style */}
-            <div className="flex flex-col items-center gap-1">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-label="STRIVUP logo">
-                <rect width="48" height="48" rx="14" fill="#0F172A"/>
-                <path d="M24 36V18M24 18L17 25M24 18L31 25" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="24" cy="13" r="3" fill="#3B82F6"/>
-              </svg>
-              <span className="text-label-sm font-black tracking-[0.2em] text-secondary uppercase">STRIVUP</span>
+      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center justify-center gap-10 px-gutter py-16 md:gap-12">
+        {/* ── Eyebrow pill ──────────────────────────────────────────────── */}
+        <div className="fade-up flex flex-col items-center gap-5">
+          <StrivUpMark />
+          <span className="inline-flex items-center gap-2 rounded-full border border-secondary/20 bg-secondary/8 px-4 py-1.5 text-label-sm font-semibold uppercase tracking-[0.18em] text-secondary">
+            Build better. Every day.
+            <MoveRight size={14} aria-hidden="true" />
+          </span>
+        </div>
+
+        {/* ── Headline ──────────────────────────────────────────────────── */}
+        <header className="fade-up fade-up-1 flex flex-col items-center gap-5 text-center">
+          <h1 className="text-hero-mobile text-on-surface md:text-hero">
+            <span className="block font-semibold text-on-surface-variant">India&apos;s platform for</span>
+            <RotatingWord words={HEADLINE_WORDS} className="mt-1 w-full text-secondary" />
+          </h1>
+
+          <p className="max-w-xl text-balance text-body-lg leading-relaxed text-on-surface-variant">
+            Join challenges with a start date and a finish line, prove the work you
+            did, and keep the chain unbroken alongside people doing the same.
+          </p>
+        </header>
+
+        {/* ── Role selection ────────────────────────────────────────────── */}
+        <div className="fade-up fade-up-2 grid w-full max-w-2xl gap-3 md:grid-cols-2">
+          <Link href="/login" className={choiceCard}>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10">
+              <User size={22} className="text-secondary" aria-hidden="true" />
             </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-headline-md font-bold text-on-surface">Continue as User</p>
+              <p className="mt-0.5 text-body-md text-on-surface-variant">
+                Join challenges, build streaks, grow with community.
+              </p>
+            </div>
+            <ChevronRight size={20} aria-hidden="true" className={chevronCls} />
+          </Link>
 
-            <h1 className="text-display-mobile text-on-surface leading-tight font-black">
-              India&apos;s Platform<br/>for Growth
-            </h1>
-            <p className="text-body-md text-on-surface-variant max-w-[260px]">
-              Build discipline, join challenges, and grow with a community that holds you accountable.
-            </p>
-          </header>
+          <Link href="/business-login" className={choiceCard}>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10">
+              <Store size={22} className="text-secondary" aria-hidden="true" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-headline-md font-bold text-on-surface">Continue as Business</p>
+              <p className="mt-0.5 text-body-md text-on-surface-variant">
+                Create campaigns, verify participants and attract customers.
+              </p>
+            </div>
+            <ChevronRight size={20} aria-hidden="true" className={chevronCls} />
+          </Link>
+        </div>
 
-          {/* Choice cards */}
-          <div className="flex flex-col gap-3 fade-up fade-up-1">
-
-            {/* ── Continue as User ── */}
+        {/* ── Footer ────────────────────────────────────────────────────── */}
+        <footer className="fade-up fade-up-2 text-center">
+          <p className="text-body-md text-on-surface-variant">
+            Already have an account?{" "}
             <Link
               href="/login"
-              className={choiceCard}
+              className="font-semibold text-secondary transition-colors hover:underline"
             >
-              <div className="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
-                <User size={22} className="text-secondary" aria-hidden="true" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-headline-md text-on-surface font-bold">Continue as User</p>
-                <p className="text-body-md text-on-surface-variant mt-0.5">
-                  Join challenges, build streaks, grow with community.
-                </p>
-              </div>
-              <ChevronRight size={20} className="text-on-surface-variant group-hover:text-on-surface group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+              Log in
             </Link>
-
-            {/* ── Continue as Business ── */}
-            <Link
-              href="/business-login"
-              className={choiceCard}
-            >
-              <div className="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
-                <Store size={22} className="text-secondary" aria-hidden="true" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-headline-md text-on-surface font-bold">Continue as Business</p>
-                <p className="text-body-md text-on-surface-variant mt-0.5">
-                  Create campaigns, verify participants and attract customers.
-                </p>
-              </div>
-              <ChevronRight size={20} className="text-on-surface-variant group-hover:text-on-surface group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
-            </Link>
-          </div>
-
-          {/* Footer */}
-          <footer className="text-center fade-up fade-up-2">
-            <p className="text-body-md text-on-surface-variant">
-              Already have an account?{" "}
-              <Link href="/login" className="text-secondary font-semibold hover:underline">
-                Login
-              </Link>
-            </p>
-          </footer>
-        </div>
-      </div>
+          </p>
+        </footer>
+      </main>
+    </div>
   );
 }

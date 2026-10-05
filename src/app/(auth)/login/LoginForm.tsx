@@ -12,6 +12,7 @@ import { safeRedirect } from "@/lib/safeRedirect";
 import { friendlyAuthError } from "@/lib/auth/authErrors";
 import { AuthCard, AuthField, authSocialBtnCls, authSubmitBtnCls } from "../AuthCard";
 import { GoogleIcon } from "../GoogleIcon";
+import { OtpStep } from "../OtpStep";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required.").email("Please enter a valid email address."),
@@ -42,6 +43,9 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
+  // Set when an unconfirmed account tries to log in and we send it a code.
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   // Read straight from the URL rather than copied into state, so it needs no
   // effect and clears itself the moment anything else goes wrong.
@@ -62,12 +66,66 @@ export function LoginForm() {
     });
 
     if (error) {
+      // An account that was created but never confirmed cannot sign in and
+      // cannot fix itself from this screen. Send a fresh code and drop the
+      // person straight into the verify step instead of leaving them stuck.
+      if (error.code === "email_not_confirmed") {
+        const { error: resendError } = await supabase.auth.resend({
+          type: "signup",
+          email: data.email,
+        });
+        if (resendError) {
+          setAuthError(friendlyAuthError(resendError));
+          return;
+        }
+        setPendingEmail(data.email);
+        return;
+      }
+
       setAuthError(friendlyAuthError(error));
       return;
     }
 
     router.push(destination);
     router.refresh(); // flush Supabase session into server components
+  };
+
+  const handleVerify = async (code: string) => {
+    if (!pendingEmail) return;
+    setVerifying(true);
+    setAuthError(null);
+
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: pendingEmail,
+      token: code,
+      type: "signup",
+    });
+
+    if (error || !data.user) {
+      setVerifying(false);
+      setAuthError(error ? friendlyAuthError(error) : "That code didn't work. Try again.");
+      return;
+    }
+
+    // Confirmed accounts that already have a name go where they were headed;
+    // anyone who never finished setup gets sent to finish it.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    router.push(profile?.full_name ? destination : "/profile/setup");
+    router.refresh();
+  };
+
+  const handleResend = async () => {
+    if (!pendingEmail) return;
+    setAuthError(null);
+    const supabase = createClient();
+    const { error } = await supabase.auth.resend({ type: "signup", email: pendingEmail });
+    if (error) setAuthError(friendlyAuthError(error));
   };
 
   const handleGoogleLogin = async () => {
@@ -93,6 +151,24 @@ export function LoginForm() {
   };
 
   const busy = isSubmitting || googleLoading;
+
+  if (pendingEmail) {
+    return (
+      <OtpStep
+        title="Confirm your email"
+        sentTo={pendingEmail}
+        busy={verifying}
+        error={authError}
+        onVerify={handleVerify}
+        onResend={handleResend}
+        onBack={() => {
+          setPendingEmail(null);
+          setAuthError(null);
+        }}
+        backLabel="Back to login"
+      />
+    );
+  }
 
   return (
     <AuthCard

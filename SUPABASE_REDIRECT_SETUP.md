@@ -34,21 +34,31 @@ Under **Site URL**, set the production domain once deployed (it is
 
 https://supabase.com/dashboard/project/cxujipeulvhreiryaptr/auth/templates
 
-**This is the setting that makes email signup work.** Supabase's default
-`{{ .ConfirmationURL }}` returns the session in the URL *fragment*. Fragments
-are never sent to the server, so with server-side auth the person lands looking
-signed out, gets bounced by `proxy.ts`, and concludes that signing up is
-broken. The app has a `/auth/confirm` route handler that exchanges a token hash
-for a real session — the templates have to point at it.
+**This is the setting that makes email signup work.**
 
-Replace the link in each template body:
+Signup confirmation is a **6-digit code**, not a link. The app shows a code
+entry step after signup and calls `verifyOtp`, the same interaction as the
+phone flow. A code beats a link here for three reasons: it does not depend on
+the redirect allowlist, it survives opening the email on a phone while signing
+up on a laptop, and it cannot land the person back on the site signed out —
+which is exactly what the default link did, because it returns the session in
+the URL *fragment* and fragments are never sent to the server.
 
-| Template | Link URL |
+Supabase puts every variable in every email, so one template can carry both.
+Put the code first and keep the link as a fallback:
+
+| Template | Body should contain |
 |---|---|
-| Confirm signup | `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup` |
+| Confirm signup | `{{ .Token }}` (the 6-digit code) — optionally also `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup` |
 | Magic Link | `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=magiclink` |
 | Change Email Address | `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change` |
 | Reset Password | `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery` |
+
+`{{ .Token }}` is the plain 6-digit code. `{{ .TokenHash }}` is the value the
+link form needs — they are not interchangeable.
+
+Password reset stays a link, because it has to carry the person to a form where
+they type a new password; a code would just add a step.
 
 `/auth/confirm` rejects any `type` outside that list and sends expired or
 reused links to `/login?error=link_expired`, which explains itself.
@@ -101,8 +111,10 @@ working on the next request.
 
 | Route | Purpose |
 |---|---|
+| `/signup` | Email + password, then a 6-digit code, then `/profile/setup` |
+| `/login` | Password. An unconfirmed account is sent a fresh code and taken to the same verify step rather than dead-ending |
 | `/auth/callback` | OAuth `code` exchange (Google, business Google) |
-| `/auth/confirm` | Email link `token_hash` exchange (signup, recovery, magic link, email change) |
+| `/auth/confirm` | Email link `token_hash` exchange — the fallback for anyone who taps the link instead of copying the code |
 | `/phone` | Two-step SMS OTP: number → 6-digit code |
 | `/forgot-password` → `/reset-password` | Password recovery |
 

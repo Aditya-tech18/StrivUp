@@ -6,12 +6,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, MailCheck, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { safeRedirect } from "@/lib/safeRedirect";
 import { friendlyAuthError, isExistingUserSignup } from "@/lib/auth/authErrors";
 import { AuthCard, AuthField, authSocialBtnCls, authSubmitBtnCls } from "../AuthCard";
 import { GoogleIcon } from "../GoogleIcon";
+import { OtpStep } from "../OtpStep";
 
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -32,8 +33,11 @@ export function SignupForm() {
   const destination = safeRedirect(useSearchParams().get("redirectTo"));
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [checkEmail, setCheckEmail] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  // Set once signUp succeeds and a code is in flight. Holds the address so the
+  // verify and resend calls have it without re-reading the form.
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   const {
     register,
@@ -49,9 +53,8 @@ export function SignupForm() {
       password: data.password,
       options: {
         data: { full_name: data.name },
-        // Where the confirmation link comes back to. /auth/confirm exchanges
-        // the token for a session; without a server route to land on, the
-        // session only ever exists in a URL fragment the server cannot read.
+        // Kept for the link in the same email, which still works as a fallback
+        // for anyone who taps it instead of copying the code.
         emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(destination)}`,
       },
     });
@@ -75,16 +78,55 @@ export function SignupForm() {
       return;
     }
 
-    // No session means email confirmation is switched on and the link is in
-    // flight. There is nothing to redirect to yet.
+    // No session means confirmation is switched on and the code is in flight.
     if (!signUpData.session) {
-      setCheckEmail(true);
+      setPendingEmail(data.email);
       return;
     }
 
     // Confirmation off: signUp returned a live session, so go.
     router.push(destination);
     router.refresh();
+  };
+
+  /**
+   * Exchange the emailed code for a session.
+   *
+   * type: "signup" is the confirmation code Supabase sends for a new account —
+   * "email" would be a magic-link code for an existing one and is rejected
+   * here.
+   */
+  const handleVerify = async (code: string) => {
+    if (!pendingEmail) return;
+    setVerifying(true);
+    setAuthError(null);
+
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: pendingEmail,
+      token: code,
+      type: "signup",
+    });
+
+    if (error || !data.user) {
+      setVerifying(false);
+      setAuthError(error ? friendlyAuthError(error) : "That code didn't work. Try again.");
+      return;
+    }
+
+    // Straight into account setup rather than the feed: the account exists but
+    // has nothing in it yet, and this is the one moment someone is willing to
+    // fill a form.
+    router.push("/profile/setup");
+    router.refresh();
+  };
+
+  const handleResend = async () => {
+    if (!pendingEmail) return;
+    setAuthError(null);
+    const supabase = createClient();
+    const { error } = await supabase.auth.resend({ type: "signup", email: pendingEmail });
+    if (error) setAuthError(friendlyAuthError(error));
   };
 
   const handleGoogleSignup = async () => {
@@ -107,29 +149,21 @@ export function SignupForm() {
 
   const busy = isSubmitting || googleLoading;
 
-  if (checkEmail) {
+  if (pendingEmail) {
     return (
-      <AuthCard
-        title="Check your inbox"
-        subtitle="We've sent a confirmation link to your email address. Click it to activate your account and get started."
-        footer={
-          <>
-            Already confirmed?{" "}
-            <Link
-              href="/login"
-              className="font-semibold text-secondary-fixed-dim transition-colors hover:text-white"
-            >
-              Log in
-            </Link>
-          </>
-        }
-      >
-        <div className="flex justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
-            <MailCheck size={26} className="text-secondary-fixed-dim" aria-hidden="true" />
-          </div>
-        </div>
-      </AuthCard>
+      <OtpStep
+        title="Confirm your email"
+        sentTo={pendingEmail}
+        busy={verifying}
+        error={authError}
+        onVerify={handleVerify}
+        onResend={handleResend}
+        onBack={() => {
+          setPendingEmail(null);
+          setAuthError(null);
+        }}
+        backLabel="Change email"
+      />
     );
   }
 
