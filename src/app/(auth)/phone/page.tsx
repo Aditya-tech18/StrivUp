@@ -1,31 +1,29 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { PhoneAuthForm } from "./PhoneAuthForm";
-import { ValuePropPanel } from "../ValuePropPanel";
+import { AuthScreen } from "../AuthScreen";
 
 export const metadata: Metadata = {
   title: "Continue with mobile",
   description: "Sign in to StrivUp with your mobile number.",
+  // Unlinked from login and signup while Supabase's phone provider is off.
+  // Keeping it out of the index stops it being found before SMS is live.
+  robots: { index: false, follow: false },
 };
 
 export default function PhoneAuthPage() {
   return (
-    <div className="flex min-h-screen">
-      <section className="flex w-full items-center justify-center px-6 py-12 lg:w-1/2 lg:px-16">
-        {/* The form reads ?redirectTo, which opts it into client rendering.
-            Suspense keeps the rest of the route static. */}
-        <Suspense
-          fallback={
-            <div
-              className="h-[32rem] w-full max-w-sm animate-pulse rounded-xl bg-surface-container-low"
-              aria-hidden="true"
-            />
-          }
-        >
-          <PhoneAuthForm />
-        </Suspense>
-      </section>
-      <ValuePropPanel />
-    </div>
+    <AuthScreen>
+      <Suspense
+        fallback={
+          <div
+            className="h-[34rem] w-full max-w-sm animate-pulse rounded-2xl border border-white/10 bg-white/5"
+            aria-hidden="true"
+          />
+        }
+      >
+        <PhoneAuthForm />
+      </Suspense>
+    </AuthScreen>
   );
 }

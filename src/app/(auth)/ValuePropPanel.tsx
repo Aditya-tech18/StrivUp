@@ -47,8 +47,11 @@ const features = [
 
 export function ValuePropPanel() {
   return (
+    // Translucent rather than solid: the shader behind the auth screen carries
+    // through, so the two halves read as one surface. Sizing and the
+    // hide-on-mobile rule belong to AuthScreen, which owns the layout.
     <aside
-      className="hidden flex-col items-center justify-center bg-primary-container p-12 lg:flex lg:w-1/2"
+      className="flex h-full w-full flex-col items-center justify-center border-l border-white/10 bg-primary-container/70 p-12 backdrop-blur-md"
       aria-label="What StrivUp does"
     >
       <div className="w-full max-w-sm space-y-8">

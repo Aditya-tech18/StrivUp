@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ResetPasswordForm } from "./ResetPasswordForm";
+import { AuthScreen } from "../AuthScreen";
 
 export const metadata: Metadata = {
   title: "Set a new password",
@@ -8,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-6">
+    <AuthScreen showPanel={false}>
       <ResetPasswordForm />
-    </div>
+    </AuthScreen>
   );
 }

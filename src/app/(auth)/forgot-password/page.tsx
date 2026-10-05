@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
+import { AuthScreen } from "../AuthScreen";
 
 export const metadata: Metadata = {
   title: "Reset password",
@@ -7,9 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function ForgotPasswordPage() {
+  // No value-prop panel: this is a single-purpose detour, not a front door.
   return (
-    <div className="flex min-h-screen items-center justify-center px-6">
+    <AuthScreen showPanel={false}>
       <ForgotPasswordForm />
-    </div>
+    </AuthScreen>
   );
 }

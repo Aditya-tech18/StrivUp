@@ -519,6 +519,44 @@ body {
 
   /* Depth for the brand action. */
   .elev-brand { box-shadow: var(--shadow-brand); }
+
+  /* ── Floating label, for the auth screens ──────────────────────────────
+     The label rests on the field and lifts away once the field is focused or
+     has a value.
+
+     Written here rather than as Tailwind peer variants because the resting
+     state is a single condition — empty AND unfocused — and splitting it
+     across `peer-placeholder-shown:` and `peer-focus:` utilities leaves two
+     rules of identical specificity whose outcome depends on the order Tailwind
+     emits them in. One selector with both conditions has no ordering to get
+     wrong, and reads as the rule it actually is.
+
+     `.float-field` must carry placeholder=" " — :placeholder-shown is how the
+     empty state is detected. */
+  .float-label {
+    position: absolute;
+    left: 0;
+    top: 1rem;
+    transform-origin: left center;
+    pointer-events: none;
+    /* Default is the LIFTED state; the rule below puts it back down. */
+    translate: 0 -1rem;
+    scale: 0.75;
+    transition: translate 200ms ease, scale 200ms ease, color 200ms ease;
+  }
+
+  /* Rest only while empty AND unfocused. The two conditions live in one
+     selector, so they cannot be reordered apart. */
+  .float-field:placeholder-shown:not(:focus) ~ .float-label {
+    translate: 0 0;
+    scale: 1;
+  }
+
+  .float-field:focus ~ .float-label { color: var(--color-secondary-fixed-dim); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-label { transition: none; }
 }
 
 /* Motion is decoration here, never information: with reduced motion the lift

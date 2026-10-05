@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Loader2, Smartphone } from "lucide-react";
-import { Button, Input } from "@/components/ui";
+import { ArrowLeft, ArrowRight, Loader2, Smartphone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { safeRedirect } from "@/lib/safeRedirect";
 import { friendlyAuthError } from "@/lib/auth/authErrors";
 import { OTP_LENGTH, formatE164, toE164 } from "@/lib/auth/phone";
-import { AuthCard } from "../AuthCard";
+import { AuthCard, AuthField, authSubmitBtnCls } from "../AuthCard";
 
 /**
  * Phone sign-in, in two steps: number → six-digit code.
@@ -150,7 +149,7 @@ export function PhoneAuthForm() {
       >
         <form onSubmit={handleSubmitCode} noValidate className="space-y-4">
           <div className="flex flex-col gap-1">
-            <label htmlFor="otp-code" className="text-body-md font-medium text-on-surface">
+            <label htmlFor="otp-code" className="text-body-md font-medium text-on-primary">
               Verification code
             </label>
             <input
@@ -169,33 +168,40 @@ export function PhoneAuthForm() {
               aria-invalid={!!fieldError}
               aria-describedby={fieldError ? "otp-code-error" : undefined}
               className={[
-                "h-12 w-full rounded-xl border bg-surface-container-lowest px-3",
-                "text-center text-headline-md tracking-[0.5em] text-on-surface",
-                "placeholder:tracking-[0.5em] placeholder:text-outline",
+                "h-12 w-full rounded-xl border bg-white/5 px-3",
+                "text-center text-headline-md tracking-[0.5em] text-on-primary",
+                "placeholder:tracking-[0.5em] placeholder:text-white/30",
                 "transition-colors duration-150 focus:outline-none focus:ring-2",
                 fieldError
-                  ? "border-error focus:border-error focus:ring-error/30"
-                  : "border-outline-variant focus:border-secondary focus:ring-secondary/20",
+                  ? "border-error-outline focus:border-error-outline focus:ring-error/30"
+                  : "border-white/25 focus:border-secondary-fixed-dim focus:ring-secondary/30",
                 "disabled:opacity-50",
               ].join(" ")}
             />
             {fieldError ? (
-              <p id="otp-code-error" role="alert" className="text-body-md text-error">
+              <p id="otp-code-error" role="alert" className="text-body-md text-error-outline">
                 {fieldError}
               </p>
             ) : null}
           </div>
 
-          <Button type="submit" variant="primary" fullWidth disabled={busy}>
+          <button type="submit" disabled={busy} className={authSubmitBtnCls}>
             {busy ? (
-              <span className="flex items-center justify-center gap-2">
+              <>
                 <Loader2 size={16} className="animate-spin" aria-hidden="true" />
                 Verifying…
-              </span>
+              </>
             ) : (
-              "Verify and continue"
+              <>
+                Verify and continue
+                <ArrowRight
+                  size={18}
+                  aria-hidden="true"
+                  className="transition-transform group-hover:translate-x-1"
+                />
+              </>
             )}
-          </Button>
+          </button>
 
           <div className="flex items-center justify-between">
             <button
@@ -206,7 +212,7 @@ export function PhoneAuthForm() {
                 setAuthError(null);
                 setFieldError(null);
               }}
-              className="flex items-center gap-1 text-body-md text-secondary transition-colors hover:underline"
+              className="flex items-center gap-1 text-body-md text-secondary-fixed-dim transition-colors hover:text-white"
             >
               <ArrowLeft size={14} aria-hidden="true" />
               Change number
@@ -216,7 +222,7 @@ export function PhoneAuthForm() {
               type="button"
               disabled={cooldown > 0 || busy}
               onClick={() => e164 && sendCode(e164)}
-              className="text-body-md text-secondary transition-colors hover:underline disabled:text-on-surface-variant disabled:no-underline"
+              className="text-body-md text-secondary-fixed-dim transition-colors hover:text-white disabled:text-on-primary-container disabled:hover:text-on-primary-container"
             >
               {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
             </button>
@@ -237,39 +243,45 @@ export function PhoneAuthForm() {
           Prefer email?{" "}
           <Link
             href="/login"
-            className="font-semibold text-secondary transition-colors hover:underline"
+            className="font-semibold text-secondary-fixed-dim transition-colors hover:text-white"
           >
             Log in another way
           </Link>
         </>
       }
     >
-      <form onSubmit={handleSubmitNumber} noValidate className="space-y-4">
-        <Input
+      <form onSubmit={handleSubmitNumber} noValidate className="space-y-6">
+        <AuthField
           id="phone-number"
           label="Mobile number"
+          icon={<Smartphone size={14} aria-hidden="true" />}
           type="tel"
           inputMode="tel"
           autoComplete="tel"
-          placeholder="98765 43210"
-          leadingIcon={<Smartphone size={16} />}
           value={phoneInput}
           onChange={(ev) => setPhoneInput(ev.target.value)}
           error={fieldError ?? undefined}
           hint="Indian numbers don't need +91. For anywhere else, include your country code."
           disabled={busy}
         />
-        <Button type="submit" variant="primary" fullWidth disabled={busy}>
+        <button type="submit" disabled={busy} className={authSubmitBtnCls}>
           {busy ? (
-            <span className="flex items-center justify-center gap-2">
+            <>
               <Loader2 size={16} className="animate-spin" aria-hidden="true" />
               Sending code…
-            </span>
+            </>
           ) : (
-            "Send me a code"
+            <>
+              Send me a code
+              <ArrowRight
+                size={18}
+                aria-hidden="true"
+                className="transition-transform group-hover:translate-x-1"
+              />
+            </>
           )}
-        </Button>
-        <p className="text-center text-label-sm text-on-surface-variant">
+        </button>
+        <p className="text-center text-label-sm text-on-primary-container">
           Signing in with a new number creates your StrivUp account.
         </p>
       </form>

@@ -6,11 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui";
+import { ArrowRight, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyAuthError } from "@/lib/auth/authErrors";
-import { AuthCard } from "../AuthCard";
+import { AuthCard, AuthField, authSubmitBtnCls } from "../AuthCard";
 
 /**
  * Setting a new password after following a recovery link.
@@ -36,19 +35,6 @@ const schema = z
   });
 
 type Values = z.infer<typeof schema>;
-
-function fieldCls(hasError: boolean) {
-  return [
-    "w-full h-10 px-3 pr-10 rounded-xl border bg-surface-container-lowest",
-    "text-on-surface placeholder:text-on-surface-variant",
-    "text-[length:var(--text-body-lg)] leading-6",
-    "transition-colors duration-150 focus:outline-none focus:ring-2",
-    hasError
-      ? "border-error focus:ring-error/30 focus:border-error"
-      : "border-outline-variant focus:border-secondary focus:ring-secondary/20",
-    "disabled:opacity-50",
-  ].join(" ");
-}
 
 type SessionState = "checking" | "ready" | "missing";
 
@@ -101,7 +87,7 @@ export function ResetPasswordForm() {
     return (
       <AuthCard title="One moment">
         <div className="flex justify-center py-4">
-          <Loader2 size={22} className="animate-spin text-secondary" aria-hidden="true" />
+          <Loader2 size={22} className="animate-spin text-secondary-fixed-dim" aria-hidden="true" />
         </div>
       </AuthCard>
     );
@@ -115,7 +101,7 @@ export function ResetPasswordForm() {
         footer={
           <Link
             href="/forgot-password"
-            className="font-semibold text-secondary transition-colors hover:underline"
+            className="font-semibold text-secondary-fixed-dim transition-colors hover:text-white"
           >
             Send a new link
           </Link>
@@ -132,71 +118,57 @@ export function ResetPasswordForm() {
       subtitle="Pick something you'll remember — you'll use it every time you log in."
       error={authError}
     >
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="new-password" className="text-body-md font-medium text-on-surface">
-            New password
-          </label>
-          <div className="relative">
-            <input
-              id="new-password"
-              type={show ? "text" : "password"}
-              autoComplete="new-password"
-              placeholder="Min. 8 chars, 1 letter + 1 number"
-              disabled={isSubmitting || done}
-              className={fieldCls(!!errors.password)}
-              aria-invalid={!!errors.password}
-              aria-describedby={errors.password ? "new-password-error" : undefined}
-              {...register("password")}
-            />
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
+        <AuthField
+          id="new-password"
+          label="New password"
+          icon={<Lock size={14} aria-hidden="true" />}
+          type={show ? "text" : "password"}
+          autoComplete="new-password"
+          error={errors.password?.message}
+          hint="At least 8 characters, with a letter and a number."
+          disabled={isSubmitting || done}
+          trailing={
             <button
               type="button"
               onClick={() => setShow((v) => !v)}
               aria-label={show ? "Hide password" : "Show password"}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant transition-colors hover:text-on-surface"
+              className="p-1 text-on-primary-container transition-colors hover:text-white"
             >
               {show ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
             </button>
-          </div>
-          {errors.password ? (
-            <p id="new-password-error" role="alert" className="text-body-md text-error">
-              {errors.password.message}
-            </p>
-          ) : null}
-        </div>
+          }
+          {...register("password")}
+        />
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="confirm-password" className="text-body-md font-medium text-on-surface">
-            Confirm password
-          </label>
-          <input
-            id="confirm-password"
-            type={show ? "text" : "password"}
-            autoComplete="new-password"
-            placeholder="Type it again"
-            disabled={isSubmitting || done}
-            className={fieldCls(!!errors.confirm)}
-            aria-invalid={!!errors.confirm}
-            aria-describedby={errors.confirm ? "confirm-password-error" : undefined}
-            {...register("confirm")}
-          />
-          {errors.confirm ? (
-            <p id="confirm-password-error" role="alert" className="text-body-md text-error">
-              {errors.confirm.message}
-            </p>
-          ) : null}
-        </div>
+        <AuthField
+          id="confirm-password"
+          label="Confirm password"
+          icon={<Lock size={14} aria-hidden="true" />}
+          type={show ? "text" : "password"}
+          autoComplete="new-password"
+          error={errors.confirm?.message}
+          disabled={isSubmitting || done}
+          {...register("confirm")}
+        />
 
-        <Button type="submit" variant="primary" fullWidth disabled={isSubmitting || done}>
+        <button type="submit" disabled={isSubmitting || done} className={authSubmitBtnCls}>
           {isSubmitting || done ? (
-            <span className="flex items-center justify-center gap-2">
+            <>
               <Loader2 size={16} className="animate-spin" aria-hidden="true" />
               Saving…
-            </span>
+            </>
           ) : (
-            "Save password"
+            <>
+              Save password
+              <ArrowRight
+                size={18}
+                aria-hidden="true"
+                className="transition-transform group-hover:translate-x-1"
+              />
+            </>
           )}
-        </Button>
+        </button>
       </form>
     </AuthCard>
   );

@@ -5,11 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { Loader2, MailCheck } from "lucide-react";
-import { Button, Input } from "@/components/ui";
+import { ArrowRight, Loader2, Mail, MailCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyAuthError } from "@/lib/auth/authErrors";
-import { AuthCard } from "../AuthCard";
+import { AuthCard, AuthField, authSubmitBtnCls } from "../AuthCard";
 
 const schema = z.object({
   email: z.string().min(1, "Email is required.").email("Please enter a valid email address."),
@@ -54,16 +53,16 @@ export function ForgotPasswordForm() {
         subtitle="If that address has an account, a password reset link is on its way. The link works once and expires in an hour."
       >
         <div className="flex justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-container/40">
-            <MailCheck size={26} className="text-secondary" aria-hidden="true" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
+            <MailCheck size={26} className="text-secondary-fixed-dim" aria-hidden="true" />
           </div>
         </div>
-        <p className="text-center text-body-md text-on-surface-variant">
+        <p className="text-center text-body-md text-on-primary-container">
           Didn&apos;t get it? Check spam, or{" "}
           <button
             type="button"
             onClick={() => setSent(false)}
-            className="font-semibold text-secondary transition-colors hover:underline"
+            className="font-semibold text-secondary-fixed-dim transition-colors hover:text-white"
           >
             try a different address
           </button>
@@ -83,34 +82,41 @@ export function ForgotPasswordForm() {
           Remembered it?{" "}
           <Link
             href="/login"
-            className="font-semibold text-secondary transition-colors hover:underline"
+            className="font-semibold text-secondary-fixed-dim transition-colors hover:text-white"
           >
             Back to login
           </Link>
         </>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-        <Input
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
+        <AuthField
           id="forgot-email"
-          label="Email"
+          label="Email address"
+          icon={<Mail size={14} aria-hidden="true" />}
           type="email"
           autoComplete="email"
-          placeholder="you@example.com"
           error={errors.email?.message}
           disabled={isSubmitting}
           {...register("email")}
         />
-        <Button type="submit" variant="primary" fullWidth disabled={isSubmitting}>
+        <button type="submit" disabled={isSubmitting} className={authSubmitBtnCls}>
           {isSubmitting ? (
-            <span className="flex items-center justify-center gap-2">
+            <>
               <Loader2 size={16} className="animate-spin" aria-hidden="true" />
               Sending…
-            </span>
+            </>
           ) : (
-            "Send reset link"
+            <>
+              Send reset link
+              <ArrowRight
+                size={18}
+                aria-hidden="true"
+                className="transition-transform group-hover:translate-x-1"
+              />
+            </>
           )}
-        </Button>
+        </button>
       </form>
     </AuthCard>
   );
