@@ -13,6 +13,7 @@ import { friendlyAuthError, isExistingUserSignup } from "@/lib/auth/authErrors";
 import { AuthCard, AuthField, authSocialBtnCls, authSubmitBtnCls } from "../AuthCard";
 import { GoogleIcon } from "../GoogleIcon";
 import { OtpStep } from "../OtpStep";
+import { PasswordStrength } from "@/components/ui/PasswordStrength";
 
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -44,6 +45,13 @@ export function SignupForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<SignupValues>({ resolver: zodResolver(signupSchema) });
+
+  // Tracked with a local value fed from the field's own onChange rather than
+  // react-hook-form's watch(): watch() returns a non-memoizable subscription,
+  // which makes React Compiler skip optimising the whole form. This keeps the
+  // form's own registration intact and just tees the value off alongside it.
+  const [passwordValue, setPasswordValue] = useState("");
+  const passwordField = register("password");
 
   const onSubmit = async (data: SignupValues) => {
     setAuthError(null);
@@ -214,7 +222,6 @@ export function SignupForm() {
           type={showPassword ? "text" : "password"}
           autoComplete="new-password"
           error={errors.password?.message}
-          hint="At least 8 characters, with a letter and a number."
           disabled={busy}
           trailing={
             <button
@@ -230,8 +237,15 @@ export function SignupForm() {
               )}
             </button>
           }
-          {...register("password")}
+          {...passwordField}
+          onChange={(event) => {
+            passwordField.onChange(event);
+            setPasswordValue(event.target.value);
+          }}
         />
+
+        {/* Advisory only — the zod schema is still the one gate on submit. */}
+        <PasswordStrength value={passwordValue} />
 
         <button id="signup-submit-btn" type="submit" disabled={busy} className={authSubmitBtnCls}>
           {isSubmitting ? (

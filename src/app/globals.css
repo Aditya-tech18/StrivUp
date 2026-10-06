@@ -644,6 +644,28 @@ body {
 }
 
 @layer utilities {
+  /* Password strength meter. The transitions are here rather than as Tailwind
+     utilities because the elements also carry an inline transform/opacity that
+     changes per keystroke, and a per-segment transitionDelay — keeping the
+     timing in one place is what makes the bars fill in sequence instead of
+     snapping together. */
+  .pw-bar {
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 220ms ease-out,
+                background-color 200ms ease-out;
+  }
+  .pw-fade {
+    transition: opacity 240ms ease-out, color 200ms ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The meter still changes — it just stops sliding. The information is in the
+     colour and the fill, never in the movement. */
+  .pw-bar, .pw-fade { transition: none; }
+}
+
+@layer utilities {
   /* The swapping word on the entry screen. The overshoot in the easing is what
      stands in for framer-motion's spring — it settles slightly past the mark
      and comes back, which a plain ease-out does not do. Transform and opacity

@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { Building2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { PasswordStrength } from "@/components/ui/PasswordStrength";
 
 const schema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
@@ -43,9 +44,16 @@ export function BusinessSignupForm() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit,
+    formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
+
+  // Teed off the field's own onChange rather than react-hook-form's watch(),
+  // which returns a non-memoizable subscription and makes React Compiler skip
+  // optimising the whole form.
+  const [passwordValue, setPasswordValue] = useState("");
+  const passwordField = register("password");
 
   const onSubmit = async (data: FormValues) => {
     setAuthError(null);
@@ -146,7 +154,8 @@ export function BusinessSignupForm() {
           <div className="relative">
             <input id="biz-pwd" type={showPwd ? "text" : "password"} autoComplete="new-password"
               placeholder="Min. 8 chars, 1 letter + 1 number" disabled={busy}
-              className={`${pwdCls(!!errors.password)} disabled:opacity-50`} {...register("password")}
+              className={`${pwdCls(!!errors.password)} disabled:opacity-50`} {...passwordField}
+              onChange={(event) => { passwordField.onChange(event); setPasswordValue(event.target.value); }}
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? "password-error" : undefined} />
             <button type="button" onClick={() => setShowPwd(v => !v)}
@@ -155,6 +164,8 @@ export function BusinessSignupForm() {
             </button>
           </div>
           {errors.password && <p id="password-error" role="alert" className="text-body-md text-error">{errors.password.message}</p>}
+          {/* Advisory only — the zod schema is still the one gate on submit. */}
+          <PasswordStrength value={passwordValue} className="mt-2" />
         </div>
         <Button type="submit" variant="primary" fullWidth disabled={busy} size="lg">
           {isSubmitting ? <><Loader2 size={16} className="animate-spin mr-2" />Creating…</> : "Create Business Account"}

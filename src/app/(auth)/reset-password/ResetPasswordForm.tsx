@@ -10,6 +10,7 @@ import { ArrowRight, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyAuthError } from "@/lib/auth/authErrors";
 import { AuthCard, AuthField, authSubmitBtnCls } from "../AuthCard";
+import { PasswordStrength } from "@/components/ui/PasswordStrength";
 
 /**
  * Setting a new password after following a recovery link.
@@ -50,6 +51,13 @@ export function ResetPasswordForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<Values>({ resolver: zodResolver(schema) });
+
+  // Tracked with a local value fed from the field's own onChange rather than
+  // react-hook-form's watch(): watch() returns a non-memoizable subscription,
+  // which makes React Compiler skip optimising the whole form. This keeps the
+  // form's own registration intact and just tees the value off alongside it.
+  const [passwordValue, setPasswordValue] = useState("");
+  const passwordField = register("password");
 
   useEffect(() => {
     let cancelled = false;
@@ -126,7 +134,6 @@ export function ResetPasswordForm() {
           type={show ? "text" : "password"}
           autoComplete="new-password"
           error={errors.password?.message}
-          hint="At least 8 characters, with a letter and a number."
           disabled={isSubmitting || done}
           trailing={
             <button
@@ -138,8 +145,15 @@ export function ResetPasswordForm() {
               {show ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
             </button>
           }
-          {...register("password")}
+          {...passwordField}
+          onChange={(event) => {
+            passwordField.onChange(event);
+            setPasswordValue(event.target.value);
+          }}
         />
+
+        {/* Advisory only — the zod schema is still the one gate on submit. */}
+        <PasswordStrength value={passwordValue} />
 
         <AuthField
           id="confirm-password"
