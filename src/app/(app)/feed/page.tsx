@@ -140,7 +140,7 @@ export default async function FeedPage() {
   return (
     <div className="min-h-screen bg-surface">
       {/* ── Sticky header ────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-surface/80 pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl">
+      <header className="sticky top-0 z-40 bg-surface/80 pt-safe elev-1 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-gutter">
           <div className="flex items-center gap-space-sm">
             <BrandMark variant="mark" height={26} priority />

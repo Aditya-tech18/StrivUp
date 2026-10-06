@@ -219,7 +219,7 @@ export default function EditProfilePage() {
       <div className="mx-auto measure-form px-5 pt-5 flex flex-col gap-5">
 
         {/* ── Avatar ───────────────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col items-center gap-3 elev-1 surface-raised">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-5 flex flex-col items-center gap-3 elev-1 surface-raised">
           <div className="relative">
             <div className={[
               "w-24 h-24 rounded-full overflow-hidden border-2 border-outline-variant bg-surface-container",
@@ -274,7 +274,7 @@ export default function EditProfilePage() {
         </div>
 
         {/* ── Personal information ─────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-4 elev-1 surface-raised">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-5 flex flex-col gap-4 elev-1 surface-raised">
           <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
             Personal Information
           </p>
@@ -319,7 +319,7 @@ export default function EditProfilePage() {
         </div>
 
         {/* ── Social links ─────────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-3 elev-1 surface-raised">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-5 flex flex-col gap-3 elev-1 surface-raised">
           <div className="flex items-center justify-between">
             <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
               Social Links
@@ -413,7 +413,7 @@ export default function EditProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving || !fullName.trim()}
-          className="w-full h-12 rounded-xl bg-secondary text-white text-body-lg font-bold flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+          className="w-full h-12 rounded-xl bg-secondary text-white text-body-lg font-bold flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity elev-2"
         >
           {saving
             ? <><Loader2 size={16} className="animate-spin" /> Saving…</>

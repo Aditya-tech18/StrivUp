@@ -73,7 +73,7 @@ export default function FollowersPage() {
 
   return (
     <div className="min-h-screen bg-surface-container-low pb-28">
-      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-page flex items-center gap-3 px-5 py-3.5">
           <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container tap-target">
             <ArrowLeft size={19} className="text-on-surface" />
@@ -90,7 +90,7 @@ export default function FollowersPage() {
             <p className="text-sm text-on-surface-variant">No followers yet.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-outline-variant overflow-hidden divide-y divide-outline-variant/40">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden divide-y divide-outline-variant/40">
             {followers.map(user => (
               <div key={user.id} className="flex items-center gap-3 px-4 py-3">
                 <div className="w-11 h-11 rounded-full bg-secondary/10 overflow-hidden shrink-0 flex items-center justify-center">

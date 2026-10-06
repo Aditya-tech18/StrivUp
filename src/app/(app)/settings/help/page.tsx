@@ -68,7 +68,7 @@ export default function HelpPage() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* Header */}
-      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-form flex items-center gap-3 px-5 py-3.5">
           <button aria-label="Back"
             onClick={() => router.back()}
@@ -83,7 +83,7 @@ export default function HelpPage() {
       <div className="mx-auto measure-form px-5 pt-5 flex flex-col gap-5">
 
         {/* Contact card */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-5">
           <p className="text-body-md font-semibold text-on-surface-variant uppercase tracking-[0.06em] mb-3">Contact Us</p>
           <p className="text-body-md text-on-surface-variant leading-relaxed mb-4">
             Have a question, found a bug, or want to request a feature? Our team is ready to help.
@@ -109,7 +109,7 @@ export default function HelpPage() {
           <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em] mb-2 px-1">
             Frequently Asked Questions
           </p>
-          <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised overflow-hidden">
             {FAQS.map(faq => <FAQItem key={faq.q} q={faq.q} a={faq.a} />)}
           </div>
         </div>

@@ -346,7 +346,7 @@ function ManageModal({
         </div>
         <button
           onClick={onClose}
-          className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-body-md shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+          className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-body-md elev-2"
         >
           Done
         </button>
@@ -850,7 +850,7 @@ export default function ProfilePage() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-body-md flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-[0_2px_8px_rgba(29,78,216,0.25)] tap-target"
+                  className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-body-md flex items-center justify-center gap-1.5 disabled:opacity-50 elev-2 tap-target"
                 >
                   {saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Save Changes"}
                 </button>
@@ -893,7 +893,7 @@ export default function ProfilePage() {
               </p>
               <button
                 onClick={() => router.push("/explore")}
-                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-body-md font-bold shadow-[0_2px_8px_rgba(29,78,216,0.2)]"
+                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-body-md font-bold elev-2"
               >
                 Explore Challenges
               </button>

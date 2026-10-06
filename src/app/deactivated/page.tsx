@@ -88,7 +88,7 @@ export default function DeactivatedPage() {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center px-5">
       <div className="max-w-sm w-full flex flex-col items-center gap-6 text-center py-10">
-        <div className="w-20 h-20 rounded-2xl bg-warning-container border border-warning-outline flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
+        <div className="w-20 h-20 rounded-2xl bg-warning-container border border-warning-outline flex items-center justify-center elev-3">
           <Clock size={36} className="text-warning" strokeWidth={1.5} />
         </div>
 
@@ -116,7 +116,7 @@ export default function DeactivatedPage() {
           <button
             onClick={handleReactivate}
             disabled={loading}
-            className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-body-lg flex items-center justify-center gap-2 disabled:opacity-50 shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+            className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-body-lg flex items-center justify-center gap-2 disabled:opacity-50 elev-2"
           >
             {loading ? <><Loader2 size={16} className="animate-spin" /> Reactivating…</> : "Reactivate Account"}
           </button>

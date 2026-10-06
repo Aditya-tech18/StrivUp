@@ -114,7 +114,7 @@ export default function InterestsPage() {
                 className={[
                   "flex items-center gap-1.5 px-4 py-2 rounded-full text-body-md font-medium border transition-all",
                   on
-                    ? "bg-secondary text-white border-secondary shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+                    ? "bg-secondary text-white border-secondary elev-2"
                     : "bg-surface-container-lowest text-on-surface border-outline-variant hover:border-secondary/50 hover:bg-surface-container-low",
                 ].join(" ")}
               >
@@ -151,7 +151,7 @@ export default function InterestsPage() {
           <button
             onClick={handleSave}
             disabled={saving || selected.length < PROFILE_CONSTANTS.MIN_INTERESTS}
-            className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-body-lg flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+            className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-body-lg flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity elev-2"
           >
             {saving ? <><Loader2 size={16} className="animate-spin" /> Saving…</> : "Save Interests"}
           </button>
