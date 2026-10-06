@@ -173,7 +173,7 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
             <span className="text-xs text-on-surface-variant">Valid {expiresIn(request.expires_at, now)}</span>
           </div>
           <button type="button" onClick={refresh} disabled={refreshing}
-            className="h-10 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant flex items-center justify-center gap-1.5">
+            className="h-10 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant flex items-center justify-center gap-1.5 tap-target">
             <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Check status
           </button>
         </>

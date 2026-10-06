@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Flame } from "lucide-react";
+import { BrandMark } from "@/components/ui";
 
 /**
  * AuthCard — the panel every auth screen sits in.
@@ -44,9 +44,9 @@ export function AuthCard({
           <Link
             href="/"
             aria-label="StrivUp home"
-            className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/10 transition-colors hover:bg-secondary/15"
+            className="flex h-12 items-center justify-center rounded-xl px-3 transition-colors hover:bg-surface-container"
           >
-            <Flame size={24} className="text-secondary" aria-hidden="true" />
+            <BrandMark variant="wordmark" height={22} priority />
           </Link>
         </div>
         <div className="space-y-1">

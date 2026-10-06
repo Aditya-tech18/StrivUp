@@ -65,7 +65,7 @@ export default async function ActivityDashboardPage() {
             </p>
             <Link
               href="/settings/activity"
-              className="mt-4 inline-flex h-10 items-center rounded-lg bg-secondary px-4 text-sm font-medium text-white"
+              className="mt-4 inline-flex h-10 items-center rounded-lg bg-secondary px-4 text-sm font-medium text-white tap-target"
             >
               Connect activity
             </Link>

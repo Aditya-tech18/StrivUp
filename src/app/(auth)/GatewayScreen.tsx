@@ -15,6 +15,7 @@
  */
 import Link from "next/link";
 import { ChevronRight, MoveRight, Store, User } from "lucide-react";
+import { BrandMark } from "@/components/ui";
 import { MeshBackground } from "@/components/ui/MeshBackground";
 import { RotatingWord } from "@/components/ui/RotatingWord";
 
@@ -37,22 +38,6 @@ const chevronCls = [
   "group-hover:translate-x-0.5 group-hover:text-secondary",
 ].join(" ");
 
-function StrivUpMark() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <rect width="48" height="48" rx="14" fill="#0F172A" />
-      <path
-        d="M24 36V18M24 18L17 25M24 18L31 25"
-        stroke="white"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="24" cy="13" r="3" fill="#3B82F6" />
-    </svg>
-  );
-}
-
 export function GatewayScreen() {
   return (
       <div className="relative isolate min-h-screen overflow-hidden bg-surface">
@@ -61,7 +46,7 @@ export function GatewayScreen() {
         <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center justify-center gap-10 px-gutter py-16 md:gap-12">
           {/* ── Eyebrow pill ──────────────────────────────────────────────── */}
           <div className="fade-up flex flex-col items-center gap-5">
-            <StrivUpMark />
+            <BrandMark variant="wordmark" height={34} priority />
             <span className="inline-flex items-center gap-2 rounded-full border border-secondary/20 bg-secondary/8 px-4 py-1.5 text-label-sm font-semibold uppercase tracking-[0.18em] text-secondary">
               Build better. Every day.
               <MoveRight size={14} aria-hidden="true" />

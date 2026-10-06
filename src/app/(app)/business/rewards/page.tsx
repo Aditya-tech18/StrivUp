@@ -181,7 +181,7 @@ export default function RewardsPage() {
 
                   {(claim.status === "eligible" || claim.status === "processing") && (
                     <button onClick={() => handleFulfill(claim.id)} disabled={fulfilling === claim.id}
-                      className="w-full h-10 rounded-xl bg-success hover:bg-success text-white text-sm font-bold disabled:opacity-40 transition-all">
+                      className="w-full h-10 rounded-xl bg-success hover:bg-success text-white text-sm font-bold disabled:opacity-40 transition-all tap-target">
                       {fulfilling === claim.id ? "Marking…" : "✓ Mark as Fulfilled"}
                     </button>
                   )}

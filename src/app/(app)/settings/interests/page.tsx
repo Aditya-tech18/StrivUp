@@ -62,7 +62,7 @@ export default function InterestsPage() {
       <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-form flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
-            <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+            <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target">
               <ArrowLeft size={19} className="text-on-surface" />
             </button>
             <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Interests</h1>

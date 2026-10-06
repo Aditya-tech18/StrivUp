@@ -66,9 +66,9 @@ export function ReviewPanel({ submissionId, status, reviewNote, reviewedAt }: {
           <p className="mt-1 text-xs text-on-surface">{LABEL[confirming].consequence} This is logged.</p>
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => setConfirming(null)} disabled={busy}
-              className="h-10 flex-1 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm font-semibold text-on-surface">Cancel</button>
+              className="h-10 flex-1 rounded-xl border border-outline-variant bg-surface-container-lowest text-sm font-semibold text-on-surface tap-target">Cancel</button>
             <button type="button" onClick={() => submit(confirming)} disabled={busy}
-              className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-bold text-white ${LABEL[confirming].btn}`}>
+              className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-bold text-white ${LABEL[confirming].btn} tap-target`}>
               {busy && <Loader2 size={14} className="animate-spin" />} Confirm
             </button>
           </div>

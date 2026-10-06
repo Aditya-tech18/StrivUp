@@ -132,6 +132,32 @@ export default function OrderVerificationModal({
     }
   }, [step]);
 
+  /* A bottom sheet on a phone has to behave like one: Escape dismisses it, and
+     the page behind it must not scroll, or a flick on the sheet's padding
+     scrolls the quest page underneath while the sheet stays put. Both are
+     scoped to while it is open and both are undone on close. */
+  useEffect(() => {
+    if (!open) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+
+    const { overflow, paddingRight } = document.body.style;
+    // Replacing the scrollbar's width keeps the page behind from shifting on
+    // desktop; on a phone the gutter is 0, so this is a no-op there.
+    const gutter = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (gutter > 0) document.body.style.paddingRight = `${gutter}px`;
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+      document.body.style.paddingRight = paddingRight;
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
@@ -142,15 +168,24 @@ export default function OrderVerificationModal({
       aria-label={`${taskTitle} — order verification`}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full sm:max-w-md bg-surface-container-lowest rounded-t-3xl sm:rounded-2xl border border-outline-variant elev-5 max-h-[92vh] overflow-y-auto">
+      {/* dvh, not vh: when the on-screen keyboard opens for the bill code, vh
+          keeps reporting the full screen height and the sheet's actions end up
+          behind the keyboard. pb-safe keeps the last button clear of the home
+          indicator. overscroll-contain stops a flick at the end of the sheet
+          from scrolling the quest page behind it. */}
+      <div className="flex max-h-[92dvh] w-full flex-col overflow-y-auto overscroll-contain rounded-t-3xl border border-outline-variant bg-surface-container-lowest pb-safe elev-5 sm:max-h-[86dvh] sm:max-w-md sm:rounded-2xl sm:pb-0">
+
+        <div aria-hidden="true" className="flex justify-center pt-2 sm:hidden">
+          <span className="h-1 w-10 rounded-full bg-outline-variant" />
+        </div>
 
         {/* Header */}
-        <div className="sticky top-0 bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 rounded-t-3xl sm:rounded-t-2xl">
+        <div className="sticky top-0 z-10 flex items-center gap-3 rounded-t-3xl border-b border-outline-variant bg-surface-container-lowest px-5 py-4 sm:rounded-t-2xl">
           {step === "not_yet" && (
             <button
               onClick={() => setStep("ask")}
               aria-label="Back"
-              className="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0"
+              className="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 tap-target"
             >
               <ArrowLeft size={18} className="text-on-surface-variant" />
             </button>
@@ -162,7 +197,7 @@ export default function OrderVerificationModal({
           <button
             onClick={onClose}
             aria-label="Close"
-            className="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0"
+            className="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 tap-target"
           >
             <X size={18} className="text-on-surface-variant" />
           </button>
@@ -265,7 +300,7 @@ export default function OrderVerificationModal({
                         </p>
                         <button
                           onClick={handleCopy}
-                          className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-secondary hover:opacity-90 text-white text-sm font-bold transition-colors"
+                          className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-secondary hover:opacity-90 text-white text-sm font-bold transition-colors tap-target"
                         >
                           {copied
                             ? <><Check size={15} /> COPIED</>

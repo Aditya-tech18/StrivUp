@@ -80,7 +80,7 @@ export default function AdminHomeClient() {
             <p className="text-label-sm text-on-admin-chrome-variant">STRIVUP admin console</p>
           </div>
           <button onClick={() => void reload()} aria-label="Refresh"
-            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-on-admin-chrome-variant flex items-center gap-1.5 transition-colors">
+            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-on-admin-chrome-variant flex items-center gap-1.5 transition-colors tap-target">
             <RefreshCw size={13} /> Refresh
           </button>
         </div>

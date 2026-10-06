@@ -84,7 +84,7 @@ export default async function BusinessExplorePage({ searchParams }: { searchPara
         <nav aria-label="Sort" className="mt-3 flex gap-2 overflow-x-auto no-scrollbar">
           {([["newest", "Newest"], ["popular", "Most participants"], ["completion", "Highest completion"]] as const).map(([k, l]) => (
             <Link key={k} href={qs({ sort: k })} aria-current={sort === k ? "page" : undefined}
-              className={`h-10 shrink-0 rounded-full border px-4 text-sm font-semibold leading-10 ${sort === k ? "border-secondary bg-secondary text-white" : "border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container-low"}`}>
+              className={`h-10 shrink-0 rounded-full border px-4 text-sm font-semibold leading-10 ${sort === k ? "border-secondary bg-secondary text-white" : "border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container-low"} tap-target`}>
               {l}
             </Link>
           ))}
@@ -127,9 +127,9 @@ export default async function BusinessExplorePage({ searchParams }: { searchPara
                       {r.start_date && r.end_date && <span className="flex items-center gap-1"><Calendar size={13} aria-hidden="true" />{fmt(r.start_date)} – {fmt(r.end_date)}</span>}
                     </div>
                     <div className="mt-auto flex gap-2 pt-2">
-                      <Link href={`/quests/${r.id}`} className="flex h-10 flex-1 items-center justify-center rounded-xl border border-outline-variant text-sm font-semibold text-on-surface hover:bg-surface-container-low">View</Link>
+                      <Link href={`/quests/${r.id}`} className="flex h-10 flex-1 items-center justify-center rounded-xl border border-outline-variant text-sm font-semibold text-on-surface hover:bg-surface-container-low tap-target">View</Link>
                       <Link href={`/business/quests/new?template=${r.id}`}
-                        className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-secondary text-sm font-bold text-white hover:opacity-90">
+                        className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-secondary text-sm font-bold text-white hover:opacity-90 tap-target">
                         <Copy size={14} aria-hidden="true" /> Create Similar
                       </Link>
                     </div>

@@ -10,6 +10,7 @@ import {
   ArrowLeft, ArrowRight, BadgeCheck, CheckCircle2, ClipboardCheck, Eye, Flag, Gift,
   ListChecks, Receipt, Search, ShieldCheck, Smartphone, Store, Trophy, User, XCircle,
 } from "lucide-react";
+import { BrandMark } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "How Quests Work — STRIVUP",
@@ -93,7 +94,7 @@ export default function HowQuestsWorkPage() {
           <ArrowLeft size={20} className="text-on-surface-variant" />
         </Link>
         <p className="flex-1 text-body-lg font-black text-on-surface">How Quests Work</p>
-        <span className="pr-2 text-label-sm font-black tracking-[0.2em] text-secondary">STRIVUP</span>
+        <span className="pr-2"><BrandMark variant="wordmark" height={16} /></span>
       </header>
 
       <main className="mx-auto flex max-w-2xl flex-col gap-10 px-4 pb-16 pt-6">

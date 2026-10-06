@@ -320,7 +320,7 @@ export default function ProfilePage() {
               <select aria-label="Social platform"
                 value={newPlatform}
                 onChange={(e) => setNewPlatform(e.target.value as SocialPlatform)}
-                className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-lg text-on-surface"
+                className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-lg text-on-surface tap-target"
               >
                 {PLATFORMS.map((p) => (
                   <option key={p.value} value={p.value}>

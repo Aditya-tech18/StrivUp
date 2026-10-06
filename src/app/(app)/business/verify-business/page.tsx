@@ -196,7 +196,7 @@ export default function VerifyBusinessPage() {
       <header className="sticky top-0 z-30 bg-surface-container-lowest border-b border-outline-variant">
         <div className="mx-auto measure-page px-5 lg:px-8 h-14 flex items-center gap-3">
           <Link href="/business/dashboard" aria-label="Back to dashboard"
-            className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0">
+            className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 tap-target">
             <ArrowLeft size={18} className="text-on-surface-variant" />
           </Link>
           <div className="flex-1 min-w-0">
@@ -241,11 +241,11 @@ export default function VerifyBusinessPage() {
             </p>
             <div className="flex flex-wrap gap-2 mt-4">
               <Link href="/business/quests/new"
-                className="h-10 px-4 rounded-xl bg-secondary hover:opacity-90 text-white text-sm font-bold flex items-center transition-colors">
+                className="h-10 px-4 rounded-xl bg-secondary hover:opacity-90 text-white text-sm font-bold flex items-center transition-colors tap-target">
                 Create a Quest
               </Link>
               <Link href="/business/dashboard"
-                className="h-10 px-4 rounded-xl border border-outline-variant hover:bg-surface-container-low text-sm font-semibold text-on-surface-variant flex items-center transition-colors">
+                className="h-10 px-4 rounded-xl border border-outline-variant hover:bg-surface-container-low text-sm font-semibold text-on-surface-variant flex items-center transition-colors tap-target">
                 Business dashboard
               </Link>
             </div>
@@ -494,7 +494,7 @@ function Field({
       </span>
       {textarea
         ? <textarea value={value} onChange={onChange} rows={3} placeholder={placeholder} className={`${cls} py-2 resize-none`} />
-        : <input value={value} onChange={onChange} type={type} placeholder={placeholder} className={`${cls} h-10`} />}
+        : <input value={value} onChange={onChange} type={type} placeholder={placeholder} className={`${cls} h-10 tap-target`} />}
     </label>
   );
 }

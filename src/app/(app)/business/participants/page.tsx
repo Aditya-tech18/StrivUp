@@ -93,7 +93,7 @@ export default function ParticipantsPage() {
         {/* Quest filter */}
         <div className="relative">
           <select aria-label="Filter by quest" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
-            className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none">
+            className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none tap-target">
             <option value="all">All Quests</option>
             {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
           </select>

@@ -56,7 +56,7 @@ export default function FollowingPage() {
     <div className="min-h-screen bg-surface-container-low pb-28">
       <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-page flex items-center gap-3 px-5 py-3.5">
-          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
+          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container tap-target">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
           <h1 className="text-body-lg font-bold text-on-surface flex-1">Following</h1>
@@ -89,7 +89,7 @@ export default function FollowingPage() {
                   {user.username && <p className="text-xs text-on-surface-variant">@{user.username}</p>}
                 </div>
                 <button onClick={() => handleUnfollow(user.id)}
-                  className="flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-bold bg-surface-container border border-outline-variant text-on-surface-variant hover:text-error hover:border-error/30 transition-colors">
+                  className="flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-bold bg-surface-container border border-outline-variant text-on-surface-variant hover:text-error hover:border-error/30 transition-colors tap-target">
                   <UserCheck size={13} /> Following
                 </button>
               </div>

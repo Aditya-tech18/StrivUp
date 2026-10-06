@@ -137,7 +137,7 @@ export default function BusinessSettingsPage() {
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-on-surface-variant">Category</label>
             <select aria-label="Category" value={category} onChange={e => setCategory(e.target.value)}
-              className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary">
+              className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary tap-target">
               <option value="">Select category…</option>
               {BUSINESS_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>

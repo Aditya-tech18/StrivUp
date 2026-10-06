@@ -25,6 +25,7 @@ import { getFeedPosts } from "@/lib/data/feed";
 import { getTodaysTasks, type TodayTask } from "@/lib/data/today";
 import { getCoinStateWithCheckin } from "@/lib/data/coins";
 import { CoinPill } from "@/components/features/CoinPill";
+import { BrandMark } from "@/components/ui";
 
 /** "Thursday, 24 May" — matches the design's date eyebrow. */
 function todayLabel(): string {
@@ -142,11 +143,9 @@ export default async function FeedPage() {
       <header className="sticky top-0 z-40 bg-surface/80 pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-gutter">
           <div className="flex items-center gap-space-sm">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Flame size={20} className="text-secondary" aria-hidden="true" />
-            </div>
+            <BrandMark variant="mark" height={26} priority />
             <div className="flex flex-col">
-              <span className="text-headline-sm tracking-tight text-on-surface">StrivUp</span>
+              <BrandMark variant="wordmark" height={16} />
               <span className="text-label-sm font-medium text-on-surface-variant">Home Feed</span>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { ServiceWorkerRegistrar } from "@/components/ui";
 import "./globals.css";
 
 /**
@@ -40,9 +41,12 @@ export const metadata: Metadata = {
     "student community",
     "personal growth",
   ],
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     title: "StrivUp",
     capable: true,
+    // "default" leaves an opaque status bar, which is what we want: the app is
+    // light and the shell already paints to the safe-area edges.
     statusBarStyle: "default",
   },
   // Stops iOS Safari from turning numbers in proof captions into phone links.
@@ -54,12 +58,14 @@ export const metadata: Metadata = {
     description:
       "Join challenges, prove your progress, and build streaks with a community that shows up daily.",
     url: siteUrl,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "StrivUp" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "StrivUp — Build Better. Every Day.",
     description:
       "Join challenges, prove your progress, and build streaks with a community that shows up daily.",
+    images: ["/og.png"],
   },
 };
 
@@ -94,7 +100,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <ServiceWorkerRegistrar />
+      </body>
     </html>
   );
 }

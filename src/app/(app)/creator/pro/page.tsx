@@ -18,7 +18,7 @@ export default function CreatorProPage() {
     <div className="min-h-screen bg-surface">
       <header className="sticky top-0 pt-safe z-30 flex items-center gap-3 border-b border-outline-variant bg-surface-container-lowest px-4 py-3">
         <Link href="/creator/challenges" aria-label="Back"
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-container">
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-container tap-target">
           <ArrowLeft size={20} className="text-on-surface-variant" />
         </Link>
         <h1 className="flex-1 text-body-lg font-black text-on-surface">Creator Pro</h1>

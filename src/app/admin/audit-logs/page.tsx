@@ -36,7 +36,7 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Pr
       <nav aria-label="Filter by target" className="mb-4 flex gap-2">
         {[["", "All"], ["user", "Users"], ["business", "Businesses"]].map(([k, l]) => (
           <Link key={k} href={`/admin/audit-logs?type=${k}`} aria-current={type === k ? "page" : undefined}
-            className={`h-10 rounded-full border px-4 text-sm font-semibold leading-10 ${type === k ? "border-admin-chrome bg-admin-chrome text-white" : "border-outline-variant bg-surface-container-lowest text-on-surface"}`}>{l}</Link>
+            className={`h-10 rounded-full border px-4 text-sm font-semibold leading-10 ${type === k ? "border-admin-chrome bg-admin-chrome text-white" : "border-outline-variant bg-surface-container-lowest text-on-surface"} tap-target`}>{l}</Link>
         ))}
       </nav>
       <Panel>
@@ -71,8 +71,8 @@ export default async function AuditLogsPage({ searchParams }: { searchParams: Pr
         )}
       </Panel>
       <div className="mt-4 flex justify-between">
-        {page > 0 ? <Link href={`/admin/audit-logs?page=${page - 1}&type=${type}`} className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 text-sm font-semibold leading-10">Newer</Link> : <span />}
-        {hasMore && <Link href={`/admin/audit-logs?page=${page + 1}&type=${type}`} className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 text-sm font-semibold leading-10">Older</Link>}
+        {page > 0 ? <Link href={`/admin/audit-logs?page=${page - 1}&type=${type}`} className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 text-sm font-semibold leading-10 tap-target">Newer</Link> : <span />}
+        {hasMore && <Link href={`/admin/audit-logs?page=${page + 1}&type=${type}`} className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 text-sm font-semibold leading-10 tap-target">Older</Link>}
       </div>
     </div>
   );

@@ -113,7 +113,7 @@ export default function ProofVerificationPage() {
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-3">
         <div className="relative mx-auto measure-page">
           <select aria-label="Filter by quest" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
-            className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none">
+            className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none tap-target">
             <option value="all">All Quests</option>
             {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
           </select>
@@ -197,15 +197,15 @@ export default function ProofVerificationPage() {
                 {sub.verification_status === "pending" && (
                   <div className="border-t border-outline-variant px-4 py-3 flex gap-2">
                     <button onClick={() => { setShowRejectModal(sub.id); setRejectReason(""); }}
-                      className="flex-1 h-9 rounded-xl border-2 border-error-outline text-on-error-container text-sm font-bold flex items-center justify-center gap-1.5">
+                      className="flex-1 h-9 rounded-xl border-2 border-error-outline text-on-error-container text-sm font-bold flex items-center justify-center gap-1.5 tap-target">
                       <XCircle size={16} /> Reject
                     </button>
                     <button onClick={() => { setShowRejectModal(`resubmit-${sub.id}`); setRejectReason(""); }}
-                      className="flex-1 h-9 rounded-xl border-2 border-chart-3/25 text-chart-3 text-sm font-bold">
+                      className="flex-1 h-9 rounded-xl border-2 border-chart-3/25 text-chart-3 text-sm font-bold tap-target">
                       Resubmit
                     </button>
                     <button onClick={() => handleApprove(sub.id)} disabled={reviewing === sub.id}
-                      className="flex-1 h-9 rounded-xl bg-success text-white text-sm font-bold flex items-center justify-center gap-1.5 disabled:opacity-40">
+                      className="flex-1 h-9 rounded-xl bg-success text-white text-sm font-bold flex items-center justify-center gap-1.5 disabled:opacity-40 tap-target">
                       {reviewing === sub.id ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><CheckCircle2 size={16} /> Approve</>}
                     </button>
                   </div>

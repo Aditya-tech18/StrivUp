@@ -28,7 +28,7 @@ export function BadgeAction({ businessId, name, status }: { businessId: string; 
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)}
-        className={`h-8 rounded-lg border px-2.5 text-xs font-bold ${to === "suspended" ? "border-error-outline text-on-error-container hover:bg-error-container" : "border-success-outline text-on-success-container hover:bg-success-container"}`}>
+        className={`h-8 rounded-lg border px-2.5 text-xs font-bold ${to === "suspended" ? "border-error-outline text-on-error-container hover:bg-error-container" : "border-success-outline text-on-success-container hover:bg-success-container"} tap-target`}>
         {to === "suspended" ? "Suspend badge" : "Restore badge"}
       </button>
     );
@@ -40,9 +40,9 @@ export function BadgeAction({ businessId, name, status }: { businessId: string; 
         className="rounded-lg border border-outline-variant px-2 py-1 text-sm focus:border-secondary focus:outline-none" />
       {error && <p role="alert" className="text-xs text-on-error-container">{error}</p>}
       <div className="flex gap-1.5">
-        <button type="button" onClick={() => setOpen(false)} className="h-8 flex-1 rounded-lg border border-outline-variant bg-surface-container-lowest text-xs font-semibold">Cancel</button>
+        <button type="button" onClick={() => setOpen(false)} className="h-8 flex-1 rounded-lg border border-outline-variant bg-surface-container-lowest text-xs font-semibold tap-target">Cancel</button>
         <button type="button" onClick={confirm} disabled={busy || !reason.trim()}
-          className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg bg-admin-chrome text-xs font-bold text-white disabled:opacity-50">
+          className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg bg-admin-chrome text-xs font-bold text-white disabled:opacity-50 tap-target">
           {busy && <Loader2 size={12} className="animate-spin" />} Confirm
         </button>
       </div>

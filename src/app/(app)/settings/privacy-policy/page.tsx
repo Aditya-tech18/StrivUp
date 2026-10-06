@@ -55,7 +55,7 @@ export default function PrivacyPolicyPage() {
         <div className="mx-auto measure-form flex items-center gap-3 px-5 py-3.5">
           <button aria-label="Back"
             onClick={() => router.back()}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target"
           >
             <ArrowLeft size={19} className="text-on-surface" />
           </button>

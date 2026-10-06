@@ -175,7 +175,7 @@ export default function BusinessDashboardPage() {
         <span className="text-center font-black text-on-surface text-body-lg tracking-tight">STRIVUP</span>
         <div className="flex items-center justify-end gap-2">
           <Link href="/search" aria-label="Search"
-            className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center">
+            className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center tap-target">
             <Search size={16} className="text-on-surface-variant" />
           </Link>
           <Link href="/alerts" aria-label={unreadCount > 0 ? `Alerts, ${unreadCount} unread` : "Alerts"}
@@ -242,14 +242,17 @@ export default function BusinessDashboardPage() {
           </div>
 
           {/* ── Stats row ────────────────────────────────────────────── */}
-          <div className="grid grid-cols-4 mt-5 border border-outline-variant rounded-xl overflow-hidden">
+          {/* gap-px over a tinted track draws the hairlines, so they land correctly
+              whether this is two columns or four. The old border-l on every
+              tile but the first only worked while it was a single row. */}
+          <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-outline-variant bg-outline-variant sm:grid-cols-4">
             {[
               { label: "Customers",    value: compactNum(bp.total_customers) },
               { label: "Challenges",   value: compactNum(bp.total_challenges) },
               { label: "Participants", value: compactNum(bp.total_participants) },
               { label: "Rating",       value: bp.rating > 0 ? bp.rating.toString() : "—", icon: bp.rating > 0 },
-            ].map((s, i) => (
-              <div key={s.label} className={`flex flex-col items-center py-3 bg-surface-container-low/50 ${i > 0 ? "border-l border-outline-variant" : ""}`}>
+            ].map((s) => (
+              <div key={s.label} className="flex flex-col items-center bg-surface-container-low py-3">
                 <span className="flex items-center gap-1 text-headline-sm font-black text-on-surface">
                   {s.value}
                   {s.icon && <Star size={13} className="text-warning" aria-hidden="true" />}
@@ -296,7 +299,7 @@ export default function BusinessDashboardPage() {
               <p className="text-sm font-semibold text-on-surface-variant">No active Quests yet</p>
               <p className="text-xs text-on-surface-variant">Create your first Quest to start attracting participants.</p>
               <button onClick={() => router.push("/business/quests/new")}
-                className="h-9 px-5 rounded-xl bg-secondary text-white text-sm font-bold flex items-center gap-2">
+                className="h-9 px-5 rounded-xl bg-secondary text-white text-sm font-bold flex items-center gap-2 tap-target">
                 <Plus size={16} /> Create Quest
               </button>
             </div>

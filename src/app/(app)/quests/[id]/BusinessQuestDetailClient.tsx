@@ -294,11 +294,11 @@ export default function BusinessQuestDetailClient({
 
       {/* ── Top bar ─────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 bg-surface-container-lowest/95 backdrop-blur border-b border-outline-variant pt-safe">
-        <div className="max-w-[1400px] mx-auto px-5 lg:px-8 h-14 flex items-center gap-3">
+        <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-3 px-gutter lg:px-gutter-lg">
           <button
             onClick={() => router.back()}
             aria-label="Go back"
-            className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 transition-colors"
+            className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 transition-colors tap-target"
           >
             <ArrowLeft size={18} className="text-on-surface-variant" />
           </button>
@@ -313,7 +313,7 @@ export default function BusinessQuestDetailClient({
           )}
           <button
             onClick={handleShare}
-            className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant hidden sm:flex items-center gap-1.5 transition-colors"
+            className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant hidden sm:flex items-center gap-1.5 transition-colors tap-target"
           >
             <Share2 size={14} /> Share
           </button>
@@ -332,7 +332,7 @@ export default function BusinessQuestDetailClient({
         </div>
       </header>
 
-      <div className="max-w-[1400px] mx-auto px-5 lg:px-8 py-6">
+      <div className="mx-auto max-w-[1400px] px-gutter py-6 lg:px-gutter-lg">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
 
           {/* ── Main column ──────────────────────────────────────────── */}
@@ -610,9 +610,11 @@ export default function BusinessQuestDetailClient({
         </div>
       </div>
 
-      {/* ── Mobile join bar ──────────────────────────────────────────── */}
+      {/* ── Mobile join bar ────────────────────────────────────────────
+          Sits on top of the bottom nav, which already folds the home-indicator
+          inset into its own height, so this only needs its own padding. */}
       {!loading && !hasJoined && !isEnded && (
-        <div className="lg:hidden fixed above-bottom-nav left-0 right-0 z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-3">
+        <div className="fixed above-bottom-nav left-0 right-0 z-40 border-t border-outline-variant bg-surface-container-lowest px-gutter py-3 elev-3 lg:hidden">
           <button
             onClick={handleJoin}
             disabled={joining}
@@ -914,7 +916,7 @@ function TaskCard({
             <button
               onClick={onProof}
               disabled={loading}
-              className="h-9 px-4 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+              className="h-9 px-4 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 transition-colors tap-target"
             >
               {loading
                 ? <Loader2 size={14} className="animate-spin" />

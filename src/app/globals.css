@@ -450,6 +450,62 @@ body {
   }
 }
 
+/* ─── Mobile app behaviour ───────────────────────────────────────────────────
+   StrivUp ships to Play as a Trusted Web Activity, so on Android it is the
+   app: there is no browser chrome to explain away anything that behaves like a
+   web page. These are the handful of defaults that otherwise give it away.  */
+
+@layer base {
+  html {
+    /* Mobile Safari and Chrome inflate text in some layouts unless told not
+       to, which silently breaks a type scale. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    /* Stops the rubber-band scroll from chaining to the browser/WebView and
+       firing pull-to-refresh in the middle of a form. */
+    overscroll-behavior-y: contain;
+    /* A stray wide child should not make the whole app scroll sideways.
+       `clip` rather than `hidden` because `hidden` would make every
+       position: sticky ancestor stop sticking. */
+    overflow-x: clip;
+  }
+
+  /* The grey flash on tap is a browser tell. Removing it is only safe because
+       the rule above gives every control a real focus ring, and :active states
+       are set per component. */
+  :where(a, button, [role="button"], [role="tab"], label, summary) {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Removes the 300ms wait for a possible double-tap-to-zoom on controls,
+     without disabling pinch zoom anywhere. */
+  :where(a, button, input, select, textarea, summary, [role="button"], [role="tab"], [role="switch"]) {
+    touch-action: manipulation;
+  }
+
+  /* Long-pressing a button should not start a text selection. Content text is
+     untouched, so quest codes and captions stay copyable. */
+  :where(button, [role="button"], [role="tab"], nav) {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* iOS zooms the viewport when a focused field's text is under 16px, and it
+     does not zoom back out. Several forms use the 14px step deliberately, so
+     rather than changing them, lift only what a touch device would zoom.
+     max() keeps anything already larger at its own size. */
+  @media (pointer: coarse) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    textarea,
+    select {
+      font-size: max(16px, 1em);
+    }
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    DEPTH SYSTEM
    ═══════════════════════════════════════════════════════════════════════════
@@ -506,6 +562,23 @@ body {
     );
     border-top: 1px solid rgb(255 255 255 / 0.85);
     border-bottom: 1px solid rgb(28 20 22 / 0.06);
+  }
+
+  /* Guarantees a 44px hit area on a control that is visually smaller, without
+     changing the layout: the box is an overlay centred on the control. Use it
+     on icon buttons and dense chips rather than growing them, which would
+     break the rows they sit in. */
+  .tap-target {
+    position: relative;
+  }
+  .tap-target::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
   }
 
   /* Interactive lift. Transform and shadow only, so it stays on the

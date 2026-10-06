@@ -39,7 +39,7 @@ export default async function AdminBusinessesPage({ searchParams }: { searchPara
       <nav aria-label="Filter by verification status" className="mb-4 flex gap-2 overflow-x-auto no-scrollbar">
         {FILTERS.map(f => (
           <Link key={f.key} href={`/admin/businesses?status=${f.key}${q ? `&q=${encodeURIComponent(q)}` : ""}`} aria-current={status === f.key ? "page" : undefined}
-            className={`h-10 shrink-0 rounded-full border px-4 text-sm font-semibold leading-10 ${status === f.key ? "border-admin-chrome bg-admin-chrome text-white" : "border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container-low"}`}>
+            className={`h-10 shrink-0 rounded-full border px-4 text-sm font-semibold leading-10 ${status === f.key ? "border-admin-chrome bg-admin-chrome text-white" : "border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container-low"} tap-target`}>
             {f.label}
           </Link>
         ))}

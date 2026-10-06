@@ -38,7 +38,7 @@ export default async function ReviewSubmissionPage({ params }: { params: Promise
 
   return (
     <div className="mx-auto measure-console">
-      <Link href="/admin/business-verification" className="mb-3 inline-flex h-10 items-center gap-1.5 text-sm font-semibold text-on-surface hover:text-on-surface">
+      <Link href="/admin/business-verification" className="mb-3 inline-flex h-10 items-center gap-1.5 text-sm font-semibold text-on-surface hover:text-on-surface tap-target">
         <ArrowLeft size={16} aria-hidden="true" /> Verification queue
       </Link>
       <PageHeader title={s.business?.business_name ?? s.legal_name}

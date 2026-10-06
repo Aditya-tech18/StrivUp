@@ -76,7 +76,7 @@ export default function BusinessQuestsPage() {
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
         <h1 className="text-body-lg font-black text-on-surface flex-1">My Quests</h1>
         <button onClick={() => router.push("/business/quests/new")}
-          className="flex items-center gap-1.5 h-9 px-4 rounded-xl bg-secondary text-white text-sm font-bold">
+          className="flex items-center gap-1.5 h-9 px-4 rounded-xl bg-secondary text-white text-sm font-bold tap-target">
           <Plus size={16} /> New Quest
         </button>
       </div>
@@ -141,26 +141,26 @@ export default function BusinessQuestsPage() {
                 </div>
                 {/* Actions */}
                 <div className="border-t border-outline-variant px-4 py-2.5 flex items-center gap-2">
-                  <Link href={`/quests/${quest.id}`} className="flex-1 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low">
+                  <Link href={`/quests/${quest.id}`} className="flex-1 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low tap-target">
                     View
                   </Link>
                   <button onClick={() => router.push(`/business/quests/new?edit=${quest.id}`)}
-                    className="flex-1 h-8 flex items-center justify-center rounded-xl border border-outline-variant text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low">
+                    className="flex-1 h-8 flex items-center justify-center rounded-xl border border-outline-variant text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low tap-target">
                     Edit
                   </button>
                   <Link href={`/business/analytics?quest=${quest.id}`}
-                    className="flex-1 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low">
+                    className="flex-1 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low tap-target">
                     Analytics
                   </Link>
                   {quest.quest_status === "active" && (
                     <button onClick={() => handleStatusChange(quest.id, "paused")}
-                      className="flex-1 h-8 flex items-center justify-center rounded-xl bg-warning-container border border-warning-outline text-xs font-semibold text-on-warning-container">
+                      className="flex-1 h-8 flex items-center justify-center rounded-xl bg-warning-container border border-warning-outline text-xs font-semibold text-on-warning-container tap-target">
                       Pause
                     </button>
                   )}
                   {quest.quest_status === "paused" && (
                     <button onClick={() => handleStatusChange(quest.id, "active")}
-                      className="flex-1 h-8 flex items-center justify-center rounded-xl bg-success-container border border-success-outline text-xs font-semibold text-on-success-container">
+                      className="flex-1 h-8 flex items-center justify-center rounded-xl bg-success-container border border-success-outline text-xs font-semibold text-on-success-container tap-target">
                       Resume
                     </button>
                   )}

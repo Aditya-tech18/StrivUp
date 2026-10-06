@@ -75,7 +75,7 @@ export default function FollowersPage() {
     <div className="min-h-screen bg-surface-container-low pb-28">
       <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-page flex items-center gap-3 px-5 py-3.5">
-          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
+          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container tap-target">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
           <h1 className="text-body-lg font-bold text-on-surface flex-1">Followers</h1>
@@ -115,7 +115,7 @@ export default function FollowersPage() {
                       following.has(user.id)
                         ? "bg-surface-container border border-outline-variant text-on-surface-variant"
                         : "bg-secondary text-on-secondary"
-                    }`}>
+                    } tap-target`}>
                     {following.has(user.id) ? <><UserCheck size={13} />Following</> : <><UserPlus size={13} />Follow</>}
                   </button>
                 )}
