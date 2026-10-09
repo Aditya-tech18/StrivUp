@@ -140,7 +140,7 @@ export function ResetPasswordForm() {
               type="button"
               onClick={() => setShow((v) => !v)}
               aria-label={show ? "Hide password" : "Show password"}
-              className="p-1 text-on-surface-variant transition-colors hover:text-on-surface"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:text-on-surface"
             >
               {show ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
             </button>

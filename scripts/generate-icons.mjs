@@ -33,6 +33,49 @@ const WHITE = { r: 255, g: 255, b: 255, alpha: 1 };
 const MARK = { left: 803, top: 455, width: 332, height: 297 };   // arrow + UP, with a hair of margin
 const WORDMARK = { left: 126, top: 465, width: 1001, height: 277 };
 
+
+/**
+ * The source logo is drawn on a white field. That is right for an app icon,
+ * which is always composited onto an opaque tile, and wrong for the in-app
+ * wordmark, which sits on tinted surfaces and gradients where a white box
+ * around it is obvious.
+ *
+ * Un-premultiplies the art off white rather than just keying white out, so
+ * antialiased edges stay smooth and the colours come back at full saturation:
+ * for a pixel P that is the true colour C laid over white with coverage a,
+ *
+ *   P = a*C + (1 - a)*255        so   a = 1 - min(r,g,b)/255
+ *                                     C = (P - (1 - a)*255) / a
+ *
+ * Compositing the result back onto white reproduces the original exactly.
+ */
+async function liftOffWhite(input) {
+  const { data, info } = await sharp(input)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    const a = 1 - Math.min(r, g, b) / 255;
+    if (a <= 0.004) {
+      data[i + 3] = 0;
+      continue;
+    }
+    const white = (1 - a) * 255;
+    data[i] = Math.max(0, Math.min(255, Math.round((r - white) / a)));
+    data[i + 1] = Math.max(0, Math.min(255, Math.round((g - white) / a)));
+    data[i + 2] = Math.max(0, Math.min(255, Math.round((b - white) / a)));
+    data[i + 3] = Math.round(a * 255);
+  }
+
+  return sharp(data, {
+    raw: { width: info.width, height: info.height, channels: 4 },
+  })
+    .png()
+    .toBuffer();
+}
+
 async function squareOnWhite(input, size, contentScale) {
   const inner = Math.round(size * contentScale);
   const resized = await sharp(input)
@@ -86,12 +129,14 @@ async function main() {
   await writeFile("public/icons/favicon-32.png", await squareOnWhite(mark, 32, 0.82));
   await writeFile("public/icons/favicon-16.png", await squareOnWhite(mark, 16, 0.86));
 
-  /* ── wordmark for in-app brand marks (sidebar, headers, auth) ───────── */
-  await sharp(wordmark)
+  /* ── wordmark for in-app brand marks (sidebar, headers, auth) ─────────
+     Transparent, because these land on tinted surfaces and on the gateway's
+     gradient, where the source's white field reads as a box around the logo. */
+  await sharp(await liftOffWhite(wordmark))
     .resize({ height: 160, withoutEnlargement: false })
     .png()
     .toFile("public/brand/wordmark.png");
-  await sharp(mark)
+  await sharp(await liftOffWhite(mark))
     .resize({ height: 160, withoutEnlargement: false })
     .png()
     .toFile("public/brand/mark.png");

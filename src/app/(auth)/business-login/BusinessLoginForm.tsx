@@ -183,7 +183,7 @@ export function BusinessLoginForm() {
               aria-describedby={errors.password ? "password-error" : undefined}
             />
             <button type="button" onClick={() => setShowPwd(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface"
+              className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface"
               aria-label={showPwd ? "Hide password" : "Show password"}>
               {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>

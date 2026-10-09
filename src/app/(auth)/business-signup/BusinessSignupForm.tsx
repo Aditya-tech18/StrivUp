@@ -159,7 +159,7 @@ export function BusinessSignupForm() {
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? "password-error" : undefined} />
             <button type="button" onClick={() => setShowPwd(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant" aria-label="Toggle password">
+              className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-on-surface-variant" aria-label="Toggle password">
               {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>

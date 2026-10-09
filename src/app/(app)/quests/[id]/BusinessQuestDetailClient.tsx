@@ -355,7 +355,7 @@ export default function BusinessQuestDetailClient({
                 className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/75 to-black/35"
               />
 
-              <div className="relative z-10 p-7 lg:p-9 flex flex-col justify-center gap-3 max-w-2xl">
+              <div className="relative z-10 p-5 sm:p-7 lg:p-9 flex flex-col justify-center gap-3 max-w-2xl">
                 <div className="flex items-center gap-3">
                   {quest.business_logo && (
                     <span className="w-11 h-11 rounded-xl bg-surface-container-lowest/95 overflow-hidden shrink-0 flex items-center justify-center">
@@ -374,25 +374,27 @@ export default function BusinessQuestDetailClient({
                   )}
                 </div>
 
-                <h1 className="text-headline-lg lg:text-display leading-[1.1] font-bold text-white tracking-tight uppercase">
+                {/* Scales down on a phone: headline-lg is 30px, and a long
+                    title in caps at that size eats the hero. */}
+                <h1 className="text-headline-lg-mobile font-bold uppercase leading-[1.1] tracking-tight text-white sm:text-headline-lg lg:text-display">
                   {quest.title}
                 </h1>
 
                 {quest.description && (
-                  <p className="text-body-lg text-on-surface-variant leading-relaxed line-clamp-2">
+                  <p className="line-clamp-2 text-body-md leading-relaxed text-white/85 sm:text-body-lg">
                     {quest.description}
                   </p>
                 )}
 
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-1">
                   {locationLine && (
-                    <span className="flex items-center gap-1.5 text-sm text-on-surface-variant">
-                      <MapPin size={14} className="shrink-0" /> {locationLine}
+                    <span className="flex items-center gap-1.5 text-body-sm text-white/85">
+                      <MapPin size={14} className="shrink-0" aria-hidden="true" /> {locationLine}
                     </span>
                   )}
                   {quest.start_date && quest.end_date && (
-                    <span className="flex items-center gap-1.5 text-sm text-on-surface-variant">
-                      <Calendar size={14} className="shrink-0" />
+                    <span className="flex items-center gap-1.5 text-body-sm text-white/85">
+                      <Calendar size={14} className="shrink-0" aria-hidden="true" />
                       {formatDate(quest.start_date)} – {formatDate(quest.end_date)}
                     </span>
                   )}
@@ -528,7 +530,7 @@ export default function BusinessQuestDetailClient({
 
             {/* ── Rules ─────────────────────────────────────────────── */}
             {tab === "rules" && (
-              <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
+              <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 sm:p-6 elev-1 surface-raised">
                 <h2 className="text-body-lg font-bold text-on-surface">Quest Rules</h2>
                 {quest.eligibility && (
                   <>
@@ -710,7 +712,7 @@ function AboutQuestCard({
   ].filter(Boolean) as { k: string; v: string }[];
 
   return (
-    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
+    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 sm:p-6 elev-1 surface-raised">
       <h2 className="text-body-lg font-bold text-on-surface">About This Quest</h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-6 mt-3">
@@ -767,7 +769,7 @@ function TaskSection({
   if (tasks.length === 0) return null;
 
   return (
-    <section id="tasks" className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 scroll-mt-20 elev-1 surface-raised">
+    <section id="tasks" className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 sm:p-6 scroll-mt-20 elev-1 surface-raised">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-body-lg font-bold text-on-surface">
@@ -831,100 +833,144 @@ function TaskCard({
         ? { label: "Awaiting business", cls: "text-on-warning-container bg-warning-container border-warning-outline", Icon: Clock }
         : null;
 
+  const chip =
+    "inline-flex h-7 items-center gap-1 rounded-full border px-2.5 text-label-sm font-bold";
+
+  /* The row action. Full width below sm so it is reachable with a thumb,
+     inline from sm up.
+     
+     Not a solid blue button with a glow on it: there are one of these per
+     task, and four of them stacked read as four page-level CTAs competing
+     with the real one. Before joining it is tonal, because joining is what
+     the page's own Join Quest button is for and this is the same action said
+     twice. After joining, uploading proof is the task's actual work, so it
+     goes solid — but still flat, since the glow is reserved for the one
+     primary action on the screen. */
+  const action = completed ? (
+    <span
+      className={`${chip} h-11 w-full justify-center border-success-outline bg-success-container px-4 text-on-success-container sm:h-10 sm:w-auto`}
+    >
+      <Check size={15} aria-hidden="true" /> Completed
+    </span>
+  ) : (
+    <button
+      onClick={onProof}
+      disabled={loading}
+      className={[
+        "inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl px-4",
+        "text-body-md font-bold transition-colors disabled:opacity-50",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+        "sm:h-10 sm:w-auto sm:text-body-sm",
+        joined
+          ? "bg-secondary text-white hover:opacity-90"
+          : "border border-secondary-fixed-dim bg-secondary-fixed text-on-secondary-fixed-variant hover:bg-secondary-fixed-dim",
+      ].join(" ")}
+    >
+      {loading ? (
+        <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+      ) : (
+        <Upload size={15} aria-hidden="true" />
+      )}
+      {joined ? "Upload Proof" : "Join to Start"}
+    </button>
+  );
+
   return (
-    <li className="group rounded-2xl border border-outline-variant hover:border-outline bg-surface-container-lowest transition-colors elev-1 surface-raised">
-      <div className="flex items-center gap-4 p-4">
+    <li className="group rounded-2xl border border-outline-variant bg-surface-container-lowest transition-colors elev-1 surface-raised hover:border-outline">
+      {/* Stacks on a phone. As one row, the number, the thumbnail and a
+          shrink-0 button left about 60px for the title, so every task read as
+          "Tr", "M", "Ex" and the proof type wrapped one word per line. */}
+      <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
 
-        {/* Number */}
-        <span className="w-7 h-7 rounded-full bg-surface-container text-on-surface-variant text-xs font-bold flex items-center justify-center shrink-0">
-          {index}
-        </span>
+        <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center sm:gap-4">
 
-        {/* Thumbnail */}
-        <div className="w-[72px] h-[72px] rounded-xl overflow-hidden bg-surface-container-low border border-outline-variant shrink-0 flex items-center justify-center">
-          {task.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={task.image_url} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <ImageIcon size={20} className="text-on-surface-variant" aria-hidden="true" />
-          )}
-        </div>
+          {/* Number */}
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-container text-label-sm font-bold text-on-surface-variant">
+            {index}
+          </span>
 
-        {/* Body */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-body-lg font-bold text-on-surface truncate">{task.title}</h3>
-            <span
-              className={`text-label-sm font-bold px-2 py-0.5 rounded-full border shrink-0 ${
-                task.is_required
-                  ? "text-on-error-container bg-error-container border-error-outline"
-                  : "text-on-surface-variant bg-surface-container-low border-outline-variant"
-              }`}
-            >
-              {task.is_required ? "Required" : "Optional"}
-            </span>
+          {/* Thumbnail. The empty-state tile is hidden on phones: 56px of a
+              400px row showing a placeholder icon is 56px the title needs
+              more. With art, it is worth the room at any size. */}
+          <div
+            className={`h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low sm:h-[72px] sm:w-[72px] ${
+              task.image_url ? "flex" : "hidden sm:flex"
+            }`}
+          >
+            {task.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={task.image_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <ImageIcon size={20} className="text-on-surface-variant" aria-hidden="true" />
+            )}
           </div>
 
-          {task.description && (
-            <p className="text-sm text-on-surface-variant leading-relaxed mt-1 line-clamp-2">
-              {task.description}
-            </p>
-          )}
+          {/* Body */}
+          <div className="min-w-0 flex-1">
+            {/* line-clamp, not truncate: a task title is the one thing on
+                this card that must stay readable, and two lines of it beat one
+                ellipsis. It gets the full width, because Required/Optional sat
+                beside it and took about 80px of the 400px row for a word that
+                belongs with the rest of the metadata below. */}
+            <h3 className="line-clamp-2 text-body-lg font-bold leading-snug text-on-surface">
+              {task.title}
+            </h3>
 
-          <div className="flex items-center gap-2 flex-wrap mt-2">
-            <span className="text-label-sm font-medium text-on-surface-variant">
-              Proof Type: <span className="text-on-surface-variant">{proofLabel}</span>
-            </span>
-            {showPlatforms && platforms!.map((p) => (
-              p.url ? (
-                <a
-                  key={p.platform}
-                  href={p.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1 text-label-sm font-bold px-2 py-0.5 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors"
-                >
-                  {p.label} <ExternalLink size={9} />
-                </a>
-              ) : (
-                <span
-                  key={p.platform}
-                  className="inline-flex items-center text-label-sm font-bold px-2 py-0.5 rounded-full border border-outline-variant bg-surface-container-low text-on-surface-variant"
-                >
-                  {p.label}
-                </span>
-              )
-            ))}
-            {state && (
-              <span
-                className={`inline-flex items-center gap-1 text-label-sm font-bold px-2 py-0.5 rounded-full border ${state.cls}`}
-              >
-                <state.Icon size={11} /> {state.label}
-              </span>
+            {task.description && (
+              <p className="mt-1 line-clamp-2 text-body-sm leading-relaxed text-on-surface-variant">
+                {task.description}
+              </p>
             )}
+
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span
+                className={`${chip} ${
+                  task.is_required
+                    ? "border-error-outline bg-error-container text-on-error-container"
+                    : "border-outline-variant bg-surface-container-low text-on-surface-variant"
+                }`}
+              >
+                {task.is_required ? "Required" : "Optional"}
+              </span>
+              {/* A chip, not "Proof Type: Photo Proof". The label says what it
+                  is without the prefix, and it wraps as one unit. */}
+              <span className={`${chip} border-outline-variant bg-surface-container-low text-on-surface-variant`}>
+                {proofLabel}
+              </span>
+              {showPlatforms && platforms!.map((p) => (
+                p.url ? (
+                  <a
+                    key={p.platform}
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className={`${chip} tap-target border-outline-variant bg-surface-container-low text-on-surface-variant transition-colors hover:bg-surface-container`}
+                  >
+                    {p.label} <ExternalLink size={10} aria-hidden="true" />
+                  </a>
+                ) : (
+                  <span
+                    key={p.platform}
+                    className={`${chip} border-outline-variant bg-surface-container-low text-on-surface-variant`}
+                  >
+                    {p.label}
+                  </span>
+                )
+              ))}
+              {state && (
+                <span className={`${chip} ${state.cls}`}>
+                  <state.Icon size={11} aria-hidden="true" /> {state.label}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Action */}
-        <div className="flex items-center gap-2 shrink-0">
-          {completed ? (
-            <span className="h-9 px-4 rounded-xl bg-success-container border border-success-outline text-on-success-container text-xs font-bold flex items-center gap-1.5">
-              <Check size={14} /> Completed
-            </span>
-          ) : (
-            <button
-              onClick={onProof}
-              disabled={loading}
-              className="h-9 px-4 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 transition-colors tap-target"
-            >
-              {loading
-                ? <Loader2 size={14} className="animate-spin" />
-                : <Upload size={14} />}
-              {joined ? "Upload Proof" : "Join to Start"}
-            </button>
-          )}
-          <ChevronRight size={18} className="text-on-surface-variant hidden sm:block" aria-hidden="true" />
+        <div className="flex shrink-0 items-center gap-2">
+          {action}
+          <ChevronRight size={18} className="hidden text-on-surface-variant lg:block" aria-hidden="true" />
         </div>
       </div>
     </li>
@@ -941,7 +987,7 @@ function LeaderboardPanel({
   enabled: boolean;
 }) {
   return (
-    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
+    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 sm:p-6 elev-1 surface-raised">
       <h2 className="text-body-lg font-bold text-on-surface">Leaderboard</h2>
       <p className="text-sm text-on-surface-variant mt-0.5">
         {enabled
@@ -1007,7 +1053,7 @@ function AboutBusinessPanel({
   const phones = [b?.business_phone, b?.business_phone_alt].filter(Boolean);
 
   return (
-    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
+    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 sm:p-6 elev-1 surface-raised">
       <div className="flex items-start gap-4">
         <div className="w-14 h-14 rounded-xl bg-surface-container-low border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center">
           {b?.logo_url ?? quest.business_logo ? (
