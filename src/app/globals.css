@@ -666,6 +666,24 @@ body {
 }
 
 @layer utilities {
+  /* Heatmap squares. Each carries its own transition-delay so the grid fills
+     on a diagonal rather than all at once; the delay is set inline because it
+     depends on the cell's position. */
+  .heat-cell {
+    transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1),
+                scale 320ms cubic-bezier(0.22, 1, 0.36, 1),
+                background-color 200ms ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The grid is information, so it still appears — it just stops sweeping in.
+     The delay has to go too, or the cells would pop in one by one with no
+     animation to justify the wait. */
+  .heat-cell { transition: none !important; transition-delay: 0ms !important; }
+}
+
+@layer utilities {
   /* The swapping word on the entry screen. The overshoot in the easing is what
      stands in for framer-motion's spring — it settles slightly past the mark
      and comes back, which a plain ease-out does not do. Transform and opacity

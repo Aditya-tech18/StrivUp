@@ -7,6 +7,7 @@ import {
   Loader2, Plus, Settings, ShieldCheck, Trash2, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { ActivityHeatmap } from "@/components/ui/ActivityHeatmap";
 import {
   getMyProfile, upsertMyProfile,
   getMySocialLinks, addMySocialLink, deleteMySocialLink,
@@ -30,6 +31,9 @@ interface ChallengeStats {
   joined_at: string;
 }
 interface HeatmapEntry { submission_date: string; submission_count: number; }
+
+/** Sentinel for the combined view, which has no challenge_id to key on. */
+const ALL_ACTIVITY = "all";
 
 // ── Platform labels (no emojis) ─────────────────────────────────────────
 const PLATFORM_LABEL: Record<string, string> = {
@@ -57,98 +61,6 @@ function Sk({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-xl bg-surface-container-highest ${className}`} />;
 }
 
-// ── Heatmap ────────────────────────────────────────────────────────────────
-function ConsistencyHeatmap({
-  entries, currentStreak,
-}: {
-  entries: HeatmapEntry[];
-  currentStreak: number;
-}) {
-  const today = new Date();
-  const WEEKS = 26;
-  const dateMap = new Map(entries.map(e => [e.submission_date, e.submission_count]));
-
-  const grid: { date: string; count: number }[][] = [];
-  for (let w = WEEKS - 1; w >= 0; w--) {
-    const week: { date: string; count: number }[] = [];
-    for (let d = 0; d < 7; d++) {
-      const dt = new Date(today);
-      dt.setDate(today.getDate() - (w * 7 + (6 - d)));
-      const key = dt.toISOString().split("T")[0];
-      week.push({ date: key, count: dateMap.get(key) ?? 0 });
-    }
-    grid.push(week);
-  }
-
-  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const monthLabels: { label: string; col: number }[] = [];
-  grid.forEach((week, i) => {
-    const d = new Date(week[0].date);
-    if (i === 0 || new Date(grid[i - 1][0].date).getMonth() !== d.getMonth())
-      monthLabels.push({ label: MONTHS[d.getMonth()], col: i });
-  });
-
-  const cellColor = (n: number) =>
-    n === 0 ? "bg-surface-container-highest" :
-    n === 1 ? "bg-secondary/20" :
-    n === 2 ? "bg-secondary/45" :
-    n === 3 ? "bg-secondary/70" : "bg-secondary";
-
-  return (
-    <div className="w-full overflow-x-auto no-scrollbar">
-      <div className="min-w-[480px]">
-        {/* Month labels */}
-        <div className="relative flex h-4 mb-1 ml-7">
-          {monthLabels.map(ml => (
-            <span
-              key={ml.col}
-              className="absolute text-label-sm text-on-surface-variant"
-              style={{ left: `${ml.col * 14}px` }}
-            >
-              {ml.label}
-            </span>
-          ))}
-        </div>
-        <div className="flex gap-[2px]">
-          {/* Day labels */}
-          <div className="flex flex-col gap-[2px] mr-1">
-            {["", "Mon", "", "Wed", "", "Fri", ""].map((l, i) => (
-              <div key={i} className="h-[12px] text-label-sm text-on-surface-variant flex items-center justify-end w-6 pr-1">
-                {l}
-              </div>
-            ))}
-          </div>
-          {/* Cells */}
-          {grid.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-[2px]">
-              {week.map((cell, di) => (
-                <div
-                  key={di}
-                  title={`${cell.date}: ${cell.count} submission${cell.count !== 1 ? "s" : ""}`}
-                  className={`w-[12px] h-[12px] rounded-[2px] transition-opacity ${cellColor(cell.count)}`}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-        {/* Legend + streak */}
-        <div className="flex items-center justify-between mt-2.5">
-          <div className="flex items-center gap-1.5">
-            <span className="text-label-sm text-on-surface-variant">Less</span>
-            {[0, 1, 2, 3, 4].map(n => (
-              <div key={n} className={`w-[10px] h-[10px] rounded-[2px] ${cellColor(n)}`} />
-            ))}
-            <span className="text-label-sm text-on-surface-variant">More</span>
-          </div>
-          <span className="flex items-center gap-1 text-label-sm font-bold text-on-surface">
-            <Flame size={12} className="text-warning" aria-hidden="true" />
-            {currentStreak} day streak
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ── Challenge Card ─────────────────────────────────────────────────────────
 function ChallengeCard({ stats }: { stats: ChallengeStats }) {
@@ -379,7 +291,7 @@ export default function ProfilePage() {
 
   const [coinBalance, setCoinBalance] = useState<number | null>(null);
 
-  const [heatId,      setHeatId]      = useState<string | null>(null);
+  const [heatId,      setHeatId]      = useState<string>(ALL_ACTIVITY);
   const [heatEntries, setHeatEntries] = useState<HeatmapEntry[]>([]);
   const [heatStreak,  setHeatStreak]  = useState(0);
 
@@ -441,17 +353,15 @@ export default function ProfilePage() {
         : stats.filter(s => s.status === "active").slice(0, 3);
       setActiveStats(active);
 
-      const def = stats.find(s => s.status === "active");
-      if (def) {
-        setHeatId(def.challenge_id);
-        setHeatStreak(def.current_streak ?? 0);
-        const { data: hmData } = await supabase
-          .from("profile_heatmap")
-          .select("submission_date,submission_count")
-          .eq("user_id", user.id)
-          .eq("challenge_id", def.challenge_id);
-        setHeatEntries((hmData ?? []) as HeatmapEntry[]);
-      }
+      // Default to every kind of proof. Scoping to the first active challenge
+      // meant someone whose activity is all quests saw an empty grid, and
+      // someone with no active challenge saw no grid at all.
+      setHeatStreak(stats.find(s => s.status === "active")?.current_streak ?? 0);
+      const { data: hmData } = await supabase
+        .from("profile_activity_heatmap")
+        .select("submission_date,submission_count")
+        .eq("user_id", user.id);
+      setHeatEntries((hmData ?? []) as HeatmapEntry[]);
     } catch {
       // Views not yet created — stats/heatmap stay empty
     }
@@ -471,11 +381,19 @@ export default function ProfilePage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     try {
-      const { data } = await supabase
-        .from("profile_heatmap")
-        .select("submission_date,submission_count")
-        .eq("user_id", user.id)
-        .eq("challenge_id", cid);
+      // Two different views: the combined one spans challenges and quests and
+      // has no challenge_id, the per-challenge one is scoped to a single run.
+      const query = cid === ALL_ACTIVITY
+        ? supabase
+            .from("profile_activity_heatmap")
+            .select("submission_date,submission_count")
+            .eq("user_id", user.id)
+        : supabase
+            .from("profile_heatmap")
+            .select("submission_date,submission_count")
+            .eq("user_id", user.id)
+            .eq("challenge_id", cid);
+      const { data } = await query;
       setHeatEntries((data ?? []) as HeatmapEntry[]);
     } catch { /* view not ready */ }
     setHeatStreak(allStats.find(s => s.challenge_id === cid)?.current_streak ?? 0);
@@ -904,25 +822,38 @@ export default function ProfilePage() {
         {/* ── Consistency Heatmap ────────────────────────────────────────── */}
         {/* id is the landing target for the streak pill in the feed header;
             scroll-mt clears the sticky header so the card is not hidden. */}
-        {allStats.filter(s => s.status === "active").length > 0 && (
-          <div id="consistency" className="scroll-mt-20 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Consistency Heatmap</h3>
-              <select
-                value={heatId ?? ""}
-                onChange={e => switchHeatmap(e.target.value)}
-                className="text-label-sm font-medium text-on-surface bg-surface-container border border-outline-variant rounded-xl px-2 py-1.5 focus:outline-none max-w-[140px] truncate"
-              >
-                {allStats.filter(s => s.status === "active").map(s => (
-                  <option key={s.challenge_id} value={s.challenge_id}>
-                    {s.title.length > 22 ? s.title.slice(0, 22) + "…" : s.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <ConsistencyHeatmap entries={heatEntries} currentStreak={heatStreak} />
+        {/* Always rendered. It used to be gated on having an active challenge,
+            which hid the grid entirely from anyone whose activity is quests. */}
+        <div id="consistency" className="scroll-mt-20 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
+          <div className="flex items-center justify-between mb-3 gap-2">
+            <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Consistency</h3>
+            <select
+              aria-label="Heatmap source"
+              value={heatId}
+              onChange={e => switchHeatmap(e.target.value)}
+              className="text-label-sm font-medium text-on-surface bg-surface-container border border-outline-variant rounded-xl px-2 py-1.5 focus:outline-none max-w-[150px] truncate"
+            >
+              <option value={ALL_ACTIVITY}>All activity</option>
+              {allStats.filter(s => s.status === "active").map(s => (
+                <option key={s.challenge_id} value={s.challenge_id}>
+                  {s.title.length > 22 ? s.title.slice(0, 22) + "…" : s.title}
+                </option>
+              ))}
+            </select>
           </div>
-        )}
+          <ActivityHeatmap
+            days={heatEntries.map(e => ({ date: e.submission_date, count: e.submission_count }))}
+            label={heatId === ALL_ACTIVITY ? "Your activity over the last six months" : "Challenge activity over the last six months"}
+            period="the last 6 months"
+            actions={
+              heatId !== ALL_ACTIVITY && heatStreak > 0 ? (
+                <span className="text-label-sm font-semibold text-secondary">
+                  {heatStreak}-day streak
+                </span>
+              ) : null
+            }
+          />
+        </div>
 
         {/* ── Achievements ─────────────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
