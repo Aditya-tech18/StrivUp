@@ -139,7 +139,7 @@ function FollowModal({
       <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl flex flex-col max-h-[80vh] elev-5">
         <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant shrink-0">
           <h2 className="text-body-lg font-bold text-on-surface">{title}</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target">
             <X size={18} className="text-on-surface-variant" />
           </button>
         </div>
@@ -216,7 +216,7 @@ function ManageModal({
             <h2 className="text-body-lg font-bold text-on-surface">Manage Challenges</h2>
             <p className="text-body-sm text-on-surface-variant mt-0.5">Pin up to 3 to display on your profile.</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target">
             <X size={18} className="text-on-surface-variant" />
           </button>
         </div>
@@ -258,7 +258,7 @@ function ManageModal({
         </div>
         <button
           onClick={onClose}
-          className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-body-md shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+          className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-body-md elev-2"
         >
           Done
         </button>
@@ -507,14 +507,14 @@ export default function ProfilePage() {
             <button
               onClick={() => setEditing(v => !v)}
               aria-label="Edit profile"
-              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors"
+              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors tap-target"
             >
               <Edit2 size={15} className="text-on-surface-variant" />
             </button>
             <button
               onClick={() => router.push("/settings")}
               aria-label="Settings"
-              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors"
+              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors tap-target"
             >
               <Settings size={15} className="text-on-surface-variant" />
             </button>
@@ -599,7 +599,7 @@ export default function ProfilePage() {
                 {!editing && (
                   <button
                     onClick={() => router.push("/settings/edit-profile")}
-                    className="mt-2.5 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-sm font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
+                    className="mt-2.5 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-sm font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors tap-target"
                   >
                     Edit Profile
                   </button>
@@ -690,7 +690,7 @@ export default function ProfilePage() {
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   maxLength={80}
-                  className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                  className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary tap-target"
                 />
               </div>
 
@@ -702,7 +702,7 @@ export default function ProfilePage() {
                     value={username}
                     onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))}
                     maxLength={30}
-                    className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest pl-7 pr-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                    className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest pl-7 pr-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary tap-target"
                   />
                 </div>
               </div>
@@ -746,7 +746,7 @@ export default function ProfilePage() {
                     <select
                       value={newPlat}
                       onChange={e => setNewPlat(e.target.value as SocialPlatform)}
-                      className="h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none"
+                      className="h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none tap-target"
                     >
                       {PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                     </select>
@@ -755,10 +755,10 @@ export default function ProfilePage() {
                         value={newUrl}
                         onChange={e => setNewUrl(e.target.value)}
                         placeholder="https://…"
-                        className="flex-1 h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                        className="flex-1 h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary tap-target"
                       />
-                      <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-body-md font-semibold disabled:opacity-40">Add</button>
-                      <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-body-md">✕</button>
+                      <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-body-md font-semibold disabled:opacity-40 tap-target">Add</button>
+                      <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-body-md tap-target">✕</button>
                     </div>
                   </div>
                 )}
@@ -768,11 +768,11 @@ export default function ProfilePage() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-body-md flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+                  className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-body-md flex items-center justify-center gap-1.5 disabled:opacity-50 elev-2 tap-target"
                 >
                   {saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Save Changes"}
                 </button>
-                <button onClick={() => setEditing(false)} className="flex-1 h-10 rounded-xl border border-outline-variant text-on-surface font-semibold text-body-md">
+                <button onClick={() => setEditing(false)} className="flex-1 h-10 rounded-xl border border-outline-variant text-on-surface font-semibold text-body-md tap-target">
                   Cancel
                 </button>
               </div>
@@ -811,7 +811,7 @@ export default function ProfilePage() {
               </p>
               <button
                 onClick={() => router.push("/explore")}
-                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-body-md font-bold shadow-[0_2px_8px_rgba(29,78,216,0.2)]"
+                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-body-md font-bold elev-2 tap-target"
               >
                 Explore Challenges
               </button>
@@ -831,7 +831,7 @@ export default function ProfilePage() {
               aria-label="Heatmap source"
               value={heatId}
               onChange={e => switchHeatmap(e.target.value)}
-              className="text-label-sm font-medium text-on-surface bg-surface-container border border-outline-variant rounded-xl px-2 py-1.5 focus:outline-none max-w-[150px] truncate"
+              className="text-label-sm font-medium text-on-surface bg-surface-container border border-outline-variant rounded-xl px-2 py-1.5 focus:outline-none max-w-[150px] truncate tap-target"
             >
               <option value={ALL_ACTIVITY}>All activity</option>
               {allStats.filter(s => s.status === "active").map(s => (
@@ -897,7 +897,7 @@ export default function ProfilePage() {
               </p>
               <button
                 onClick={() => router.push("/explore")}
-                className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-body-md font-semibold hover:bg-surface-container transition-colors"
+                className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-body-md font-semibold hover:bg-surface-container transition-colors tap-target"
               >
                 Start a Challenge
               </button>

@@ -65,7 +65,7 @@ export default function BusinessProfilePage() {
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
         <h1 className="text-body-lg font-black text-on-surface flex-1">Business Profile</h1>
         <button onClick={() => router.push("/business/settings")}
-          className="flex items-center gap-1.5 h-9 px-4 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant bg-surface-container-lowest hover:bg-surface-container-low elev-1 surface-raised">
+          className="flex items-center gap-1.5 h-9 px-4 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant bg-surface-container-lowest hover:bg-surface-container-low elev-1 surface-raised tap-target">
           <Edit2 size={14} /> Edit
         </button>
       </div>
@@ -194,7 +194,7 @@ export default function BusinessProfilePage() {
               <p className="text-sm font-semibold text-on-surface-variant">No Quests yet</p>
               <p className="text-xs text-on-surface-variant max-w-xs">Create your first Quest to start attracting participants.</p>
               <button onClick={() => router.push("/business/quests/new")}
-                className="h-9 px-5 rounded-xl bg-secondary text-white text-sm font-bold">
+                className="h-9 px-5 rounded-xl bg-secondary text-white text-sm font-bold tap-target">
                 Create Quest
               </button>
             </div>

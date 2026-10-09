@@ -76,7 +76,7 @@ export function PhysicalActivityConfigFields({
               const type = e.target.value as ActivityType;
               set({ activity_type: type, unit: defaultUnitFor(type) });
             }}
-            className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
+            className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm tap-target"
           >
             {ACTIVITY_TYPES.map((a) => {
               const ready = PRODUCTION_ACTIVITY_TYPES.includes(a.value);
@@ -121,7 +121,7 @@ export function PhysicalActivityConfigFields({
                   e.target.value === "specific_date" ? value.specific_date : null,
               })
             }
-            className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
+            className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm tap-target"
           >
             {ACTIVITY_FREQUENCIES.map((f) => (
               <option key={f.value} value={f.value}>
@@ -148,7 +148,7 @@ export function PhysicalActivityConfigFields({
           <select
             value={value.tracking_mode}
             onChange={(e) => set({ tracking_mode: e.target.value as TrackingMode })}
-            className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm"
+            className="w-full rounded-xl border border-outline bg-surface-container-lowest px-2.5 py-2 text-sm tap-target"
           >
             <option value="self_reported">
               Phone sensor — counted in the StrivUp app (recommended)

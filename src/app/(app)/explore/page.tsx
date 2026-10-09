@@ -1,14 +1,12 @@
 /**
  * app/(app)/explore/page.tsx — Explore / Challenge Discovery
  *
- * Server component: fetches featured + trending challenges from Supabase
- * and passes them as props to ExploreClient (which owns the filter chip
- * state and search bar). FeaturedCard/TrendingRow components live in
- * ExploreClient so they remain purely client-side.
+ * Server component: fetches challenges and quests from Supabase and passes
+ * them to ExploreClient, which owns the header, the Quests/Challenges toggle
+ * and the search box. Both lists are fetched up front so switching tabs and
+ * searching are instant and need no network.
  */
 
-import Link from "next/link";
-import { Bell, Flame, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getFeaturedChallenges, getTrendingChallenges } from "@/lib/data/challenges";
 import { ExploreClient } from "./ExploreClient";
@@ -48,6 +46,8 @@ export interface FeaturedQuest {
   cover_url: string | null;
   thumbnail_url: string | null;
   business_name: string | null;
+  category: string | null;
+  location_name: string | null;
   participant_count: number;
   rewards: { id: string }[] | null;
 }
@@ -63,12 +63,12 @@ export default async function ExplorePage() {
     supabase
       .from("quests")
       .select(
-        "id, title, cover_url, thumbnail_url, business_name, participant_count, quest_rewards!quest_id ( id )"
+        "id, title, cover_url, thumbnail_url, business_name, category, location_name, participant_count, quest_rewards!quest_id ( id )"
       )
       .in("quest_status", ["active", "published"])
       .eq("visibility", "public")
       .order("created_at", { ascending: false })
-      .limit(10),
+      .limit(30),
   ]);
 
   if (questRes.error) {
@@ -82,43 +82,19 @@ export default async function ExplorePage() {
     cover_url: (q.cover_url as string | null) ?? null,
     thumbnail_url: (q.thumbnail_url as string | null) ?? null,
     business_name: (q.business_name as string | null) ?? null,
+    category: (q.category as string | null) ?? null,
+    location_name: (q.location_name as string | null) ?? null,
     participant_count: (q.participant_count as number | null) ?? 0,
     rewards: (q.quest_rewards as { id: string }[] | null) ?? null,
   }));
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* ── Sticky top bar (matches feed page) ───────────────────────── */}
-      <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
-        <div className="mx-auto flex h-14 measure-page items-center justify-between px-gutter lg:px-gutter-md">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary-container flex items-center justify-center">
-              <Flame size={16} className="text-on-primary" aria-hidden="true" />
-            </div>
-            <span className="text-label-md font-semibold uppercase tracking-widest text-secondary">
-              STRIVUP
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Link
-              href="/alerts"
-              aria-label="Alerts"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors duration-150"
-            >
-              <Bell size={20} strokeWidth={1.75} aria-hidden="true" />
-            </Link>
-            <Link
-              href="/profile"
-              aria-label="Your profile"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors duration-150"
-            >
-              <User size={20} strokeWidth={1.75} aria-hidden="true" />
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Client-side interactive content */}
+      {/* The header lives in ExploreClient because the Quests/Challenges
+          toggle sits inside it and is client state. Keeping them in one
+          element is what makes the whole bar stick as a single block under
+          the notch, rather than two stacked sticky bars whose offsets have to
+          be kept in sync by hand. */}
       <ExploreClient featured={featured} trending={trending} quests={quests} />
     </div>
   );

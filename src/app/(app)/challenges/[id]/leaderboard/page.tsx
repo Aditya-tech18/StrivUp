@@ -35,7 +35,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
         <div className="flex items-center gap-3 px-4 h-14 mx-auto measure-page">
           <Link
             href={`/challenges/${id}`}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
             aria-label="Back to challenge"
           >
             <ArrowLeft size={20} aria-hidden="true" />

@@ -82,14 +82,14 @@ export default function AccountDetailsPage() {
     </div>
   );
 
-  const inputCls = "w-full h-11 rounded-xl border border-outline-variant bg-white px-3.5 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors";
+  const inputCls = "w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors";
 
   return (
     <div className="min-h-screen bg-surface pb-28">
-      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-form flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
-            <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+            <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target">
               <ArrowLeft size={19} className="text-on-surface" />
             </button>
             <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Account Details</h1>
@@ -111,7 +111,7 @@ export default function AccountDetailsPage() {
         )}
 
         {/* Login Information */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised overflow-hidden">
           <div className="px-4 pt-4 pb-3">
             <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Login Information</p>
             <p className="text-body-sm text-on-surface-variant mt-0.5">Used to access your account</p>
@@ -147,7 +147,7 @@ export default function AccountDetailsPage() {
         </div>
 
         {/* Personal Information */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-4 flex flex-col gap-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-4 flex flex-col gap-4">
           <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Personal Information</p>
           <div className="flex flex-col gap-1.5">
             <label className="text-body-sm font-medium text-on-surface-variant">Age</label>
@@ -167,7 +167,7 @@ export default function AccountDetailsPage() {
         </div>
 
         {/* Account Information */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised overflow-hidden">
           <div className="px-4 pt-4 pb-2">
             <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Account Information</p>
           </div>
@@ -183,7 +183,7 @@ export default function AccountDetailsPage() {
 
         {/* Save */}
         <button onClick={handleSave} disabled={saving}
-          className="w-full h-12 rounded-xl bg-secondary text-white text-body-lg font-bold flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity shadow-[0_2px_8px_rgba(29,78,216,0.25)]">
+          className="w-full h-12 rounded-xl bg-secondary text-white text-body-lg font-bold flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity elev-2">
           {saving ? <><Loader2 size={16} className="animate-spin" /> Saving…</> : "Save Changes"}
         </button>
       </div>

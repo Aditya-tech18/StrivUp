@@ -93,7 +93,7 @@ export default function ParticipantsPage() {
         {/* Quest filter */}
         <div className="relative">
           <select aria-label="Filter by quest" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
-            className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none">
+            className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none tap-target">
             <option value="all">All Quests</option>
             {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
           </select>
@@ -106,7 +106,7 @@ export default function ParticipantsPage() {
             <button key={f} onClick={() => setFilter(f)}
               className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
                 filter === f ? "bg-secondary text-white border-secondary" : "bg-surface-container-lowest text-on-surface-variant border-outline-variant"
-              }`}>
+              } tap-target`}>
               {f === "all" ? "All" : f === "approved" ? "Completed" : f === "rejected" ? "Dropped" : "Active"}
             </button>
           ))}

@@ -238,7 +238,7 @@ export function QuestProofModal(props: Props) {
 
           {step === "done" && (
             <div className="flex flex-col items-center gap-3 py-4 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success shadow-[0_8px_24px_-6px_rgba(22,163,74,0.5)]">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success elev-4">
                 <CheckCircle2 size={32} className="text-white" />
               </div>
               <h2 id="proof-modal-title" className="text-xl font-black text-on-surface">Task Completed ✓</h2>

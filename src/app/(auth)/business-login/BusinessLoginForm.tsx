@@ -168,7 +168,7 @@ export function BusinessLoginForm() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between">
             <label htmlFor="biz-login-pwd" className="text-body-md font-medium text-on-surface">Password</label>
-            <Link href="/forgot-password" className="text-body-md text-secondary hover:underline">Forgot?</Link>
+            <Link href="/forgot-password" className="text-body-md text-secondary hover:underline tap-target">Forgot?</Link>
           </div>
           <div className="relative">
             <input
@@ -183,7 +183,7 @@ export function BusinessLoginForm() {
               aria-describedby={errors.password ? "password-error" : undefined}
             />
             <button type="button" onClick={() => setShowPwd(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface"
+              className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface"
               aria-label={showPwd ? "Hide password" : "Show password"}>
               {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>

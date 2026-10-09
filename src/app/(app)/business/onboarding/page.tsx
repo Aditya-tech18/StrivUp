@@ -27,7 +27,7 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant">
         {onBack && (
-          <button onClick={onBack} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center" aria-label="Back">
+          <button onClick={onBack} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center tap-target" aria-label="Back">
             <ChevronLeft size={20} className="text-on-surface-variant" />
           </button>
         )}
@@ -259,16 +259,16 @@ export default function BusinessOnboardingPage() {
         {socialLinks.length < 4 && (
           <div className="flex flex-col gap-2 mt-1">
             <select aria-label="Social platform" value={newPlatform} onChange={e => setNewPlatform(e.target.value)}
-              className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant">
+              className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant tap-target">
               {["instagram","linkedin","twitter","youtube","portfolio","other"].map(p => (
                 <option key={p} value={p}>{p.charAt(0).toUpperCase()+p.slice(1)}</option>
               ))}
             </select>
             <div className="flex gap-2">
               <input aria-label="Link URL" value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="https://…"
-                className="flex-1 h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm focus:outline-none focus:border-secondary" />
+                className="flex-1 h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm focus:outline-none focus:border-secondary tap-target" />
               <button type="button" onClick={() => { if (!newUrl.trim()) return; setSocialLinks(p => [...p, { platform: newPlatform, url: newUrl.trim() }]); setNewUrl(""); }}
-                className="h-10 px-4 rounded-xl bg-secondary text-white text-sm font-semibold">
+                className="h-10 px-4 rounded-xl bg-secondary text-white text-sm font-semibold tap-target">
                 Add
               </button>
             </div>
@@ -284,7 +284,7 @@ export default function BusinessOnboardingPage() {
     <div className="min-h-screen bg-surface flex flex-col">
       <div className="h-1 bg-secondary w-full" />
       <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant">
-        <button aria-label="Back" onClick={() => setStep(6)} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center">
+        <button aria-label="Back" onClick={() => setStep(6)} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center tap-target">
           <ChevronLeft size={20} className="text-on-surface-variant" />
         </button>
         <div>
@@ -348,7 +348,7 @@ export default function BusinessOnboardingPage() {
           className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-body-lg transition-all">
           {saving ? "Submitting…" : "Submit Business Profile"}
         </button>
-        <button onClick={() => setStep(1)} className="w-full h-10 rounded-xl border border-outline-variant text-on-surface-variant text-sm font-medium">
+        <button onClick={() => setStep(1)} className="w-full h-10 rounded-xl border border-outline-variant text-on-surface-variant text-sm font-medium tap-target">
           Edit Details
         </button>
       </div>

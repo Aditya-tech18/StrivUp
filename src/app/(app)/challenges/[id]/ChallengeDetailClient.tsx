@@ -36,7 +36,7 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
-import { Badge, Card } from "@/components/ui";
+import { Badge, BrandMark, Card } from "@/components/ui";
 import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage, IMAGE_PRESETS } from "@/lib/image";
@@ -774,12 +774,7 @@ export function ChallengeDetailClient({
       <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
         <div className="flex items-center justify-between px-4 h-14 mx-auto measure-page">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary-container flex items-center justify-center">
-              <Flame size={16} className="text-on-primary" aria-hidden="true" />
-            </div>
-            <span className="text-overline text-secondary tracking-widest font-semibold">
-              STRIVUP
-            </span>
+            <BrandMark variant="wordmark" height={20} priority />
           </div>
           <div className="flex items-center gap-1">
             {/* Invite — the cold-start mechanism. Creator-only. */}
@@ -787,7 +782,7 @@ export function ChallengeDetailClient({
               <button
                 type="button"
                 onClick={() => setInviteOpen(true)}
-                className="flex items-center gap-1 text-xs text-secondary font-semibold hover:underline w-9 h-9 justify-center rounded-full hover:bg-surface-variant transition-colors"
+                className="flex items-center gap-1 text-xs text-secondary font-semibold hover:underline w-9 h-9 justify-center rounded-full hover:bg-surface-variant transition-colors tap-target"
                 title="Invite people"
                 aria-label="Invite people to this challenge"
               >
@@ -798,7 +793,7 @@ export function ChallengeDetailClient({
             {isCreator && (
               <Link
                 href={`/creator/challenges/${challenge.id}/manage-tasks`}
-                className="flex items-center gap-1 text-xs text-on-surface-variant font-medium hover:text-secondary transition-colors w-9 h-9 justify-center rounded-full hover:bg-surface-variant"
+                className="flex items-center gap-1 text-xs text-on-surface-variant font-medium hover:text-secondary transition-colors w-9 h-9 justify-center rounded-full hover:bg-surface-variant tap-target"
                 title="Manage tasks"
                 aria-label="Manage tasks"
               >
@@ -809,7 +804,7 @@ export function ChallengeDetailClient({
             {isCreator && (
               <Link
                 href={`/creator/challenges/${challenge.id}/submissions`}
-                className="flex items-center gap-1 text-xs text-secondary font-semibold hover:underline w-9 h-9 justify-center rounded-full hover:bg-surface-variant transition-colors"
+                className="flex items-center gap-1 text-xs text-secondary font-semibold hover:underline w-9 h-9 justify-center rounded-full hover:bg-surface-variant transition-colors tap-target"
                 title="Review submissions"
                 aria-label="Review submissions"
               >
@@ -819,7 +814,7 @@ export function ChallengeDetailClient({
             <Link
               href="/alerts"
               aria-label="Notifications"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
             >
               <Bell size={20} strokeWidth={1.75} aria-hidden="true" />
             </Link>
@@ -1104,7 +1099,7 @@ export function ChallengeDetailClient({
               <h2 className="text-headline-md text-on-surface font-semibold">Community Feed</h2>
               <button
                 type="button"
-                className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
                 aria-label="Filter feed"
               >
                 <Filter size={18} strokeWidth={1.75} aria-hidden="true" />

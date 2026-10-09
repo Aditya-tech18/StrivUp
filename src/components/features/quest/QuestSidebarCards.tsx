@@ -368,7 +368,7 @@ export function BusinessProfileCard({
         {business?.id && (
           <Link
             href={`/business/${business.id}`}
-            className="h-9 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center justify-center gap-1.5 transition-colors"
+            className="h-9 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center justify-center gap-1.5 transition-colors tap-target"
           >
             <Users size={13} /> Profile
           </Link>

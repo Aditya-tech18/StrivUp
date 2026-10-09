@@ -89,7 +89,7 @@ export default function PromotePage() {
             <div className="text-center py-6">
               <p className="text-sm text-on-surface-variant mb-3">No active Quests to promote.</p>
               <button onClick={() => router.push("/business/quests/new")}
-                className="h-9 px-5 rounded-xl bg-secondary text-white text-sm font-bold">
+                className="h-9 px-5 rounded-xl bg-secondary text-white text-sm font-bold tap-target">
                 Create a Quest First
               </button>
             </div>

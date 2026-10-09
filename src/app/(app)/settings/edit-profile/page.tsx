@@ -183,7 +183,7 @@ export default function EditProfilePage() {
           <div className="flex items-center gap-3">
             <button aria-label="Back"
               onClick={() => router.back()}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target"
             >
               <ArrowLeft size={19} className="text-on-surface" />
             </button>
@@ -219,7 +219,7 @@ export default function EditProfilePage() {
       <div className="mx-auto measure-form px-5 pt-5 flex flex-col gap-5">
 
         {/* ── Avatar ───────────────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col items-center gap-3 elev-1 surface-raised">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-5 flex flex-col items-center gap-3 elev-1 surface-raised">
           <div className="relative">
             <div className={[
               "w-24 h-24 rounded-full overflow-hidden border-2 border-outline-variant bg-surface-container",
@@ -264,7 +264,7 @@ export default function EditProfilePage() {
             {profile?.avatar_url && (
               <button
                 onClick={handleRemoveAvatar}
-                className="px-4 py-1.5 rounded-xl border border-outline-variant text-body-md font-semibold text-error hover:bg-error-container/50 transition-colors"
+                className="px-4 py-1.5 rounded-xl border border-outline-variant text-body-md font-semibold text-error hover:bg-error-container/50 transition-colors tap-target"
               >
                 Remove
               </button>
@@ -274,7 +274,7 @@ export default function EditProfilePage() {
         </div>
 
         {/* ── Personal information ─────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-4 elev-1 surface-raised">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-5 flex flex-col gap-4 elev-1 surface-raised">
           <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
             Personal Information
           </p>
@@ -319,7 +319,7 @@ export default function EditProfilePage() {
         </div>
 
         {/* ── Social links ─────────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5 flex flex-col gap-3 elev-1 surface-raised">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-5 flex flex-col gap-3 elev-1 surface-raised">
           <div className="flex items-center justify-between">
             <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
               Social Links
@@ -375,7 +375,7 @@ export default function EditProfilePage() {
               <select aria-label="Social platform"
                 value={newPlatform}
                 onChange={e => setNewPlatform(e.target.value as SocialPlatform)}
-                className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary tap-target"
               >
                 {PLATFORMS.map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -385,7 +385,7 @@ export default function EditProfilePage() {
                 value={newUrl}
                 onChange={e => setNewUrl(e.target.value)}
                 placeholder="https://…"
-                className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary tap-target"
               />
               {linkError && (
                 <p className="text-body-sm text-error">{linkError}</p>
@@ -394,13 +394,13 @@ export default function EditProfilePage() {
                 <button
                   onClick={handleAddLink}
                   disabled={!newUrl.trim()}
-                  className="flex-1 h-9 rounded-xl bg-secondary text-white text-body-md font-semibold disabled:opacity-40"
+                  className="flex-1 h-9 rounded-xl bg-secondary text-white text-body-md font-semibold disabled:opacity-40 tap-target"
                 >
                   Add
                 </button>
                 <button
                   onClick={() => { setAddingLink(false); setNewUrl(""); setLinkError(""); }}
-                  className="flex-1 h-9 rounded-xl border border-outline-variant text-on-surface text-body-md font-semibold"
+                  className="flex-1 h-9 rounded-xl border border-outline-variant text-on-surface text-body-md font-semibold tap-target"
                 >
                   Cancel
                 </button>
@@ -413,7 +413,7 @@ export default function EditProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving || !fullName.trim()}
-          className="w-full h-12 rounded-xl bg-secondary text-white text-body-lg font-bold flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+          className="w-full h-12 rounded-xl bg-secondary text-white text-body-lg font-bold flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity elev-2"
         >
           {saving
             ? <><Loader2 size={16} className="animate-spin" /> Saving…</>

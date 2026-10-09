@@ -298,7 +298,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
           <div className="bg-secondary-fixed border border-secondary-fixed-dim rounded-2xl p-5 flex flex-col items-center gap-3 text-center">
             <p className="text-sm font-semibold text-on-secondary-fixed">Join this Quest to complete tasks</p>
             <button onClick={handleJoin}
-              className="h-10 px-6 rounded-xl bg-secondary text-white font-bold text-sm">
+              className="h-10 px-6 rounded-xl bg-secondary text-white font-bold text-sm tap-target">
               Join Quest
             </button>
           </div>
@@ -419,7 +419,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
                   )}
 
                   <button onClick={() => handleSubmit(task)} disabled={isSubmitting || (needsFile && files.length === 0 && !hasExistingMedia)}
-                    className="w-full h-10 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-sm disabled:opacity-40 flex items-center justify-center gap-2 transition-all">
+                    className="w-full h-10 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-sm disabled:opacity-40 flex items-center justify-center gap-2 transition-all tap-target">
                     {isSubmitting
                       ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Submitting…</>
                       : <><Upload size={15} />{canResubmit ? "Resubmit Proof" : "Submit Proof"}</>
@@ -432,7 +432,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
               {isParticipant && task.proof_type === "none" && !sub && (
                 <div className="p-4">
                   <button onClick={() => handleSubmit(task)}
-                    className="w-full h-10 rounded-xl bg-success text-white font-bold text-sm flex items-center justify-center gap-2">
+                    className="w-full h-10 rounded-xl bg-success text-white font-bold text-sm flex items-center justify-center gap-2 tap-target">
                     <Check size={15} /> Mark as Complete
                   </button>
                 </div>

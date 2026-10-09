@@ -223,7 +223,7 @@ export function ProofComments({
                 type="submit"
                 disabled={!draft.trim() || posting}
                 aria-label="Post comment"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary disabled:opacity-40"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary disabled:opacity-40 tap-target"
               >
                 {posting ? (
                   <Loader2 size={15} className="animate-spin" aria-hidden="true" />

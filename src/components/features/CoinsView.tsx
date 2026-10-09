@@ -119,7 +119,7 @@ export function CoinsView({
           <Link
             href="/feed"
             aria-label="Back"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-colors hover:bg-surface-container"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-colors hover:bg-surface-container tap-target"
           >
             <ArrowLeft size={20} aria-hidden="true" />
           </Link>

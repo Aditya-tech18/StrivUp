@@ -79,7 +79,7 @@ function ChallengeCard({ c }: { c: CreatedChallenge }) {
 
       <div className="mt-3 flex gap-2">
         <Link href={`/challenges/${c.id}`}
-          className="flex h-9 flex-1 items-center justify-center rounded-xl bg-primary text-xs font-bold tracking-wide text-white">
+          className="flex h-9 flex-1 items-center justify-center rounded-xl bg-primary text-xs font-bold tracking-wide text-white tap-target">
           OPEN CHALLENGE
         </Link>
         <Link href={`/creator/challenges/${c.id}/submissions`}
@@ -121,7 +121,7 @@ export function MyChallengesClient({ challenges }: { challenges: CreatedChalleng
         <div className="flex items-center justify-between">
           <h1 className="text-headline-md font-black text-on-surface">My Challenges</h1>
           <Link href="/creator/pro"
-            className="flex h-8 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-white">
+            className="flex h-8 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-white tap-target">
             <Crown size={13} className="text-amber-400" /> Creator Pro
           </Link>
         </div>

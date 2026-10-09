@@ -69,7 +69,7 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
         <span className="text-xs font-semibold text-on-surface-variant flex-shrink-0">Task {index + 1}</span>
         <div className="flex-1" />
         <button type="button" onClick={onRemove} aria-label={`Remove task ${index + 1}`}
-          className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-error-container hover:text-error transition-colors">
+          className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-error-container hover:text-error transition-colors tap-target">
           <Trash2 size={14} aria-hidden="true" />
         </button>
       </div>
@@ -78,7 +78,7 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
         value={task.title}
         onChange={(e) => onChange({ ...task, title: e.target.value })}
         placeholder="Task title (required)"
-        className="w-full h-9 px-3 rounded-xl border border-outline-variant bg-surface text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors"
+        className="w-full h-9 px-3 rounded-xl border border-outline-variant bg-surface text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors tap-target"
       />
       <textarea
         value={task.description}
@@ -93,7 +93,7 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
           <select
             value={task.proofType}
             onChange={(e) => onChange({ ...task, proofType: e.target.value })}
-            className="flex-1 h-8 px-2 rounded-xl border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+            className="flex-1 h-8 px-2 rounded-xl border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary tap-target"
           >
             {PROOF_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
@@ -210,7 +210,7 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
           <button
             type="button"
             onClick={() => router.back()}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
             aria-label="Go back"
           >
             <ArrowLeft size={20} aria-hidden="true" />

@@ -128,7 +128,7 @@ export default function RewardsPage() {
             <button key={t.value} onClick={() => setFilter(t.value)}
               className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
                 filter === t.value ? "bg-secondary text-white border-secondary" : "bg-surface-container-lowest text-on-surface-variant border-outline-variant"
-              }`}>
+              } tap-target`}>
               {t.label}
             </button>
           ))}
@@ -181,7 +181,7 @@ export default function RewardsPage() {
 
                   {(claim.status === "eligible" || claim.status === "processing") && (
                     <button onClick={() => handleFulfill(claim.id)} disabled={fulfilling === claim.id}
-                      className="w-full h-10 rounded-xl bg-success hover:bg-success text-white text-sm font-bold disabled:opacity-40 transition-all">
+                      className="w-full h-10 rounded-xl bg-success hover:bg-success text-white text-sm font-bold disabled:opacity-40 transition-all tap-target">
                       {fulfilling === claim.id ? "Marking…" : "✓ Mark as Fulfilled"}
                     </button>
                   )}

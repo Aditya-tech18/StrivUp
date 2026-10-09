@@ -100,7 +100,7 @@ export function UsersClient({ currentAdminId, initialStatus, initialQuery }: { c
                         <div className="flex flex-wrap gap-1.5">
                           {ACTIONS.filter(a => a.to !== u.account_status && (a.to !== "active" || u.account_status !== "active")).map(a => (
                             <button key={a.to} type="button" onClick={() => { setPending({ user: u, to: a.to }); setReason(""); setError(null); setNotice(null); }}
-                              className={`h-8 rounded-lg border px-2.5 text-xs font-bold ${a.cls}`}>{a.label}</button>
+                              className={`h-8 rounded-lg border px-2.5 text-xs font-bold ${a.cls} tap-target`}>{a.label}</button>
                           ))}
                         </div>
                       )}

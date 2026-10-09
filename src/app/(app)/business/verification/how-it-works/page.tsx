@@ -51,7 +51,7 @@ export default function HowItWorksPage() {
         <div className="flex-1">
           <h1 className="text-body-lg font-black text-on-surface">How Order Verification Works</h1>
         </div>
-        <button aria-label="Close" onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center">
+        <button aria-label="Close" onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center tap-target">
           <X size={18} className="text-on-surface-variant" />
         </button>
       </div>

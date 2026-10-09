@@ -10,6 +10,7 @@ import {
   ArrowLeft, ArrowRight, BadgeCheck, CheckCircle2, ClipboardCheck, Eye, Flag, Gift,
   ListChecks, Receipt, Search, ShieldCheck, Smartphone, Store, Trophy, User, XCircle,
 } from "lucide-react";
+import { BrandMark } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "How Quests Work — STRIVUP",
@@ -93,7 +94,7 @@ export default function HowQuestsWorkPage() {
           <ArrowLeft size={20} className="text-on-surface-variant" />
         </Link>
         <p className="flex-1 text-body-lg font-black text-on-surface">How Quests Work</p>
-        <span className="pr-2 text-label-sm font-black tracking-[0.2em] text-secondary">STRIVUP</span>
+        <span className="pr-2"><BrandMark variant="wordmark" height={16} /></span>
       </header>
 
       <main className="mx-auto flex max-w-2xl flex-col gap-10 px-4 pb-16 pt-6">
@@ -331,11 +332,15 @@ export default function HowQuestsWorkPage() {
           </ul>
         </Section>
 
+        {/* w-full below sm, flex-1 only from sm. In a COLUMN flex container
+            flex-1 sets flex-basis on the main axis, which is the height, and
+            that beats h-*: these rendered 20px tall on a phone instead of 48.
+            Caught by measuring the live page, not by reading the classes. */}
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Link href="/quests" className="flex h-12 flex-1 items-center justify-center rounded-xl bg-secondary text-sm font-bold text-white">
+          <Link href="/quests" className="flex h-12 w-full items-center justify-center rounded-xl bg-secondary text-sm font-bold text-white sm:flex-1">
             Explore Quests
           </Link>
-          <Link href="/business" className="flex h-12 flex-1 items-center justify-center rounded-xl border border-outline-variant bg-surface-container-lowest text-sm font-bold text-on-surface elev-1 surface-raised">
+          <Link href="/business" className="flex h-12 w-full items-center justify-center rounded-xl border border-outline-variant bg-surface-container-lowest text-sm font-bold text-on-surface elev-1 surface-raised sm:flex-1">
             Create a Quest for your business
           </Link>
         </div>

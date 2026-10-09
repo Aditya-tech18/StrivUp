@@ -218,7 +218,7 @@ export default function AnalyticsPage() {
             <p className="text-body-lg font-black text-on-surface">No Analytics Yet</p>
             <p className="text-sm text-on-surface-variant max-w-xs">Analytics will appear once people start interacting with your Quest.</p>
             <button onClick={() => router.push("/business/quests/new")}
-              className="h-10 px-5 rounded-xl bg-secondary text-white text-sm font-bold">
+              className="h-10 px-5 rounded-xl bg-secondary text-white text-sm font-bold tap-target">
               Create a Quest
             </button>
           </div>

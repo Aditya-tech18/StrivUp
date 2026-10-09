@@ -59,7 +59,7 @@ export default function VerificationHistoryPage() {
 
       <div className="px-5 py-5 mx-auto measure-form flex flex-col gap-5">
         {/* Insights */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
             { label:"Total",    value:insights.total,    color:"text-on-surface" },
             { label:"Approved", value:insights.approved, color:"text-on-success-container" },
@@ -79,7 +79,7 @@ export default function VerificationHistoryPage() {
             <button key={f} onClick={() => setFilter(f)}
               className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
                 filter===f ? "bg-secondary text-white border-secondary" : "bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-outline"
-              }`}>
+              } tap-target`}>
               {f.charAt(0).toUpperCase()+f.slice(1)}
             </button>
           ))}

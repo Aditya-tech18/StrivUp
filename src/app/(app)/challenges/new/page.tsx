@@ -134,7 +134,7 @@ function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhys
           type="button"
           onClick={onRemove}
           aria-label={`Remove task ${index + 1}`}
-          className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-error-container hover:text-error transition-colors"
+          className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-error-container hover:text-error transition-colors tap-target"
         >
           <Trash2 size={14} aria-hidden="true" />
         </button>
@@ -178,7 +178,7 @@ function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhys
           <select aria-label="Proof type"
             value={task.proofType}
             onChange={(e) => onChange({ ...task, proofType: e.target.value })}
-            className="flex-1 h-8 px-2 rounded-xl border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+            className="flex-1 h-8 px-2 rounded-xl border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary tap-target"
           >
             {PROOF_TYPES.map((t) => (
               <option key={t} value={t}>{PROOF_TYPE_LABELS[t] ?? t}</option>
@@ -550,7 +550,7 @@ export default function CreateChallengePage() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-variant transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
               aria-label="Close"
             >
               <X size={20} aria-hidden="true" />
@@ -819,7 +819,7 @@ export default function CreateChallengePage() {
                     })}
                     {proofTypes.filter((t) => !(DEFAULT_PROOF_TYPES as readonly string[]).includes(t)).map((custom) => (
                       <button key={custom} type="button" onClick={() => toggleProofType(custom)} aria-pressed={true}
-                        className="h-8 px-3 rounded-full border bg-secondary text-on-secondary border-secondary text-sm font-medium">
+                        className="h-8 px-3 rounded-full border bg-secondary text-on-secondary border-secondary text-sm font-medium tap-target">
                         {custom} ×
                       </button>
                     ))}
@@ -835,13 +835,13 @@ export default function CreateChallengePage() {
                             if (e.key === "Escape") { setShowCustomInput(false); setCustomInput(""); }
                           }}
                           placeholder="Type & press Enter"
-                          className="h-8 px-3 rounded-full border border-secondary bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 w-40"
+                          className="h-8 px-3 rounded-full border border-secondary bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 w-40 tap-target"
                         />
                         <button type="button" onClick={addCustomChip} className="text-secondary text-sm font-semibold hover:underline">Add</button>
                       </div>
                     ) : (
                       <button type="button" onClick={() => setShowCustomInput(true)}
-                        className="h-8 px-3 rounded-full border border-dashed border-outline-variant text-on-surface-variant text-sm hover:bg-surface-container transition-colors">
+                        className="h-8 px-3 rounded-full border border-dashed border-outline-variant text-on-surface-variant text-sm hover:bg-surface-container transition-colors tap-target">
                         + Add Custom
                       </button>
                     )}

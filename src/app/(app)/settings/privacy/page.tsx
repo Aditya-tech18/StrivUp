@@ -47,7 +47,7 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-surface pb-28">
       <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-form flex items-center gap-3 px-5 py-3.5">
-          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
           <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Account Privacy</h1>
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
         )}
 
         {/* Toggle row */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-4 elev-1 surface-raised">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-4 elev-1 surface-raised">
           <div className="flex items-center gap-3.5">
             <div className={[
               "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",

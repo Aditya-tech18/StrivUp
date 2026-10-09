@@ -31,7 +31,7 @@ function SettingsGroup({
       <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em] mb-2 px-1">
         {title}
       </p>
-      <div className="bg-white rounded-2xl border border-outline-variant overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+      <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden elev-1 surface-raised">
         {items.map((item, idx) => (
           <button
             key={item.label}
@@ -177,11 +177,11 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-form flex items-center gap-3 px-5 py-3.5">
           <button aria-label="Back"
             onClick={() => router.back()}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target"
           >
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
@@ -193,7 +193,7 @@ export default function SettingsPage() {
 
         {/* ── Profile card ─────────────────────────────────────────────── */}
         {profile && (
-          <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-4">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-4">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-full bg-secondary/10 overflow-hidden shrink-0 flex items-center justify-center border border-outline-variant">
                 {profile.avatar_url ? (
@@ -213,7 +213,7 @@ export default function SettingsPage() {
               </div>
               <button
                 onClick={() => router.push("/settings/edit-profile")}
-                className="shrink-0 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-md font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
+                className="shrink-0 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-md font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors tap-target"
               >
                 Edit
               </button>
@@ -230,7 +230,7 @@ export default function SettingsPage() {
         <button
           onClick={handleLogOut}
           disabled={loggingOut}
-          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-white border border-outline-variant text-body-md font-semibold text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-body-md font-semibold text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50 elev-1 surface-raised"
         >
           <LogOut size={16} className="text-on-surface-variant" />
           {loggingOut ? "Signing out…" : "Sign Out"}

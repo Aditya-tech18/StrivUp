@@ -22,9 +22,9 @@ export default function DeactivatePage() {
 
   return (
     <div className="min-h-screen bg-surface pb-28">
-      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-form flex items-center gap-3 px-5 py-3.5">
-          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
           <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Deactivate Account</h1>
@@ -32,7 +32,7 @@ export default function DeactivatePage() {
       </div>
 
       <div className="mx-auto measure-form px-5 py-10 flex flex-col items-center gap-6">
-        <div className="w-20 h-20 rounded-2xl bg-warning-container border border-warning-outline flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
+        <div className="w-20 h-20 rounded-2xl bg-warning-container border border-warning-outline flex items-center justify-center elev-3">
           <Clock size={36} className="text-warning" strokeWidth={1.5} />
         </div>
 
@@ -64,7 +64,7 @@ export default function DeactivatePage() {
 
         <div className="w-full flex flex-col gap-3">
           <button onClick={handleDeactivate} disabled={loading}
-            className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-body-lg flex items-center justify-center gap-2 disabled:opacity-50 transition-opacity shadow-[0_2px_8px_rgba(29,78,216,0.25)]">
+            className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-body-lg flex items-center justify-center gap-2 disabled:opacity-50 transition-opacity elev-2">
             {loading ? <><Loader2 size={16} className="animate-spin" /> Deactivating…</> : "Deactivate Account"}
           </button>
           <button onClick={() => router.back()}

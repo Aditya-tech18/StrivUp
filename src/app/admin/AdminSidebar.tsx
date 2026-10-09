@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Activity, BadgeCheck, Building2, Flame, LayoutDashboard, LogOut, ScrollText,
+  Activity, BadgeCheck, Building2, LayoutDashboard, LogOut, ScrollText,
   ShieldAlert, Users,
 } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { BrandMark } from "@/components/ui";
 
 interface Item { href: string; label: string; icon: ComponentType<LucideProps>; badge?: number; adminOnly?: boolean }
 
@@ -36,7 +37,11 @@ export function AdminSidebar({ email, isAdmin, pendingReports, pendingVerificati
   return (
     <aside className="border-b border-white/10 bg-admin-chrome text-white md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-b-0">
       <div className="flex items-center gap-2.5 px-4 py-3 md:px-5 md:py-5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10"><Flame size={18} aria-hidden="true" /></span>
+        {/* On the dark rail the logo needs a light plate behind it; the mark
+            is drawn on white and would otherwise disappear. */}
+        <span className="flex h-9 items-center justify-center rounded-xl bg-white px-2">
+          <BrandMark variant="mark" height={20} />
+        </span>
         <div className="min-w-0">
           <p className="text-body-lg font-black tracking-wide">STRIVUP</p>
           <p className="text-label-sm font-semibold uppercase tracking-wider text-on-admin-chrome-variant">Admin console</p>
@@ -65,7 +70,7 @@ export function AdminSidebar({ email, isAdmin, pendingReports, pendingVerificati
         <p className="truncate text-xs text-on-admin-chrome-variant" title={email}>{email}</p>
         <p className="text-label-sm text-on-admin-chrome-variant">{isAdmin ? "Platform administrator" : "Moderator"}</p>
         <button type="button" onClick={signOut}
-          className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/20 text-sm font-semibold text-white hover:bg-white/10">
+          className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/20 text-sm font-semibold text-white hover:bg-white/10 tap-target">
           <LogOut size={15} aria-hidden="true" /> Sign out
         </button>
       </div>

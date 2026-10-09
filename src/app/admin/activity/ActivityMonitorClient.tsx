@@ -99,7 +99,7 @@ export default function ActivityMonitorClient({
               tab === t
                 ? "border-secondary text-secondary"
                 : "border-transparent text-on-surface-variant hover:text-on-surface"
-            }`}
+            } tap-target`}
           >
             {t === "flagged" ? `Suspicious (${flagged.length})` : "Audit log"}
           </button>

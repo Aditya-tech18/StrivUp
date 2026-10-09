@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { ServiceWorkerRegistrar } from "@/components/ui";
 import "./globals.css";
 
 /**
@@ -40,9 +41,27 @@ export const metadata: Metadata = {
     "student community",
     "personal growth",
   ],
+  manifest: "/manifest.webmanifest",
+  /* Declared explicitly rather than relying on src/app/icon.png alone, so a
+     browser asking for a 32px tab icon gets a 32px file instead of downscaling
+     a 512px one. The lockup is 3.6:1 in a square box, so it is small at 16px
+     by construction; offering the exact sizes is what keeps it crisp. */
+  icons: {
+    icon: [
+      { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/favicon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icons/favicon-96.png", sizes: "96x96", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   appleWebApp: {
     title: "StrivUp",
     capable: true,
+    // "default" leaves an opaque status bar, which is what we want: the app is
+    // light and the shell already paints to the safe-area edges.
     statusBarStyle: "default",
   },
   // Stops iOS Safari from turning numbers in proof captions into phone links.
@@ -54,12 +73,14 @@ export const metadata: Metadata = {
     description:
       "Join challenges, prove your progress, and build streaks with a community that shows up daily.",
     url: siteUrl,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "StrivUp" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "StrivUp — Build Better. Every Day.",
     description:
       "Join challenges, prove your progress, and build streaks with a community that shows up daily.",
+    images: ["/og.png"],
   },
 };
 
@@ -94,7 +115,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <ServiceWorkerRegistrar />
+      </body>
     </html>
   );
 }

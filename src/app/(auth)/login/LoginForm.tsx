@@ -212,7 +212,7 @@ export function LoginForm() {
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? "Hide password" : "Show password"}
-              className="p-1 text-on-surface-variant transition-colors hover:text-on-surface"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:text-on-surface"
             >
               {showPassword ? (
                 <EyeOff size={16} aria-hidden="true" />
@@ -227,7 +227,7 @@ export function LoginForm() {
         <div className="flex justify-end">
           <Link
             href="/forgot-password"
-            className="text-body-md text-on-surface-variant transition-colors hover:text-on-surface"
+            className="text-body-md text-on-surface-variant transition-colors tap-target hover:text-on-surface"
           >
             Forgot password?
           </Link>

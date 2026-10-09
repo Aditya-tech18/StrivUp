@@ -43,7 +43,7 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
             <button
               onClick={onBack}
               aria-label="Back"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-container pressable focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-container pressable focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary tap-target"
             >
               <ChevronLeft size={20} className="text-on-surface-variant" aria-hidden="true" />
             </button>
@@ -331,7 +331,7 @@ function CreateQuestContent() {
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-on-surface-variant">Category</label>
           <select value={category} onChange={e => setCategory(e.target.value)}
-            className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary">
+            className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary tap-target">
             <option value="">Select category…</option>
             {QUEST_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -370,7 +370,7 @@ function CreateQuestContent() {
               )}
             </div>
             <input value={task.title ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, title: e.target.value } : t))}
-              placeholder="Task title *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest" />
+              placeholder="Task title *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest tap-target" />
             <textarea value={task.description ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, description: e.target.value } : t))}
               placeholder="Task description..." rows={2}
               className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest resize-none" />
@@ -378,7 +378,7 @@ function CreateQuestContent() {
               <div className="flex-1">
                 <label className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">Proof Type</label>
                 <select value={task.proof_type ?? "photo"} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, proof_type: e.target.value as ProofType } : t))}
-                  className="w-full h-9 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-xs text-on-surface-variant focus:outline-none focus:border-secondary">
+                  className="w-full h-9 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-xs text-on-surface-variant focus:outline-none focus:border-secondary tap-target">
                   {PROOF_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                 </select>
               </div>
@@ -481,21 +481,21 @@ function CreateQuestContent() {
               <div className="flex-1">
                 <label className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">Reward Type</label>
                 <select value={reward.reward_type ?? "other"} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, reward_type: e.target.value as RewardType } : r))}
-                  className="w-full h-9 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-xs text-on-surface-variant focus:outline-none focus:border-secondary">
+                  className="w-full h-9 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-xs text-on-surface-variant focus:outline-none focus:border-secondary tap-target">
                   {REWARD_TYPES.map(rt => <option key={rt.value} value={rt.value}>{rt.label}</option>)}
                 </select>
               </div>
             </div>
             <input value={reward.title ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, title: e.target.value } : r))}
-              placeholder="Reward title (e.g. ₹10,000 Cash Prize) *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest" />
+              placeholder="Reward title (e.g. ₹10,000 Cash Prize) *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest tap-target" />
             <input value={reward.value ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, value: e.target.value } : r))}
-              placeholder="Value (e.g. ₹10,000)" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest" />
+              placeholder="Value (e.g. ₹10,000)" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest tap-target" />
             {isLeaderboard && (
               <div className="grid grid-cols-2 gap-3">
                 <input type="number" value={reward.rank_from ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, rank_from: parseInt(e.target.value) || null } : r))}
-                  placeholder="Rank from" className="h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary" />
+                  placeholder="Rank from" className="h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary tap-target" />
                 <input type="number" value={reward.rank_to ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, rank_to: parseInt(e.target.value) || null } : r))}
-                  placeholder="Rank to" className="h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary" />
+                  placeholder="Rank to" className="h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary tap-target" />
               </div>
             )}
             <textarea value={reward.description ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, description: e.target.value } : r))}
@@ -572,7 +572,7 @@ function CreateQuestContent() {
           <button
             onClick={() => setStep(5)}
             aria-label="Back to visibility"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-container pressable focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-container pressable focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary tap-target"
           >
             <ChevronLeft size={20} className="text-on-surface-variant" aria-hidden="true" />
           </button>

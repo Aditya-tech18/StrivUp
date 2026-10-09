@@ -183,7 +183,7 @@ export default function BusinessOrderVerificationPage() {
           <Link
             href="/business/dashboard"
             aria-label="Back to dashboard"
-            className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 transition-colors"
+            className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 transition-colors tap-target"
           >
             <ArrowLeft size={18} className="text-on-surface-variant" />
           </Link>
@@ -196,7 +196,7 @@ export default function BusinessOrderVerificationPage() {
           <button
             onClick={() => loadQueue(questIds)}
             aria-label="Refresh queue"
-            className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center gap-1.5 transition-colors"
+            className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center gap-1.5 transition-colors tap-target"
           >
             <RefreshCw size={14} /> <span className="hidden sm:inline">Refresh</span>
           </button>
@@ -214,7 +214,7 @@ export default function BusinessOrderVerificationPage() {
 
           <div className="flex flex-col sm:flex-row gap-2.5 mt-4">
             <label htmlFor="order-code" className="sr-only">STRIVUP order code</label>
-            <div className="flex-1 flex items-center gap-2 rounded-xl border-2 border-outline-variant focus-within:border-secondary bg-surface-container-lowest px-4 h-12 transition-colors elev-1 surface-raised">
+            <div className="w-full sm:flex-1 flex items-center gap-2 rounded-xl border-2 border-outline-variant focus-within:border-secondary bg-surface-container-lowest px-4 h-12 transition-colors elev-1 surface-raised">
               <Search size={17} className="text-on-surface-variant shrink-0" />
               <input
                 id="order-code"
@@ -331,7 +331,7 @@ export default function BusinessOrderVerificationPage() {
                       </p>
                       <button
                         onClick={handleCopyBill}
-                        className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-secondary hover:opacity-90 text-white text-sm font-bold transition-colors"
+                        className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-secondary hover:opacity-90 text-white text-sm font-bold transition-colors tap-target"
                       >
                         {copied ? <><Check size={15} /> Copied</> : <><Copy size={15} /> Copy code</>}
                       </button>
@@ -464,7 +464,7 @@ export default function BusinessOrderVerificationPage() {
                   </span>
                   <button
                     onClick={() => { setCode(v.order_code); void handleSearch(v.order_code); }}
-                    className="h-8 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant shrink-0 transition-colors"
+                    className="h-8 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant shrink-0 transition-colors tap-target"
                   >
                     Open
                   </button>

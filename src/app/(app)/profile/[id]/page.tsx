@@ -170,9 +170,9 @@ export default function PublicProfilePage({
   return (
     <div className="min-h-screen bg-surface-container-low pb-28">
       {/* Header */}
-      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-page flex items-center gap-3 px-5 py-3.5">
-          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
+          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container tap-target">
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
           <h1 className="text-body-lg font-bold text-on-surface flex-1 truncate">
@@ -188,7 +188,7 @@ export default function PublicProfilePage({
 
       <div className="mx-auto measure-page px-5 pt-5 flex flex-col gap-4">
         {/* Profile card */}
-        <div className="bg-white rounded-2xl border border-outline-variant overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden">
           <div className="px-5 pt-5 pb-4">
             <div className="flex items-start gap-4">
               {/* Avatar */}
@@ -256,7 +256,7 @@ export default function PublicProfilePage({
 
         {/* Private account locked state */}
         {profile.is_private && !isFollowing && !isOwnProfile && (
-          <div className="bg-white rounded-2xl border border-outline-variant p-8 flex flex-col items-center gap-3 text-center">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-8 flex flex-col items-center gap-3 text-center">
             <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center">
               <span className="text-3xl">🔒</span>
             </div>
@@ -269,7 +269,7 @@ export default function PublicProfilePage({
 
         {/* Active Challenges — only if public or following */}
         {canViewContent && activeChallenges.length > 0 && (
-          <div className="bg-white rounded-2xl border border-outline-variant p-4">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4">
             <h3 className="text-sm font-bold text-on-surface mb-3">Active Challenges</h3>
             <div className="grid grid-cols-3 gap-2">
               {activeChallenges.map(ch => (

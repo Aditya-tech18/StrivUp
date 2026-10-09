@@ -228,7 +228,7 @@ export function SignupForm() {
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? "Hide password" : "Show password"}
-              className="p-1 text-on-surface-variant transition-colors hover:text-on-surface"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:text-on-surface"
             >
               {showPassword ? (
                 <EyeOff size={16} aria-hidden="true" />

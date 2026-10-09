@@ -90,11 +90,11 @@ export default function BusinessVerificationClient() {
             <p className="text-label-sm text-on-admin-chrome-variant">STRIVUP admin console</p>
           </div>
           <Link href="/admin/moderation"
-            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-on-admin-chrome-variant flex items-center transition-colors">
+            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-on-admin-chrome-variant flex items-center transition-colors tap-target">
             Moderation
           </Link>
           <button onClick={() => void reload()} aria-label="Refresh"
-            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-on-admin-chrome-variant flex items-center gap-1.5 transition-colors">
+            className="h-9 px-3 rounded-xl border border-white/15 hover:bg-white/5 text-xs font-semibold text-on-admin-chrome-variant flex items-center gap-1.5 transition-colors tap-target">
             <RefreshCw size={13} /> Refresh
           </button>
         </div>
@@ -126,7 +126,7 @@ export default function BusinessVerificationClient() {
               className={`shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
                 tab === t.value
                   ? "bg-secondary text-white"
-                  : "text-white/50 hover:text-white hover:bg-white/5"}`}>
+                  : "text-white/50 hover:text-white hover:bg-white/5"} tap-target`}>
               {t.label}
             </button>
           ))}
@@ -250,7 +250,7 @@ function ReviewPanel({
             <p className="text-label-sm text-on-admin-chrome-variant truncate">{app.owner_email}</p>
           </div>
           <button onClick={onClose} aria-label="Close"
-            className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center shrink-0">
+            className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center shrink-0 tap-target">
             <X size={17} className="text-white/60" />
           </button>
         </div>

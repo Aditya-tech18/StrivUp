@@ -12,8 +12,7 @@
  */
 
 import type { ReactNode } from "react";
-import { Flame } from "lucide-react";
-import { AppSidebar, BottomNav, AlertsProvider } from "@/components/ui";
+import { AppSidebar, BottomNav, AlertsProvider, BrandMark } from "@/components/ui";
 
 export default function AppShellLayout({ children }: { children: ReactNode }) {
   return (
@@ -25,14 +24,13 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
           aria-label="Sidebar navigation"
           className="rail hidden md:fixed md:inset-y-0 md:flex md:flex-col md:border-r md:border-outline-variant md:bg-surface-container-low"
         >
-          {/* Brand mark. The icon is centred in the collapsed rail, so its
-              padding matches the nav items' rather than the old wider inset. */}
+          {/* Brand mark. The square mark is what shows in the collapsed rail,
+              so it keeps the nav items' padding; the wordmark appears beside it
+              once the rail expands. */}
           <div className="flex items-center gap-3 border-b border-outline-variant px-5 py-4">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-container">
-              <Flame size={18} className="text-on-primary" aria-hidden="true" />
-            </div>
-            <span className="rail-label text-overline text-sm font-semibold tracking-widest text-secondary">
-              STRIVUP
+            <BrandMark variant="mark" height={22} priority className="shrink-0" />
+            <span className="rail-label">
+              <BrandMark variant="wordmark" height={18} />
             </span>
           </div>
 

@@ -176,13 +176,13 @@ export default function ModerationClient({
 
         <div className="flex gap-2 border-b border-outline-variant">
           <button 
-            className={`px-4 py-2 text-body-md font-medium border-b-2 ${tab === "reports" ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"}`}
+            className={`px-4 py-2 text-body-md font-medium border-b-2 ${tab === "reports" ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"} tap-target`}
             onClick={() => setTab("reports")}
           >
             Pending Reports
           </button>
           <button 
-            className={`px-4 py-2 text-body-md font-medium border-b-2 ${tab === "all" ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"}`}
+            className={`px-4 py-2 text-body-md font-medium border-b-2 ${tab === "all" ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"} tap-target`}
             onClick={() => setTab("all")}
           >
             All Proof

@@ -217,14 +217,14 @@ function VerifyContent() {
               value={insightRange}
               onChange={e => setInsightRange(e.target.value as InsightRange)}
               aria-label="Insights time range"
-              className="h-8 rounded-xl border border-outline-variant bg-surface-container-lowest text-xs font-semibold text-on-surface-variant px-2 focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary"
+              className="h-8 rounded-xl border border-outline-variant bg-surface-container-lowest text-xs font-semibold text-on-surface-variant px-2 focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary tap-target"
             >
               <option value="7">Last 7 Days</option>
               <option value="30">Last 30 Days</option>
               <option value="all">All Time</option>
             </select>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
               { label: "Total",    value: insights.total,    cls: "text-on-surface" },
               { label: "Approved", value: insights.approved, cls: "text-on-success-container" },

@@ -57,7 +57,7 @@ export function ModeSwitcher() {
       {ctx.is_admin && (
         <Link
           href="/admin"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-on-warning-container bg-warning-container hover:bg-warning-container border border-warning-outline transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-on-warning-container bg-warning-container hover:bg-warning-container border border-warning-outline transition-colors tap-target"
         >
           <ShieldCheck size={18} strokeWidth={2} aria-hidden="true" className="shrink-0" />
           <span className="rail-label truncate">Admin Console</span>
@@ -67,7 +67,7 @@ export function ModeSwitcher() {
       {ctx.can_use_business_mode ? (
         <Link
           href="/business/dashboard"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-secondary bg-secondary/10 hover:bg-secondary/15 transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-secondary bg-secondary/10 hover:bg-secondary/15 transition-colors tap-target"
         >
           <Briefcase size={18} strokeWidth={2} aria-hidden="true" className="shrink-0" />
           <div className="rail-label min-w-0 flex-1">
@@ -84,7 +84,7 @@ export function ModeSwitcher() {
         // gate, not the profile, so this goes to the application.
         <Link
           href="/business/verify-business"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-colors tap-target"
         >
           <Lock size={18} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />
           <div className="rail-label min-w-0 flex-1">
@@ -97,7 +97,7 @@ export function ModeSwitcher() {
       ) : (
         <Link
           href="/business/onboarding"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-colors tap-target"
         >
           <Plus size={18} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />
           <span className="rail-label truncate">Create Business Profile</span>
