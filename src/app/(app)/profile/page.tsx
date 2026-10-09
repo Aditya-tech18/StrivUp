@@ -357,13 +357,19 @@ export default function ProfilePage() {
       // meant someone whose activity is all quests saw an empty grid, and
       // someone with no active challenge saw no grid at all.
       setHeatStreak(stats.find(s => s.status === "active")?.current_streak ?? 0);
-      const { data: hmData } = await supabase
+      const { data: hmData, error: hmError } = await supabase
         .from("profile_activity_heatmap")
         .select("submission_date,submission_count")
         .eq("user_id", user.id);
+      // supabase-js reports query failures in `error`, not by throwing, so a
+      // discarded error here rendered as a confident "0 proofs" — the grid
+      // could not tell "you posted nothing" from "the query failed". Log it
+      // and leave the grid empty rather than claim a number we do not have.
+      if (hmError) console.error("heatmap query failed", hmError);
       setHeatEntries((hmData ?? []) as HeatmapEntry[]);
-    } catch {
-      // Views not yet created — stats/heatmap stay empty
+    } catch (err) {
+      // Views not yet created — stats and heatmap stay empty, but say so.
+      console.error("profile stats/heatmap load failed", err);
     }
   }, [supabase, router]);
 
@@ -393,9 +399,10 @@ export default function ProfilePage() {
             .select("submission_date,submission_count")
             .eq("user_id", user.id)
             .eq("challenge_id", cid);
-      const { data } = await query;
+      const { data, error } = await query;
+      if (error) console.error("heatmap query failed", error);
       setHeatEntries((data ?? []) as HeatmapEntry[]);
-    } catch { /* view not ready */ }
+    } catch (err) { console.error("heatmap switch failed", err); }
     setHeatStreak(allStats.find(s => s.challenge_id === cid)?.current_streak ?? 0);
   };
 

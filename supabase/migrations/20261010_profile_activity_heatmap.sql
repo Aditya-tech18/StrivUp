@@ -40,4 +40,8 @@ FROM (
 ) sources
 GROUP BY user_id, submission_date;
 
+-- Supabase's default privileges hand anon everything on a new object in
+-- public. The profile is behind auth, so a signed-out client has no reason to
+-- read the activity grid at all.
+REVOKE ALL ON public.profile_activity_heatmap FROM anon;
 GRANT SELECT ON public.profile_activity_heatmap TO authenticated;

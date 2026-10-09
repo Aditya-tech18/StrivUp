@@ -4,20 +4,24 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 
 /**
- * ActivityHeatmap — a contribution-style consistency grid.
+ * ActivityHeatmap — a consistency grid, grouped by calendar month.
  *
- * One square per day, weeks as columns, five tints for how much was posted.
- * Adapted from the reference design, in StrivUp's blues.
+ * One square per day, seven rows for the seven weekdays, and each month in
+ * its own block with a gap and a label beneath it.
  *
- * WHAT CAME ACROSS: the layout and the interaction model — month and weekday
- * labels, a single tooltip shared by the whole grid, arrow-key navigation,
- * the Less/More legend, a summary line, and the diagonal wave as the grid
- * first appears.
+ * WHY MONTH BLOCKS AND NOT ONE CONTINUOUS STRIP. The usual contribution graph
+ * runs weeks end to end and drops a month label on whichever column the 1st
+ * happens to land in. Because a week straddles two months, that label is only
+ * ever approximately over its month, and the longer the range the more it
+ * drifts. Breaking the strip at each month boundary means a label sits over
+ * exactly the days it names — you can point at March and be right. The cost
+ * is a partial column where months meet, which is the correct trade: this
+ * chart is read as "how was my March", not "how was week 11".
  *
- * WHAT DID NOT: `motion/react`. The reference also leans on it for a
- * digit-rolling total and blur crossfades between tooltip strings — lovely,
- * but they need AnimatePresence to be worth having, and that is a dependency
- * this project does not carry. The wave and the tooltip move on CSS instead.
+ * NO MOTION LIBRARY. The reference drives this with motion/react, including a
+ * digit-rolling total and blurred tooltip crossfades. Those need
+ * AnimatePresence to be worth having and this project does not carry that
+ * dependency; the reveal wave and the tooltip run on CSS.
  */
 
 export interface ActivityDay {
@@ -27,16 +31,18 @@ export interface ActivityDay {
 }
 
 const DAY_MS = 86_400_000;
-/** Total travel time of the reveal wave, however many weeks are on screen. */
+/** Total travel of the reveal wave, however many months are on screen. */
 const WAVE_MS = 420;
+const CELL = 13;
+const GAP = 3;
 
-const toUtc = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
 const toIso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+const utcDay = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
 
 /**
- * Level tints. Deliberately the brand blue stepping up in opacity rather than
- * five hand-picked colours: the ramp stays correct if --color-secondary ever
- * changes, and every step keeps the same hue so the grid reads as one scale.
+ * Level tints: the brand blue stepping up in opacity rather than five picked
+ * shades, so the ramp stays correct if --color-secondary moves and every step
+ * keeps the same hue.
  */
 const LEVEL_BG = [
   "bg-surface-container",
@@ -46,17 +52,23 @@ const LEVEL_BG = [
   "bg-secondary",
 ] as const;
 
+interface MonthBlock {
+  label: string;
+  /** Weekday row the 1st rendered day of this month sits on. */
+  lead: number;
+  /** Day indices into the flat arrays, in calendar order. */
+  indices: number[];
+  cols: number;
+}
+
 interface Model {
   start: number;
   length: number;
-  /** Blank cells before the first real day, so columns line up with weekdays. */
-  lead: number;
-  weeks: number;
   total: number;
   counts: number[];
   levels: number[];
   thresholds: [number, number, number];
-  months: { col: number; label: string }[];
+  months: MonthBlock[];
 }
 
 function buildModel(
@@ -65,15 +77,15 @@ function buildModel(
   rangeDays: number,
   locale: string
 ): Model {
-  // The range is always the trailing window ending today, so an empty account
-  // still gets a full grid instead of a single square.
-  const today = Date.parse(`${toIso(Date.now())}T00:00:00Z`);
+  // Always the trailing window ending today, so an empty account still gets a
+  // full grid rather than a single square.
+  const today = utcDay(toIso(Date.now()));
   const start = today - (rangeDays - 1) * DAY_MS;
   const length = rangeDays;
 
   const counts = new Array<number>(length).fill(0);
   for (const day of days) {
-    const t = toUtc(day.date);
+    const t = utcDay(day.date);
     if (!Number.isFinite(t)) continue;
     const i = Math.round((t - start) / DAY_MS);
     if (i >= 0 && i < length) counts[i] += Math.max(0, day.count);
@@ -89,25 +101,29 @@ function buildModel(
     n <= 0 ? 0 : n <= thresholds[0] ? 1 : n <= thresholds[1] ? 2 : n <= thresholds[2] ? 3 : 4
   );
 
-  const lead = (new Date(start).getUTCDay() - weekStartsOn + 7) % 7;
-  const weeks = Math.ceil((lead + length) / 7);
-
+  // Split the window at calendar month boundaries.
   const monthFmt = new Intl.DateTimeFormat(locale, { month: "short", timeZone: "UTC" });
-  const months: Model["months"] = [];
+  const months: MonthBlock[] = [];
   for (let i = 0; i < length; i++) {
-    const d = new Date(start + i * DAY_MS);
-    if (i === 0 || d.getUTCDate() === 1) {
-      months.push({ col: Math.floor((lead + i) / 7), label: monthFmt.format(d) });
+    const date = new Date(start + i * DAY_MS);
+    const isFirstOfMonth = date.getUTCDate() === 1;
+    if (i === 0 || isFirstOfMonth) {
+      months.push({
+        label: monthFmt.format(date),
+        lead: (date.getUTCDay() - weekStartsOn + 7) % 7,
+        indices: [],
+        cols: 0,
+      });
     }
+    months[months.length - 1].indices.push(i);
   }
-  // A partial first month keeps its label only if there is room before the next.
-  if (months.length > 1 && months[1].col - months[0].col < 3) months.shift();
+  for (const block of months) {
+    block.cols = Math.ceil((block.lead + block.indices.length) / 7);
+  }
 
   return {
     start,
     length,
-    lead,
-    weeks,
     total: counts.reduce((a, b) => a + b, 0),
     counts,
     levels,
@@ -133,7 +149,7 @@ export function ActivityHeatmap({
   /** Finishes the summary: "12 proofs in {period}". */
   period: string;
   unit?: { one: string; other: string };
-  /** Length of the trailing window. Six months fits a phone without scrolling. */
+  /** Length of the trailing window. */
   rangeDays?: number;
   weekStartsOn?: 0 | 1;
   locale?: string;
@@ -166,8 +182,8 @@ export function ActivityHeatmap({
     [locale]
   );
 
-  // The reveal runs once, a frame after mount, so the wave is visible rather
-  // than already finished on first paint.
+  // Runs once, a frame after mount, so the wave is seen rather than finished
+  // before first paint.
   const [revealed, setRevealed] = useState(false);
   useEffect(() => {
     const id = requestAnimationFrame(() => setRevealed(true));
@@ -175,7 +191,7 @@ export function ActivityHeatmap({
   }, []);
 
   const [tip, setTip] = useState<{ index: number; x: number; y: number } | null>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
+  const plotRef = useRef<HTMLDivElement>(null);
 
   const noun = (n: number) => (n === 1 ? unit.one : unit.other);
 
@@ -190,23 +206,24 @@ export function ActivityHeatmap({
   };
 
   const showTip = (index: number, cell: HTMLElement) => {
-    const grid = gridRef.current;
-    if (!grid) return;
-    const g = grid.getBoundingClientRect();
+    const plot = plotRef.current;
+    if (!plot) return;
+    const p = plot.getBoundingClientRect();
     const c = cell.getBoundingClientRect();
-    setTip({ index, x: c.left - g.left + c.width / 2, y: c.top - g.top });
+    setTip({ index, x: c.left - p.left + c.width / 2, y: c.top - p.top });
   };
 
   const focusDay = (index: number) => {
     const clamped = Math.min(Math.max(index, 0), model.length - 1);
-    gridRef.current?.querySelector<HTMLElement>(`[data-index="${clamped}"]`)?.focus();
+    plotRef.current?.querySelector<HTMLElement>(`[data-index="${clamped}"]`)?.focus();
   };
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     const target = (event.target as HTMLElement).closest<HTMLElement>("[data-index]");
     if (!target) return;
     const i = Number(target.dataset.index);
-    // Up/down move a day, left/right move a week — the grid's own axes.
+    // Up/down a day, left/right a week — and because the blocks are split by
+    // month, those moves cross a month boundary the same as any other day.
     const moves: Record<string, number> = {
       ArrowUp: i - 1,
       ArrowDown: i + 1,
@@ -223,8 +240,6 @@ export function ActivityHeatmap({
     }
   };
 
-  const maxDiagonal = Math.max(1, model.weeks - 1 + 6);
-  const step = Math.min(12, WAVE_MS / maxDiagonal);
   const weekdayLabels = Array.from({ length: 7 }, (_, row) => {
     const weekday = (row + weekStartsOn) % 7;
     // 4 Jan 1970 was a Sunday; every other row keeps the column readable.
@@ -241,6 +256,8 @@ export function ActivityHeatmap({
   ];
 
   const tipInfo = tip ? describe(tip.index) : null;
+  const totalCols = model.months.reduce((n, m) => n + m.cols, 0);
+  const step = Math.min(12, WAVE_MS / Math.max(1, totalCols + 6));
 
   return (
     <div className={`w-full ${className}`}>
@@ -251,113 +268,133 @@ export function ActivityHeatmap({
           </span>{" "}
           in {period}
         </p>
-        {actions}
+        {/* Wrapped so the slot has its own box to size and shrink, rather
+            than the caller's element being laid out directly by this flex
+            row. */}
+        {actions ? <div className="shrink-0">{actions}</div> : null}
       </div>
 
       <div className="overflow-x-auto pb-1">
-        <div className="inline-block min-w-full">
-          {/* Month labels sit on the same column track as the grid below. */}
+        <div className="flex gap-1.5">
+          {/* Weekday rail, aligned to the same 13px rows as every block. */}
           <div
             aria-hidden="true"
-            // Fixed 13px tracks, matching the grid's cells exactly. With 1fr
-            // the label row stretched to the container while the grid stayed
-            // intrinsically sized, so the months drifted right of their weeks.
-            className="mb-1 grid gap-[3px] pl-7 text-label-sm text-on-surface-variant"
-            style={{ gridTemplateColumns: `repeat(${model.weeks}, 13px)` }}
+            className="grid shrink-0 text-label-sm leading-none text-on-surface-variant"
+            style={{ gridTemplateRows: `repeat(7, ${CELL}px)`, rowGap: GAP, paddingTop: 0 }}
           >
-            {model.months.map((m, i) => (
-              <span
-                key={`${m.label}-${i}`}
-                // min-w-0 matters: a grid item defaults to min-width:auto, so
-                // "Sept" in a 13px track widens the track and drags every
-                // later month out of line with its week.
-                className="min-w-0"
-                style={{ gridColumnStart: m.col + 1 }}
-              >
-                {m.label}
+            {weekdayLabels.map((text, row) => (
+              <span key={row} className="flex items-center pr-1">
+                {text}
               </span>
             ))}
           </div>
 
-          <div className="flex gap-1">
-            <div
-              aria-hidden="true"
-              className="grid w-6 shrink-0 gap-[3px] text-label-sm leading-none text-on-surface-variant"
-            >
-              {weekdayLabels.map((text, row) => (
-                <span key={row} className="flex h-[13px] items-center">
-                  {text}
-                </span>
-              ))}
-            </div>
+          <div
+            ref={plotRef}
+            role="grid"
+            aria-label={label}
+            aria-readonly="true"
+            onKeyDown={onKeyDown}
+            onPointerLeave={() => setTip(null)}
+            className="relative flex gap-2"
+          >
+            {model.months.map((block, blockIndex) => {
+              // Columns before this one, for the diagonal wave to stay
+              // continuous across the gaps.
+              const colsBefore = model.months
+                .slice(0, blockIndex)
+                .reduce((n, m) => n + m.cols, 0);
 
-            <div className="relative">
-              <div
-                ref={gridRef}
-                role="grid"
-                aria-label={label}
-                aria-readonly="true"
-                onKeyDown={onKeyDown}
-                onPointerLeave={() => setTip(null)}
-                className="grid grid-flow-col gap-[3px]"
-                style={{ gridTemplateRows: "repeat(7, 13px)" }}
-              >
-                {Array.from({ length: model.weeks }, (_, col) =>
-                  Array.from({ length: 7 }, (_, row) => {
-                    const index = col * 7 + row - model.lead;
-                    const inRange = index >= 0 && index < model.length;
-                    const delay = Math.round((col + row) * step);
+              return (
+                <div key={`${block.label}-${blockIndex}`} className="flex flex-col gap-1">
+                  <div
+                    className="grid grid-flow-col"
+                    style={{
+                      gridTemplateRows: `repeat(7, ${CELL}px)`,
+                      gap: GAP,
+                    }}
+                  >
+                    {/* Flat rather than nested Array.from: nesting yields an
+                        array of arrays, and the inner arrays are children
+                        React cannot key. With grid-flow-col and 7 rows, a flat
+                        list fills column by column exactly the same way. */}
+                    {Array.from({ length: block.cols * 7 }, (_, n) => {
+                      const col = Math.floor(n / 7);
+                      const row = n % 7;
+                      {
+                        const slot = col * 7 + row - block.lead;
+                        const index = block.indices[slot];
+                        const key = `${col}-${row}`;
 
-                    if (!inRange) {
-                      return (
-                        <span
-                          key={`${col}-${row}`}
-                          aria-hidden="true"
-                          className="h-[13px] w-[13px] rounded-[3px]"
-                        />
-                      );
-                    }
+                        if (slot < 0 || index === undefined) {
+                          // Padding where the month does not start or end on a
+                          // week boundary. Kept as a cell so rows stay aligned.
+                          return (
+                            <span
+                              key={key}
+                              aria-hidden="true"
+                              style={{ width: CELL, height: CELL }}
+                            />
+                          );
+                        }
 
-                    const info = describe(index);
-                    return (
-                      <span
-                        key={`${col}-${row}`}
-                        role="gridcell"
-                        data-index={index}
-                        tabIndex={index === model.length - 1 ? 0 : -1}
-                        aria-label={info.full}
-                        onPointerEnter={(e) => showTip(index, e.currentTarget)}
-                        onFocus={(e) => showTip(index, e.currentTarget)}
-                        onBlur={() => setTip(null)}
-                        style={{ transitionDelay: revealed ? `${delay}ms` : "0ms" } as CSSProperties}
-                        className={[
-                          "heat-cell h-[13px] w-[13px] rounded-[3px]",
-                          LEVEL_BG[model.levels[index]],
-                          revealed ? "opacity-100" : "scale-75 opacity-0",
-                          "focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1",
-                        ].join(" ")}
-                      />
-                    );
-                  })
-                )}
-              </div>
+                        const info = describe(index);
+                        const delay = Math.round((colsBefore + col + row) * step);
+                        return (
+                          <span
+                            key={key}
+                            role="gridcell"
+                            data-index={index}
+                            tabIndex={index === model.length - 1 ? 0 : -1}
+                            aria-label={info.full}
+                            onPointerEnter={(e) => showTip(index, e.currentTarget)}
+                            onFocus={(e) => showTip(index, e.currentTarget)}
+                            onBlur={() => setTip(null)}
+                            style={
+                              {
+                                width: CELL,
+                                height: CELL,
+                                transitionDelay: revealed ? `${delay}ms` : "0ms",
+                              } as CSSProperties
+                            }
+                            className={[
+                              "heat-cell rounded-[3px]",
+                              LEVEL_BG[model.levels[index]],
+                              revealed ? "opacity-100" : "scale-75 opacity-0",
+                              "focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1",
+                            ].join(" ")}
+                          />
+                        );
+                      }
+                    })}
+                  </div>
 
-              {tipInfo ? (
-                <div
-                  role="tooltip"
-                  aria-hidden="true"
-                  className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full rounded-lg bg-inverse-surface px-2.5 py-1.5 elev-3"
-                  style={{ left: tip!.x, top: tip!.y - 6 }}
-                >
-                  <p className="whitespace-nowrap text-label-sm font-semibold text-inverse-on-surface">
-                    {tipInfo.primary}
-                  </p>
-                  <p className="whitespace-nowrap text-label-sm text-inverse-on-surface/70">
-                    {tipInfo.secondary}
-                  </p>
+                  {/* Centred under exactly the days it names. */}
+                  <span
+                    aria-hidden="true"
+                    className="text-center text-label-sm text-on-surface-variant"
+                  >
+                    {block.label}
+                  </span>
                 </div>
-              ) : null}
-            </div>
+              );
+            })}
+
+            {tipInfo ? (
+              <div
+                role="tooltip"
+                aria-hidden="true"
+                className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full rounded-lg bg-inverse-surface px-2.5 py-1.5 elev-3"
+                style={{ left: tip!.x, top: tip!.y - 6 }}
+              >
+                <p className="whitespace-nowrap text-label-sm font-semibold text-inverse-on-surface">
+                  {tipInfo.primary}
+                </p>
+                <p className="whitespace-nowrap text-label-sm text-inverse-on-surface/70">
+                  {tipInfo.secondary}
+                </p>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
