@@ -46,7 +46,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               "text-on-surface placeholder:text-on-surface-variant",
               "text-[length:var(--text-body-lg)] leading-6",
               "transition-colors duration-150",
-              "h-10 px-3",
+              // 48px, not 40: a form field is a touch target, and the bespoke
+              // fields in the auth forms are already h-12.
+              "h-12 px-3",
               leadingIcon ? "pl-9" : "",
               hasError
                 ? "border-error focus:ring-error/30 focus:border-error"

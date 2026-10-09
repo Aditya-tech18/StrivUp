@@ -128,7 +128,7 @@ export default function RewardsPage() {
             <button key={t.value} onClick={() => setFilter(t.value)}
               className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
                 filter === t.value ? "bg-secondary text-white border-secondary" : "bg-surface-container-lowest text-on-surface-variant border-outline-variant"
-              }`}>
+              } tap-target`}>
               {t.label}
             </button>
           ))}

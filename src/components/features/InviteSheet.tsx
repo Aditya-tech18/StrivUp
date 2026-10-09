@@ -157,7 +157,7 @@ export function InviteSheet({
             <button
               type="button"
               onClick={handleRotate}
-              className="mt-space-md flex w-full items-center justify-center gap-1.5 py-2 text-label-md text-on-surface-variant transition-colors hover:text-on-surface"
+              className="mt-space-md flex w-full items-center justify-center gap-1.5 py-2 text-label-md text-on-surface-variant transition-colors hover:text-on-surface tap-target"
             >
               <RefreshCw size={14} aria-hidden="true" />
               Generate a new link

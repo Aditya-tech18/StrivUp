@@ -96,7 +96,7 @@ export function BusinessSidebarNav() {
           key={href}
           href="/business/verify-business"
           title="Verify your business to unlock this"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-on-surface-variant/50 hover:bg-surface-container transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-on-surface-variant/50 hover:bg-surface-container transition-colors tap-target"
         >
           <Icon size={20} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />
           <span className="rail-label flex-1 truncate">{label}</span>
@@ -166,7 +166,7 @@ export function BusinessSidebarNav() {
 
       <Link
         href="/feed"
-        className="mt-4 mx-1 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
+        className="mt-4 mx-1 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors tap-target"
       >
         <Compass size={18} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />
         Switch to User mode

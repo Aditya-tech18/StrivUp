@@ -42,6 +42,21 @@ export const metadata: Metadata = {
     "personal growth",
   ],
   manifest: "/manifest.webmanifest",
+  /* Declared explicitly rather than relying on src/app/icon.png alone, so a
+     browser asking for a 32px tab icon gets a 32px file instead of downscaling
+     a 512px one. The lockup is 3.6:1 in a square box, so it is small at 16px
+     by construction; offering the exact sizes is what keeps it crisp. */
+  icons: {
+    icon: [
+      { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/favicon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icons/favicon-96.png", sizes: "96x96", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   appleWebApp: {
     title: "StrivUp",
     capable: true,

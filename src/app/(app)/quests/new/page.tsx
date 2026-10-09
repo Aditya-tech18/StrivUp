@@ -329,7 +329,7 @@ export default function CreateQuestPage() {
               onChange={(e) =>
                 setProofType(e.target.value as "photo" | "checkin" | "none")
               }
-              className="w-full text-body-md rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"
+              className="w-full text-body-md rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary tap-target"
             >
               <option value="photo">Photo Upload</option>
               <option value="checkin">Check-in</option>

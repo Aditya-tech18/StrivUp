@@ -168,7 +168,7 @@ export function BusinessLoginForm() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between">
             <label htmlFor="biz-login-pwd" className="text-body-md font-medium text-on-surface">Password</label>
-            <Link href="/forgot-password" className="text-body-md text-secondary hover:underline">Forgot?</Link>
+            <Link href="/forgot-password" className="text-body-md text-secondary hover:underline tap-target">Forgot?</Link>
           </div>
           <div className="relative">
             <input

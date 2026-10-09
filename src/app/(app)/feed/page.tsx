@@ -187,7 +187,7 @@ export default async function FeedPage() {
               <Link
                 href="/profile#consistency"
                 aria-label={`${today.bestStreak} day streak. See your consistency heatmap.`}
-                className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1 transition-transform active:scale-95"
+                className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1 transition-transform active:scale-95 tap-target"
               >
                 <Flame size={15} className="text-secondary" aria-hidden="true" />
                 <span className="text-label-md font-bold text-on-surface">
@@ -225,7 +225,7 @@ export default async function FeedPage() {
             </div>
             <Link
               href="/profile"
-              className="ml-auto shrink-0 rounded-lg bg-on-primary px-space-md py-2 text-label-md font-semibold text-primary"
+              className="ml-auto shrink-0 rounded-lg bg-on-primary px-space-md py-2 text-label-md font-semibold text-primary tap-target"
             >
               View
             </Link>

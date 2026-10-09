@@ -264,7 +264,7 @@ export default function EditProfilePage() {
             {profile?.avatar_url && (
               <button
                 onClick={handleRemoveAvatar}
-                className="px-4 py-1.5 rounded-xl border border-outline-variant text-body-md font-semibold text-error hover:bg-error-container/50 transition-colors"
+                className="px-4 py-1.5 rounded-xl border border-outline-variant text-body-md font-semibold text-error hover:bg-error-container/50 transition-colors tap-target"
               >
                 Remove
               </button>

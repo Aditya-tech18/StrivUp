@@ -129,7 +129,7 @@ export default function SearchPage() {
               <button key={t} onClick={() => setTab(t)}
                 className={`flex-1 py-2.5 text-xs font-bold capitalize flex items-center justify-center gap-1.5 border-b-2 transition-colors ${
                   tab === t ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"
-                }`}>
+                } tap-target`}>
                 {t}
                 {counts[t] > 0 && (
                   <span className={`text-label-sm px-1.5 py-0.5 rounded-full font-black ${tab === t ? "bg-secondary text-on-secondary" : "bg-surface-container text-on-surface-variant"}`}>

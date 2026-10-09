@@ -681,7 +681,7 @@ export default function ProfilePage() {
                 {!editing && (
                   <button
                     onClick={() => router.push("/settings/edit-profile")}
-                    className="mt-2.5 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-sm font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
+                    className="mt-2.5 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-sm font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors tap-target"
                   >
                     Edit Profile
                   </button>
@@ -893,7 +893,7 @@ export default function ProfilePage() {
               </p>
               <button
                 onClick={() => router.push("/explore")}
-                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-body-md font-bold elev-2"
+                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-body-md font-bold elev-2 tap-target"
               >
                 Explore Challenges
               </button>
@@ -911,7 +911,7 @@ export default function ProfilePage() {
               <select
                 value={heatId ?? ""}
                 onChange={e => switchHeatmap(e.target.value)}
-                className="text-label-sm font-medium text-on-surface bg-surface-container border border-outline-variant rounded-xl px-2 py-1.5 focus:outline-none max-w-[140px] truncate"
+                className="text-label-sm font-medium text-on-surface bg-surface-container border border-outline-variant rounded-xl px-2 py-1.5 focus:outline-none max-w-[140px] truncate tap-target"
               >
                 {allStats.filter(s => s.status === "active").map(s => (
                   <option key={s.challenge_id} value={s.challenge_id}>
@@ -966,7 +966,7 @@ export default function ProfilePage() {
               </p>
               <button
                 onClick={() => router.push("/explore")}
-                className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-body-md font-semibold hover:bg-surface-container transition-colors"
+                className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-body-md font-semibold hover:bg-surface-container transition-colors tap-target"
               >
                 Start a Challenge
               </button>

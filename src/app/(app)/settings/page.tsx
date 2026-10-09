@@ -213,7 +213,7 @@ export default function SettingsPage() {
               </div>
               <button
                 onClick={() => router.push("/settings/edit-profile")}
-                className="shrink-0 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-md font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
+                className="shrink-0 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-md font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors tap-target"
               >
                 Edit
               </button>

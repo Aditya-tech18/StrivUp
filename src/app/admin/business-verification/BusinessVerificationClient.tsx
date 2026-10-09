@@ -126,7 +126,7 @@ export default function BusinessVerificationClient() {
               className={`shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
                 tab === t.value
                   ? "bg-secondary text-white"
-                  : "text-white/50 hover:text-white hover:bg-white/5"}`}>
+                  : "text-white/50 hover:text-white hover:bg-white/5"} tap-target`}>
               {t.label}
             </button>
           ))}

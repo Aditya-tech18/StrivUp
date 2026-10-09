@@ -205,7 +205,7 @@ export default function BusinessDashboardPage() {
             </p>
             <p className="text-sm text-on-error-container">{bp.rejection_reason || "Your verification was rejected."}</p>
             <button onClick={() => router.push("/business/onboarding")}
-              className="mt-2 px-4 py-1.5 rounded-xl border border-error-outline text-on-error-container text-sm font-semibold">
+              className="mt-2 px-4 py-1.5 rounded-xl border border-error-outline text-on-error-container text-sm font-semibold tap-target">
               Resubmit
             </button>
           </div>
@@ -213,7 +213,11 @@ export default function BusinessDashboardPage() {
 
         {/* ── Profile Header ───────────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5 elev-1 surface-raised">
-          <div className="flex items-start gap-4">
+          {/* Same squeeze the quest task list had: logo 64px, a shrink-0 Edit
+              Profile button around 110px and three gaps left about 80px of a
+              360px row for a 20px-black business name. Stacks below sm. */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <div className="flex min-w-0 flex-1 items-start gap-4">
             {/* Logo */}
             <div className="w-16 h-16 rounded-2xl bg-surface-container overflow-hidden flex items-center justify-center shrink-0 border border-outline-variant">
               {bp.logo_url
@@ -235,8 +239,10 @@ export default function BusinessDashboardPage() {
                 <p className="text-sm text-on-surface-variant truncate">{[bp.category, city].filter(Boolean).join(" · ")}</p>
               )}
             </div>
+          </div>
+
             <button onClick={() => router.push("/business/settings")}
-              className="px-4 py-1.5 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant bg-surface-container-lowest hover:bg-surface-container-low shrink-0 elev-1 surface-raised">
+              className="flex h-11 w-full shrink-0 items-center justify-center rounded-xl border border-outline-variant bg-surface-container-lowest text-body-md font-semibold text-on-surface-variant elev-1 surface-raised hover:bg-surface-container-low sm:w-auto sm:px-4">
               Edit Profile
             </button>
           </div>
@@ -376,7 +382,7 @@ export default function BusinessDashboardPage() {
           {/* ── More tools ───────────────────────────────────────────── */}
           <div className="mt-4 grid grid-cols-3 gap-2 border-t border-outline-variant pt-4 sm:grid-cols-5 lg:grid-cols-3">
             {QUICK_LINKS.map(q => (
-              <Link key={q.href} href={q.href} className="flex flex-col items-center gap-1.5 rounded-xl py-2 hover:bg-surface-container-low transition-colors">
+              <Link key={q.href} href={q.href} className="flex flex-col items-center gap-1.5 rounded-xl py-2 hover:bg-surface-container-low transition-colors tap-target">
                 <div className={`w-9 h-9 rounded-xl ${q.bg} flex items-center justify-center`}>{q.icon}</div>
                 <span className="text-label-sm font-medium text-on-surface-variant text-center leading-tight">{q.label}</span>
               </Link>

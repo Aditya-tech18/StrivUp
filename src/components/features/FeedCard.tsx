@@ -216,13 +216,13 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
                     </select>
                     <div className="flex justify-end gap-2">
                       <button 
-                        className="px-4 py-2 text-body-sm font-medium text-on-surface-variant"
+                        className="px-4 py-2 text-body-sm font-medium text-on-surface-variant tap-target"
                         onClick={() => setIsReporting(false)}
                       >
                         Cancel
                       </button>
                       <button 
-                        className="px-4 py-2 text-body-sm font-medium bg-error text-on-error rounded-xl"
+                        className="px-4 py-2 text-body-sm font-medium bg-error text-on-error rounded-xl tap-target"
                         onClick={handleReport}
                       >
                         Submit Report

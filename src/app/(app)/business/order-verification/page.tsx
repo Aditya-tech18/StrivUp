@@ -214,7 +214,7 @@ export default function BusinessOrderVerificationPage() {
 
           <div className="flex flex-col sm:flex-row gap-2.5 mt-4">
             <label htmlFor="order-code" className="sr-only">STRIVUP order code</label>
-            <div className="flex-1 flex items-center gap-2 rounded-xl border-2 border-outline-variant focus-within:border-secondary bg-surface-container-lowest px-4 h-12 transition-colors elev-1 surface-raised">
+            <div className="w-full sm:flex-1 flex items-center gap-2 rounded-xl border-2 border-outline-variant focus-within:border-secondary bg-surface-container-lowest px-4 h-12 transition-colors elev-1 surface-raised">
               <Search size={17} className="text-on-surface-variant shrink-0" />
               <input
                 id="order-code"

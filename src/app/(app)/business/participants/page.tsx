@@ -106,7 +106,7 @@ export default function ParticipantsPage() {
             <button key={f} onClick={() => setFilter(f)}
               className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
                 filter === f ? "bg-secondary text-white border-secondary" : "bg-surface-container-lowest text-on-surface-variant border-outline-variant"
-              }`}>
+              } tap-target`}>
               {f === "all" ? "All" : f === "approved" ? "Completed" : f === "rejected" ? "Dropped" : "Active"}
             </button>
           ))}

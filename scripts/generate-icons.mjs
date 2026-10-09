@@ -3,7 +3,7 @@
  *
  *   node scripts/generate-icons.mjs
  *
- * Source of truth is brand/strivup-logo.webp, the square logo as supplied.
+ * Source of truth is brand/strivup-logo.png, the square logo as supplied.
  * Everything under public/icons/, plus src/app/icon.png, apple-icon.png and
  * favicon.ico, is generated from it and should never be edited by hand: re-run
  * this instead, so a new logo propagates in one step.
@@ -17,15 +17,17 @@
  *             uses, keeping only the central 80% circle. The full wordmark
  *             would lose its ends, so this variant scales the wordmark to fit
  *             inside that circle and pads the rest with the brand white.
- *   favicon   at 16px a 3.6:1 wordmark is a smudge, so the favicon uses the
- *             blue arrow-and-UP mark on its own, which still reads.
+ *   favicon   the full STRIVUP lockup, scaled to fill the square. It is a
+ *             3.6:1 wordmark in a square box, so at 16px it is small by
+ *             construction; that is the trade for the browser tab carrying
+ *             the whole logo rather than a fragment of it.
  */
 
 import sharp from "sharp";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const SRC = "brand/strivup-logo.webp";
+const SRC = "brand/strivup-logo.png";
 const WHITE = { r: 255, g: 255, b: 255, alpha: 1 };
 
 /* Measured from the source with a colour-bucket pass; see git history. The
@@ -119,15 +121,19 @@ async function main() {
   }
 
   /* ── Next.js app-router conventions ─────────────────────────────────────
-     icon.png is the browser-tab icon, which browsers render as small as 16px,
-     so it gets the mark rather than the wordmark. apple-icon.png is a home
-     screen tile at 180px, where the full logo reads fine. */
-  await writeFile("src/app/icon.png", await squareOnWhite(mark, 512, 0.78));
+     icon.png is the browser-tab icon. It carries the full lockup, filling as
+     much of the square as the 3.6:1 ratio allows. apple-icon.png is a home
+     screen tile at 180px, where the logo as supplied reads fine. */
+  await writeFile("src/app/icon.png", await squareOnWhite(wordmark, 512, 0.94));
   await sharp(SRC).resize(180, 180, { fit: "cover" }).png().toFile("src/app/apple-icon.png");
 
-  /* ── favicon: the mark alone, legible at 16px ───────────────────────── */
-  await writeFile("public/icons/favicon-32.png", await squareOnWhite(mark, 32, 0.82));
-  await writeFile("public/icons/favicon-16.png", await squareOnWhite(mark, 16, 0.86));
+  /* ── favicon, at the sizes browsers actually request ────────────────── */
+  for (const size of [16, 32, 48, 96]) {
+    await writeFile(
+      `public/icons/favicon-${size}.png`,
+      await squareOnWhite(wordmark, size, 0.94)
+    );
+  }
 
   /* ── wordmark for in-app brand marks (sidebar, headers, auth) ─────────
      Transparent, because these land on tinted surfaces and on the gateway's

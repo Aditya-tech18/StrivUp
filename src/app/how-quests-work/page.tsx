@@ -332,11 +332,15 @@ export default function HowQuestsWorkPage() {
           </ul>
         </Section>
 
+        {/* w-full below sm, flex-1 only from sm. In a COLUMN flex container
+            flex-1 sets flex-basis on the main axis, which is the height, and
+            that beats h-*: these rendered 20px tall on a phone instead of 48.
+            Caught by measuring the live page, not by reading the classes. */}
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Link href="/quests" className="flex h-12 flex-1 items-center justify-center rounded-xl bg-secondary text-sm font-bold text-white">
+          <Link href="/quests" className="flex h-12 w-full items-center justify-center rounded-xl bg-secondary text-sm font-bold text-white sm:flex-1">
             Explore Quests
           </Link>
-          <Link href="/business" className="flex h-12 flex-1 items-center justify-center rounded-xl border border-outline-variant bg-surface-container-lowest text-sm font-bold text-on-surface elev-1 surface-raised">
+          <Link href="/business" className="flex h-12 w-full items-center justify-center rounded-xl border border-outline-variant bg-surface-container-lowest text-sm font-bold text-on-surface elev-1 surface-raised sm:flex-1">
             Create a Quest for your business
           </Link>
         </div>
