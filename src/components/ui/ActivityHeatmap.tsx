@@ -36,8 +36,27 @@ const WAVE_MS = 420;
 const CELL = 13;
 const GAP = 3;
 
-const toIso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 const utcDay = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
+
+/**
+ * Today's calendar date in India, as YYYY-MM-DD.
+ *
+ * The grid's axis has to agree with how the database buckets a submission,
+ * which is date(submitted_at AT TIME ZONE 'Asia/Kolkata'). Taking "today" from
+ * the browser's UTC date instead would put the axis half a day out of step
+ * with the data between midnight and 05:30 IST — the window where someone
+ * posting late at night would watch their square land on yesterday.
+ *
+ * en-CA because it formats as YYYY-MM-DD, which is what the rest of this file
+ * parses.
+ */
+const istDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Kolkata",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+const todayInIndia = () => istDateFormatter.format(new Date());
 
 /**
  * Level tints: the brand blue stepping up in opacity rather than five picked
@@ -78,8 +97,9 @@ function buildModel(
   locale: string
 ): Model {
   // Always the trailing window ending today, so an empty account still gets a
-  // full grid rather than a single square.
-  const today = utcDay(toIso(Date.now()));
+  // full grid rather than a single square. "Today" is India's today, matching
+  // how the view buckets submissions.
+  const today = utcDay(todayInIndia());
   const start = today - (rangeDays - 1) * DAY_MS;
   const length = rangeDays;
 
