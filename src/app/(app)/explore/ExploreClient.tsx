@@ -43,14 +43,26 @@ import type { FeaturedChallenge, FeaturedQuest, TrendingChallenge } from "./page
 type View = "quests" | "challenges";
 
 /* ── Join helper ─────────────────────────────────────────────────────────── */
+/**
+ * The user id comes from the locally cached session rather than getUser().
+ *
+ * getUser() re-validates the token against the auth server, which is a second
+ * network round trip paid before the insert even starts, on the one tap the
+ * whole screen exists for. It is the right call when the id is the thing
+ * being trusted, and the wrong one here: the INSERT policy on
+ * challenge_participants is WITH CHECK (user_id = auth.uid()), so Postgres
+ * rejects a row that claims someone else's id no matter what this sends. The
+ * id is a payload field, not an authorization decision.
+ */
 async function joinChallenge(challengeId: string): Promise<{ error: string | null }> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "not-authed" };
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  if (!userId) return { error: "not-authed" };
 
   const { error } = await supabase.from("challenge_participants").insert({
     challenge_id: challengeId,
-    user_id: user.id,
+    user_id: userId,
     status: "active",
   });
 

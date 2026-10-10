@@ -4,6 +4,7 @@
  * Steps: Basic Info → Tasks → Rewards → Rules → Audience → Review
  */
 import { useEffect, useState, useCallback, Suspense } from "react";
+import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, ChevronLeft, ChevronRight, Globe, GripVertical, ImageIcon, Link as LinkIcon, Plus, Rocket, Trash2, Trophy, Upload, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -81,6 +82,10 @@ function CreateQuestContent() {
   const [step, setStep] = useState(1);
   const [questId, setQuestId] = useState<string | null>(editId);
   const [businessId, setBusinessId] = useState<string | null>(null);
+  /* Resolved once on load. The upload handlers used to call
+     supabase.auth.getUser() each time, which is a round trip to the auth
+     server before every single image, paid again for every task image. */
+  const [userId, setUserId] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
 
   // Step 1 — Basic Info
@@ -119,6 +124,7 @@ function CreateQuestContent() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace("/login"); return; }
+      setUserId(user.id);
       const bp = await getMyBusinessProfile(supabase);
       if (!bp?.onboarding_done) { router.replace("/business/onboarding"); return; }
       setBusinessId(bp.id);
@@ -257,13 +263,17 @@ function CreateQuestContent() {
    */
   const handleTaskImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!userId) return;
     setTaskImageUploading(index);
     try {
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `${user.id}/quest-tasks/${Date.now()}-${index}.${ext}`;
-      const { error } = await supabase.storage.from("proof-media").upload(path, file, { upsert: true });
+      // Compressed before upload, like the challenge wizard already does. A
+      // raw phone photo is 8-12 MB for a tile rendered a few hundred pixels
+      // wide, and on mobile data that upload is most of the time it takes to
+      // post a quest.
+      const { file: image } = await compressImage(file, IMAGE_PRESETS.thumbnail);
+      const ext = image.name.split(".").pop() ?? "jpg";
+      const path = `${userId}/quest-tasks/${Date.now()}-${index}.${ext}`;
+      const { error } = await supabase.storage.from("proof-media").upload(path, image, { upsert: true });
       if (error) throw error;
       const { data } = supabase.storage.from("proof-media").getPublicUrl(path);
       setTasks(prev => prev.map((t, j) => j === index ? { ...t, image_url: data.publicUrl } : t));
@@ -273,13 +283,13 @@ function CreateQuestContent() {
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!userId) return;
     setCoverUploading(true);
     try {
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `${user.id}/quest-covers/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("proof-media").upload(path, file, { upsert: true });
+      const { file: image } = await compressImage(file, IMAGE_PRESETS.thumbnail);
+      const ext = image.name.split(".").pop() ?? "jpg";
+      const path = `${userId}/quest-covers/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("proof-media").upload(path, image, { upsert: true });
       if (error) throw error;
       const { data } = supabase.storage.from("proof-media").getPublicUrl(path);
       setCoverUrl(data.publicUrl);

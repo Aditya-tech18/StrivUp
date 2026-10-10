@@ -16,7 +16,9 @@ import { createServerClient } from "@supabase/ssr";
  *     the callback route are forwarded to /auth/callback with the right `next`.
  *  2. Session refresh: re-validates the Supabase auth token so server
  *     components can call getUser() and get a real user.
- *  3. Auth guard: unauthenticated visitors to app routes go to /login.
+ *  3. Auth guard: unauthenticated visitors to app routes go to /login, except
+ *     on the two shareable detail routes, which render their own signed-out
+ *     view. See SHAREABLE_DETAIL below.
  *  4. Deactivation gate: deactivated accounts are held on /deactivated, and
  *     active accounts are bounced off /deactivated back to /feed.
  *
@@ -50,6 +52,30 @@ const APP_ROUTE_PREFIXES = [
   // legitimate to show.
   "/activity",
 ];
+
+/**
+ * The routes a shared link points at: /challenges/<uuid> and /quests/<uuid>,
+ * plus the opengraph-image children Next generates beside them.
+ *
+ * These are exempt from the auth redirect, and that exemption is what makes
+ * rich link previews possible at all. A social crawler arrives with no
+ * cookies; while these paths 302'd to /login, WhatsApp scraped the login page
+ * and every shared challenge came out as a grey "StrivUp" box. Metadata
+ * travels in the page's own HTML, so there is no way to serve it from behind
+ * a redirect.
+ *
+ * It is not a hole in the auth model. The pages themselves still require a
+ * session for anything real: a signed-out visitor gets a preview card and a
+ * sign-in button, never the task list, the proof uploader, the feed or the
+ * join action. What is on that card is the title, cover, organizer and dates,
+ * which is precisely what the share preview publishes by design.
+ *
+ * The pattern matches a UUID and nothing else, deliberately. A looser
+ * [^/]+ would also exempt /challenges/new, and the trailing anchor keeps
+ * /challenges/<id>/edit and /challenges/<id>/leaderboard gated as before.
+ */
+const SHAREABLE_DETAIL =
+  /^\/(?:challenges|quests)\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?:\/opengraph-image[^/]*)?$/i;
 
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams, search, origin } = request.nextUrl;
@@ -98,12 +124,16 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isAppRoute = APP_ROUTE_PREFIXES.some((p) => pathname.startsWith(p));
+  // Narrows the auth redirect only. The deactivation gate below still keys on
+  // isAppRoute, so a deactivated account opening a shared link is held on
+  // /deactivated exactly as it was before.
+  const isPublicShare = SHAREABLE_DETAIL.test(pathname);
 
   // ── 3. Auth guard ─────────────────────────────────────────────────────────
   // Carry the intended destination so an invite link survives the sign-in
   // detour. Without this a shared /join/<code> link silently becomes /feed and
   // the person never joins the challenge they were invited to.
-  if (!user && isAppRoute) {
+  if (!user && isAppRoute && !isPublicShare) {
     const loginUrl = new URL("/login", origin);
     loginUrl.searchParams.set("redirectTo", pathname + search);
     return NextResponse.redirect(loginUrl);

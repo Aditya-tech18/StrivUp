@@ -732,27 +732,42 @@ export function ChallengeDetailClient({
     };
   }, [userId, challenge.id, hasPhysicalTask]);
 
-  // Join this challenge (client-side insert)
+  /* Join, optimistically.
+     The task list and the proof uploader are gated on isParticipant, so
+     waiting for the insert to come back meant tapping Join and then watching
+     a spinner before anything appeared. The row is flipped first and rolled
+     back if the write genuinely fails, which it does not normally do: the
+     only expected failure is the unique constraint, and that one means the
+     person is already a participant, so the optimistic state was right.
+
+     joinError is kept for the real failures, and the revert puts the button
+     back so the action can be retried. */
   const handleJoin = () => {
     if (!userId) {
       router.push(`/login?next=/challenges/${challenge.id}`);
       return;
     }
     setJoinError(null);
+    setIsParticipant(true);
+
     startTransition(async () => {
-      const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
       const { error } = await supabase.from("challenge_participants").insert({
         challenge_id: challenge.id,
         user_id: userId,
         status: "active",
       });
-      // Unique constraint = already joined → treat as success
+
+      // Unique constraint = already joined → the optimistic state stands.
       if (error && !error.message.includes("duplicate") && !error.message.includes("unique")) {
+        setIsParticipant(false);
         setJoinError(error.message);
         return;
       }
-      setIsParticipant(true);
+
+      // Pull the server's view of membership so the counts and the
+      // leaderboard reflect the new row.
+      router.refresh();
     });
   };
 
