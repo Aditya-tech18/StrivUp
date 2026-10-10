@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, Loader2, UserPlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -35,13 +35,20 @@ export function FollowRequests() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
+  // Declared inside the effect, not as a useCallback called from it: calling a
+  // state-setting function straight from an effect body is the cascading-render
+  // pattern react-hooks/set-state-in-effect rejects. The cancelled flag is the
+  // same shape used by ProofComments.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
     const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      setLoading(false);
+      if (!cancelled) setLoading(false);
       return;
     }
 
@@ -51,6 +58,8 @@ export function FollowRequests() {
       .eq("followed_id", user.id)
       .eq("request_status", "pending")
       .order("created_at", { ascending: false });
+
+    if (cancelled) return;
 
     if (loadError) {
       setError("Couldn't load requests.");
@@ -75,11 +84,12 @@ export function FollowRequests() {
       })
     );
     setLoading(false);
-  }, []);
+    })();
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function respond(followerId: string, accept: boolean) {
     setBusyId(followerId);
