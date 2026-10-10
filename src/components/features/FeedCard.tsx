@@ -13,6 +13,7 @@ import { useState } from "react";
  */
 
 import Image from "next/image";
+import Link from "next/link";
 import { BadgeCheck, Flame, MessageCircle, ThumbsUp, Flag, ShieldAlert } from "lucide-react";
 import { Card } from "@/components/ui";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
@@ -127,11 +128,19 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
       <Card bordered padding="none" className="overflow-hidden">
         {/* ── Header: avatar + meta + streak badge ── */}
         <div className="flex items-start justify-between gap-3 p-4 pb-3">
-          <div className="flex items-center gap-3 min-w-0">
+          {/* The avatar and name are the obvious way to reach someone's
+              profile, and until now neither was a link — tapping a person in
+              the feed simply did nothing. /u accepts a UUID as well as a
+              username, which matters because most accounts have no username. */}
+          <Link
+            href={`/u/${post.authorId}`}
+            className="flex items-center gap-3 min-w-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1"
+            aria-label={`View ${post.authorName}'s profile`}
+          >
             <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-surface-variant">
               <Image
                 src={post.authorAvatarUrl}
-                alt={post.authorName}
+                alt=""
                 fill
                 className="object-cover"
                 unoptimized // DiceBear SVGs
@@ -139,7 +148,7 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-headline-md text-on-surface font-semibold truncate">
+                <span className="text-headline-md text-on-surface font-semibold truncate hover:underline">
                   {post.authorName}
                 </span>
                 {post.verified && (
@@ -154,7 +163,7 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
                 {post.category} &bull; {post.dayLabel}
               </p>
             </div>
-          </div>
+          </Link>
           {/* Streak badge */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 bg-primary-container rounded-full px-2.5 py-1 flex-shrink-0">

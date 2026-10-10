@@ -26,7 +26,7 @@ import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Flame, Lock, ShieldCheck } from "lucide-react";
+import { Flame, Lock, ShieldCheck, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   getProfileByHandle,
@@ -37,6 +37,7 @@ import {
   type ProfileChallengeStat,
 } from "@/lib/data/profiles";
 import { FollowButton } from "@/components/features/profile/FollowButton";
+import { ActivityHeatmap } from "@/components/ui/ActivityHeatmap";
 
 interface PageProps {
   // Next 16: params is a Promise and must be awaited.
@@ -134,6 +135,19 @@ export default async function PublicProfilePage({ params }: PageProps) {
   const locked = profile.is_private && followState !== "following";
   const stats = locked ? [] : await getProfileChallengeStats(supabase, profile.id);
 
+  // The heatmap sits behind the same gate as the stats, and is likewise not
+  // fetched when locked, so a private account's activity never reaches the
+  // client bundle. StrivCoins are deliberately absent from this page at any
+  // privacy level: a balance is the viewer's own business, not a follower's.
+  const heatmap = locked
+    ? []
+    : ((
+        await supabase
+          .from("profile_activity_heatmap")
+          .select("submission_date,submission_count")
+          .eq("user_id", profile.id)
+      ).data ?? []);
+
   const active = stats.filter((s) => s.status === "active");
   const completed = stats.filter((s) => s.status === "completed");
   const name = displayName(profile.full_name, profile.username);
@@ -222,7 +236,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
             This account is private
           </p>
           <p className="mt-1 max-w-xs text-body-md text-on-surface-variant">
-            Follow {name} to see the challenges they&apos;re building and their streaks.
+            Follow {name} to see their challenges, streaks, consistency and achievements.
           </p>
         </div>
       ) : (
@@ -250,6 +264,52 @@ export default async function PublicProfilePage({ params }: PageProps) {
               ))}
             </div>
           )}
+
+          <h2 className="mb-3 mt-8 text-body-lg font-bold text-on-surface">Consistency</h2>
+          <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
+            <ActivityHeatmap
+              days={heatmap.map((e) => ({
+                date: e.submission_date as string,
+                count: e.submission_count as number,
+              }))}
+              label={`${name}'s activity over the last six months`}
+              period="the last 6 months"
+            />
+          </div>
+
+          {completed.length > 0 ? (
+            <>
+              <h2 className="mb-3 mt-8 text-body-lg font-bold text-on-surface">
+                Achievements
+              </h2>
+              <div className="space-y-2">
+                {completed.map((s) => (
+                  <div
+                    key={s.challenge_id}
+                    className="flex items-center gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-3 elev-1 surface-raised"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success-container">
+                      <Trophy size={18} className="text-success" aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-body-md font-semibold text-on-surface">
+                        {s.title ?? "Untitled challenge"}
+                      </p>
+                      <p className="text-body-sm text-on-surface-variant">
+                        Completed{s.duration_days ? ` · ${s.duration_days} days` : ""}
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-body-md font-bold text-on-surface">
+                      {s.longest_streak ?? s.current_streak}
+                      <span className="ml-1 text-label-sm font-normal text-on-surface-variant">
+                        best
+                      </span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : null}
         </section>
       )}
     </div>

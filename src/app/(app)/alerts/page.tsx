@@ -29,6 +29,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { Button, Card } from "@/components/ui";
 import { useUnreadCount } from "@/components/ui/AlertsContext";
+import { FollowRequests } from "@/components/features/profile/FollowRequests";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,8 @@ function NotifIcon({ type }: { type: NotificationType }) {
   const cls = "shrink-0 mt-0.5";
   switch (type) {
     case "new_follower":
+    case "follow_request":
+    case "follow_accepted":
       return <UserPlus size={20} className={`${cls} text-secondary`} aria-hidden="true" />;
     case "proof_approved":
       return <CheckCircle2 size={20} className={`${cls} text-success`} aria-hidden="true" />;
@@ -198,6 +201,12 @@ export default function AlertsPage() {
               {markingAll ? "Marking…" : "Mark all as read"}
             </Button>
           )}
+        </div>
+
+        {/* Pending follow requests, for private accounts. Renders nothing when
+            there are none, so a public account never sees an empty card. */}
+        <div className="mb-5">
+          <FollowRequests />
         </div>
 
         {/* Empty state */}

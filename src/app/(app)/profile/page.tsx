@@ -7,6 +7,7 @@ import {
   Loader2, Plus, Settings, ShieldCheck, Trash2, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { SocialIcon, PLATFORM_NAME } from "@/components/ui/SocialIcon";
 import { ActivityHeatmap } from "@/components/ui/ActivityHeatmap";
 import {
   getMyProfile, upsertMyProfile,
@@ -656,19 +657,24 @@ export default function ProfilePage() {
             {/* Social links pills */}
             {links.length > 0 && !editing && (
               <div className="flex flex-wrap gap-2 mt-3">
+                {/* Icon only. The pills used to carry the platform name AND a
+                    truncated URL, which read as "LINKEDIN linkedin.co…" — two
+                    labels for one link, neither of them useful. The mark is
+                    the recognisable part; the name lives in the accessible
+                    label for anyone who cannot see it. */}
                 {links.map(link => {
-                  const label = PLATFORM_LABEL[link.platform] ?? link.platform;
-                  const display = link.url.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/");
+                  const name = PLATFORM_NAME[link.platform] ?? link.platform;
                   return (
                     <a
                       key={link.id}
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container border border-outline-variant text-label-sm font-medium text-on-surface-variant hover:text-secondary hover:border-secondary transition-colors"
+                      title={name}
+                      aria-label={`${name} (opens in a new tab)`}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-outline-variant bg-surface-container text-on-surface-variant transition-all duration-150 hover:border-secondary hover:bg-secondary/10 hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1 tap-target"
                     >
-                      <span className="font-semibold text-label-sm uppercase tracking-wide text-secondary/70">{label}</span>
-                      <span className="truncate max-w-[80px]">{display}</span>
+                      <SocialIcon platform={link.platform} size={15} />
                     </a>
                   );
                 })}
@@ -735,7 +741,10 @@ export default function ProfilePage() {
                   const label = PLATFORM_LABEL[link.platform] ?? link.platform;
                   return (
                     <div key={link.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-surface-container-lowest elev-1 surface-raised">
-                      <span className="text-label-sm font-bold text-secondary/70 uppercase tracking-wide shrink-0 w-16 truncate">{label}</span>
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-container text-on-surface-variant">
+                        <SocialIcon platform={link.platform} size={14} />
+                      </span>
+                      <span className="sr-only">{label}</span>
                       <span className="flex-1 text-body-sm text-on-surface truncate">{link.url}</span>
                       <button onClick={() => handleDelLink(link.id)} className="text-on-surface-variant hover:text-error transition-colors shrink-0">
                         <Trash2 size={13} />

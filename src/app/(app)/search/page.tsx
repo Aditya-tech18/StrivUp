@@ -169,7 +169,7 @@ export default function SearchPage() {
         {!loading && tab === "users" && users.length > 0 && (
           <div className="flex flex-col gap-2">
             {users.map(user => (
-              <Link key={user.id} href={`/profile/${user.id}`}>
+              <Link key={user.id} href={`/u/${user.id}`}>
                 <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container transition-colors elev-1 surface-raised">
                   <div className="w-11 h-11 rounded-full bg-secondary/10 overflow-hidden shrink-0 flex items-center justify-center">
                     {user.avatar_url
