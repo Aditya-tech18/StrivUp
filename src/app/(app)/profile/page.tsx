@@ -10,6 +10,8 @@ import { createClient } from "@/lib/supabase/client";
 import { SocialIcon, PLATFORM_NAME } from "@/components/ui/SocialIcon";
 import { ActivityHeatmap } from "@/components/ui/ActivityHeatmap";
 import { MobileMenu } from "@/components/ui";
+import { MyPosts } from "@/components/features/profile/MyPosts";
+import { getMyPosts, type MyPostRow } from "@/lib/data/social";
 import {
   getMyProfile, upsertMyProfile,
   getMySocialLinks, addMySocialLink, deleteMySocialLink,
@@ -287,6 +289,7 @@ export default function ProfilePage() {
   const [manageOpen,  setManageOpen]  = useState(false);
 
   const [allStats,    setAllStats]    = useState<ChallengeStats[]>([]);
+  const [myPosts,     setMyPosts]     = useState<MyPostRow[]>([]);
   const [activeStats, setActiveStats] = useState<ChallengeStats[]>([]);
   const [pinnedIds,   setPinnedIds]   = useState<string[]>([]);
   const [achievements,setAchievements]= useState<ChallengeStats[]>([]);
@@ -345,6 +348,10 @@ export default function ProfilePage() {
 
       const stats = (statsData ?? []) as ChallengeStats[];
       setAllStats(stats);
+      // Own proofs, for the manage-posts grid below. Loaded with the rest of
+      // the profile rather than on demand: it is the section people scroll
+      // to, and a spinner there reads as the section being broken.
+      setMyPosts(await getMyPosts(supabase, user.id));
       setAchievements(stats.filter(s => s.status === "completed"));
 
       const pinned: string[] = p?.pinned_challenge_ids ?? [];
@@ -837,6 +844,19 @@ export default function ProfilePage() {
               </button>
             </div>
           )}
+        </div>
+
+        {/* ── My Posts ─────────────────────────────────────────────────── */}
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">
+              My Posts
+              {myPosts.length > 0 && (
+                <span className="ml-1 font-normal text-on-surface-variant">({myPosts.length})</span>
+              )}
+            </h3>
+          </div>
+          {userId && <MyPosts posts={myPosts} viewerId={userId} />}
         </div>
 
         {/* ── Consistency Heatmap ────────────────────────────────────────── */}

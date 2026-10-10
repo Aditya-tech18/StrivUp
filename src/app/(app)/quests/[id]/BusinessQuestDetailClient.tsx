@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Bookmark, Calendar, Check, CheckCircle2, ChevronRight,
-  Clock, ExternalLink, ImageIcon, Loader2, MapPin, PlayCircle, Share2,
+  Clock, ExternalLink, ImageIcon, Loader2, MapPin, PlayCircle, SendHorizontal, Share2,
   ShieldCheck, Trophy, Upload, Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -28,6 +28,8 @@ import {
 import OrderVerificationModal from "@/components/features/quest/OrderVerificationModal";
 import VerificationStepper from "@/components/features/quest/VerificationStepper";
 import { QuestLeaderboardModal } from "@/components/features/quest/QuestLeaderboardModal";
+import { PeopleListSheet } from "@/components/features/people/PeopleList";
+import { getQuestMembers } from "@/lib/data/social";
 import {
   BusinessProfileCard, GoogleBusinessCard, LeaderboardPreviewCard,
   QuestProgressCard, RewardCard, formatAddress, type RewardSummary,
@@ -165,6 +167,7 @@ export default function BusinessQuestDetailClient({
   const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
   const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [membersOpen, setMembersOpen] = useState(false);
   const [activeTask, setActiveTask] = useState<BusinessQuestDetail["tasks"][number] | null>(null);
 
   const tasks = quest.tasks;
@@ -316,7 +319,7 @@ export default function BusinessQuestDetailClient({
           <button
             onClick={handleShare}
             aria-label={`Share ${quest.title}`}
-            className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center gap-1.5 transition-colors tap-target"
+            className="pop-press h-9 px-3 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center gap-1.5 tap-target"
           >
             {/* Was hidden below sm, which hid it on exactly the devices that
                 have a share sheet. The label still collapses on narrow
@@ -360,6 +363,20 @@ export default function BusinessQuestDetailClient({
                 aria-hidden="true"
                 className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/75 to-black/35"
               />
+
+              {/* Share, top right of the quest itself. The header button is
+                  easy to miss under a scrolled page; this one sits on the
+                  thing being shared. SendHorizontal rather than the usual
+                  share glyph because the arrow reads as "send this to
+                  someone" on every platform, which is the actual intent. */}
+              <button
+                type="button"
+                onClick={handleShare}
+                aria-label={`Share ${quest.title}`}
+                className="pop-press absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-surface-container-lowest/95 text-on-surface backdrop-blur-sm"
+              >
+                <SendHorizontal size={18} aria-hidden="true" />
+              </button>
 
               <div className="relative z-10 p-5 sm:p-7 lg:p-9 flex flex-col justify-center gap-3 max-w-2xl">
                 <div className="flex items-center gap-3">
@@ -609,12 +626,17 @@ export default function BusinessQuestDetailClient({
               business={quest.business}
               fallbackName={businessName}
             />
-            <div className="flex items-center gap-2 px-1">
+            <button
+              type="button"
+              onClick={() => setMembersOpen(true)}
+              aria-label={`See the ${quest.participant_count} people on this quest`}
+              className="flex items-center gap-2 rounded-lg px-1 py-1 text-left transition-colors hover:bg-surface-container tap-target"
+            >
               <Users size={14} className="text-on-surface-variant shrink-0" />
               <p className="text-xs text-on-surface-variant">
                 {quest.participant_count.toLocaleString("en-IN")} participants
               </p>
-            </div>
+            </button>
           </aside>
         </div>
       </div>
@@ -657,6 +679,15 @@ export default function BusinessQuestDetailClient({
           }}
         />
       )}
+
+      <PeopleListSheet
+        open={membersOpen}
+        title="Participants"
+        viewerId={currentUserId}
+        emptyMessage="Nobody has joined this quest yet."
+        onClose={() => setMembersOpen(false)}
+        load={() => getQuestMembers(supabase, quest.id, currentUserId)}
+      />
 
       <QuestLeaderboardModal
         open={showLeaderboard}

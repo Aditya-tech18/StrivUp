@@ -619,6 +619,41 @@ body {
   .pressable { transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1); }
   .pressable:active { transform: scale(0.97); }
 
+  /* ── Share button: a physical key ──────────────────────────────────────
+     Share is the one action in this app whose whole job is to be tapped by
+     someone who was not looking for it, so it is the one control that gets
+     to behave like an object. It sits slightly proud of the surface, lifts
+     further under a pointer, and travels down into the page when pressed:
+     the shadow shrinks as the element moves, which is what reads as depth
+     rather than as a button simply changing size.
+
+     Driven by box-shadow and translate, both compositor-only, so it stays
+     smooth on a mid-range phone. Honours prefers-reduced-motion below. */
+  .pop-press {
+    transform: translateY(-1px);
+    box-shadow:
+      0 2px 4px -1px rgb(0 0 0 / 0.12),
+      0 4px 10px -2px rgb(0 0 0 / 0.10);
+    transition:
+      transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 140ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 140ms ease;
+  }
+  .pop-press:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.14),
+      0 8px 18px -4px rgb(0 0 0 / 0.14);
+  }
+  .pop-press:active {
+    transform: translateY(1px) scale(0.97);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.14);
+  }
+  .pop-press:focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+  }
+
   /* Frosted layer for sticky headers. backdrop-filter is the one expensive
      property here, so it is opt-in per element rather than applied broadly,
      and it always has an opaque colour behind it as a fallback. */
@@ -802,7 +837,9 @@ body {
    and press collapse to nothing and the shadows stay, so hierarchy survives.
    WCAG 2.3.3. */
 @media (prefers-reduced-motion: reduce) {
-  .lift, .pressable { transition: none; }
+  .lift, .pressable, .pop-press { transition: none; }
+  /* The lift is decoration; the shadow still marks it as raised. */
+  .pop-press, .pop-press:hover, .pop-press:active { transform: none; }
   .lift:hover  { transform: none; }
   .lift:active { transform: none; }
   .pressable:active { transform: none; }

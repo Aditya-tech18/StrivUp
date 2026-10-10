@@ -1,128 +1,56 @@
-"use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+/**
+ * /profile/followers — the viewer's own followers, with management.
+ *
+ * Server-rendered and handed to the shared PeopleList, so a row here behaves
+ * exactly like a row in a likes list or a participant list: tap to open the
+ * profile, follow or unfollow inline, and the "..." menu for the rest.
+ * Followers is the one place "Remove follower" is offered, because it is the
+ * only list where the viewer owns the other side of the edge.
+ */
+
+import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, BadgeCheck, UserCheck, UserPlus } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { ArrowLeft } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { getFollowList } from "@/lib/data/social";
+import { PeopleList } from "@/components/features/people/PeopleList";
 
-interface UserRow {
-  id: string;
-  full_name: string | null;
-  username: string | null;
-  avatar_url: string | null;
-  verification_status: string;
-}
+export const dynamic = "force-dynamic";
 
-export default function FollowersPage() {
-  const router = useRouter();
-  const supabase = createClient();
-  const [loading, setLoading] = useState(true);
-  const [followers, setFollowers] = useState<UserRow[]>([]);
-  const [myId, setMyId] = useState<string | null>(null);
-  const [following, setFollowing] = useState<Set<string>>(new Set());
+export default async function FollowersPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?redirectTo=/profile/followers");
 
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.replace("/login"); return; }
-      setMyId(user.id);
-
-      // Get followers
-      const { data: followerRows } = await supabase
-        .from("followers")
-        .select("follower_id, profiles!follower_id(id, full_name, username, avatar_url, verification_status)")
-        .eq("followed_id", user.id)
-        .eq("request_status", "accepted")
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      const followerList = (followerRows ?? []).map((r: { profiles: UserRow | UserRow[] }) =>
-        Array.isArray(r.profiles) ? r.profiles[0] : r.profiles
-      ).filter(Boolean) as UserRow[];
-      setFollowers(followerList);
-
-      // Get who I follow
-      const { data: followingRows } = await supabase
-        .from("followers")
-        .select("followed_id")
-        .eq("follower_id", user.id)
-        .eq("request_status", "accepted");
-      setFollowing(new Set((followingRows ?? []).map((r: { followed_id: string }) => r.followed_id)));
-      setLoading(false);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleFollow = async (targetId: string) => {
-    if (!myId) return;
-    const isFollowing = following.has(targetId);
-    if (isFollowing) {
-      await supabase.from("followers").delete().eq("follower_id", myId).eq("followed_id", targetId);
-      setFollowing(prev => { const n = new Set(prev); n.delete(targetId); return n; });
-    } else {
-      await supabase.from("followers").upsert({ follower_id: myId, followed_id: targetId, request_status: "accepted" });
-      setFollowing(prev => new Set([...prev, targetId]));
-    }
-  };
-
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-container-low">
-      <div className="w-6 h-6 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
-    </div>
-  );
+  const people = await getFollowList(supabase, user.id, "followers", user.id);
 
   return (
-    <div className="min-h-screen bg-surface-container-low pb-28">
-      <div className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
-        <div className="mx-auto measure-page flex items-center gap-3 px-5 py-3.5">
-          <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container tap-target">
-            <ArrowLeft size={19} className="text-on-surface" />
-          </button>
-          <h1 className="text-body-lg font-bold text-on-surface flex-1">Followers</h1>
-          <span className="text-sm font-bold text-secondary">{followers.length}</span>
-        </div>
-      </div>
+    <div className="min-h-screen bg-surface pb-24">
+      <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-outline-variant bg-surface/95 px-2 pt-safe backdrop-blur-sm">
+        <Link
+          href="/profile"
+          aria-label="Back to profile"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-on-surface hover:bg-surface-container"
+        >
+          <ArrowLeft size={20} aria-hidden="true" />
+        </Link>
+        <h1 className="text-body-lg font-bold text-on-surface">
+          Followers
+          <span className="ml-2 text-body-md font-medium text-on-surface-variant">
+            {people.length}
+          </span>
+        </h1>
+      </header>
 
-      <div className="mx-auto measure-page px-5 pt-4">
-        {followers.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <UserPlus size={36} className="text-on-surface-variant opacity-30" />
-            <p className="text-sm text-on-surface-variant">No followers yet.</p>
-          </div>
-        ) : (
-          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden divide-y divide-outline-variant/40">
-            {followers.map(user => (
-              <div key={user.id} className="flex items-center gap-3 px-4 py-3">
-                <div className="w-11 h-11 rounded-full bg-secondary/10 overflow-hidden shrink-0 flex items-center justify-center">
-                  {user.avatar_url
-                    // eslint-disable-next-line @next/next/no-img-element
-                    ? <img src={user.avatar_url} alt={user.full_name ?? ""} className="w-full h-full object-cover" />
-                    : <span className="font-bold text-secondary text-base">{(user.full_name ?? user.username ?? "?").charAt(0).toUpperCase()}</span>
-                  }
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-bold text-on-surface truncate">{user.full_name ?? user.username ?? "Unknown"}</p>
-                    {user.verification_status === "verified" && (
-                      <BadgeCheck size={14} className="text-secondary" aria-label="Verified" />
-                    )}
-                  </div>
-                  {user.username && <p className="text-xs text-on-surface-variant">@{user.username}</p>}
-                </div>
-                {user.id !== myId && (
-                  <button onClick={() => handleFollow(user.id)}
-                    className={`flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-bold transition-colors ${
-                      following.has(user.id)
-                        ? "bg-surface-container border border-outline-variant text-on-surface-variant"
-                        : "bg-secondary text-on-secondary"
-                    } tap-target`}>
-                    {following.has(user.id) ? <><UserCheck size={13} />Following</> : <><UserPlus size={13} />Follow</>}
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="mx-auto measure-form">
+        <PeopleList
+          people={people}
+          viewerId={user.id}
+          canRemoveFollower={true}
+          emptyMessage="Nobody follows you yet. Share a challenge and that changes."
+        />
       </div>
     </div>
   );

@@ -42,6 +42,8 @@ import { createClient } from "@/lib/supabase/client";
 import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { InviteSheet } from "@/components/features/InviteSheet";
 import { ShareButton } from "@/components/features/share/ShareButton";
+import { PeopleListSheet } from "@/components/features/people/PeopleList";
+import { getChallengeMembers } from "@/lib/data/social";
 import type { ChallengeTask, TaskSubmission } from "@/lib/data/tasks";
 import { PhysicalTaskCard } from "@/components/features/activity";
 import { currentChallengePeriodProgress } from "@/lib/data/activity";
@@ -696,6 +698,7 @@ export function ChallengeDetailClient({
   userSubmissions,
 }: ChallengeDetailClientProps) {
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [membersOpen, setMembersOpen] = useState(false);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isParticipant, setIsParticipant] = useState(initialIsParticipant);
@@ -873,12 +876,20 @@ export function ChallengeDetailClient({
                   Created by {challenge.creatorName}
                 </p>
               </div>
-              <div className="flex items-center gap-1 bg-secondary-container rounded-full px-3 py-1 flex-shrink-0">
+              {/* Tappable: the count is the entry point to the list of who
+                  is actually in this, which is the thing that makes a
+                  challenge feel inhabited rather than empty. */}
+              <button
+                type="button"
+                onClick={() => setMembersOpen(true)}
+                aria-label={`See the ${challenge.memberCount} people in this challenge`}
+                className="flex items-center gap-1 bg-secondary-container rounded-full px-3 py-1 flex-shrink-0 transition-colors hover:bg-secondary-fixed-dim tap-target"
+              >
                 <Users size={12} className="text-on-secondary-container" aria-hidden="true" />
                 <span className="text-overline text-on-secondary-container text-label-sm font-semibold">
                   {formatCount(challenge.memberCount)} MEMBERS
                 </span>
-              </div>
+              </button>
             </Card>
           </div>
         </div>
@@ -1152,6 +1163,15 @@ export function ChallengeDetailClient({
 
         <div className="h-4" aria-hidden="true" />
       </div>
+      <PeopleListSheet
+        open={membersOpen}
+        title="Members"
+        viewerId={userId}
+        emptyMessage="Nobody has joined yet. Be the first."
+        onClose={() => setMembersOpen(false)}
+        load={() => getChallengeMembers(createClient(), challenge.id, userId)}
+      />
+
       {/* -- Invite sheet (creator-only) ------------------------------- */}
       {inviteOpen && isCreator ? (
         <InviteSheet

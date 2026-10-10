@@ -58,7 +58,8 @@ function TaskRow({ task }: { task: TodayTask }) {
 
   return (
     <Link
-      href={`/challenges/${task.challengeId}`}
+      // challengeId carries the quest id on a quest row; `kind` is what routes.
+      href={`/${task.kind === "quest" ? "quests" : "challenges"}/${task.challengeId}`}
       className="flex items-center justify-between gap-space-sm rounded-lg bg-surface-container-low p-space-sm transition-transform active:scale-[0.99]"
     >
       <div className="flex min-w-0 items-center gap-space-sm">
@@ -122,7 +123,16 @@ function TaskRow({ task }: { task: TodayTask }) {
   );
 }
 
-export function TodaysTasks({ summary }: { summary: TodaySummary }) {
+export function TodaysTasks({
+  summary,
+  questTasks = [],
+}: {
+  summary: TodaySummary;
+  /** Outstanding quest tasks. Empty for anyone not on a quest, which hides
+   *  the toggle entirely rather than offering an empty tab. */
+  questTasks?: TodayTask[];
+}) {
+  const [view, setView] = useState<"challenges" | "quests">("challenges");
   // Initial value comes from the server so first paint matches the markup and
   // there is no hydration mismatch from calling Date.now() during render.
   // The interval then recomputes from the real clock rather than decrementing,
@@ -142,7 +152,7 @@ export function TodaysTasks({ summary }: { summary: TodaySummary }) {
 
   // Nothing joined yet — this is the activation moment, so make it a CTA
   // rather than an apology.
-  if (summary.total === 0) {
+  if (summary.total === 0 && questTasks.length === 0) {
     return (
       <section className="flex flex-col gap-space-sm" aria-label="Today's tasks">
         <h3 className="text-headline-sm text-on-surface">Today&apos;s Tasks</h3>
@@ -176,7 +186,10 @@ export function TodaysTasks({ summary }: { summary: TodaySummary }) {
     );
   }
 
-  const allDone = summary.completed === summary.total;
+  const allDone = summary.total > 0 && summary.completed === summary.total;
+  const showQuests = view === "quests" && questTasks.length > 0;
+  const rows = showQuests ? questTasks : summary.tasks;
+  const questsDone = questTasks.filter((t) => t.state === "done").length;
 
   return (
     <section className="flex flex-col gap-space-sm" aria-label="Today's tasks">
@@ -184,13 +197,45 @@ export function TodaysTasks({ summary }: { summary: TodaySummary }) {
         <div className="flex items-center gap-space-xs">
           <h3 className="text-headline-sm text-on-surface">Today&apos;s Tasks</h3>
           <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-label-sm font-semibold text-secondary">
-            {summary.completed} of {summary.total}
+            {showQuests
+              ? `${questsDone} of ${questTasks.length}`
+              : `${summary.completed} of ${summary.total}`}
           </span>
         </div>
-        <span className="text-label-sm text-on-surface-variant">
-          Resets in {formatCountdown(remaining)}
-        </span>
+        {/* The countdown belongs to challenges only. Quest tasks are owed
+            until they are done, not until midnight, so showing a reset timer
+            over them would be a lie. */}
+        {!showQuests && (
+          <span className="text-label-sm text-on-surface-variant">
+            Resets in {formatCountdown(remaining)}
+          </span>
+        )}
       </div>
+
+      {questTasks.length > 0 && summary.total > 0 && (
+        <div
+          role="group"
+          aria-label="Show challenges or quests"
+          className="flex w-fit gap-1 rounded-full bg-surface-container p-0.5"
+        >
+          {(["challenges", "quests"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setView(v)}
+              aria-pressed={view === v}
+              className={[
+                "rounded-full px-3 py-1 text-label-sm font-semibold capitalize transition-colors",
+                view === v
+                  ? "bg-surface-container-lowest text-on-surface elev-1"
+                  : "text-on-surface-variant hover:text-on-surface",
+              ].join(" ")}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-col gap-space-md rounded-xl bg-surface-container-lowest p-space-md elev-1 surface-raised">
         {/* ── Discipline Index ─────────────────────────────────────────── */}
@@ -198,7 +243,11 @@ export function TodaysTasks({ summary }: { summary: TodaySummary }) {
           <div className="flex items-center justify-between text-label-sm text-on-surface-variant">
             <span>Daily Discipline Index</span>
             <span className="font-bold text-on-surface">
-              {allDone ? "Complete" : `${summary.percent}%`}
+              {showQuests
+                ? `${questTasks.length === 0 ? 0 : Math.round((questsDone / questTasks.length) * 100)}%`
+                : allDone
+                  ? "Complete"
+                  : `${summary.percent}%`}
             </span>
           </div>
 
@@ -206,12 +255,14 @@ export function TodaysTasks({ summary }: { summary: TodaySummary }) {
           <div
             className="flex w-full gap-1.5"
             role="progressbar"
-            aria-valuenow={summary.completed}
+            aria-valuenow={showQuests ? questsDone : summary.completed}
             aria-valuemin={0}
-            aria-valuemax={summary.total}
-            aria-label={`${summary.completed} of ${summary.total} tasks complete`}
+            aria-valuemax={showQuests ? questTasks.length : summary.total}
+            aria-label={`${showQuests ? questsDone : summary.completed} of ${
+              showQuests ? questTasks.length : summary.total
+            } tasks complete`}
           >
-            {summary.tasks.map((t) => (
+            {rows.map((t) => (
               <div
                 key={t.key}
                 className={[
@@ -229,12 +280,12 @@ export function TodaysTasks({ summary }: { summary: TodaySummary }) {
 
         {/* ── Task rows ────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-space-sm">
-          {summary.tasks.map((task) => (
+          {rows.map((task) => (
             <TaskRow key={task.key} task={task} />
           ))}
         </div>
 
-        {allDone ? (
+        {!showQuests && allDone ? (
           <p className="flex items-center justify-center gap-1.5 text-label-md font-semibold text-on-tertiary-container">
             <CheckCircle2 size={16} aria-hidden="true" />
             Everything logged today. Streak protected.

@@ -16,13 +16,21 @@
  * early-adopter framing when the numbers are small.
  */
 
+import Image from "next/image";
 import Link from "next/link";
 import { Bell, ChevronRight, Flame, Trophy, User } from "lucide-react";
 import { FeedCard } from "@/components/features/FeedCard";
 import { TodaysTasks } from "@/components/features/TodaysTasks";
 import { createClient } from "@/lib/supabase/server";
 import { getFeedPosts } from "@/lib/data/feed";
-import { getTodaysTasks, type TodayTask } from "@/lib/data/today";
+import {
+  getTodaysTasks,
+  getTodaysQuestTasks,
+  pickHomeTasks,
+  type TodayTask,
+} from "@/lib/data/today";
+import { getProfileSuggestions } from "@/lib/data/social";
+import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAccountsRail";
 import { getCoinStateWithCheckin } from "@/lib/data/coins";
 import { CoinPill } from "@/components/features/CoinPill";
 import { BrandMark, MobileMenu } from "@/components/ui";
@@ -48,7 +56,13 @@ function greeting(completed: number, total: number): string {
 }
 
 /* ── Active challenge card (carousel item) ───────────────────────────────── */
-function ChallengeCard({ task }: { task: TodayTask }) {
+/**
+ * A card in the Active rail. Carries the creator's cover, because a wall of
+ * identical text cards is unreadable once someone is in more than two things,
+ * and the cover is how people recognise their own challenge at a glance.
+ */
+function ActiveCard({ task }: { task: TodayTask }) {
+  const isQuest = task.kind === "quest";
   const progress =
     task.durationDays && task.durationDays > 0
       ? Math.min(100, Math.round((task.dayNumber / task.durationDays) * 100))
@@ -56,29 +70,50 @@ function ChallengeCard({ task }: { task: TodayTask }) {
 
   return (
     <Link
-      href={`/challenges/${task.challengeId}`}
-      className="relative flex w-[280px] shrink-0 snap-start flex-col justify-between gap-space-md overflow-hidden rounded-xl bg-surface-container-lowest p-space-md elev-1 surface-raised"
+      href={`/${isQuest ? "quests" : "challenges"}/${task.challengeId}`}
+      className="relative flex w-[280px] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-xl bg-surface-container-lowest elev-1 surface-raised"
     >
-      <div
-        className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-bl-full bg-secondary/5"
-        aria-hidden="true"
-      />
-
-      <div className="flex flex-col gap-space-sm">
-        <span className="flex w-fit items-center gap-1 rounded-full bg-surface-container-high px-2 py-0.5 text-label-sm font-medium text-on-surface">
-          <span className="h-1.5 w-1.5 rounded-full bg-secondary" aria-hidden="true" />
-          Challenge
+      <div className="relative h-28 w-full shrink-0 overflow-hidden bg-surface-container">
+        {task.thumbnailUrl ? (
+          <Image
+            src={task.thumbnailUrl}
+            alt=""
+            fill
+            sizes="280px"
+            className="object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-surface-container-high">
+            <Trophy size={24} className="text-on-surface-variant opacity-40" aria-hidden="true" />
+          </div>
+        )}
+        <span className="absolute left-2 top-2 flex w-fit items-center gap-1 rounded-full bg-surface-container-lowest/90 px-2 py-0.5 text-label-sm font-medium text-on-surface backdrop-blur-sm">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${isQuest ? "bg-tertiary-fixed" : "bg-secondary"}`}
+            aria-hidden="true"
+          />
+          {isQuest ? "Quest" : "Challenge"}
         </span>
-        <h4 className="text-headline-sm text-on-surface">{task.challengeTitle}</h4>
+      </div>
+
+      <div className="flex flex-1 flex-col justify-between gap-space-md p-space-md">
+      <div className="flex flex-col gap-space-sm">
+        <h4 className="line-clamp-2 text-headline-sm text-on-surface">{task.challengeTitle}</h4>
       </div>
 
       <div className="flex flex-col gap-2 pt-space-xs">
         <div className="flex items-baseline justify-between text-label-sm">
           <span className="font-semibold text-on-surface">
-            Day {task.dayNumber}
-            {task.durationDays ? (
-              <span className="font-normal text-on-surface-variant">/{task.durationDays}</span>
-            ) : null}
+            {isQuest ? (
+              task.dayLabel
+            ) : (
+              <>
+                Day {task.dayNumber}
+                {task.durationDays ? (
+                  <span className="font-normal text-on-surface-variant">/{task.durationDays}</span>
+                ) : null}
+              </>
+            )}
           </span>
           <span
             className={
@@ -98,6 +133,7 @@ function ChallengeCard({ task }: { task: TodayTask }) {
           <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
         </div>
       </div>
+      </div>
     </Link>
   );
 }
@@ -112,7 +148,7 @@ export default async function FeedPage() {
 
   // proxy.ts guards this route, so `user` is present in practice; the fallback
   // keeps the page renderable rather than throwing if that ever changes.
-  const [today, posts, coins] = await Promise.all([
+  const [today, posts, coins, questTasks, suggestions] = await Promise.all([
     user
       ? getTodaysTasks(supabase, user.id)
       : Promise.resolve({
@@ -130,12 +166,27 @@ export default async function FeedPage() {
     user
       ? getCoinStateWithCheckin(supabase, user.id)
       : Promise.resolve({ balance: 0, earnedToday: 0 }),
+    user ? getTodaysQuestTasks(supabase, user.id) : Promise.resolve([]),
+    user ? getProfileSuggestions(supabase, 12) : Promise.resolve([]),
   ]);
 
-  // One card per challenge, not per task.
+  /* One card per challenge or quest, not per task, and the two interleaved
+     so neither kind is buried behind a run of the other. */
   const activeChallenges = Array.from(
     new Map(today.tasks.map((t) => [t.challengeId, t])).values()
   );
+  const activeQuests = Array.from(
+    new Map(questTasks.map((t) => [t.challengeId, t])).values()
+  );
+  const activeItems: TodayTask[] = [];
+  for (let i = 0; i < Math.max(activeChallenges.length, activeQuests.length); i += 1) {
+    if (activeChallenges[i]) activeItems.push(activeChallenges[i]);
+    if (activeQuests[i]) activeItems.push(activeQuests[i]);
+  }
+
+  /* Home shows three challenges, not everything: two the person is keeping
+     up with and one they are slipping on. See pickHomeTasks. */
+  const homeSummary = { ...today, tasks: pickHomeTasks(today.tasks) };
 
   return (
     <div className="min-h-screen bg-surface">
@@ -233,17 +284,31 @@ export default async function FeedPage() {
           </section>
         ) : null}
 
+        {/* ── 0. People to follow ─────────────────────────────────────
+            Above the fold on purpose: a habit app is only worth opening if
+            somebody can see you, and an account following nobody has nothing
+            in its feed to come back for. Skippable, and it hides itself once
+            there is nobody left to suggest. */}
+        {user && suggestions.length > 0 ? (
+          <SuggestedAccountsRail people={suggestions} viewerId={user.id} />
+        ) : null}
+
         {/* ── 1. Today's Tasks ───────────────────────────────────────── */}
-        <TodaysTasks summary={today} />
+        <TodaysTasks summary={homeSummary} questTasks={questTasks} />
 
         {/* ── 2. Active challenges ───────────────────────────────────── */}
-        {activeChallenges.length > 0 ? (
-          <section className="flex flex-col gap-space-sm" aria-label="Active challenges">
+        {activeItems.length > 0 ? (
+          <section
+            className="flex flex-col gap-space-sm"
+            aria-label="Active challenges and quests"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-space-xs">
-                <h3 className="text-headline-sm text-on-surface">Active Challenges</h3>
+                <h3 className="text-headline-sm text-on-surface">
+                  Active Challenges &amp; Quests
+                </h3>
                 <span className="text-label-sm font-medium text-on-surface-variant">
-                  ({activeChallenges.length})
+                  ({activeItems.length})
                 </span>
               </div>
               <Link
@@ -256,8 +321,8 @@ export default async function FeedPage() {
             </div>
 
             <div className="no-scrollbar -mx-gutter flex snap-x snap-mandatory gap-space-md overflow-x-auto px-gutter pb-2">
-              {activeChallenges.map((task) => (
-                <ChallengeCard key={task.challengeId} task={task} />
+              {activeItems.map((task) => (
+                <ActiveCard key={task.key} task={task} />
               ))}
             </div>
           </section>

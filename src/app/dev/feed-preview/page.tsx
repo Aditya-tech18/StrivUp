@@ -14,6 +14,9 @@ import { TodaysTasks } from "@/components/features/TodaysTasks";
 import { CoinPill } from "@/components/features/CoinPill";
 import { Flame } from "lucide-react";
 import type { TodaySummary, TodayTask } from "@/lib/data/today";
+import { pickHomeTasks } from "@/lib/data/today";
+import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAccountsRail";
+import type { SuggestedProfile } from "@/lib/data/social";
 
 function task(over: Partial<TodayTask> & { key: string }): TodayTask {
   return {
@@ -25,6 +28,9 @@ function task(over: Partial<TodayTask> & { key: string }): TodayTask {
     dayNumber: 42,
     durationDays: 100,
     proofType: null,
+    thumbnailUrl: null,
+    consistencyPct: 72,
+    kind: "challenge",
     state: "todo",
     ...over,
   };
@@ -94,6 +100,53 @@ const CASES: Array<{ label: string; note: string; data: TodaySummary }> = [
   },
 ];
 
+const SUGGESTED: SuggestedProfile[] = [
+  {
+    id: "p1", username: "ananya", fullName: "Ananya Rao",
+    avatarUrl: null, bio: "Marathon in training. Up at 5.",
+    challengesCompleted: 56, questsCompleted: 23,
+    challengesJoined: 61, questsJoined: 25,
+    followerCount: 412, sharedInterests: 3,
+  },
+  {
+    id: "p2", username: "devk", fullName: "Dev Kapoor",
+    avatarUrl: null, bio: "Shipping something every week.",
+    challengesCompleted: 0, questsCompleted: 0,
+    challengesJoined: 4, questsJoined: 2,
+    followerCount: 18, sharedInterests: 1,
+  },
+  {
+    id: "p3", username: null, fullName: "Meera",
+    avatarUrl: null, bio: null,
+    challengesCompleted: 0, questsCompleted: 0,
+    challengesJoined: 0, questsJoined: 0,
+    followerCount: 0, sharedInterests: 0,
+  },
+];
+
+/* Five challenges at different consistencies, to show that pickHomeTasks
+   returns the two strongest plus the weakest with work outstanding. */
+const MANY: TodayTask[] = [
+  task({ key: "a", challengeId: "a", challengeTitle: "Reading", title: "Read 20 pages", consistencyPct: 95 }),
+  task({ key: "b", challengeId: "b", challengeTitle: "Running", title: "Run 5k", consistencyPct: 88 }),
+  task({ key: "c", challengeId: "c", challengeTitle: "Spanish", title: "One lesson", consistencyPct: 60 }),
+  task({ key: "d", challengeId: "d", challengeTitle: "Cold showers", title: "Log it", consistencyPct: 20 }),
+  task({ key: "e", challengeId: "e", challengeTitle: "Journalling", title: "Write", consistencyPct: 45, state: "done" }),
+];
+
+const QUEST_TASKS: TodayTask[] = [
+  task({
+    key: "q1", challengeId: "q1", challengeTitle: "Veer Ji Chaap",
+    title: "Order the malai chaap", dayLabel: "1 of 3 done",
+    kind: "quest", consistencyPct: null, dayNumber: 1, durationDays: 3,
+  }),
+  task({
+    key: "q2", challengeId: "q1", challengeTitle: "Veer Ji Chaap",
+    title: "Upload the bill", dayLabel: "1 of 3 done",
+    kind: "quest", consistencyPct: null, dayNumber: 1, durationDays: 3, state: "done",
+  }),
+];
+
 export default function FeedPreviewPage() {
   if (process.env.NODE_ENV === "production") notFound();
 
@@ -109,6 +162,32 @@ export default function FeedPreviewPage() {
             Fabricated data. Not reachable in production.
           </p>
         </header>
+
+        <section className="flex flex-col gap-space-sm">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">People to follow</h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Finished work, then current work, then &ldquo;just getting started&rdquo;.
+            </p>
+          </div>
+          <SuggestedAccountsRail people={SUGGESTED} viewerId="me" />
+        </section>
+
+        <section className="flex flex-col gap-space-sm">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">
+              Today&apos;s Tasks: three of five, with the quest toggle
+            </h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Reading 95% and Running 88% are the two kept up; Cold showers
+              20% is the one slipping. Spanish and Journalling are held back.
+            </p>
+          </div>
+          <TodaysTasks
+            summary={summary({ tasks: pickHomeTasks(MANY), total: 3, completed: 0, percent: 0 })}
+            questTasks={QUEST_TASKS}
+          />
+        </section>
 
         {/* Header pills, as they sit in the feed */}
         <section className="flex flex-col gap-space-sm">
