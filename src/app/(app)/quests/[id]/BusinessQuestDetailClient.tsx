@@ -27,6 +27,7 @@ import {
 } from "@/lib/data/questOrderVerification";
 import OrderVerificationModal from "@/components/features/quest/OrderVerificationModal";
 import VerificationStepper from "@/components/features/quest/VerificationStepper";
+import { QuestLeaderboardModal } from "@/components/features/quest/QuestLeaderboardModal";
 import {
   BusinessProfileCard, GoogleBusinessCard, LeaderboardPreviewCard,
   QuestProgressCard, RewardCard, formatAddress, type RewardSummary,
@@ -163,6 +164,7 @@ export default function BusinessQuestDetailClient({
   const [verifications, setVerifications] = useState<Map<string, OrderVerification>>(new Map());
   const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
   const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [activeTask, setActiveTask] = useState<BusinessQuestDetail["tasks"][number] | null>(null);
 
   const tasks = quest.tasks;
@@ -313,9 +315,13 @@ export default function BusinessQuestDetailClient({
           )}
           <button
             onClick={handleShare}
-            className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant hidden sm:flex items-center gap-1.5 transition-colors tap-target"
+            aria-label={`Share ${quest.title}`}
+            className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center gap-1.5 transition-colors tap-target"
           >
-            <Share2 size={14} /> Share
+            {/* Was hidden below sm, which hid it on exactly the devices that
+                have a share sheet. The label still collapses on narrow
+                screens, the button does not. */}
+            <Share2 size={14} /> <span className="hidden sm:inline">Share</span>
           </button>
           <button
             onClick={() => setSaved((s) => !s)}
@@ -525,6 +531,7 @@ export default function BusinessQuestDetailClient({
                 rows={leaderboard}
                 totalTasks={totalTasks}
                 enabled={hasLeaderboard}
+                onViewAll={() => setShowLeaderboard(true)}
               />
             )}
 
@@ -593,9 +600,9 @@ export default function BusinessQuestDetailClient({
               joined={hasJoined}
             />
             <LeaderboardPreviewCard
+              onViewAll={() => setShowLeaderboard(true)}
               rows={leaderboard}
               totalTasks={totalTasks}
-              questId={quest.id}
               enabled={hasLeaderboard}
             />
             <GoogleBusinessCard
@@ -650,6 +657,15 @@ export default function BusinessQuestDetailClient({
           }}
         />
       )}
+
+      <QuestLeaderboardModal
+        open={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+        supabase={supabase}
+        questId={quest.id}
+        totalTasks={totalTasks}
+        currentUserId={currentUserId}
+      />
     </div>
   );
 }
@@ -980,20 +996,36 @@ function TaskCard({
 /* ── Leaderboard panel ─────────────────────────────────────────────────── */
 
 function LeaderboardPanel({
-  rows, totalTasks, enabled,
+  rows, totalTasks, enabled, onViewAll,
 }: {
   rows: LeaderboardRow[];
   totalTasks: number;
   enabled: boolean;
+  onViewAll: () => void;
 }) {
   return (
     <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 sm:p-6 elev-1 surface-raised">
-      <h2 className="text-body-lg font-bold text-on-surface">Leaderboard</h2>
-      <p className="text-sm text-on-surface-variant mt-0.5">
-        {enabled
-          ? "Ranked on verified task completions only."
-          : "This Quest does not run a leaderboard."}
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-body-lg font-bold text-on-surface">Leaderboard</h2>
+          <p className="text-sm text-on-surface-variant mt-0.5">
+            {enabled
+              ? "Ranked on verified task completions only."
+              : "This Quest does not run a leaderboard."}
+          </p>
+        </div>
+        {/* The page keeps the top ten; the sheet goes to twenty and makes
+            every row a link through to that person's profile. */}
+        {enabled && rows.length > 0 && (
+          <button
+            type="button"
+            onClick={onViewAll}
+            className="flex h-11 shrink-0 items-center rounded-xl px-3 text-sm font-semibold text-secondary hover:bg-secondary-fixed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            View all
+          </button>
+        )}
+      </div>
 
       {enabled && (
         rows.length === 0 ? (

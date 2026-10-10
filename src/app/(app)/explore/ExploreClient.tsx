@@ -36,21 +36,34 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { Badge, Button, Card } from "@/components/ui";
+import { Badge, Button, Card, MobileMenu } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { ShareButton } from "@/components/features/share/ShareButton";
 import type { FeaturedChallenge, FeaturedQuest, TrendingChallenge } from "./page";
 
 type View = "quests" | "challenges";
 
 /* ── Join helper ─────────────────────────────────────────────────────────── */
+/**
+ * The user id comes from the locally cached session rather than getUser().
+ *
+ * getUser() re-validates the token against the auth server, which is a second
+ * network round trip paid before the insert even starts, on the one tap the
+ * whole screen exists for. It is the right call when the id is the thing
+ * being trusted, and the wrong one here: the INSERT policy on
+ * challenge_participants is WITH CHECK (user_id = auth.uid()), so Postgres
+ * rejects a row that claims someone else's id no matter what this sends. The
+ * id is a payload field, not an authorization decision.
+ */
 async function joinChallenge(challengeId: string): Promise<{ error: string | null }> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "not-authed" };
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  if (!userId) return { error: "not-authed" };
 
   const { error } = await supabase.from("challenge_participants").insert({
     challenge_id: challengeId,
-    user_id: user.id,
+    user_id: userId,
     status: "active",
   });
 
@@ -70,9 +83,13 @@ const FOCUS_RING =
 /* ── Quest card ──────────────────────────────────────────────────────────── */
 function QuestCard({ quest }: { quest: FeaturedQuest }) {
   const art = quest.cover_url ?? quest.thumbnail_url ?? null;
+  /* Not `interactive`, and the Link no longer wraps the Card: the footer
+     holds a Share button, and a button inside an anchor is invalid nesting
+     that also swallows the tap into a navigation. The link covers the art and
+     the text, which is everything someone would aim at to open the quest. */
   return (
-    <Link href={`/quests/${quest.id}`} className={`block h-full rounded-xl ${FOCUS_RING}`}>
-      <Card bordered padding="none" elevation={2} interactive className="h-full overflow-hidden">
+    <Card bordered padding="none" elevation={2} className="flex h-full flex-col overflow-hidden">
+      <Link href={`/quests/${quest.id}`} className={`block rounded-xl ${FOCUS_RING}`}>
         <div className="relative aspect-[16/9] w-full overflow-hidden bg-surface-variant">
           {art ? (
             <Image src={art} alt="" fill sizes="(min-width: 1024px) 480px, 100vw" className="object-cover" />
@@ -112,8 +129,17 @@ function QuestCard({ quest }: { quest: FeaturedQuest }) {
             </span>
           </div>
         </div>
-      </Card>
-    </Link>
+      </Link>
+      <div className="mt-auto flex justify-end border-t border-outline-variant px-3 py-1.5">
+        <ShareButton
+          kind="quest"
+          id={quest.id}
+          title={quest.title}
+          label="Share"
+          className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-on-surface-variant transition-colors hover:bg-surface-container hover:text-secondary"
+        />
+      </div>
+    </Card>
   );
 }
 
@@ -241,7 +267,11 @@ function TrendingRow({
           />
         </div>
       </div>
-      <div className="shrink-0">
+      {/* Action column: the primary button, with Share directly beneath it.
+          Stacked rather than placed in the row because the row is already
+          full at 56px of art plus the title block, and a third item there
+          pushes the progress bar into the title on a narrow phone. */}
+      <div className="flex shrink-0 flex-col items-stretch gap-1">
         {challenge.isParticipant ? (
           <Link
             href={`/challenges/${challenge.id}`}
@@ -280,6 +310,14 @@ function TrendingRow({
             )}
           </Button>
         )}
+        <ShareButton
+          kind="challenge"
+          id={challenge.id}
+          title={challenge.title}
+          isPrivate={!isPublic}
+          label="Share"
+          className="flex h-8 items-center justify-center gap-1 rounded-lg text-xs font-semibold text-on-surface-variant transition-colors hover:bg-surface-container hover:text-secondary"
+        />
       </div>
     </Card>
   );
@@ -371,6 +409,8 @@ export function ExploreClient({ featured, trending, quests = [] }: ExploreClient
       <header className="sticky top-0 z-40 border-b border-outline-variant bg-surface/95 pt-safe backdrop-blur-sm">
         <div className="mx-auto measure-page px-gutter lg:px-gutter-md">
           <div className="flex h-14 items-center justify-between">
+            <div className="flex min-w-0 items-center gap-1">
+            <MobileMenu />
             <Link href="/explore" className={`flex items-center rounded-lg ${FOCUS_RING}`}>
               <Image
                 src="/brand/wordmark.png"
@@ -381,6 +421,7 @@ export function ExploreClient({ featured, trending, quests = [] }: ExploreClient
                 className="h-[22px] w-auto"
               />
             </Link>
+            </div>
             <div className="flex items-center gap-1">
               <Link
                 href="/alerts"

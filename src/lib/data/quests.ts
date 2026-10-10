@@ -170,56 +170,68 @@ export async function getTrendingQuests(
 }
 
 /**
- * Sort quests by distance from user's location using Haversine.
- * Filters to active quests only.
+ * Order an already-loaded quest list by distance from the user.
+ *
+ * Near Me used to run its own query filtered on `status = 'active'`, which
+ * only ever matched legacy quests. Business quests live in the same table but
+ * are gated on `quest_status`, so Near Me quietly showed a different, smaller
+ * set than Trending. It now reorders whatever the page already loaded, which
+ * keeps the two lists in step by construction: one source, one filter.
+ *
+ * Coordinates are optional on a quest, and a missing pair used to be read as
+ * (0, 0) off the coast of Africa, which put unpinned quests either first or
+ * last by accident. Those are kept with `distance: null` and appended in their
+ * original order instead, so Near Me still lists every live quest.
  */
-export async function getQuestsByDistance(
+export async function sortQuestsByDistance(
   supabase: SupabaseClient,
+  quests: Quest[],
   userLat: number,
   userLon: number
-): Promise<(Quest & { distance: number })[]> {
+): Promise<(Quest & { distance: number | null })[]> {
+  if (quests.length === 0) return [];
+
   const { data, error } = await supabase
     .from("quests")
-    .select(
-      `
-      id, title, category, business_name, location_name, reward_description,
-      thumbnail_url, is_hot, status, latitude, longitude,
-      quest_participants!quest_id ( user_id )
-      `
-    )
-    .eq("status", "active");
+    .select("id, latitude, longitude")
+    .in(
+      "id",
+      quests.map((q) => q.id)
+    );
 
-  if (error || !data) {
-    if (error) console.error("[getQuestsByDistance]", error.message);
-    return [];
+  if (error) console.error("[sortQuestsByDistance]", error.message);
+
+  const coords = new Map<string, { lat: number; lon: number }>();
+  for (const row of data ?? []) {
+    const lat = row.latitude as number | null;
+    const lon = row.longitude as number | null;
+    if (typeof lat === "number" && typeof lon === "number") {
+      coords.set(row.id as string, { lat, lon });
+    }
   }
 
-  return data
-    .map((row) => {
-      const distance = haversineDistance(
-        userLat,
-        userLon,
-        (row.latitude as number) ?? 0,
-        (row.longitude as number) ?? 0
-      );
-      return {
-        id: row.id as string,
-        title: row.title as string,
-        category: row.category as string,
-        business_name: row.business_name as string,
-        location_name: row.location_name as string,
-        reward_description: row.reward_description as string,
-        thumbnail_url:
-          (row.thumbnail_url as string | null) ?? fallbackThumbnail(row.id as string),
-        is_hot: row.is_hot as boolean,
-        status: (row.status as "active" | "inactive") ?? "active",
-        participant_count: Array.isArray(row.quest_participants)
-          ? row.quest_participants.length
-          : 0,
-        distance,
-      };
-    })
-    .sort((a, b) => a.distance - b.distance);
+  const originalOrder = new Map(quests.map((quest, index) => [quest.id, index]));
+
+  const withDistance = quests.map((quest) => {
+    const point = coords.get(quest.id);
+    return {
+      ...quest,
+      distance: point
+        ? haversineDistance(userLat, userLon, point.lat, point.lon)
+        : null,
+    };
+  });
+
+  withDistance.sort((a, b) => {
+    if (a.distance === null && b.distance === null) {
+      return (originalOrder.get(a.id) ?? 0) - (originalOrder.get(b.id) ?? 0);
+    }
+    if (a.distance === null) return 1;
+    if (b.distance === null) return -1;
+    return a.distance - b.distance;
+  });
+
+  return withDistance;
 }
 
 /**

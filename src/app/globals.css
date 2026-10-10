@@ -131,6 +131,30 @@
   --color-chart-5: #047857;
   --color-chart-6: #be185d;
 
+  /* ── Share card ──────────────────────────────────────────────────────────
+     The dark teal a shared challenge or quest is drawn on, in the preview
+     image WhatsApp renders and in the landing page that link opens. The two
+     have to match: a recipient taps the card and should arrive at the same
+     card, so the values here are the ones in src/lib/share/ogCard.tsx.
+
+     Teal rather than one of the brand colours because this surface always
+     carries a creator's photograph. On --color-surface a cover reads as a
+     document, and on --color-primary (black) it reads as a video thumbnail;
+     neither says "event". It is the dark end of --color-chart-2 (#0e7490),
+     so it stays inside the palette already defined above.
+
+       white            on share-card        10.97:1
+       white/80         on share-card         7.64:1   (body)
+       white/60         on share-card         5.03:1   (overline, muted labels)
+
+     white/55 measures 4.49:1 and is therefore not used: it misses AA for
+     normal text by a hair, which is exactly the kind of near-miss that
+     survives review because it looks fine.
+   */
+  --color-share-card: #0c4349;
+  --color-share-card-deep: #062a2e;
+  --color-share-card-edge: #15616d;
+
   /* ── Admin chrome ────────────────────────────────────────────────────────
      The admin console is a dark rail and dark panels around light content.
      That is deliberate: it should not be mistakable for the user app. It was

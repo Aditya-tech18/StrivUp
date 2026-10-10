@@ -25,7 +25,7 @@ import { getFeedPosts } from "@/lib/data/feed";
 import { getTodaysTasks, type TodayTask } from "@/lib/data/today";
 import { getCoinStateWithCheckin } from "@/lib/data/coins";
 import { CoinPill } from "@/components/features/CoinPill";
-import { BrandMark } from "@/components/ui";
+import { BrandMark, MobileMenu } from "@/components/ui";
 
 /** "Thursday, 24 May" — matches the design's date eyebrow. */
 function todayLabel(): string {
@@ -143,6 +143,7 @@ export default async function FeedPage() {
       <header className="sticky top-0 z-40 bg-surface/80 pt-safe elev-1 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-gutter">
           <div className="flex items-center gap-space-sm">
+            <MobileMenu />
             <BrandMark variant="mark" height={26} priority />
             <div className="flex flex-col">
               <BrandMark variant="wordmark" height={16} />

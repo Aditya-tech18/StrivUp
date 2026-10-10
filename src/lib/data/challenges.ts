@@ -156,13 +156,21 @@ export async function getTrendingChallenges(
 export async function getChallengeDetail(
   supabase: SupabaseClient,
   id: string
-): Promise<Omit<ChallengeDetail, "activeCount" | "successPercent" | "currentStreak"> | null> {
+): Promise<
+  | (Omit<ChallengeDetail, "activeCount" | "successPercent" | "currentStreak"> & {
+      creatorId: string | null;
+    })
+  | null
+> {
+  // creator_id rides along on this select. The page used to resolve ownership
+  // with a second query against the same row, which cost a full round trip to
+  // learn one uuid it had already fetched the neighbours of.
   const { data, error } = await supabase
     .from("challenges")
     .select(
       `
       id, title, duration_days, thumbnail_url, created_at, description, visibility,
-      proof_instructions,
+      proof_instructions, creator_id,
       profiles!creator_id ( full_name )
       `
     )
@@ -199,6 +207,7 @@ export async function getChallengeDetail(
     // Null for challenges created before the create form started deriving
     // this; the composer falls back to generic wording.
     proofInstructions: (data.proof_instructions as string | null) ?? null,
+    creatorId: (data.creator_id as string | null) ?? null,
   };
 }
 
@@ -224,6 +233,19 @@ export async function getChallengeStats(
   challengeId: string,
   userId?: string
 ): Promise<ChallengeStats> {
+  /* The streak lookup does not depend on the participant counts, so it is
+     started here and awaited at the end. Previously the three queries ran
+     strictly one after another and the page waited out all three latencies
+     back to back. */
+  const streakPromise = userId
+    ? supabase
+        .from("streaks")
+        .select("current_streak")
+        .eq("challenge_id", challengeId)
+        .eq("user_id", userId)
+        .maybeSingle()
+    : null;
+
   // 1. ACTIVE participant count
   const { count: activeCount } = await supabase
     .from("challenge_participants")
@@ -263,17 +285,8 @@ export async function getChallengeStats(
   }
 
   // 3. STREAK — for the current user only (graceful 0 if no row)
-  let currentStreak = 0;
-  if (userId) {
-    const { data: streakRow } = await supabase
-      .from("streaks")
-      .select("current_streak")
-      .eq("challenge_id", challengeId)
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    currentStreak = (streakRow?.current_streak as number | null) ?? 0;
-  }
+  const streakRow = streakPromise ? (await streakPromise).data : null;
+  const currentStreak = (streakRow?.current_streak as number | null) ?? 0;
 
   return { activeCount: active, successPercent, currentStreak, memberCount: active };
 }

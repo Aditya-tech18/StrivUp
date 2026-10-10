@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { ServiceWorkerRegistrar } from "@/components/ui";
+import { InstallAppPrompt, ServiceWorkerRegistrar } from "@/components/ui";
 import "./globals.css";
 
 /**
@@ -118,6 +118,9 @@ export default function RootLayout({
       <body className="antialiased">
         {children}
         <ServiceWorkerRegistrar />
+        {/* Shows 30s after landing, on every page, signed in or not.
+            Renders nothing inside the installed app. */}
+        <InstallAppPrompt />
       </body>
     </html>
   );

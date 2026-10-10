@@ -174,12 +174,12 @@ const PLACEHOLDER: { label: string; tasks: string; points: number }[] = [
 ];
 
 export function LeaderboardPreviewCard({
-  rows, totalTasks, questId, enabled,
+  rows, totalTasks, enabled, onViewAll,
 }: {
   rows: LeaderboardRow[];
   totalTasks: number;
-  questId: string;
   enabled: boolean;
+  onViewAll: () => void;
 }) {
   if (!enabled) return null;
   const isPlaceholder = rows.length === 0;
@@ -255,12 +255,16 @@ export function LeaderboardPreviewCard({
         </p>
       )}
 
-      <Link
-        href={`/quests/${questId}/leaderboard`}
-        className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-secondary hover:text-secondary"
+      {/* A button, not a link. This pointed at /quests/[id]/leaderboard, which
+          is not a route, so the only way past the top three was a 404. The
+          full ranking opens in a sheet the parent owns. */}
+      <button
+        type="button"
+        onClick={onViewAll}
+        className="mt-3 inline-flex h-11 items-center gap-1 text-sm font-semibold text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
       >
         View Full Leaderboard →
-      </Link>
+      </button>
     </section>
   );
 }

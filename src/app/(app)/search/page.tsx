@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, ShieldCheck, Target, Trophy, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { MobileMenu } from "@/components/ui";
 
 type Tab = "users" | "challenges" | "quests";
 
@@ -103,8 +104,9 @@ export default function SearchPage() {
     <div className="min-h-screen bg-surface-container-low pb-28">
       {/* Header */}
       <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest border-b border-outline-variant">
-        <div className="mx-auto measure-page px-5 py-3">
-          <div className="flex items-center gap-2 bg-surface-container rounded-xl border border-outline-variant px-4 h-11 focus-within:ring-2 focus-within:ring-secondary focus-within:border-secondary">
+        <div className="mx-auto flex measure-page items-center gap-1.5 px-5 py-3">
+          <MobileMenu />
+          <div className="flex min-w-0 flex-1 items-center gap-2 bg-surface-container rounded-xl border border-outline-variant px-4 h-11 focus-within:ring-2 focus-within:ring-secondary focus-within:border-secondary">
             <Search size={18} className="text-on-surface-variant shrink-0" />
             <input aria-label="Search people, challenges and quests"
               ref={inputRef}

@@ -9,6 +9,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { SocialIcon, PLATFORM_NAME } from "@/components/ui/SocialIcon";
 import { ActivityHeatmap } from "@/components/ui/ActivityHeatmap";
+import { MobileMenu } from "@/components/ui";
 import {
   getMyProfile, upsertMyProfile,
   getMySocialLinks, addMySocialLink, deleteMySocialLink,
@@ -510,7 +511,10 @@ export default function ProfilePage() {
       {/* ── Sticky header ───────────────────────────────────────────────── */}
       <div className="sticky top-0 pt-safe z-30 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-page flex items-center justify-between px-5 py-3.5">
-          <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">My Profile</h1>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <MobileMenu />
+            <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">My Profile</h1>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setEditing(v => !v)}

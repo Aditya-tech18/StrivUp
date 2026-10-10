@@ -27,7 +27,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, MobileMenu } from "@/components/ui";
 import { useUnreadCount } from "@/components/ui/AlertsContext";
 import { FollowRequests } from "@/components/features/profile/FollowRequests";
 
@@ -190,7 +190,10 @@ export default function AlertsPage() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <h1 className="text-headline-md text-on-surface">Alerts</h1>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <MobileMenu />
+            <h1 className="text-headline-md text-on-surface">Alerts</h1>
+          </div>
           {hasUnread && (
             <Button
               variant="outline"
