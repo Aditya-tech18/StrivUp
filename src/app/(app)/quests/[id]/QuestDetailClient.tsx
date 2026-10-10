@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, MapPin, Users, CheckCircle2, AlertCircle, Upload, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { ShareButton } from "@/components/features/share/ShareButton";
 import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { Button, Card, Badge, Input } from "@/components/ui";
 import type { QuestDetail } from "@/lib/data/quests";
@@ -276,6 +277,12 @@ export default function QuestDetailClient({
         <h1 className="text-body-md font-semibold text-on-surface flex-1 truncate">
           {quest.title}
         </h1>
+        <ShareButton
+          kind="quest"
+          id={quest.id}
+          title={quest.title}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container hover:text-secondary tap-target"
+        />
       </div>
 
       <div className="mx-auto measure-page">

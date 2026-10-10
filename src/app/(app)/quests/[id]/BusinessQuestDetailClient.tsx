@@ -315,9 +315,13 @@ export default function BusinessQuestDetailClient({
           )}
           <button
             onClick={handleShare}
-            className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant hidden sm:flex items-center gap-1.5 transition-colors tap-target"
+            aria-label={`Share ${quest.title}`}
+            className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center gap-1.5 transition-colors tap-target"
           >
-            <Share2 size={14} /> Share
+            {/* Was hidden below sm, which hid it on exactly the devices that
+                have a share sheet. The label still collapses on narrow
+                screens, the button does not. */}
+            <Share2 size={14} /> <span className="hidden sm:inline">Share</span>
           </button>
           <button
             onClick={() => setSaved((s) => !s)}

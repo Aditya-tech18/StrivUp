@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   CheckCircle2, ChevronRight, ClipboardList, Crown, Pencil, Plus, Search, Trophy, Users, Zap,
 } from "lucide-react";
+import { ShareButton } from "@/components/features/share/ShareButton";
 
 export interface CreatedChallenge {
   id: string;
@@ -90,6 +91,13 @@ function ChallengeCard({ c }: { c: CreatedChallenge }) {
           className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-outline-variant px-3 text-xs font-semibold text-on-surface-variant hover:bg-surface-container">
           <Pencil size={14} aria-hidden="true" /> Edit
         </Link>
+        <ShareButton
+          kind="challenge"
+          id={c.id}
+          title={c.title}
+          isPrivate={c.visibility === "private"}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container tap-target"
+        />
         <Link href={`/creator/challenges/${c.id}/submissions`}
           className="relative flex h-9 items-center justify-center gap-1.5 rounded-xl border border-outline-variant px-3 text-xs font-semibold text-on-surface-variant">
           <ClipboardList size={14} /> Proofs

@@ -194,6 +194,57 @@ export async function getQuestSharePreview(id: string): Promise<SharePreview | n
   };
 }
 
+/* ── Invite link ─────────────────────────────────────────────────────────── */
+
+/**
+ * The preview behind /join/<code>, which is the URL people actually share.
+ *
+ * Invites exist for private challenges, so there is nothing for the anonymous
+ * role to SELECT: this goes through get_invite_preview, a SECURITY DEFINER
+ * function that treats the code itself as the capability and returns only the
+ * handful of fields the card renders. See the migration for what it
+ * deliberately does not return.
+ */
+export async function getInviteSharePreview(code: string): Promise<SharePreview | null> {
+  const supabase = createAnonClient();
+
+  const { data, error } = await supabase
+    .rpc("get_invite_preview", { p_code: code })
+    .maybeSingle();
+
+  if (error) {
+    console.error("[getInviteSharePreview]", error.message);
+    return null;
+  }
+  if (!data) return null;
+
+  const row = data as {
+    challenge_id: string;
+    title: string | null;
+    thumbnail_url: string | null;
+    created_at: string;
+    duration_days: number | null;
+    organizer_name: string | null;
+    organizer_avatar_url: string | null;
+    participant_count: number | null;
+  };
+
+  return {
+    kind: "challenge",
+    id: row.challenge_id,
+    title: row.title ?? "A challenge on StrivUp",
+    imageUrl: row.thumbnail_url,
+    // get_invite_preview does not return the description on purpose, so the
+    // card falls back to its generic line rather than leaking body text.
+    description: null,
+    organizerName: row.organizer_name,
+    organizerImageUrl: row.organizer_avatar_url,
+    startDate: row.created_at,
+    endDate: row.duration_days ? addDays(row.created_at, row.duration_days) : null,
+    participantCount: Number(row.participant_count ?? 0),
+  };
+}
+
 /* ── Shared formatting ───────────────────────────────────────────────────── */
 
 /**

@@ -23,9 +23,12 @@ import { BrandMark } from "@/components/ui";
 export function SharePreviewLanding({
   preview,
   destination,
+  invited = false,
 }: {
   preview: SharePreview | null;
   destination: string;
+  /** Reached through an invite link, which changes the wording only. */
+  invited?: boolean;
 }) {
   const signIn = `/login?redirectTo=${encodeURIComponent(destination)}`;
 
@@ -35,8 +38,9 @@ export function SharePreviewLanding({
         <BrandMark variant="wordmark" height={28} />
         <h1 className="text-headline-md text-on-surface">This link is not available</h1>
         <p className="measure-form text-body-md text-on-surface-variant">
-          It may have been removed, or it may be private. Sign in if you were
-          invited to it.
+          {invited
+            ? "This invite may have been replaced by a newer link, or the challenge may no longer exist. Ask whoever invited you for a fresh one."
+            : "It may have been removed, or it may be private. Sign in if you were invited to it."}
         </p>
         <Link
           href={signIn}
@@ -79,7 +83,7 @@ export function SharePreviewLanding({
 
           <div className="flex flex-col gap-3 p-5">
             <p className="text-label-sm font-bold uppercase tracking-[0.2em] text-white/60">
-              {kindLabel}
+              {invited ? "You have been invited" : kindLabel}
             </p>
             <h1 className="text-headline-md font-bold leading-snug text-white">
               {preview.title}
@@ -133,10 +137,12 @@ export function SharePreviewLanding({
             href={signIn}
             className="flex h-12 items-center justify-center rounded-xl bg-primary text-body-lg font-bold text-on-primary"
           >
-            Open in StrivUp
+            {invited ? "Join challenge" : "Open in StrivUp"}
           </Link>
           <p className="text-center text-body-sm text-on-surface-variant">
-            Sign in to see the full {kindLabel.toLowerCase()} and join.
+            {invited
+              ? "Sign in or create an account. You will land straight in the challenge."
+              : `Sign in to see the full ${kindLabel.toLowerCase()} and join.`}
           </p>
         </div>
       </div>

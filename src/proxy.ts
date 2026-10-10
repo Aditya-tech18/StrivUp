@@ -73,9 +73,16 @@ const APP_ROUTE_PREFIXES = [
  * The pattern matches a UUID and nothing else, deliberately. A looser
  * [^/]+ would also exempt /challenges/new, and the trailing anchor keeps
  * /challenges/<id>/edit and /challenges/<id>/leaderboard gated as before.
+ *
+ * /join/<code> is here for the same reason and is the case that matters most
+ * in practice, because the link a creator shares is the invite link, not the
+ * challenge URL. The code is an alphanumeric token, so it is matched as such
+ * and nothing else under /join is exempt. Seeing this page still grants
+ * nothing: the join itself is a Server Action that needs a session, and a
+ * signed-out visitor only ever gets the preview and a sign-in button.
  */
 const SHAREABLE_DETAIL =
-  /^\/(?:challenges|quests)\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?:\/opengraph-image[^/]*)?$/i;
+  /^\/(?:challenges|quests)\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?:\/opengraph-image[^/]*)?$|^\/join\/[a-z0-9]{4,32}(?:\/opengraph-image[^/]*)?$/i;
 
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams, search, origin } = request.nextUrl;

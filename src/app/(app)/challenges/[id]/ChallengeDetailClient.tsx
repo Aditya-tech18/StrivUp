@@ -41,6 +41,7 @@ import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { InviteSheet } from "@/components/features/InviteSheet";
+import { ShareButton } from "@/components/features/share/ShareButton";
 import type { ChallengeTask, TaskSubmission } from "@/lib/data/tasks";
 import { PhysicalTaskCard } from "@/components/features/activity";
 import { currentChallengePeriodProgress } from "@/lib/data/activity";
@@ -792,6 +793,18 @@ export function ChallengeDetailClient({
             <BrandMark variant="wordmark" height={20} priority />
           </div>
           <div className="flex items-center gap-1">
+            {/* Share. Everyone gets this, not just the creator: the person
+                most likely to pull someone else in is a participant who is
+                already doing it. A private challenge shares its invite link,
+                a public one shares the page, and both now carry a preview
+                card. */}
+            <ShareButton
+              kind="challenge"
+              id={challenge.id}
+              title={challenge.title}
+              isPrivate={challenge.visibility === "private"}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-secondary tap-target"
+            />
             {/* Invite — the cold-start mechanism. Creator-only. */}
             {isCreator && (
               <button

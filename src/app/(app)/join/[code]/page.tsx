@@ -1,17 +1,22 @@
 /**
  * app/(app)/join/[code]/page.tsx — invite link landing.
  *
- * The destination of every shared challenge link. Joins the signed-in user and
- * forwards them straight into the challenge, so the path from "tapped a link in
- * a WhatsApp group" to "inside the challenge" is one screen with no decisions.
+ * The destination of every shared challenge link, and therefore the page a
+ * WhatsApp crawler hits. Two things follow from that:
  *
- * Signed-out visitors are sent to /login by src/proxy.ts (the "/join" prefix is
- * in APP_ROUTE_PREFIXES) carrying ?redirectTo, so they land back here after
- * authenticating and the join still completes.
+ *  1. It carries its own Open Graph metadata and an opengraph-image, built
+ *     from get_invite_preview rather than a table read, because an invite
+ *     normally points at a private challenge nobody anonymous can SELECT.
  *
- * Joining is a write, so it happens in a Server Action behind an explicit tap
- * rather than during render — a GET that mutates would fire on every prefetch,
- * link preview and messaging-app crawler that touches the URL.
+ *  2. It renders for signed-out visitors instead of bouncing them. The proxy
+ *     used to 302 this path to /login, which meant someone tapping an invite
+ *     landed on a password field with no idea what they had been invited to,
+ *     and the crawler scraped that same login page. Now they see the invite,
+ *     and the sign-in detour carries them back here.
+ *
+ * Joining is still a write behind a session: it happens in a Server Action on
+ * an explicit submit, never during render, so no prefetch or crawler can
+ * trigger it.
  */
 
 import { redirect } from "next/navigation";
@@ -21,29 +26,74 @@ import { Link2Off, Users } from "lucide-react";
 import { BrandMark, Button, ErrorState } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 import { joinByInviteCode } from "@/lib/data/invites";
+import {
+  getInviteSharePreview,
+  buildShareDescription,
+  formatTenure,
+} from "@/lib/data/share";
+import { SharePreviewLanding } from "@/components/features/share/SharePreviewLanding";
+import { AutoSubmit } from "./AutoSubmit";
 
 interface PageProps {
   // Next 16: both are Promises and must be awaited.
   params: Promise<{ code: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; auto?: string }>;
 }
 
-export const metadata: Metadata = {
-  title: "Join a challenge",
-  // An invite link is a capability, not a page — never let it be indexed.
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { code } = await params;
+  const preview = await getInviteSharePreview(code);
+
+  // An invite link is a capability, so it stays out of search results either
+  // way. noindex does not stop a messaging app from reading og: tags, which
+  // is the whole point of this block.
+  const robots = { index: false, follow: false };
+
+  if (!preview) {
+    return { title: "Join a challenge", robots };
+  }
+
+  const description = buildShareDescription(preview);
+  return {
+    title: preview.title,
+    description,
+    robots,
+    openGraph: {
+      type: "article",
+      siteName: "StrivUp",
+      title: preview.title,
+      description,
+      url: `/join/${code}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: preview.title,
+      description,
+    },
+  };
+}
 
 export default async function JoinPage({ params, searchParams }: PageProps) {
-  const [{ code }, { error }] = await Promise.all([params, searchParams]);
+  const [{ code }, { error, auto }] = await Promise.all([params, searchParams]);
   const supabase = await createClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  /* Signed out: show what the invite is for, then send them to sign in with
+     the destination attached. `auto=1` survives the round trip so that the
+     accept fires on the way back and they land inside the challenge rather
+     than on this page a second time. */
   if (!user) {
-    redirect(`/login?redirectTo=/join/${encodeURIComponent(code)}`);
+    const preview = await getInviteSharePreview(code);
+    return (
+      <SharePreviewLanding
+        preview={preview}
+        destination={`/join/${encodeURIComponent(code)}?auto=1`}
+        invited
+      />
+    );
   }
 
   // The Server Action bounced back here because the code was wrong, rotated,
@@ -62,20 +112,8 @@ export default async function JoinPage({ params, searchParams }: PageProps) {
     );
   }
 
-  // Preview what they're being invited to, without joining.
-  // A private challenge is not SELECTable by a non-participant, so this is
-  // expected to be null for exactly the case invites exist for. The invite is
-  // still valid — we just can't show the title yet, so the copy degrades
-  // gracefully instead of claiming the link is broken.
-  const { data: preview } = await supabase
-    .from("challenges")
-    .select("id, title, duration_days")
-    .eq("invite_code", code.trim().toUpperCase())
-    .maybeSingle();
-
-  const challenge = preview as
-    | { id: string; title: string | null; duration_days: number | null }
-    | null;
+  const preview = await getInviteSharePreview(code);
+  const tenure = preview ? formatTenure(preview.startDate, preview.endDate) : null;
 
   /** Server Action: perform the join, then hand off to the challenge. */
   async function accept() {
@@ -91,6 +129,12 @@ export default async function JoinPage({ params, searchParams }: PageProps) {
     redirect(`/challenges/${challengeId}`);
   }
 
+  /* Came back from signing in having already tapped Join. Asking them to tap
+     it again would be asking twice for the same decision, so the form submits
+     itself. It is still a POST from a real form, so the no-mutation-on-GET
+     rule holds and the button below is the no-JavaScript path. */
+  const autoAccept = auto === "1";
+
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center px-gutter py-space-xl">
       <div className="rounded-xl bg-surface-container-lowest p-space-lg text-center elev-1 surface-raised">
@@ -103,20 +147,24 @@ export default async function JoinPage({ params, searchParams }: PageProps) {
         </p>
 
         <h1 className="mt-1 text-headline-lg-mobile text-on-surface">
-          {challenge?.title ?? "Join this challenge"}
+          {preview?.title ?? "Join this challenge"}
         </h1>
 
+        {tenure && (
+          <p className="mt-space-xs text-body-md text-on-surface-variant">{tenure}</p>
+        )}
+
         <p className="mx-auto mt-space-xs max-w-sm text-body-md text-on-surface-variant">
-          {challenge?.duration_days
-            ? `${challenge.duration_days} days. Post proof every day — your streak is visible to everyone in the challenge. That's the point.`
-            : "Post proof every day — your streak is visible to everyone in the challenge. That's the point."}
+          Post proof every day. Your streak is visible to everyone in the
+          challenge, which is the point.
         </p>
 
         <form action={accept} className="mt-space-lg">
           <Button type="submit" variant="primary" size="lg" fullWidth>
             <Users size={18} aria-hidden="true" />
-            Accept invite
+            {autoAccept ? "Joining…" : "Accept invite"}
           </Button>
+          {autoAccept && <AutoSubmit />}
         </form>
 
         <Link
