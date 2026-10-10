@@ -18,6 +18,7 @@ import { pickHomeTasks } from "@/lib/data/today";
 import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAccountsRail";
 import type { SuggestedProfile, PersonCard } from "@/lib/data/social";
 import { Facepile } from "@/components/features/people/Facepile";
+import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
 
 function task(over: Partial<TodayTask> & { key: string }): TodayTask {
   return {
@@ -104,8 +105,12 @@ const CASES: Array<{ label: string; note: string; data: TodaySummary }> = [
 const FACES: PersonCard[] = [
   {
     id: "f1", username: "anna_rose1405", fullName: "Anna Rose",
-    // A host next/image allows, so this one really loads.
-    avatarUrl: "https://api.dicebear.com/7.x/avataaars/png?seed=anna",
+    /* A local file, so it genuinely loads in the harness. This matters:
+       the first version of these fixtures used remote URLs that all failed
+       in this sandbox, so every face took the fallback branch and the
+       loaded-image branch was never once rendered. That is the branch that
+       was broken in production. */
+    avatarUrl: "/icons/icon-192.png",
     bio: null,
   },
   // A URL that will 404: proves the onError fallback, not just the null path.
@@ -113,6 +118,29 @@ const FACES: PersonCard[] = [
     avatarUrl: "https://api.dicebear.com/this-404s.png", bio: null },
   { id: "f3", username: "nopic", fullName: "No Picture", avatarUrl: null, bio: null },
 ];
+
+/* A whole FeedCard, not just the Facepile on its own. The facepile looked
+   correct in isolation while being invisible inside a real card, so the
+   integration is what gets rendered here now. */
+const POST: FeedPost = {
+  id: "post-1",
+  authorName: "Adi Chaubey",
+  authorAvatarUrl: "/icons/icon-192.png",
+  verified: false,
+  category: "Study",
+  dayLabel: "2H AGO",
+  streakDay: 12,
+  proofImageUrl: "/og.png",
+  mediaWidth: 1200,
+  mediaHeight: 630,
+  caption: "Day 12. Two hours in the library, no phone.",
+  likeCount: 86,
+  likePreview: FACES,
+  commentCount: 4,
+  viewerHasLiked: false,
+  authorId: "f9",
+  adminRemoved: false,
+};
 
 const SUGGESTED: SuggestedProfile[] = [
   {
@@ -176,6 +204,17 @@ export default function FeedPreviewPage() {
             Fabricated data. Not reachable in production.
           </p>
         </header>
+
+        <section className="flex flex-col gap-space-sm">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">Feed card with likes</h2>
+            <p className="text-body-sm text-on-surface-variant">
+              The real card. The facepile has to be visible here, not only in
+              the isolated row below.
+            </p>
+          </div>
+          <FeedCard post={POST} viewerId="me" />
+        </section>
 
         <section className="flex flex-col gap-space-sm">
           <div className="border-l-2 border-secondary pl-space-sm">

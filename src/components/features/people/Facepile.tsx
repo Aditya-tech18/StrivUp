@@ -68,10 +68,14 @@ export function Facepile({
       {faces.length > 0 && (
         <span className="flex shrink-0 items-center" aria-hidden="true">
           {faces.map((p, i) => (
+            /* relative inline-flex, for two reasons: z-index does nothing on
+               a static element, so without it the overlap stacked in the
+               wrong order, and an inline wrapper adds line-height slack that
+               made the ring sit a few pixels taller than the avatar. */
             <span
               key={p.id}
-              className="rounded-full ring-2 ring-surface-container-lowest"
-              style={{ marginLeft: i === 0 ? 0 : -size / 3 , zIndex: faces.length - i }}
+              className="relative inline-flex rounded-full ring-2 ring-surface-container-lowest"
+              style={{ marginLeft: i === 0 ? 0 : -size / 3, zIndex: faces.length - i }}
             >
               <UserAvatar src={p.avatarUrl} name={displayName(p)} size={size} />
             </span>

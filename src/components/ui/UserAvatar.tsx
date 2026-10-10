@@ -41,7 +41,13 @@ export function UserAvatar({
   const trimmed = typeof src === "string" ? src.trim() : "";
   const usable = trimmed.length > 0 && !failed;
 
-  const box = `shrink-0 overflow-hidden rounded-full ${className}`;
+  /* inline-flex, not the browser default of inline: width and height do not
+     apply to an inline box, so a bare <span> here collapses to zero and the
+     image inside it (h-full w-full) resolves against nothing. The fallback
+     branch below happened to set `flex` for centring and so always worked,
+     which is why this only ever broke for people who actually have a
+     picture. */
+  const box = `inline-flex shrink-0 overflow-hidden rounded-full ${className}`;
   const style = { width: size, height: size };
 
   if (!usable) {
@@ -49,7 +55,7 @@ export function UserAvatar({
       <span
         role="img"
         aria-label={name ? `${name}, no profile picture` : "No profile picture"}
-        className={`${box} flex items-center justify-center bg-surface-container-high text-on-surface-variant`}
+        className={`${box} items-center justify-center bg-surface-container-high text-on-surface-variant`}
         style={style}
       >
         <User size={Math.round(size * 0.52)} strokeWidth={1.75} aria-hidden="true" />
