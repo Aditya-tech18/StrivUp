@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  CheckCircle2, ChevronRight, ClipboardList, Crown, Plus, Search, Trophy, Users, Zap,
+  CheckCircle2, ChevronRight, ClipboardList, Crown, Pencil, Plus, Search, Trophy, Users, Zap,
 } from "lucide-react";
 
 export interface CreatedChallenge {
@@ -81,6 +81,14 @@ function ChallengeCard({ c }: { c: CreatedChallenge }) {
         <Link href={`/challenges/${c.id}`}
           className="flex h-9 flex-1 items-center justify-center rounded-xl bg-primary text-xs font-bold tracking-wide text-white tap-target">
           OPEN CHALLENGE
+        </Link>
+        {/* Every row on this page is one the signed-in user created, so Edit
+            belongs on all of them. The route checks creator_id again, and RLS
+            behind it, so the button is a shortcut rather than the gate. */}
+        <Link href={`/challenges/${c.id}/edit`}
+          aria-label={`Edit ${c.title}`}
+          className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-outline-variant px-3 text-xs font-semibold text-on-surface-variant hover:bg-surface-container">
+          <Pencil size={14} aria-hidden="true" /> Edit
         </Link>
         <Link href={`/creator/challenges/${c.id}/submissions`}
           className="relative flex h-9 items-center justify-center gap-1.5 rounded-xl border border-outline-variant px-3 text-xs font-semibold text-on-surface-variant">

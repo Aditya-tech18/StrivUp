@@ -36,7 +36,7 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { Badge, Button, Card } from "@/components/ui";
+import { Badge, Button, Card, MobileMenu } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import type { FeaturedChallenge, FeaturedQuest, TrendingChallenge } from "./page";
 
@@ -371,6 +371,8 @@ export function ExploreClient({ featured, trending, quests = [] }: ExploreClient
       <header className="sticky top-0 z-40 border-b border-outline-variant bg-surface/95 pt-safe backdrop-blur-sm">
         <div className="mx-auto measure-page px-gutter lg:px-gutter-md">
           <div className="flex h-14 items-center justify-between">
+            <div className="flex min-w-0 items-center gap-1">
+            <MobileMenu />
             <Link href="/explore" className={`flex items-center rounded-lg ${FOCUS_RING}`}>
               <Image
                 src="/brand/wordmark.png"
@@ -381,6 +383,7 @@ export function ExploreClient({ featured, trending, quests = [] }: ExploreClient
                 className="h-[22px] w-auto"
               />
             </Link>
+            </div>
             <div className="flex items-center gap-1">
               <Link
                 href="/alerts"

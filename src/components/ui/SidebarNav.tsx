@@ -15,14 +15,14 @@ import type { LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
 import { useUnreadCount } from "./AlertsContext";
 
-interface NavItem {
+export interface NavItem {
   href: string;
   icon: ComponentType<LucideProps>;
   label: string;
   showBadge?: boolean;
 }
 
-const NAV_ITEMS: NavItem[] = [
+export const NAV_ITEMS: NavItem[] = [
   { href: "/feed",           icon: Home,       label: "Home"    },
   { href: "/explore",        icon: Compass,    label: "Explore" },
   { href: "/search",         icon: Search,     label: "Search"  },
@@ -34,7 +34,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 // Business dashboard navigation (shown on /business/*).
-const BUSINESS_NAV_ITEMS: NavItem[] = [
+export const BUSINESS_NAV_ITEMS: NavItem[] = [
   { href: "/business/dashboard",       icon: LayoutDashboard, label: "Dashboard" },
   { href: "/business/explore",         icon: Compass,         label: "Explore Quests" },
   { href: "/business/quests/new",      icon: PlusSquare,      label: "Create Quest" },

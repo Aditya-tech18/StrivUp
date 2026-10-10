@@ -18,9 +18,9 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { MapPin, AlertCircle, Users, ImageOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { Card, Badge } from "@/components/ui";
+import { Badge, Card, MobileMenu } from "@/components/ui";
 import type { Quest } from "@/lib/data/quests";
-import { getQuestsByDistance } from "@/lib/data/quests";
+import { sortQuestsByDistance } from "@/lib/data/quests";
 
 interface QuestsClientProps {
   initialHotQuests: Quest[];
@@ -79,6 +79,10 @@ export default function QuestsClient({
   const [questList, setQuestList] = useState<Quest[]>(initialTrendingQuests);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
   const [loadingNearMe, setLoadingNearMe] = useState(false);
+  /* Set when Near Me ran but no quest in the list carries coordinates, so the
+     order is still the Trending order. Saying so beats a list that silently
+     ignores the filter. */
+  const [unpinnedNotice, setUnpinnedNotice] = useState(false);
 
   const filterChips: { id: FilterType; label: string }[] = [
     { id: "trending", label: "Trending" },
@@ -91,6 +95,7 @@ export default function QuestsClient({
     (filterId: FilterType) => {
       setActiveFilter(filterId);
       setGeolocationError(null);
+      setUnpinnedNotice(false);
 
       if (filterId === "trending") {
         setQuestList(initialTrendingQuests);
@@ -101,12 +106,20 @@ export default function QuestsClient({
             async (position) => {
               const { latitude, longitude } = position.coords;
               try {
-                const nearbyQuests = await getQuestsByDistance(
+                /* Reorders the same list Trending shows rather than running a
+                   second, narrower query, so Near Me can never surface a
+                   different set of quests. */
+                const nearbyQuests = await sortQuestsByDistance(
                   supabase,
+                  initialTrendingQuests,
                   latitude,
                   longitude
                 );
                 setQuestList(nearbyQuests);
+                setUnpinnedNotice(
+                  nearbyQuests.length > 0 &&
+                    nearbyQuests.every((q) => q.distance === null)
+                );
               } catch (err) {
                 console.error("Error fetching nearby quests:", err);
                 setGeolocationError("Failed to load nearby quests.");
@@ -152,9 +165,12 @@ export default function QuestsClient({
     <div className="min-h-screen bg-surface px-gutter py-6 pb-24 md:px-gutter-md">
       <div className="mx-auto flex measure-page flex-col gap-8">
         <header>
-          <h1 className="text-headline-lg-mobile text-on-surface lg:text-headline-lg">
-            Quests
-          </h1>
+          <div className="flex items-center gap-1.5">
+            <MobileMenu />
+            <h1 className="text-headline-lg-mobile text-on-surface lg:text-headline-lg">
+              Quests
+            </h1>
+          </div>
           <p className="mt-1 text-body-md text-on-surface-variant">
             Discover local opportunities and earn rewards
           </p>
@@ -254,6 +270,19 @@ export default function QuestsClient({
           >
             <AlertCircle size={18} className="mt-0.5 shrink-0 text-error" aria-hidden="true" />
             <p className="text-body-md text-error">{geolocationError}</p>
+          </div>
+        )}
+
+        {!geolocationError && unpinnedNotice && (
+          <div
+            role="status"
+            className="flex gap-2 rounded-xl border border-outline-variant bg-surface-container px-4 py-3"
+          >
+            <MapPin size={18} className="mt-0.5 shrink-0 text-on-surface-variant" aria-hidden="true" />
+            <p className="text-body-md text-on-surface-variant">
+              None of the live quests have a map pin yet, so these are ordered
+              the way Trending orders them.
+            </p>
           </div>
         )}
 
