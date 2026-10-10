@@ -16,37 +16,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { Loader2, MoreHorizontal, User, X } from "lucide-react";
+import { Loader2, MoreHorizontal, X } from "lucide-react";
+import { UserAvatar } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import {
   displayName, followUser, profileHref, unfollowUser, type PersonRow,
 } from "@/lib/data/social";
 import { PersonActionsSheet, type PersonAction } from "./PersonActionsSheet";
-
-function Avatar({ person, size = 44 }: { person: PersonRow; size?: number }) {
-  if (person.avatarUrl) {
-    return (
-      <Image
-        src={person.avatarUrl}
-        alt=""
-        width={size}
-        height={size}
-        className="shrink-0 rounded-full object-cover"
-        style={{ width: size, height: size }}
-      />
-    );
-  }
-  return (
-    <span
-      aria-hidden="true"
-      className="flex shrink-0 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant"
-      style={{ width: size, height: size }}
-    >
-      <User size={size * 0.5} />
-    </span>
-  );
-}
 
 function PersonItem({
   person,
@@ -115,7 +91,7 @@ function PersonItem({
   return (
     <li className="flex items-center gap-3 px-4 py-2.5">
       <Link href={profileHref(person)} onClick={onLinkClick} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary">
-        <Avatar person={person} />
+        <UserAvatar src={person.avatarUrl} name={name} size={44} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-body-md font-semibold text-on-surface">{name}</span>
           {person.username && person.fullName && (

@@ -29,7 +29,8 @@ import OrderVerificationModal from "@/components/features/quest/OrderVerificatio
 import VerificationStepper from "@/components/features/quest/VerificationStepper";
 import { QuestLeaderboardModal } from "@/components/features/quest/QuestLeaderboardModal";
 import { PeopleListSheet } from "@/components/features/people/PeopleList";
-import { getQuestMembers } from "@/lib/data/social";
+import { getQuestMembers, getFacepile, type Facepile as FacepileData } from "@/lib/data/social";
+import { Facepile } from "@/components/features/people/Facepile";
 import {
   BusinessProfileCard, GoogleBusinessCard, LeaderboardPreviewCard,
   QuestProgressCard, RewardCard, formatAddress, type RewardSummary,
@@ -168,6 +169,7 @@ export default function BusinessQuestDetailClient({
   const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
+  const [pile, setPile] = useState<FacepileData | null>(null);
   const [activeTask, setActiveTask] = useState<BusinessQuestDetail["tasks"][number] | null>(null);
 
   const tasks = quest.tasks;
@@ -193,6 +195,10 @@ export default function BusinessQuestDetailClient({
     let cancelled = false;
 
     (async () => {
+      // Faces for the participant line, alongside the leaderboard load that
+      // already runs here.
+      getFacepile(supabase, "quest_participants", quest.id, 3).then(setPile);
+
       const lb = await getQuestLeaderboard(supabase, quest.id, 10);
       if (cancelled) return;
       setLeaderboard(lb);
@@ -319,7 +325,7 @@ export default function BusinessQuestDetailClient({
           <button
             onClick={handleShare}
             aria-label={`Share ${quest.title}`}
-            className="pop-press h-9 px-3 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center gap-1.5 tap-target"
+            className="pop-press share-pulse h-9 px-3 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center gap-1.5 tap-target"
           >
             {/* Was hidden below sm, which hid it on exactly the devices that
                 have a share sheet. The label still collapses on narrow
@@ -373,7 +379,7 @@ export default function BusinessQuestDetailClient({
                 type="button"
                 onClick={handleShare}
                 aria-label={`Share ${quest.title}`}
-                className="pop-press absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-surface-container-lowest/95 text-on-surface backdrop-blur-sm"
+                className="pop-press share-pulse absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-surface-container-lowest/95 text-on-surface backdrop-blur-sm"
               >
                 <SendHorizontal size={18} aria-hidden="true" />
               </button>
@@ -626,17 +632,32 @@ export default function BusinessQuestDetailClient({
               business={quest.business}
               fallbackName={businessName}
             />
-            <button
-              type="button"
-              onClick={() => setMembersOpen(true)}
-              aria-label={`See the ${quest.participant_count} people on this quest`}
-              className="flex items-center gap-2 rounded-lg px-1 py-1 text-left transition-colors hover:bg-surface-container tap-target"
-            >
-              <Users size={14} className="text-on-surface-variant shrink-0" />
-              <p className="text-xs text-on-surface-variant">
-                {quest.participant_count.toLocaleString("en-IN")} participants
-              </p>
-            </button>
+            {/* Faces where there were only digits. Falls back to the plain
+                count when nobody has joined yet, or when the people who
+                have are not visible to this viewer. */}
+            {pile && pile.total > 0 ? (
+              <Facepile
+                people={pile.people}
+                total={pile.total}
+                verb="Joined by"
+                noun="participant"
+                size={24}
+                className="px-1"
+                onOpen={() => setMembersOpen(true)}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setMembersOpen(true)}
+                aria-label={`See the ${quest.participant_count} people on this quest`}
+                className="flex items-center gap-2 rounded-lg px-1 py-1 text-left transition-colors hover:bg-surface-container tap-target"
+              >
+                <Users size={14} className="text-on-surface-variant shrink-0" />
+                <p className="text-xs text-on-surface-variant">
+                  {quest.participant_count.toLocaleString("en-IN")} participants
+                </p>
+              </button>
+            )}
           </aside>
         </div>
       </div>

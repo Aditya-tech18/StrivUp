@@ -21,7 +21,8 @@ import { createClient } from "@/lib/supabase/client";
 import { ProofComments } from "@/components/features/ProofComments";
 import { clampAspect } from "@/lib/image";
 import { PeopleListSheet } from "@/components/features/people/PeopleList";
-import { getPostLikers } from "@/lib/data/social";
+import { getPostLikers, type PersonCard } from "@/lib/data/social";
+import { Facepile } from "@/components/features/people/Facepile";
 
 /* ── Public type ─────────────────────────────────────────────────────────── */
 export interface FeedPost {
@@ -39,6 +40,8 @@ export interface FeedPost {
   mediaHeight: number | null;
   caption: string;
   likeCount: number;
+  /** A few of the people who liked it, for the facepile line. */
+  likePreview?: PersonCard[];
   commentCount: number;
   /** Has the current viewer already liked this proof? */
   viewerHasLiked: boolean;
@@ -327,13 +330,13 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
             being a surprise. */}
         {likeCount > 0 && (
           <div className="px-4 pb-3 -mt-1">
-            <button
-              type="button"
-              onClick={() => setLikersOpen(true)}
-              className="text-body-sm font-semibold text-on-surface-variant hover:text-secondary"
-            >
-              {likeCount === 1 ? "1 like" : `${likeCount} likes`}
-            </button>
+            <Facepile
+              people={post.likePreview ?? []}
+              total={likeCount}
+              verb="Liked by"
+              noun="like"
+              onOpen={() => setLikersOpen(true)}
+            />
           </div>
         )}
       </Card>

@@ -17,6 +17,15 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "cxujipeulvhreiryaptr.supabase.co",
       },
+      {
+        /* Google account pictures. Most people sign in with Google and never
+           upload an avatar, so this is where the majority of profile images
+           actually live. It was missing, and next/image refuses a host that
+           is not listed, which is why those avatars rendered as the broken
+           image glyph rather than falling back to anything. */
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
     ],
     /* AVIF first, WebP second. Covers and avatars are the bulk of the bytes
        on every list and detail screen, and AVIF is roughly 20-30% smaller

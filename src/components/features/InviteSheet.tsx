@@ -129,7 +129,12 @@ export function InviteSheet({
             </div>
 
             <div className="mt-space-md flex gap-space-sm">
-              <Button variant="primary" fullWidth onClick={handleShare}>
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={handleShare}
+                className="pop-press share-pulse"
+              >
                 <Share2 size={16} aria-hidden="true" />
                 Share link
               </Button>

@@ -50,7 +50,8 @@ import {
 import { InviteSheet } from "@/components/features/InviteSheet";
 import { ShareButton } from "@/components/features/share/ShareButton";
 import { PeopleListSheet } from "@/components/features/people/PeopleList";
-import { getChallengeMembers } from "@/lib/data/social";
+import { getChallengeMembers, type Facepile as FacepileData } from "@/lib/data/social";
+import { Facepile } from "@/components/features/people/Facepile";
 import type { ChallengeTask, TaskSubmission } from "@/lib/data/tasks";
 import { PhysicalTaskCard } from "@/components/features/activity";
 import { currentChallengePeriodProgress } from "@/lib/data/activity";
@@ -95,6 +96,8 @@ export interface ChallengeDetailClientProps {
   isCreator: boolean;
   tasks: ChallengeTask[];
   userSubmissions: TaskSubmission[];
+  /** A few members' faces plus the real total, for the facepile line. */
+  memberPile?: FacepileData;
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
@@ -558,6 +561,7 @@ export function ChallengeDetailClient({
   isCreator,
   tasks,
   userSubmissions,
+  memberPile,
 }: ChallengeDetailClientProps) {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
@@ -756,6 +760,21 @@ export function ChallengeDetailClient({
             </Card>
           </div>
         </div>
+
+        {/* Who is in it, by face. Sits under the hero card where the member
+            pill above only gives a number. */}
+        {memberPile && memberPile.total > 0 && (
+          <div className="px-4 pt-3">
+            <Facepile
+              people={memberPile.people}
+              total={memberPile.total}
+              verb="Joined by"
+              noun="member"
+              size={24}
+              onOpen={() => setMembersOpen(true)}
+            />
+          </div>
+        )}
 
         <div className="px-4 space-y-5">
           {/* ── Stats row ───────────────────────────────────────────── */}

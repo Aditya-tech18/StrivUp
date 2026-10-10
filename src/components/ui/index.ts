@@ -30,3 +30,4 @@ export { ServiceWorkerRegistrar } from "./ServiceWorkerRegistrar";
 export { BrandMark } from "./BrandMark";
 export { MobileMenu } from "./MobileMenu";
 export { InstallAppPrompt } from "./InstallAppPrompt";
+export { UserAvatar } from "./UserAvatar";

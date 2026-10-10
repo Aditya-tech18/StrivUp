@@ -29,7 +29,8 @@ import {
   pickHomeTasks,
   type TodayTask,
 } from "@/lib/data/today";
-import { getProfileSuggestions } from "@/lib/data/social";
+import { getProfileSuggestions, getFacepiles, type Facepile as FacepileData } from "@/lib/data/social";
+import { Facepile } from "@/components/features/people/Facepile";
 import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAccountsRail";
 import { getCoinStateWithCheckin } from "@/lib/data/coins";
 import { CoinPill } from "@/components/features/CoinPill";
@@ -61,7 +62,7 @@ function greeting(completed: number, total: number): string {
  * identical text cards is unreadable once someone is in more than two things,
  * and the cover is how people recognise their own challenge at a glance.
  */
-function ActiveCard({ task }: { task: TodayTask }) {
+function ActiveCard({ task, pile }: { task: TodayTask; pile?: FacepileData }) {
   const isQuest = task.kind === "quest";
   const progress =
     task.durationDays && task.durationDays > 0
@@ -132,6 +133,19 @@ function ActiveCard({ task }: { task: TodayTask }) {
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container">
           <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
         </div>
+
+        {/* Who else is in it. The faces are the point: a card showing "12
+            joined" and a card showing three faces plus a name are the same
+            number and a different thing. */}
+        {pile && pile.total > 0 && (
+          <Facepile
+            people={pile.people}
+            total={pile.total}
+            verb="Joined by"
+            noun="person"
+            size={20}
+          />
+        )}
       </div>
       </div>
     </Link>
@@ -187,6 +201,23 @@ export default async function FeedPage() {
   /* Home shows three challenges, not everything: two the person is keeping
      up with and one they are slipping on. See pickHomeTasks. */
   const homeSummary = { ...today, tasks: pickHomeTasks(today.tasks) };
+
+  /* Faces for the rail. Two queries for the whole rail rather than two per
+     card, and only for the ids actually on screen. */
+  const [challengePiles, questPiles] = await Promise.all([
+    getFacepiles(
+      supabase,
+      "challenge_participants",
+      activeChallenges.map((t) => t.challengeId),
+      3
+    ),
+    getFacepiles(
+      supabase,
+      "quest_participants",
+      activeQuests.map((t) => t.challengeId),
+      3
+    ),
+  ]);
 
   return (
     <div className="min-h-screen bg-surface">
@@ -322,7 +353,15 @@ export default async function FeedPage() {
 
             <div className="no-scrollbar -mx-gutter flex snap-x snap-mandatory gap-space-md overflow-x-auto px-gutter pb-2">
               {activeItems.map((task) => (
-                <ActiveCard key={task.key} task={task} />
+                <ActiveCard
+                  key={task.key}
+                  task={task}
+                  pile={
+                    task.kind === "quest"
+                      ? questPiles.get(task.challengeId)
+                      : challengePiles.get(task.challengeId)
+                  }
+                />
               ))}
             </div>
           </section>

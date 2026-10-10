@@ -16,7 +16,8 @@ import { Flame } from "lucide-react";
 import type { TodaySummary, TodayTask } from "@/lib/data/today";
 import { pickHomeTasks } from "@/lib/data/today";
 import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAccountsRail";
-import type { SuggestedProfile } from "@/lib/data/social";
+import type { SuggestedProfile, PersonCard } from "@/lib/data/social";
+import { Facepile } from "@/components/features/people/Facepile";
 
 function task(over: Partial<TodayTask> & { key: string }): TodayTask {
   return {
@@ -100,6 +101,19 @@ const CASES: Array<{ label: string; note: string; data: TodaySummary }> = [
   },
 ];
 
+const FACES: PersonCard[] = [
+  {
+    id: "f1", username: "anna_rose1405", fullName: "Anna Rose",
+    // A host next/image allows, so this one really loads.
+    avatarUrl: "https://api.dicebear.com/7.x/avataaars/png?seed=anna",
+    bio: null,
+  },
+  // A URL that will 404: proves the onError fallback, not just the null path.
+  { id: "f2", username: "broken", fullName: "Broken Link",
+    avatarUrl: "https://api.dicebear.com/this-404s.png", bio: null },
+  { id: "f3", username: "nopic", fullName: "No Picture", avatarUrl: null, bio: null },
+];
+
 const SUGGESTED: SuggestedProfile[] = [
   {
     id: "p1", username: "ananya", fullName: "Ananya Rao",
@@ -162,6 +176,22 @@ export default function FeedPreviewPage() {
             Fabricated data. Not reachable in production.
           </p>
         </header>
+
+        <section className="flex flex-col gap-space-sm">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">Facepile</h2>
+            <p className="text-body-sm text-on-surface-variant">
+              A real picture, a broken URL and a missing one, so the fallback
+              is visible next to the thing it replaces.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 rounded-xl bg-surface-container-lowest p-space-md elev-1 surface-raised">
+            <Facepile people={FACES} total={86} verb="Liked by" noun="like" />
+            <Facepile people={FACES} total={3} verb="Joined by" noun="member" size={24} />
+            <Facepile people={[]} total={12} verb="Joined by" noun="member" />
+            <Facepile people={FACES.slice(0, 1)} total={1} verb="Liked by" noun="like" />
+          </div>
+        </section>
 
         <section className="flex flex-col gap-space-sm">
           <div className="border-l-2 border-secondary pl-space-sm">

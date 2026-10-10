@@ -12,6 +12,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getFacepiles } from "@/lib/data/social";
 import type { FeedPost } from "@/components/features/FeedCard";
 
 /** Format a UTC timestamp as a human-readable relative label */
@@ -98,6 +99,10 @@ export async function getFeedPosts(
     }
   }
 
+  // Faces for the "Liked by X and N others" line. One query for the page,
+  // batched the same way the counts above are.
+  const likePreviews = await getFacepiles(supabase, "proof_likes", ids, 3);
+
   return data.map((row) => {
     // PostgREST types single-FK joins as arrays; cast via unknown
     const profile = row.profiles as unknown as {
@@ -125,6 +130,7 @@ export async function getFeedPosts(
       mediaHeight: (row.media_height as number | null) ?? null,
       caption: (row.caption as string) ?? "",
       likeCount: counts.get(row.id as string)?.like_count ?? 0,
+      likePreview: likePreviews.get(row.id as string)?.people ?? [],
       commentCount: counts.get(row.id as string)?.comment_count ?? 0,
       viewerHasLiked: counts.get(row.id as string)?.viewer_liked ?? false,
       adminRemoved: Boolean(row.admin_removed),

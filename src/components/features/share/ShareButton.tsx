@@ -99,7 +99,7 @@ export function ShareButton({
       aria-label={copied ? "Link copied" : `Share ${title}`}
       /* pop-press is always applied, whatever the caller passes: the tactile
          press is part of what this control is, not a per-site decoration. */
-      className={`pop-press ${
+      className={`pop-press share-pulse ${
         className ??
         "flex h-9 items-center justify-center gap-1.5 rounded-full bg-surface-container-lowest px-3 text-xs font-semibold text-on-surface-variant hover:bg-surface-container disabled:opacity-60 tap-target"
       }`}

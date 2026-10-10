@@ -20,8 +20,9 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  EyeOff, ImageOff, Loader2, Trash2, User, X,
+  EyeOff, ImageOff, Loader2, Trash2, X,
 } from "lucide-react";
+import { UserAvatar } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { displayName, getFollowList, type PersonRow } from "@/lib/data/social";
 
@@ -283,13 +284,7 @@ function HideFromSheet({
                 const isHidden = hidden.has(p.id);
                 return (
                   <li key={p.id} className="flex items-center gap-3 px-4 py-2.5">
-                    {p.avatarUrl ? (
-                      <Image src={p.avatarUrl} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-full object-cover" />
-                    ) : (
-                      <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant">
-                        <User size={20} />
-                      </span>
-                    )}
+                    <UserAvatar src={p.avatarUrl} name={displayName(p)} size={40} />
                     <span className="min-w-0 flex-1 truncate text-body-md font-medium text-on-surface">
                       {displayName(p)}
                     </span>

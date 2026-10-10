@@ -654,6 +654,32 @@ body {
     outline-offset: 2px;
   }
 
+  /* The share control breathes, continuously, everywhere it appears.
+     Sharing is the one action nobody arrives intending to take, so it has to
+     ask for attention on its own; a hover state cannot do that on a phone,
+     where there is no hover at all.
+
+     Kept deliberately small (3% at the extreme, over 2.4s) and eased so it
+     spends most of the cycle near rest: a loop that is obvious on the first
+     pass is unbearable on the hundredth, and this sits on screens people
+     read. Pointer and press states below override it so the animation never
+     fights the feedback for an actual interaction. */
+  @keyframes share-breathe {
+    0%, 100% { transform: translateY(-1px) scale(1); }
+    50%      { transform: translateY(-2px) scale(1.03); }
+  }
+
+  .pop-press.share-pulse {
+    animation: share-breathe 2.4s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+  }
+  /* Touching or hovering hands control back to the press states, which are
+     about what the person is doing rather than about being noticed. */
+  .pop-press.share-pulse:hover,
+  .pop-press.share-pulse:active,
+  .pop-press.share-pulse:focus-visible {
+    animation: none;
+  }
+
   /* Frosted layer for sticky headers. backdrop-filter is the one expensive
      property here, so it is opt-in per element rather than applied broadly,
      and it always has an opaque colour behind it as a fallback. */
@@ -840,6 +866,8 @@ body {
   .lift, .pressable, .pop-press { transition: none; }
   /* The lift is decoration; the shadow still marks it as raised. */
   .pop-press, .pop-press:hover, .pop-press:active { transform: none; }
+  /* A looping attention-getter is exactly what this setting asks us to stop. */
+  .pop-press.share-pulse { animation: none; }
   .lift:hover  { transform: none; }
   .lift:active { transform: none; }
   .pressable:active { transform: none; }

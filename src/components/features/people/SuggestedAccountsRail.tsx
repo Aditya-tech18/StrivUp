@@ -18,8 +18,8 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { Loader2, User, X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
+import { UserAvatar } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import {
   displayName, followUser, profileHref, suggestionBlurb, suggestionReason,
@@ -70,22 +70,7 @@ function Card({
           href={profileHref(person)}
           className="flex flex-col items-center gap-1.5 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
         >
-          {person.avatarUrl ? (
-            <Image
-              src={person.avatarUrl}
-              alt=""
-              width={56}
-              height={56}
-              className="h-14 w-14 rounded-full object-cover"
-            />
-          ) : (
-            <span
-              aria-hidden="true"
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant"
-            >
-              <User size={26} />
-            </span>
-          )}
+          <UserAvatar src={person.avatarUrl} name={name} size={56} />
 
           <span className="line-clamp-1 text-body-sm font-bold text-on-surface">{name}</span>
 

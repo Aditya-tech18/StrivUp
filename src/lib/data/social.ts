@@ -542,3 +542,112 @@ export async function getMyPosts(
     };
   });
 }
+
+/* ── Facepiles ───────────────────────────────────────────────────────────── */
+
+export interface Facepile {
+  /** A few people to show as faces. Never the whole list. */
+  people: PersonCard[];
+  /** The real total, which the faces are a sample of. */
+  total: number;
+}
+
+type FacepileSource = "proof_likes" | "challenge_participants" | "quest_participants";
+
+const SOURCE_KEY: Record<FacepileSource, string> = {
+  proof_likes: "proof_id",
+  challenge_participants: "challenge_id",
+  quest_participants: "quest_id",
+};
+
+/**
+ * Faces and totals for a page of entities, in two queries rather than two
+ * per entity.
+ *
+ * A feed of twenty posts, or a home rail of eight challenges, would
+ * otherwise be forty round trips for decoration. This pulls every membership
+ * row for the whole set at once, counts them in memory, and resolves only
+ * the handful of distinct people who actually appear as faces.
+ *
+ * `perEntity` is how many faces each one needs, not how many rows to read:
+ * the totals have to come from the full set or the counts would be wrong.
+ */
+export async function getFacepiles(
+  supabase: SupabaseClient,
+  source: FacepileSource,
+  entityIds: string[],
+  perEntity = 3
+): Promise<Map<string, Facepile>> {
+  const out = new Map<string, Facepile>();
+  if (entityIds.length === 0) return out;
+
+  const key = SOURCE_KEY[source];
+  const { data, error } = await supabase
+    .from(source)
+    .select(`${key}, user_id`)
+    .in(key, entityIds);
+
+  if (error || !data) {
+    if (error) console.error("[getFacepiles]", source, error.message);
+    return out;
+  }
+
+  // The select list is built from `key`, so PostgREST's literal-type
+  // inference cannot follow it; the shape is known here even though the
+  // types are not.
+  const rows = data as unknown as Record<string, string>[];
+
+  const byEntity = new Map<string, string[]>();
+  for (const r of rows) {
+    const list = byEntity.get(r[key]) ?? [];
+    list.push(r.user_id);
+    byEntity.set(r[key], list);
+  }
+
+  // Only the people who will actually be drawn get looked up.
+  const faceIds = new Set<string>();
+  for (const list of byEntity.values()) {
+    for (const id of list.slice(0, perEntity)) faceIds.add(id);
+  }
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, username, full_name, avatar_url")
+    .in("id", [...faceIds]);
+
+  const byId = new Map(
+    ((profiles ?? []) as Record<string, unknown>[]).map((p) => [
+      p.id as string,
+      {
+        id: p.id as string,
+        username: (p.username as string | null) ?? null,
+        fullName: (p.full_name as string | null) ?? null,
+        avatarUrl: (p.avatar_url as string | null) ?? null,
+        bio: null,
+      } satisfies PersonCard,
+    ])
+  );
+
+  for (const [entityId, userIds] of byEntity) {
+    out.set(entityId, {
+      total: userIds.length,
+      people: userIds.slice(0, perEntity).flatMap((id) => {
+        const person = byId.get(id);
+        return person ? [person] : [];
+      }),
+    });
+  }
+
+  return out;
+}
+
+/** The single-entity case, for a detail page. */
+export async function getFacepile(
+  supabase: SupabaseClient,
+  source: FacepileSource,
+  entityId: string,
+  perEntity = 3
+): Promise<Facepile> {
+  const map = await getFacepiles(supabase, source, [entityId], perEntity);
+  return map.get(entityId) ?? { people: [], total: 0 };
+}

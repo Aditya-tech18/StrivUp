@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getChallengeSharePreview, buildShareDescription } from "@/lib/data/share";
+import { getFacepile } from "@/lib/data/social";
 import {
   getChallengeDetail,
   getChallengeStats,
@@ -93,7 +94,7 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
      getChallengeDetail, and the submissions query is issued here
      unconditionally: it returns no rows for someone who has not joined, which
      is cheaper than the round trip that was spent finding out whether to ask. */
-  const [baseDetail, stats, leaderboard, feed, joinedAt, tasks, submissions] =
+  const [baseDetail, stats, leaderboard, feed, joinedAt, tasks, submissions, memberPile] =
     await Promise.all([
       getChallengeDetail(supabase, id),
       getChallengeStats(supabase, id, user.id),
@@ -102,6 +103,7 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
       getParticipantJoinedAt(supabase, id, user.id),
       getChallengeTasks(supabase, id),
       getUserTaskSubmissions(supabase, id, user.id),
+      getFacepile(supabase, "challenge_participants", id, 3),
     ]);
 
   if (!baseDetail) notFound();
@@ -137,6 +139,7 @@ export default async function ChallengeDetailPage({ params }: PageProps) {
       isCreator={isCreator}
       tasks={tasks}
       userSubmissions={userSubmissions}
+      memberPile={memberPile}
     />
   );
 }
