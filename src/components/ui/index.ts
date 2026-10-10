@@ -29,3 +29,4 @@ export { AlertsProvider, useUnreadCount } from "./AlertsContext";
 export { ServiceWorkerRegistrar } from "./ServiceWorkerRegistrar";
 export { BrandMark } from "./BrandMark";
 export { MobileMenu } from "./MobileMenu";
+export { InstallAppPrompt } from "./InstallAppPrompt";
