@@ -170,7 +170,7 @@ export async function getChallengeDetail(
     .select(
       `
       id, title, duration_days, thumbnail_url, created_at, description, visibility,
-      creator_id,
+      proof_instructions, creator_id,
       profiles!creator_id ( full_name )
       `
     )
@@ -204,6 +204,9 @@ export async function getChallengeDetail(
     totalDays,
     todayTask: (data.description as string | null) ?? "Complete today's challenge task",
     visibility: (data.visibility as "public" | "private") ?? "public",
+    // Null for challenges created before the create form started deriving
+    // this; the composer falls back to generic wording.
+    proofInstructions: (data.proof_instructions as string | null) ?? null,
     creatorId: (data.creator_id as string | null) ?? null,
   };
 }
