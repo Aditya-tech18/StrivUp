@@ -2,12 +2,18 @@
 /**
  * /search — Global search for users, challenges and quests.
  */
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, ShieldCheck, Target, Trophy, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { MobileMenu } from "@/components/ui";
+import { PeopleList } from "@/components/features/people/PeopleList";
+import {
+  getProfileSuggestions,
+  suggestionBlurb,
+  type SuggestedProfile,
+} from "@/lib/data/social";
 
 type Tab = "users" | "challenges" | "quests";
 
@@ -49,6 +55,24 @@ export default function SearchPage() {
   const [users, setUsers] = useState<UserResult[]>([]);
   const [challenges, setChallenges] = useState<ChallengeResult[]>([]);
   const [quests, setQuests] = useState<QuestResult[]>([]);
+  // null while loading, so the empty state does not flash before the
+  // suggestions arrive.
+  const [suggestions, setSuggestions] = useState<SuggestedProfile[] | null>(null);
+  const [viewerId, setViewerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const client = createClient();
+      const { data: { user } } = await client.auth.getUser();
+      if (cancelled) return;
+      setViewerId(user?.id ?? null);
+      const people = user ? await getProfileSuggestions(client, 15) : [];
+      if (!cancelled) setSuggestions(people);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -152,12 +176,44 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Empty query */}
+        {/* Empty query: suggestions rather than an empty screen. An empty
+            search page teaches nothing about what is on the platform, and
+            "who should I follow" is the question most people arrive with. */}
         {!loading && query.length < 2 && (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <Search size={36} className="text-on-surface-variant opacity-30" />
-            <p className="text-sm text-on-surface-variant">Search for people, challenges or quests.</p>
-          </div>
+          suggestions === null ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="w-6 h-6 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
+            </div>
+          ) : suggestions.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              <h2 className="text-label-md font-bold uppercase tracking-wider text-on-surface-variant">
+                Suggested for you
+              </h2>
+              <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest elev-1 surface-raised">
+                <PeopleList
+                  people={suggestions.map((p) => ({
+                    id: p.id,
+                    username: p.username,
+                    fullName: p.fullName,
+                    avatarUrl: p.avatarUrl,
+                    // The blurb earns the tap in a way a bio often does not,
+                    // so it takes the bio's slot when there is one to show.
+                    bio: p.bio ?? suggestionBlurb(p),
+                    isFollowing: false,
+                    isRequested: false,
+                    isSelf: false,
+                  }))}
+                  viewerId={viewerId}
+                  emptyMessage="No suggestions right now."
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-20 text-center">
+              <Search size={36} className="text-on-surface-variant opacity-30" />
+              <p className="text-sm text-on-surface-variant">Search for people, challenges or quests.</p>
+            </div>
+          )
         )}
 
         {/* No results */}

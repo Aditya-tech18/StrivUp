@@ -29,6 +29,16 @@ export interface TodayTask {
   dayNumber: number;
   durationDays: number | null;
   proofType: ProofType | null;
+  /** Creator-uploaded cover, for the Active rail. Null when none was set. */
+  thumbnailUrl: string | null;
+  /**
+   * How much of this challenge the person has actually kept up, 0-100.
+   * Read from profile_challenge_stats. Drives which three challenges the
+   * home screen shows; null when the view has nothing on them yet.
+   */
+  consistencyPct: number | null;
+  /** Quest tasks and challenge tasks share this shape and this list. */
+  kind: "challenge" | "quest";
   /**
    * done     — approved today
    * pending  — submitted today, awaiting verdict
@@ -108,7 +118,7 @@ export async function getTodaysTasks(
   // ── 1. Active participations, with the challenge joined in ────────────────
   const { data: partRows, error: partError } = await supabase
     .from("challenge_participants")
-    .select("challenge_id, joined_at, status, challenges!challenge_id(title, duration_days)")
+    .select("challenge_id, joined_at, status, challenges!challenge_id(title, duration_days, thumbnail_url)")
     .eq("user_id", userId)
     .eq("status", "active");
 
@@ -121,12 +131,14 @@ export async function getTodaysTasks(
     const challenge = row.challenges as unknown as {
       title: string | null;
       duration_days: number | null;
+      thumbnail_url: string | null;
     } | null;
     return {
       challengeId: row.challenge_id as string,
       joinedAt: (row.joined_at as string | null) ?? null,
       title: challenge?.title ?? "Untitled challenge",
       durationDays: challenge?.duration_days ?? null,
+      thumbnailUrl: challenge?.thumbnail_url ?? null,
       dayNumber: calcDayNumber((row.joined_at as string | null) ?? null),
     };
   });
@@ -134,7 +146,7 @@ export async function getTodaysTasks(
   const challengeIds = participations.map((p) => p.challengeId);
 
   // ── 2–4. Tasks, this user's submissions, and streaks — all in parallel ────
-  const [tasksRes, subsRes, streaksRes] = await Promise.all([
+  const [tasksRes, subsRes, streaksRes, statsRes] = await Promise.all([
     supabase
       .from("challenge_tasks")
       .select("id, challenge_id, title, proof_type, sort_order")
@@ -150,7 +162,20 @@ export async function getTodaysTasks(
       .select("challenge_id, current_streak")
       .eq("user_id", userId)
       .in("challenge_id", challengeIds),
+    // Consistency per challenge, for the home screen's choice of which three
+    // to surface. Joined here rather than computed in the loop so the cost
+    // stays one query regardless of how many challenges someone is in.
+    supabase
+      .from("profile_challenge_stats")
+      .select("challenge_id, consistency_pct")
+      .eq("user_id", userId)
+      .in("challenge_id", challengeIds),
   ]);
+
+  const consistencyByChallenge = new Map(
+    ((statsRes.data ?? []) as Array<{ challenge_id: string; consistency_pct: number | null }>)
+      .map((r) => [r.challenge_id, r.consistency_pct])
+  );
 
   const taskRows = (tasksRes.data ?? []) as Array<{
     id: string;
@@ -227,6 +252,9 @@ export async function getTodaysTasks(
         dayNumber: p.dayNumber,
         durationDays: p.durationDays,
         proofType: null,
+        thumbnailUrl: p.thumbnailUrl,
+        consistencyPct: consistencyByChallenge.get(p.challengeId) ?? null,
+        kind: "challenge",
         state: stateFor(subIndex.get(`${p.challengeId}|main|${p.dayNumber}`)),
       });
       continue;
@@ -243,6 +271,9 @@ export async function getTodaysTasks(
         dayNumber: p.dayNumber,
         durationDays: p.durationDays,
         proofType: (t.proof_type as ProofType | null) ?? null,
+        thumbnailUrl: p.thumbnailUrl,
+        consistencyPct: consistencyByChallenge.get(p.challengeId) ?? null,
+        kind: "challenge",
         state: stateFor(subIndex.get(`${p.challengeId}|${t.id}|${p.dayNumber}`)),
       });
     }
@@ -269,4 +300,194 @@ export async function getTodaysTasks(
     bestStreak: streakRows.reduce((max, r) => Math.max(max, r.current_streak ?? 0), 0),
     justCompleted,
   };
+}
+
+/* ── Quests ──────────────────────────────────────────────────────────────── */
+
+/**
+ * The quest equivalent of getTodaysTasks.
+ *
+ * Quests are not daily: a quest task is owed from the moment you join until
+ * you complete it, so there is no day number and nothing resets at midnight.
+ * The shape is shared with challenge tasks anyway, because the home screen
+ * shows them in the same list behind a toggle, and two shapes there would
+ * mean two of every card.
+ *
+ * dayLabel carries the quest's own framing ("3 of 5 done") rather than a day
+ * count, which is the honest label for something with no schedule.
+ */
+export async function getTodaysQuestTasks(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<TodayTask[]> {
+  const { data: partRows, error: partError } = await supabase
+    .from("quest_participants")
+    .select("quest_id, joined_at, completed_at, quests!quest_id(title, thumbnail_url, cover_url)")
+    .eq("user_id", userId)
+    .is("completed_at", null);
+
+  if (partError || !partRows || partRows.length === 0) {
+    if (partError) console.error("[getTodaysQuestTasks] participants", partError.message);
+    return [];
+  }
+
+  const quests = partRows.map((row) => {
+    const q = row.quests as unknown as {
+      title: string | null;
+      thumbnail_url: string | null;
+      cover_url: string | null;
+    } | null;
+    return {
+      questId: row.quest_id as string,
+      title: q?.title ?? "Untitled quest",
+      thumbnailUrl: q?.cover_url ?? q?.thumbnail_url ?? null,
+    };
+  });
+
+  const questIds = quests.map((q) => q.questId);
+
+  const [tasksRes, subsRes] = await Promise.all([
+    supabase
+      .from("quest_tasks")
+      .select("id, quest_id, title, proof_type, sort_order")
+      .in("quest_id", questIds)
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("quest_task_submissions")
+      .select("quest_id, task_id, verification_status")
+      .eq("user_id", userId)
+      .in("quest_id", questIds),
+  ]);
+
+  const taskRows = (tasksRes.data ?? []) as Array<{
+    id: string;
+    quest_id: string;
+    title: string;
+    proof_type: string | null;
+  }>;
+
+  const subIndex = new Map<string, SubmissionStatus>();
+  for (const sub of (subsRes.data ?? []) as Array<{
+    quest_id: string;
+    task_id: string | null;
+    verification_status: string;
+  }>) {
+    const k = `${sub.quest_id}|${sub.task_id ?? "main"}`;
+    const status = sub.verification_status as SubmissionStatus;
+    const existing = subIndex.get(k);
+    if (
+      !existing ||
+      status === "approved" ||
+      (status === "pending" && existing === "rejected")
+    ) {
+      subIndex.set(k, status);
+    }
+  }
+
+  const byQuest = new Map<string, typeof taskRows>();
+  for (const t of taskRows) {
+    const list = byQuest.get(t.quest_id) ?? [];
+    list.push(t);
+    byQuest.set(t.quest_id, list);
+  }
+
+  const out: TodayTask[] = [];
+
+  for (const q of quests) {
+    const list = byQuest.get(q.questId) ?? [];
+    if (list.length === 0) continue;
+
+    const doneCount = list.filter(
+      (t) => subIndex.get(`${q.questId}|${t.id}`) === "approved"
+    ).length;
+
+    for (const t of list) {
+      const status = subIndex.get(`${q.questId}|${t.id}`);
+      out.push({
+        key: `quest|${q.questId}|${t.id}`,
+        // challengeId carries the quest id so the card can link somewhere;
+        // every consumer routes on `kind`, never on the field name.
+        challengeId: q.questId,
+        challengeTitle: q.title,
+        taskId: t.id,
+        title: t.title,
+        dayLabel: `${doneCount} of ${list.length} done`,
+        dayNumber: doneCount,
+        durationDays: list.length,
+        proofType: (t.proof_type as ProofType | null) ?? null,
+        thumbnailUrl: q.thumbnailUrl,
+        // Quests have no streak, so there is no consistency to rank on and
+        // the "keeping up / slipping" split below does not apply to them.
+        consistencyPct: null,
+        kind: "quest",
+        state:
+          status === "approved"
+            ? "done"
+            : status === "pending"
+              ? "pending"
+              : status === "rejected"
+                ? "rejected"
+                : "todo",
+      });
+    }
+  }
+
+  return out;
+}
+
+/* ── Which three to show ─────────────────────────────────────────────────── */
+
+/** How many challenges the home screen surfaces at once. */
+export const HOME_TASK_LIMIT = 3;
+
+/**
+ * Pick the three challenges worth showing on the home screen.
+ *
+ * Two that the person is keeping up with and one they are slipping on. Not
+ * simply "the three most urgent": a list of only failures reads as a telling
+ * off and people stop opening it, and a list of only wins hides the thing
+ * that actually needs attention today. Two-and-one is the split that shows
+ * momentum and still surfaces the one at risk.
+ *
+ * Grouped by challenge first, because the unit someone recognises is "my
+ * reading challenge", not "task 2 of my reading challenge". Within the
+ * chosen challenges every task is returned, so nothing is silently dropped
+ * from something already on screen.
+ */
+export function pickHomeTasks(tasks: TodayTask[], limit = HOME_TASK_LIMIT): TodayTask[] {
+  if (tasks.length === 0) return [];
+
+  const byChallenge = new Map<string, TodayTask[]>();
+  for (const t of tasks) {
+    const list = byChallenge.get(t.challengeId) ?? [];
+    list.push(t);
+    byChallenge.set(t.challengeId, list);
+  }
+
+  const groups = [...byChallenge.entries()].map(([id, list]) => ({
+    id,
+    list,
+    // Unranked challenges sort as middling rather than best or worst, so a
+    // challenge the stats view has not caught up with does not take the
+    // "slipping" slot on a technicality.
+    consistency: list[0]?.consistencyPct ?? 50,
+    hasWork: list.some((t) => t.state === "todo" || t.state === "rejected"),
+  }));
+
+  if (groups.length <= limit) return groups.flatMap((g) => g.list);
+
+  const ranked = [...groups].sort((a, b) => b.consistency - a.consistency);
+  const keepingUp = ranked.slice(0, Math.max(1, limit - 1));
+
+  // The slipping slot goes to the least consistent challenge that still has
+  // something outstanding; nagging about one already finished for today
+  // helps nobody.
+  const slipping =
+    [...ranked].reverse().find((g) => g.hasWork && !keepingUp.includes(g)) ??
+    ranked[ranked.length - 1];
+
+  const chosen = [...keepingUp];
+  if (slipping && !chosen.includes(slipping)) chosen.push(slipping);
+
+  return chosen.flatMap((g) => g.list);
 }

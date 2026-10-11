@@ -20,6 +20,9 @@ import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { createClient } from "@/lib/supabase/client";
 import { ProofComments } from "@/components/features/ProofComments";
 import { clampAspect } from "@/lib/image";
+import { PeopleListSheet } from "@/components/features/people/PeopleList";
+import { getPostLikers, type PersonCard } from "@/lib/data/social";
+import { Facepile } from "@/components/features/people/Facepile";
 
 /* ── Public type ─────────────────────────────────────────────────────────── */
 export interface FeedPost {
@@ -37,6 +40,8 @@ export interface FeedPost {
   mediaHeight: number | null;
   caption: string;
   likeCount: number;
+  /** A few of the people who liked it, for the facepile line. */
+  likePreview?: PersonCard[];
   commentCount: number;
   /** Has the current viewer already liked this proof? */
   viewerHasLiked: boolean;
@@ -52,6 +57,7 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
   // a round trip feels broken, so the UI moves first and rolls back on failure.
   const [liked, setLiked] = useState(post.viewerHasLiked);
   const [likeCount, setLikeCount] = useState(post.likeCount);
+  const [likersOpen, setLikersOpen] = useState(false);
   const [likeBusy, setLikeBusy] = useState(false);
   const [commentCount, setCommentCount] = useState(post.commentCount);
   const [showComments, setShowComments] = useState(false);
@@ -317,7 +323,33 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
             </button>
           </div>
         </div>
+
+        {/* "N likes", tappable, the way Instagram does it. Kept out of the
+            like button itself: that button toggles your own like, and one
+            control cannot both toggle and open a list without one of the two
+            being a surprise. */}
+        {likeCount > 0 && (
+          <div className="px-4 pb-3 -mt-1">
+            <Facepile
+              people={post.likePreview ?? []}
+              total={likeCount}
+              verb="Liked by"
+              noun="like"
+              onOpen={() => setLikersOpen(true)}
+            />
+          </div>
+        )}
       </Card>
+
+      <PeopleListSheet
+        open={likersOpen}
+        title="Likes"
+        viewerId={viewerId}
+        emptyMessage="No likes yet."
+        onClose={() => setLikersOpen(false)}
+        load={() => getPostLikers(createClient(), post.id, viewerId)}
+      />
+
       {showComments ? (
         <ProofComments
           proofId={post.id}
