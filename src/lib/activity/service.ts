@@ -347,6 +347,9 @@ export async function registerNativeConnection(
 
 /** Upper bound on a day's step count before we refuse the row outright. */
 const MAX_DAILY_STEPS = 200_000;
+/** 300 km in a day. Generous for a cyclist, impossible to walk, so a runaway
+ *  GPS track cannot book an absurd figure against a distance target. */
+const MAX_DAILY_DISTANCE_M = 300_000;
 /** Most day-buckets accepted in one push. */
 const MAX_NATIVE_RECORDS = 90;
 
@@ -389,6 +392,7 @@ export async function ingestNativeActivity(
   flagged: number;
   accepted: number;
   storedToday: number;
+  storedDistanceToday: number;
 }> {
   const admin = createAdminClient();
 
@@ -415,6 +419,16 @@ export async function ingestNativeActivity(
     if (!Number.isFinite(steps) || steps < 0) continue;
     if (steps > MAX_DAILY_STEPS) continue;
 
+    /* Distance is optional and independent of steps — it comes from GPS while
+       steps come from the accelerometer, and a session can produce either on
+       its own (indoors: steps, no distance). An absent or junk value means
+       "nothing measured", which is 0, never a figure derived from steps. */
+    const rawDistance = Number(raw?.distance_m);
+    const distance =
+      Number.isFinite(rawDistance) && rawDistance > 0
+        ? Math.min(rawDistance, MAX_DAILY_DISTANCE_M)
+        : 0;
+
     seen.add(date);
     clean.push({
       dedupe_key: `steps:${date}`,
@@ -425,7 +439,7 @@ export async function ingestNativeActivity(
       started_at: `${date}T00:00:00.000Z`,
       ended_at: `${date}T23:59:59.999Z`,
       steps: Math.round(steps),
-      distance_m: 0,
+      distance_m: Math.round(distance),
       duration_s: 0,
       calories: 0,
       raw: { pushed_by: provider },
@@ -451,7 +465,7 @@ export async function ingestNativeActivity(
     const dates = clean.map((r) => r.local_date as string);
     const { data: existing, error: readError } = await admin
       .from("activity_records")
-      .select("local_date, steps")
+      .select("local_date, steps, distance_m")
       .eq("user_id", userId)
       .eq("provider", provider)
       .eq("activity_type", "steps")
@@ -459,10 +473,21 @@ export async function ingestNativeActivity(
 
     if (readError) throw new Error(`could not read existing steps: ${readError.message}`);
 
-    const stored = new Map((existing ?? []).map((r) => [r.local_date as string, r.steps as number]));
+    const stored = new Map(
+      (existing ?? []).map((r) => [
+        r.local_date as string,
+        { steps: (r.steps as number) ?? 0, distance: Number(r.distance_m ?? 0) },
+      ])
+    );
     for (const rec of clean) {
-      const prior = stored.get(rec.local_date as string) ?? 0;
-      rec.steps = Math.max(prior, rec.steps as number);
+      const prior = stored.get(rec.local_date as string);
+      rec.steps = Math.max(prior?.steps ?? 0, rec.steps as number);
+      /* Distance needs the same guard and for the same reason: the GPS
+         session restarts at zero on every page load, so without this a
+         refresh would overwrite 3 km with 0. It also means a session with no
+         GPS fix (indoors) pushes distance 0 without erasing a walk recorded
+         earlier the same day. */
+      rec.distance_m = Math.max(prior?.distance ?? 0, rec.distance_m as number);
     }
   }
 
@@ -485,6 +510,10 @@ export async function ingestNativeActivity(
     updated: result.updated ?? 0,
     flagged: result.flagged ?? 0,
     storedToday: (todayRecord?.steps as number) ?? 0,
+    /* Echoed back for the same reason as storedToday: the client seeds its
+       next push from what the server kept, so a second tab cannot walk the
+       figure backwards. */
+    storedDistanceToday: (todayRecord?.distance_m as number) ?? 0,
   };
 }
 

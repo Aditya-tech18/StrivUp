@@ -16,6 +16,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { haversineMeters, isValidCoordinate } from "@/lib/location/geo";
 
 /* ── Shared helpers ──────────────────────────────────────────────────────── */
 
@@ -23,27 +24,6 @@ function fallbackThumbnail(seed: string): string {
   return `https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80&seed=${seed}`;
 }
 
-/**
- * Haversine distance calculation (km between two lat/lng points)
- */
-function haversineDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number {
-  const R = 6371; // Earth's radius in km
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 
@@ -182,6 +162,9 @@ export async function getTrendingQuests(
  * (0, 0) off the coast of Africa, which put unpinned quests either first or
  * last by accident. Those are kept with `distance: null` and appended in their
  * original order instead, so Near Me still lists every live quest.
+ *
+ * `distance` is in METRES, matching lib/location/geo. It used to be kilometres
+ * and was never displayed, so nothing downstream depended on the old unit.
  */
 export async function sortQuestsByDistance(
   supabase: SupabaseClient,
@@ -205,7 +188,10 @@ export async function sortQuestsByDistance(
   for (const row of data ?? []) {
     const lat = row.latitude as number | null;
     const lon = row.longitude as number | null;
-    if (typeof lat === "number" && typeof lon === "number") {
+    /* isValidCoordinate also rejects (0, 0), which a form that coerced two
+       empty strings to numbers would have written. Such a quest is unpinned,
+       not located off the coast of Africa. */
+    if (typeof lat === "number" && typeof lon === "number" && isValidCoordinate(lat, lon)) {
       coords.set(row.id as string, { lat, lon });
     }
   }
@@ -217,7 +203,7 @@ export async function sortQuestsByDistance(
     return {
       ...quest,
       distance: point
-        ? haversineDistance(userLat, userLon, point.lat, point.lon)
+        ? haversineMeters(userLat, userLon, point.lat, point.lon)
         : null,
     };
   });
@@ -464,8 +450,10 @@ export interface CreateQuestInput {
   category: string;
   business_name: string;
   location_name: string;
-  latitude: number;
-  longitude: number;
+  /** Null when the creator did not drop a pin. The column is nullable and most
+   *  live rows have none; such a quest simply never appears under Near Me. */
+  latitude: number | null;
+  longitude: number | null;
   reward_description: string;
   proof_type: "photo" | "checkin" | "none";
   thumbnail_url?: string | null;
