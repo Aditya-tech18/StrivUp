@@ -54,21 +54,21 @@ export function ActivityProviderCard({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900">{label}</h3>
+            <h3 className="font-semibold text-on-surface">{label}</h3>
             {connected && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-success-container px-2 py-0.5 text-label-sm font-medium text-on-success-container">
                 <Check className="h-3 w-3" /> Connected
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-gray-500">{description}</p>
+          <p className="mt-0.5 text-xs text-on-surface-variant">{description}</p>
 
           {connected && connection?.last_synced_at && (
-            <p className="mt-1 text-[11px] text-gray-400">
+            <p className="mt-1 text-label-sm text-on-surface-variant">
               Last synced{" "}
               {new Date(connection.last_synced_at).toLocaleString("en-IN", {
                 day: "numeric",
@@ -79,17 +79,17 @@ export function ActivityProviderCard({
             </p>
           )}
           {connection?.status === "expired" && (
-            <p className="mt-1 text-[11px] text-amber-700">
+            <p className="mt-1 text-label-sm text-on-warning-container">
               Access expired — reconnect to resume tracking.
             </p>
           )}
           {connection?.last_sync_error && connected && (
-            <p className="mt-1 text-[11px] text-red-600">Last sync failed: {connection.last_sync_error}</p>
+            <p className="mt-1 text-label-sm text-on-error-container">Last sync failed: {connection.last_sync_error}</p>
           )}
         </div>
 
         {!configured ? (
-          <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] text-gray-500">
+          <span className="shrink-0 rounded-full bg-surface-container px-2.5 py-1 text-label-sm text-on-surface-variant">
             Not available
           </span>
         ) : connected ? (
@@ -110,7 +110,7 @@ export function ActivityProviderCard({
         )}
       </div>
 
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-on-error-container">{error}</p>}
     </div>
   );
 }

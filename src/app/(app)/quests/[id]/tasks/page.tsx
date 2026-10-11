@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check, CheckCircle2, Clock, Lock, Upload, X, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { PhysicalTaskCard } from "@/components/features/activity";
 import {
   currentPeriodProgress,
@@ -48,10 +49,10 @@ interface QuestInfo {
 }
 
 const STATUS_CFG = {
-  pending:               { label: "Pending Review",   cls: "text-amber-700 bg-amber-50", icon: Clock },
-  approved:              { label: "Approved",          cls: "text-green-700 bg-green-50", icon: CheckCircle2 },
-  rejected:              { label: "Rejected",          cls: "text-red-700 bg-red-50",     icon: XCircle },
-  resubmission_required: { label: "Resubmit Required", cls: "text-purple-700 bg-purple-50", icon: XCircle },
+  pending:               { label: "Pending Review",   cls: "text-on-warning-container bg-warning-container", icon: Clock },
+  approved:              { label: "Approved",          cls: "text-on-success-container bg-success-container", icon: CheckCircle2 },
+  rejected:              { label: "Rejected",          cls: "text-on-error-container bg-error-container",     icon: XCircle },
+  resubmission_required: { label: "Resubmit Required", cls: "text-chart-3 bg-chart-3/10", icon: XCircle },
 } as const;
 
 const PROOF_LABEL: Record<string, string> = {
@@ -203,7 +204,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
       let url2 = existingSub?.media_url_2 ?? null;
 
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+        const { file } = await compressImage(files[i], IMAGE_PRESETS.proof);
         const ext = file.name.split(".").pop() ?? "jpg";
         const path = `${userId}/quest-proofs/${questId}/${task.id}-${Date.now()}-${i}.${ext}`;
         const { error: upErr } = await supabase.storage.from("proof-media").upload(path, file, { upsert: true });
@@ -252,8 +253,8 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8F9FC]">
-      <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-surface">
+      <div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -266,38 +267,38 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
   const totalRequired = tasks.filter(t => t.is_required).length;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FC] pb-28">
+    <div className="min-h-screen bg-surface pb-28">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 pt-safe z-30">
-        <Link href={`/quests/${questId}`}><ArrowLeft size={22} className="text-gray-600" /></Link>
+      <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 pt-safe z-30">
+        <Link href={`/quests/${questId}`}><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-400 font-medium">{quest.business_name ?? "Quest"}</p>
-          <h1 className="text-[15px] font-black text-gray-900 truncate">{quest.title}</h1>
+          <p className="text-xs text-on-surface-variant font-medium">{quest.business_name ?? "Quest"}</p>
+          <h1 className="text-body-lg font-black text-on-surface truncate">{quest.title}</h1>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-xs text-gray-400">Progress</p>
-          <p className="text-sm font-black text-blue-600">{completedCount}/{totalRequired}</p>
+          <p className="text-xs text-on-surface-variant">Progress</p>
+          <p className="text-sm font-black text-secondary">{completedCount}/{totalRequired}</p>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="h-1.5 bg-gray-100">
-        <div className="h-1.5 bg-blue-600 transition-all duration-500"
+      <div className="h-1.5 bg-surface-container">
+        <div className="h-1.5 bg-secondary transition-all duration-500"
           style={{ width: totalRequired > 0 ? `${(completedCount/totalRequired)*100}%` : "0%" }} />
       </div>
 
-      <div className="px-5 py-5 max-w-lg mx-auto flex flex-col gap-4">
+      <div className="px-5 py-5 mx-auto measure-page flex flex-col gap-4">
         {uploadError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
+          <div className="bg-error-container border border-error-outline rounded-xl px-4 py-3 text-sm text-on-error-container">
             {uploadError}
           </div>
         )}
 
         {!isParticipant && (
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex flex-col items-center gap-3 text-center">
-            <p className="text-sm font-semibold text-blue-900">Join this Quest to complete tasks</p>
+          <div className="bg-secondary-fixed border border-secondary-fixed-dim rounded-2xl p-5 flex flex-col items-center gap-3 text-center">
+            <p className="text-sm font-semibold text-on-secondary-fixed">Join this Quest to complete tasks</p>
             <button onClick={handleJoin}
-              className="h-10 px-6 rounded-xl bg-blue-600 text-white font-bold text-sm">
+              className="h-10 px-6 rounded-xl bg-secondary text-white font-bold text-sm tap-target">
               Join Quest
             </button>
           </div>
@@ -338,28 +339,28 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
           const canAddMore = existingCount + files.length < 2;
 
           return (
-            <div key={task.id} className={`bg-white rounded-2xl border overflow-hidden ${isApproved ? "border-green-200" : "border-gray-100"}`}>
+            <div key={task.id} className={`bg-surface-container-lowest rounded-2xl border overflow-hidden ${isApproved ? "border-success-outline" : "border-outline-variant"}`}>
               {/* Task header */}
-              <div className={`px-4 py-3 flex items-start gap-3 border-b ${isApproved ? "bg-green-50 border-green-100" : "border-gray-50"}`}>
+              <div className={`px-4 py-3 flex items-start gap-3 border-b ${isApproved ? "bg-success-container border-success-outline" : "border-outline-variant"}`}>
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-black text-sm ${
-                  isApproved ? "bg-green-600 text-white" : "bg-blue-100 text-blue-600"
+                  isApproved ? "bg-success text-white" : "bg-secondary-fixed text-secondary"
                 }`}>
                   {isApproved ? <Check size={14} strokeWidth={3} /> : index + 1}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-bold text-gray-900">{task.title}</p>
-                    {task.is_required && <span className="text-[10px] text-red-500 font-semibold">Required</span>}
+                    <p className="text-sm font-bold text-on-surface">{task.title}</p>
+                    {task.is_required && <span className="text-label-sm text-error font-semibold">Required</span>}
                   </div>
-                  {task.description && <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{task.description}</p>}
-                  {task.instructions && <p className="text-xs text-blue-600 mt-1 italic">{task.instructions}</p>}
-                  <p className="text-[11px] text-gray-400 mt-1">{PROOF_LABEL[task.proof_type] ?? task.proof_type}</p>
+                  {task.description && <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">{task.description}</p>}
+                  {task.instructions && <p className="text-xs text-secondary mt-1 italic">{task.instructions}</p>}
+                  <p className="text-label-sm text-on-surface-variant mt-1">{PROOF_LABEL[task.proof_type] ?? task.proof_type}</p>
                 </div>
               </div>
 
               {/* Status badge */}
               {sc && (
-                <div className={`flex items-center gap-2 px-4 py-2.5 border-b border-gray-50 ${sc.cls}`}>
+                <div className={`flex items-center gap-2 px-4 py-2.5 border-b border-outline-variant ${sc.cls}`}>
                   <sc.icon size={14} />
                   <span className="text-xs font-semibold">{sc.label}</span>
                   {sub?.rejection_reason && (
@@ -375,13 +376,13 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
                   {hasExistingMedia && (
                     <div className="flex gap-2">
                       {[sub?.media_url, sub?.media_url_2].filter(Boolean).map((url, i) => (
-                        <div key={i} className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100">
+                        <div key={i} className="w-20 h-20 rounded-xl overflow-hidden bg-surface-container">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={url!} alt="proof" className="w-full h-full object-cover" />
                         </div>
                       ))}
                       <div className="flex items-center">
-                        <span className="text-xs text-gray-400">{existingCount}/2 uploaded</span>
+                        <span className="text-xs text-on-surface-variant">{existingCount}/2 uploaded</span>
                       </div>
                     </div>
                   )}
@@ -394,7 +395,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={url} alt="preview" className="w-20 h-20 rounded-xl object-cover" />
                           <button onClick={() => removeSelectedFile(task.id, i)}
-                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center">
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-error text-white flex items-center justify-center">
                             <X size={11} />
                           </button>
                         </div>
@@ -404,7 +405,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
 
                   {/* File upload */}
                   {needsFile && canAddMore && (
-                    <label className="flex items-center justify-center gap-2 h-10 rounded-xl border-2 border-dashed border-blue-300 text-blue-600 text-sm font-semibold cursor-pointer hover:bg-blue-50 transition-colors">
+                    <label className="flex items-center justify-center gap-2 h-10 rounded-xl border-2 border-dashed border-secondary-fixed-dim text-secondary text-sm font-semibold cursor-pointer hover:bg-secondary-fixed transition-colors">
                       <Upload size={16} /> {canAddMore ? `Add Photo (${2 - existingCount - files.length} remaining)` : "Max photos uploaded"}
                       <input type="file" accept="image/*" className="sr-only" multiple onChange={e => handleFileSelect(task.id, e)} />
                     </label>
@@ -414,11 +415,11 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
                   {(task.proof_type === "photo_text" || task.proof_type === "text") && (
                     <textarea value={caption[task.id] ?? ""} onChange={e => setCaption(prev => ({ ...prev, [task.id]: e.target.value }))}
                       placeholder="Describe your activity..." rows={2}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:border-blue-500 resize-none" />
+                      className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary resize-none" />
                   )}
 
                   <button onClick={() => handleSubmit(task)} disabled={isSubmitting || (needsFile && files.length === 0 && !hasExistingMedia)}
-                    className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm disabled:opacity-40 flex items-center justify-center gap-2 transition-all">
+                    className="w-full h-10 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-sm disabled:opacity-40 flex items-center justify-center gap-2 transition-all tap-target">
                     {isSubmitting
                       ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Submitting…</>
                       : <><Upload size={15} />{canResubmit ? "Resubmit Proof" : "Submit Proof"}</>
@@ -431,7 +432,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
               {isParticipant && task.proof_type === "none" && !sub && (
                 <div className="p-4">
                   <button onClick={() => handleSubmit(task)}
-                    className="w-full h-10 rounded-xl bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-2">
+                    className="w-full h-10 rounded-xl bg-success text-white font-bold text-sm flex items-center justify-center gap-2 tap-target">
                     <Check size={15} /> Mark as Complete
                   </button>
                 </div>
@@ -442,12 +443,12 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
 
         {/* All done */}
         {isParticipant && tasks.length > 0 && completedCount === totalRequired && totalRequired > 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-2xl p-5 flex flex-col items-center gap-3 text-center">
-            <div className="w-14 h-14 rounded-full bg-green-600 flex items-center justify-center">
+          <div className="bg-success-container border border-success-outline rounded-2xl p-5 flex flex-col items-center gap-3 text-center">
+            <div className="w-14 h-14 rounded-full bg-success flex items-center justify-center">
               <CheckCircle2 size={28} className="text-white" />
             </div>
-            <h3 className="text-[17px] font-black text-green-900">Quest Completed! 🎉</h3>
-            <p className="text-sm text-green-700">All tasks approved. Rewards will be announced by the business.</p>
+            <h3 className="text-body-lg font-black text-on-success-container">Quest Completed! 🎉</h3>
+            <p className="text-sm text-on-success-container">All tasks approved. Rewards will be announced by the business.</p>
           </div>
         )}
       </div>

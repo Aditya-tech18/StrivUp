@@ -33,7 +33,7 @@ export function Badge({
     <span
       className={[
         "inline-flex items-center rounded-full px-2 py-0.5",
-        "type-label-caps whitespace-nowrap",
+        "text-overline whitespace-nowrap",
         variantClasses[variant],
         className,
       ]

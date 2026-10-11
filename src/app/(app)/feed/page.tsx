@@ -16,15 +16,25 @@
  * early-adopter framing when the numbers are small.
  */
 
+import Image from "next/image";
 import Link from "next/link";
 import { Bell, ChevronRight, Flame, Trophy, User } from "lucide-react";
 import { FeedCard } from "@/components/features/FeedCard";
 import { TodaysTasks } from "@/components/features/TodaysTasks";
 import { createClient } from "@/lib/supabase/server";
 import { getFeedPosts } from "@/lib/data/feed";
-import { getTodaysTasks, type TodayTask } from "@/lib/data/today";
+import {
+  getTodaysTasks,
+  getTodaysQuestTasks,
+  pickHomeTasks,
+  type TodayTask,
+} from "@/lib/data/today";
+import { getProfileSuggestions, getFacepiles, type Facepile as FacepileData } from "@/lib/data/social";
+import { Facepile } from "@/components/features/people/Facepile";
+import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAccountsRail";
 import { getCoinStateWithCheckin } from "@/lib/data/coins";
 import { CoinPill } from "@/components/features/CoinPill";
+import { BrandMark, MobileMenu } from "@/components/ui";
 
 /** "Thursday, 24 May" — matches the design's date eyebrow. */
 function todayLabel(): string {
@@ -47,7 +57,13 @@ function greeting(completed: number, total: number): string {
 }
 
 /* ── Active challenge card (carousel item) ───────────────────────────────── */
-function ChallengeCard({ task }: { task: TodayTask }) {
+/**
+ * A card in the Active rail. Carries the creator's cover, because a wall of
+ * identical text cards is unreadable once someone is in more than two things,
+ * and the cover is how people recognise their own challenge at a glance.
+ */
+function ActiveCard({ task, pile }: { task: TodayTask; pile?: FacepileData }) {
+  const isQuest = task.kind === "quest";
   const progress =
     task.durationDays && task.durationDays > 0
       ? Math.min(100, Math.round((task.dayNumber / task.durationDays) * 100))
@@ -55,29 +71,50 @@ function ChallengeCard({ task }: { task: TodayTask }) {
 
   return (
     <Link
-      href={`/challenges/${task.challengeId}`}
-      className="relative flex w-[280px] shrink-0 snap-start flex-col justify-between gap-space-md overflow-hidden rounded-xl bg-surface-container-lowest p-space-md shadow-sm"
+      href={`/${isQuest ? "quests" : "challenges"}/${task.challengeId}`}
+      className="relative flex w-[280px] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-xl bg-surface-container-lowest elev-1 surface-raised"
     >
-      <div
-        className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-bl-full bg-secondary/5"
-        aria-hidden="true"
-      />
-
-      <div className="flex flex-col gap-space-sm">
-        <span className="flex w-fit items-center gap-1 rounded-full bg-surface-container-high px-2 py-0.5 text-label-sm font-medium text-on-surface">
-          <span className="h-1.5 w-1.5 rounded-full bg-secondary" aria-hidden="true" />
-          Challenge
+      <div className="relative h-28 w-full shrink-0 overflow-hidden bg-surface-container">
+        {task.thumbnailUrl ? (
+          <Image
+            src={task.thumbnailUrl}
+            alt=""
+            fill
+            sizes="280px"
+            className="object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-surface-container-high">
+            <Trophy size={24} className="text-on-surface-variant opacity-40" aria-hidden="true" />
+          </div>
+        )}
+        <span className="absolute left-2 top-2 flex w-fit items-center gap-1 rounded-full bg-surface-container-lowest/90 px-2 py-0.5 text-label-sm font-medium text-on-surface backdrop-blur-sm">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${isQuest ? "bg-tertiary-fixed" : "bg-secondary"}`}
+            aria-hidden="true"
+          />
+          {isQuest ? "Quest" : "Challenge"}
         </span>
-        <h4 className="text-headline-sm text-on-surface">{task.challengeTitle}</h4>
+      </div>
+
+      <div className="flex flex-1 flex-col justify-between gap-space-md p-space-md">
+      <div className="flex flex-col gap-space-sm">
+        <h4 className="line-clamp-2 text-headline-sm text-on-surface">{task.challengeTitle}</h4>
       </div>
 
       <div className="flex flex-col gap-2 pt-space-xs">
         <div className="flex items-baseline justify-between text-label-sm">
           <span className="font-semibold text-on-surface">
-            Day {task.dayNumber}
-            {task.durationDays ? (
-              <span className="font-normal text-on-surface-variant">/{task.durationDays}</span>
-            ) : null}
+            {isQuest ? (
+              task.dayLabel
+            ) : (
+              <>
+                Day {task.dayNumber}
+                {task.durationDays ? (
+                  <span className="font-normal text-on-surface-variant">/{task.durationDays}</span>
+                ) : null}
+              </>
+            )}
           </span>
           <span
             className={
@@ -96,6 +133,20 @@ function ChallengeCard({ task }: { task: TodayTask }) {
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container">
           <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
         </div>
+
+        {/* Who else is in it. The faces are the point: a card showing "12
+            joined" and a card showing three faces plus a name are the same
+            number and a different thing. */}
+        {pile && pile.total > 0 && (
+          <Facepile
+            people={pile.people}
+            total={pile.total}
+            verb="Joined by"
+            noun="person"
+            size={20}
+          />
+        )}
+      </div>
       </div>
     </Link>
   );
@@ -111,7 +162,7 @@ export default async function FeedPage() {
 
   // proxy.ts guards this route, so `user` is present in practice; the fallback
   // keeps the page renderable rather than throwing if that ever changes.
-  const [today, posts, coins] = await Promise.all([
+  const [today, posts, coins, questTasks, suggestions] = await Promise.all([
     user
       ? getTodaysTasks(supabase, user.id)
       : Promise.resolve({
@@ -123,30 +174,61 @@ export default async function FeedPage() {
           bestStreak: 0,
           justCompleted: 0,
         }),
-    getFeedPosts(supabase, { limit: 20 }),
+    getFeedPosts(supabase, { limit: 20, viewerId: user?.id }),
     // Claims the daily check-in as a side effect. Deduped on the IST calendar
     // date in Postgres, so opening the feed twice earns one coin, not two.
     user
       ? getCoinStateWithCheckin(supabase, user.id)
       : Promise.resolve({ balance: 0, earnedToday: 0 }),
+    user ? getTodaysQuestTasks(supabase, user.id) : Promise.resolve([]),
+    user ? getProfileSuggestions(supabase, 12) : Promise.resolve([]),
   ]);
 
-  // One card per challenge, not per task.
+  /* One card per challenge or quest, not per task, and the two interleaved
+     so neither kind is buried behind a run of the other. */
   const activeChallenges = Array.from(
     new Map(today.tasks.map((t) => [t.challengeId, t])).values()
   );
+  const activeQuests = Array.from(
+    new Map(questTasks.map((t) => [t.challengeId, t])).values()
+  );
+  const activeItems: TodayTask[] = [];
+  for (let i = 0; i < Math.max(activeChallenges.length, activeQuests.length); i += 1) {
+    if (activeChallenges[i]) activeItems.push(activeChallenges[i]);
+    if (activeQuests[i]) activeItems.push(activeQuests[i]);
+  }
+
+  /* Home shows three challenges, not everything: two the person is keeping
+     up with and one they are slipping on. See pickHomeTasks. */
+  const homeSummary = { ...today, tasks: pickHomeTasks(today.tasks) };
+
+  /* Faces for the rail. Two queries for the whole rail rather than two per
+     card, and only for the ids actually on screen. */
+  const [challengePiles, questPiles] = await Promise.all([
+    getFacepiles(
+      supabase,
+      "challenge_participants",
+      activeChallenges.map((t) => t.challengeId),
+      3
+    ),
+    getFacepiles(
+      supabase,
+      "quest_participants",
+      activeQuests.map((t) => t.challengeId),
+      3
+    ),
+  ]);
 
   return (
     <div className="min-h-screen bg-surface">
       {/* ── Sticky header ────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-surface/80 pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl">
+      <header className="sticky top-0 z-40 bg-surface/80 pt-safe elev-1 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-gutter">
           <div className="flex items-center gap-space-sm">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Flame size={20} className="text-secondary" aria-hidden="true" />
-            </div>
+            <MobileMenu />
+            <BrandMark variant="mark" height={26} priority />
             <div className="flex flex-col">
-              <span className="text-headline-sm tracking-tight text-on-surface">StrivUp</span>
+              <BrandMark variant="wordmark" height={16} />
               <span className="text-label-sm font-medium text-on-surface-variant">Home Feed</span>
             </div>
           </div>
@@ -185,12 +267,16 @@ export default async function FeedPage() {
           {/* Reward and consistency read in one glance. */}
           <div className="flex shrink-0 items-center gap-space-xs">
             {today.bestStreak > 0 ? (
-              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 shadow-sm">
+              <Link
+                href="/profile#consistency"
+                aria-label={`${today.bestStreak} day streak. See your consistency heatmap.`}
+                className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1 transition-transform active:scale-95 tap-target"
+              >
                 <Flame size={15} className="text-secondary" aria-hidden="true" />
                 <span className="text-label-md font-bold text-on-surface">
                   {today.bestStreak}
                 </span>
-              </div>
+              </Link>
             ) : null}
             <CoinPill balance={coins.balance} earnedToday={coins.earnedToday} />
           </div>
@@ -203,7 +289,7 @@ export default async function FeedPage() {
         {today.justCompleted > 0 ? (
           <section
             aria-label="Challenge completed"
-            className="flex items-center gap-space-md rounded-xl bg-primary p-space-md text-on-primary shadow-sm"
+            className="flex items-center gap-space-md rounded-xl bg-primary p-space-md text-on-primary elev-1"
           >
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-on-tertiary-container/20">
               <Trophy size={22} className="text-tertiary-fixed" aria-hidden="true" />
@@ -222,24 +308,38 @@ export default async function FeedPage() {
             </div>
             <Link
               href="/profile"
-              className="ml-auto shrink-0 rounded-lg bg-on-primary px-space-md py-2 text-label-md font-semibold text-primary"
+              className="ml-auto shrink-0 rounded-lg bg-on-primary px-space-md py-2 text-label-md font-semibold text-primary tap-target"
             >
               View
             </Link>
           </section>
         ) : null}
 
+        {/* ── 0. People to follow ─────────────────────────────────────
+            Above the fold on purpose: a habit app is only worth opening if
+            somebody can see you, and an account following nobody has nothing
+            in its feed to come back for. Skippable, and it hides itself once
+            there is nobody left to suggest. */}
+        {user && suggestions.length > 0 ? (
+          <SuggestedAccountsRail people={suggestions} viewerId={user.id} />
+        ) : null}
+
         {/* ── 1. Today's Tasks ───────────────────────────────────────── */}
-        <TodaysTasks summary={today} />
+        <TodaysTasks summary={homeSummary} questTasks={questTasks} />
 
         {/* ── 2. Active challenges ───────────────────────────────────── */}
-        {activeChallenges.length > 0 ? (
-          <section className="flex flex-col gap-space-sm" aria-label="Active challenges">
+        {activeItems.length > 0 ? (
+          <section
+            className="flex flex-col gap-space-sm"
+            aria-label="Active challenges and quests"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-space-xs">
-                <h3 className="text-headline-sm text-on-surface">Active Challenges</h3>
+                <h3 className="text-headline-sm text-on-surface">
+                  Active Challenges &amp; Quests
+                </h3>
                 <span className="text-label-sm font-medium text-on-surface-variant">
-                  ({activeChallenges.length})
+                  ({activeItems.length})
                 </span>
               </div>
               <Link
@@ -252,8 +352,16 @@ export default async function FeedPage() {
             </div>
 
             <div className="no-scrollbar -mx-gutter flex snap-x snap-mandatory gap-space-md overflow-x-auto px-gutter pb-2">
-              {activeChallenges.map((task) => (
-                <ChallengeCard key={task.challengeId} task={task} />
+              {activeItems.map((task) => (
+                <ActiveCard
+                  key={task.key}
+                  task={task}
+                  pile={
+                    task.kind === "quest"
+                      ? questPiles.get(task.challengeId)
+                      : challengePiles.get(task.challengeId)
+                  }
+                />
               ))}
             </div>
           </section>
@@ -279,11 +387,11 @@ export default async function FeedPage() {
           {posts.length > 0 ? (
             <div className="flex flex-col gap-space-md">
               {posts.map((post) => (
-                <FeedCard key={post.id} post={post} />
+                <FeedCard key={post.id} post={post} viewerId={user?.id ?? null} />
               ))}
             </div>
           ) : (
-            <div className="rounded-xl bg-surface-container-lowest px-space-md py-space-xl text-center shadow-sm">
+            <div className="rounded-xl bg-surface-container-lowest px-space-md py-space-xl text-center elev-1 surface-raised">
               <p className="text-headline-sm text-on-surface">No proof posted yet</p>
               <p className="mx-auto mt-1 max-w-xs text-body-sm text-on-surface-variant">
                 This is where verified proof from everyone in your challenges shows up. Be

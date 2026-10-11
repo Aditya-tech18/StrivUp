@@ -13,10 +13,16 @@ import { useState } from "react";
  */
 
 import Image from "next/image";
+import Link from "next/link";
 import { BadgeCheck, Flame, MessageCircle, ThumbsUp, Flag, ShieldAlert } from "lucide-react";
 import { Card } from "@/components/ui";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { createClient } from "@/lib/supabase/client";
+import { ProofComments } from "@/components/features/ProofComments";
+import { clampAspect } from "@/lib/image";
+import { PeopleListSheet } from "@/components/features/people/PeopleList";
+import { getPostLikers, type PersonCard } from "@/lib/data/social";
+import { Facepile } from "@/components/features/people/Facepile";
 
 /* ── Public type ─────────────────────────────────────────────────────────── */
 export interface FeedPost {
@@ -25,26 +31,68 @@ export interface FeedPost {
   authorAvatarUrl: string;
   verified: boolean;
   category: string;
-  dayLabel: string;   // e.g. "2H AGO"
-  streakDay: number;  // e.g. 45
+  dayLabel: string; // e.g. "2H AGO"
+  streakDay: number; // e.g. 45
   proofImageUrl: string;
+  /** Natural pixel size, when known. Null for proofs uploaded before
+   *  dimensions were recorded — those fall back to a 4:3 box. */
+  mediaWidth: number | null;
+  mediaHeight: number | null;
   caption: string;
   likeCount: number;
+  /** A few of the people who liked it, for the facepile line. */
+  likePreview?: PersonCard[];
   commentCount: number;
+  /** Has the current viewer already liked this proof? */
+  viewerHasLiked: boolean;
+  /** Needed so the proof owner can moderate comments on their own post. */
+  authorId: string;
   adminRemoved: boolean;
 }
 
 /* ── FeedCard ────────────────────────────────────────────────────────────── */
-export function FeedCard({ post }: { post: FeedPost }) {
+export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?: string | null }) {
   const [ref, visible] = useIntersectionObserver<HTMLDivElement>({ threshold: 0.08 });
+  // Optimistic like state. The server is the truth, but a like that waits for
+  // a round trip feels broken, so the UI moves first and rolls back on failure.
+  const [liked, setLiked] = useState(post.viewerHasLiked);
+  const [likeCount, setLikeCount] = useState(post.likeCount);
+  const [likersOpen, setLikersOpen] = useState(false);
+  const [likeBusy, setLikeBusy] = useState(false);
+  const [commentCount, setCommentCount] = useState(post.commentCount);
+  const [showComments, setShowComments] = useState(false);
+
   const [isReporting, setIsReporting] = useState(false);
   const [reportReason, setReportReason] = useState<string>("other");
   const [reportSubmitted, setReportSubmitted] = useState(false);
 
+  const handleToggleLike = async () => {
+    if (!viewerId || likeBusy || post.adminRemoved) return;
+
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikeCount((n) => n + (wasLiked ? -1 : 1));
+    setLikeBusy(true);
+
+    const supabase = createClient();
+    const { error } = wasLiked
+      ? await supabase.from("proof_likes").delete().eq("proof_id", post.id).eq("user_id", viewerId)
+      : await supabase.from("proof_likes").insert({ proof_id: post.id, user_id: viewerId });
+
+    if (error) {
+      // Roll back to exactly what we had, rather than guessing a value.
+      setLiked(wasLiked);
+      setLikeCount((n) => n + (wasLiked ? 1 : -1));
+    }
+    setLikeBusy(false);
+  };
+
   const handleReport = async () => {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
       alert("You must be logged in to report.");
       return;
@@ -52,14 +100,22 @@ export function FeedCard({ post }: { post: FeedPost }) {
 
     const { error } = await supabase.from("proof_reports").insert({
       proof_id: post.id,
-      reporter_id: user.id,
+      // The live column is reported_by, not reporter_id. With the wrong name
+      // PostgREST rejects the whole insert, so every report failed.
+      reported_by: user.id,
       reason: reportReason,
-      status: "pending"
+      status: "pending",
     });
 
     if (error) {
-      alert("Failed to submit report.");
-      console.error(error);
+      // (proof_id, reported_by) is unique, so a second report on the same post
+      // is a conflict rather than a fault — say so instead of "failed".
+      alert(
+        error.code === "23505"
+          ? "You've already reported this post. Our moderators are on it."
+          : "Failed to submit report."
+      );
+      setIsReporting(false);
     } else {
       setReportSubmitted(true);
       setIsReporting(false);
@@ -78,11 +134,19 @@ export function FeedCard({ post }: { post: FeedPost }) {
       <Card bordered padding="none" className="overflow-hidden">
         {/* ── Header: avatar + meta + streak badge ── */}
         <div className="flex items-start justify-between gap-3 p-4 pb-3">
-          <div className="flex items-center gap-3 min-w-0">
+          {/* The avatar and name are the obvious way to reach someone's
+              profile, and until now neither was a link — tapping a person in
+              the feed simply did nothing. /u accepts a UUID as well as a
+              username, which matters because most accounts have no username. */}
+          <Link
+            href={`/u/${post.authorId}`}
+            className="flex items-center gap-3 min-w-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1"
+            aria-label={`View ${post.authorName}'s profile`}
+          >
             <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-surface-variant">
               <Image
                 src={post.authorAvatarUrl}
-                alt={post.authorName}
+                alt=""
                 fill
                 className="object-cover"
                 unoptimized // DiceBear SVGs
@@ -90,7 +154,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="type-headline-sm text-on-surface font-semibold truncate">
+                <span className="text-headline-md text-on-surface font-semibold truncate hover:underline">
                   {post.authorName}
                 </span>
                 {post.verified && (
@@ -101,29 +165,39 @@ export function FeedCard({ post }: { post: FeedPost }) {
                   />
                 )}
               </div>
-              <p className="type-label-caps text-on-surface-variant text-[10px] leading-tight mt-0.5">
+              <p className="text-overline text-on-surface-variant text-label-sm leading-tight mt-0.5">
                 {post.category} &bull; {post.dayLabel}
               </p>
             </div>
-          </div>
+          </Link>
           {/* Streak badge */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 bg-primary-container rounded-full px-2.5 py-1 flex-shrink-0">
               <Flame size={12} className="text-secondary-fixed-dim" aria-hidden="true" />
-              <span className="type-label-caps text-on-primary text-[10px] font-semibold">
+              <span className="text-overline text-on-primary text-label-sm font-semibold">
                 DAY {post.streakDay}
               </span>
             </div>
           </div>
         </div>
 
-        {/* ── Proof image (16:9) ── */}
-        <div className="relative w-full aspect-video bg-surface-variant flex items-center justify-center">
+        {/* ── Proof image ──
+            Laid out at the image's own aspect ratio rather than forced into
+            16:9, which used to crop the top and bottom off every portrait
+            phone photo. clampAspect bounds it to 4:5–1.91:1 so a panorama or a
+            full-page screenshot cannot take over the feed; inside that range,
+            which is nearly every real photo, nothing is cropped at all.
+            Setting it as a style keeps the box reserved before the image
+            loads, so the feed does not jump as pictures arrive. */}
+        <div
+          className="relative w-full bg-surface-variant flex items-center justify-center"
+          style={{ aspectRatio: clampAspect(post.mediaWidth, post.mediaHeight) }}
+        >
           {post.adminRemoved ? (
             <div className="flex flex-col items-center gap-2 text-on-surface-variant p-4 text-center">
               <ShieldAlert size={32} />
-              <p className="type-body-md font-semibold text-on-surface">Content removed</p>
-              <p className="type-body-sm text-on-surface-variant">This content was removed by a moderator.</p>
+              <p className="text-body-md font-semibold text-on-surface">Content removed</p>
+              <p className="text-body-sm text-on-surface-variant">This content was removed by a moderator.</p>
             </div>
           ) : (
             <>
@@ -131,16 +205,19 @@ export function FeedCard({ post }: { post: FeedPost }) {
                 src={post.proofImageUrl}
                 alt={`Proof of work by ${post.authorName}`}
                 fill
-                className="object-cover"
+                // contain, not cover: the container is already the right shape,
+                // so the only images this affects are the clamped extremes —
+                // and letterboxing those beats cutting content out of them.
+                className="object-contain"
                 sizes="(max-width: 768px) 100vw, 640px"
               />
               {/* Reporting UI Overlay */}
               {isReporting && (
                 <div className="absolute inset-0 z-10 bg-black/60 flex items-center justify-center p-4">
-                  <div className="bg-surface p-4 rounded-xl shadow-lg w-full max-w-sm">
-                    <h3 className="type-headline-sm text-on-surface mb-2 font-semibold">Report Content</h3>
+                  <div className="bg-surface p-4 rounded-xl elev-5 w-full max-w-sm">
+                    <h3 className="text-headline-md text-on-surface mb-2 font-semibold">Report Content</h3>
                     <select aria-label="Report reason" 
-                      className="w-full p-2 mb-4 rounded-lg bg-surface-container border border-outline-variant text-on-surface type-body-md"
+                      className="w-full p-2 mb-4 rounded-xl bg-surface-container border border-outline-variant text-on-surface text-body-md"
                       value={reportReason}
                       onChange={(e) => setReportReason(e.target.value)}
                     >
@@ -154,13 +231,13 @@ export function FeedCard({ post }: { post: FeedPost }) {
                     </select>
                     <div className="flex justify-end gap-2">
                       <button 
-                        className="px-4 py-2 type-body-sm font-medium text-on-surface-variant"
+                        className="px-4 py-2 text-body-sm font-medium text-on-surface-variant tap-target"
                         onClick={() => setIsReporting(false)}
                       >
                         Cancel
                       </button>
                       <button 
-                        className="px-4 py-2 type-body-sm font-medium bg-error text-on-error rounded-lg"
+                        className="px-4 py-2 text-body-sm font-medium bg-error text-on-error rounded-xl tap-target"
                         onClick={handleReport}
                       >
                         Submit Report
@@ -175,7 +252,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
 
         {/* ── Caption ── */}
         <div className="px-4 pt-3 pb-2">
-          <p className="type-body-md text-on-surface leading-relaxed line-clamp-3">
+          <p className="text-body-md text-on-surface leading-relaxed line-clamp-3">
             {post.caption}
           </p>
         </div>
@@ -185,21 +262,36 @@ export function FeedCard({ post }: { post: FeedPost }) {
           <div className="flex items-center gap-5">
             <button
               type="button"
-              className="flex items-center gap-1.5 text-on-surface-variant hover:text-secondary transition-colors duration-150 group"
-              aria-label={`${post.likeCount} likes`}
+              onClick={handleToggleLike}
+              disabled={!viewerId || post.adminRemoved}
+              aria-pressed={liked}
+              aria-label={liked ? `Unlike, ${likeCount} likes` : `Like, ${likeCount} likes`}
+              className={[
+                "flex items-center gap-1.5 transition-colors duration-150 group",
+                "disabled:cursor-default disabled:opacity-50",
+                liked ? "text-secondary" : "text-on-surface-variant hover:text-secondary",
+              ].join(" ")}
             >
               <ThumbsUp
                 size={16}
                 strokeWidth={1.75}
+                // Filled once liked, so the state reads at a glance rather than
+                // depending on a colour difference alone.
+                fill={liked ? "currentColor" : "none"}
                 className="group-hover:scale-110 transition-transform duration-150"
                 aria-hidden="true"
               />
-              <span className="type-body-md text-sm">{post.likeCount}</span>
+              <span className="text-body-md text-sm">{likeCount}</span>
             </button>
             <button
               type="button"
-              className="flex items-center gap-1.5 text-on-surface-variant hover:text-secondary transition-colors duration-150 group"
-              aria-label={`${post.commentCount} comments`}
+              onClick={() => setShowComments((v) => !v)}
+              aria-expanded={showComments}
+              aria-label={`${commentCount} comments`}
+              className={[
+                "flex items-center gap-1.5 transition-colors duration-150 group",
+                showComments ? "text-secondary" : "text-on-surface-variant hover:text-secondary",
+              ].join(" ")}
             >
               <MessageCircle
                 size={16}
@@ -207,13 +299,13 @@ export function FeedCard({ post }: { post: FeedPost }) {
                 className="group-hover:scale-110 transition-transform duration-150"
                 aria-hidden="true"
               />
-              <span className="type-body-md text-sm">{post.commentCount}</span>
+              <span className="text-body-md text-sm">{commentCount}</span>
             </button>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {reportSubmitted && (
-              <span className="type-body-sm text-success text-xs">Reported</span>
+              <span className="text-body-sm text-success text-xs">Reported</span>
             )}
             <button
               type="button"
@@ -231,7 +323,41 @@ export function FeedCard({ post }: { post: FeedPost }) {
             </button>
           </div>
         </div>
+
+        {/* "N likes", tappable, the way Instagram does it. Kept out of the
+            like button itself: that button toggles your own like, and one
+            control cannot both toggle and open a list without one of the two
+            being a surprise. */}
+        {likeCount > 0 && (
+          <div className="px-4 pb-3 -mt-1">
+            <Facepile
+              people={post.likePreview ?? []}
+              total={likeCount}
+              verb="Liked by"
+              noun="like"
+              onOpen={() => setLikersOpen(true)}
+            />
+          </div>
+        )}
       </Card>
+
+      <PeopleListSheet
+        open={likersOpen}
+        title="Likes"
+        viewerId={viewerId}
+        emptyMessage="No likes yet."
+        onClose={() => setLikersOpen(false)}
+        load={() => getPostLikers(createClient(), post.id, viewerId)}
+      />
+
+      {showComments ? (
+        <ProofComments
+          proofId={post.id}
+          viewerId={viewerId}
+          proofOwnerId={post.authorId}
+          onCountChange={(d) => setCommentCount((n) => Math.max(0, n + d))}
+        />
+      ) : null}
     </div>
   );
 }

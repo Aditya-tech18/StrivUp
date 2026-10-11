@@ -8,16 +8,20 @@ import {
 
 /**
  * POST /api/activity/native/sync
- *   { provider?, timezone?, records: [{ local_date, steps }] }
+ *   { provider?, timezone?, records: [{ local_date, steps, distance_m? }] }
  *
- * Where the in-app pedometer sends its running total.
+ * Where the in-app pedometer sends its running totals.
  *
  * This is the only endpoint that accepts activity values from a client, because
  * the counter runs in the browser and there is nothing to poll. The payload is
  * therefore treated as untrusted: ingestNativeActivity() reads only
- * `local_date` and `steps`, derives every other field server-side, clamps the
- * values, keeps the day's count monotonic, and the database function then runs
- * the same fraud heuristics as every other source.
+ * `local_date`, `steps` and `distance_m`, derives every other field
+ * server-side, clamps the values, keeps the day's figures monotonic, and the
+ * database function then runs the same fraud heuristics as every other source.
+ *
+ * `distance_m` is measured by GPS and `steps` by the accelerometer. They are
+ * independent measurements of a walk, not two views of one number — neither is
+ * ever computed from the other.
  *
  * Quest progress, task completion and reward eligibility are all recalculated
  * inside that one database call, so a push either lands completely or not at

@@ -1,89 +1,186 @@
 "use client";
 
 /**
- * ExploreClient.tsx — client component for the Explore page.
+ * ExploreClient — the Explore screen: header, Quests/Challenges toggle, search
+ * and both lists.
  *
- * Receives server-fetched data as props and owns all client-side state
- * (filter chips, search input, join state per challenge).
+ * Quests is the default view. It is the half of the product a new user is most
+ * likely to act on (a local business offering something today), and it is what
+ * the brief asks to land on.
+ *
+ * Both datasets arrive as props from the server component, so switching tabs
+ * and typing in the search box are pure client work: no spinner, no refetch.
  *
  * Join flow (public challenges):
  *   idle → loading → joined (navigate to /challenges/[id])
- *   If unique-constraint error (already a participant) → treat as joined.
- *
- * Private challenges: show an inline toast on Request click.
+ *   A unique-constraint error means "already a participant", so it counts as
+ *   success.
  */
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  Bell,
   Calendar,
   CheckCircle2,
   Flame,
   Loader2,
   Lock,
+  MapPin,
   Search,
+  Store,
+  Target,
+  Trophy,
+  User,
   Users,
 } from "lucide-react";
-import { Badge, Button, Card } from "@/components/ui";
+import { Badge, Button, Card, MobileMenu } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
-import type { FeaturedChallenge, TrendingChallenge } from "./page";
+import { ShareButton } from "@/components/features/share/ShareButton";
+import type { FeaturedChallenge, FeaturedQuest, TrendingChallenge } from "./page";
 
-/* ── Filter chips ────────────────────────────────────────────────────────── */
-const FILTER_CHIPS = [
-  "Trending", "Premium", "Near Me", "My College", "Coding", "AI", "Fitness",
-] as const;
-type FilterChip = (typeof FILTER_CHIPS)[number];
+type View = "quests" | "challenges";
 
 /* ── Join helper ─────────────────────────────────────────────────────────── */
+/**
+ * The user id comes from the locally cached session rather than getUser().
+ *
+ * getUser() re-validates the token against the auth server, which is a second
+ * network round trip paid before the insert even starts, on the one tap the
+ * whole screen exists for. It is the right call when the id is the thing
+ * being trusted, and the wrong one here: the INSERT policy on
+ * challenge_participants is WITH CHECK (user_id = auth.uid()), so Postgres
+ * rejects a row that claims someone else's id no matter what this sends. The
+ * id is a payload field, not an authorization decision.
+ */
 async function joinChallenge(challengeId: string): Promise<{ error: string | null }> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "not-authed" };
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  if (!userId) return { error: "not-authed" };
 
   const { error } = await supabase.from("challenge_participants").insert({
     challenge_id: challengeId,
-    user_id: user.id,
+    user_id: userId,
     status: "active",
   });
 
-  // Unique constraint violation = already a participant → treat as success
   if (error && !error.message.includes("duplicate") && !error.message.includes("unique")) {
     return { error: error.message };
   }
   return { error: null };
 }
 
-/* ── Private toast ───────────────────────────────────────────────────────── */
 const PRIVATE_MSG = "Private challenges require an invitation — this isn't available yet.";
+
+/* Shared focus ring. Every tappable thing on this screen uses it, so keyboard
+   focus is visible and the 2px offset keeps it clear of the card edge. */
+const FOCUS_RING =
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary";
+
+/* ── Quest card ──────────────────────────────────────────────────────────── */
+function QuestCard({ quest }: { quest: FeaturedQuest }) {
+  const art = quest.cover_url ?? quest.thumbnail_url ?? null;
+  /* Not `interactive`, and the Link no longer wraps the Card: the footer
+     holds a Share button, and a button inside an anchor is invalid nesting
+     that also swallows the tap into a navigation. The link covers the art and
+     the text, which is everything someone would aim at to open the quest. */
+  return (
+    <Card bordered padding="none" elevation={2} className="flex h-full flex-col overflow-hidden">
+      <Link href={`/quests/${quest.id}`} className={`block rounded-xl ${FOCUS_RING}`}>
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-surface-variant">
+          {art ? (
+            <Image src={art} alt="" fill sizes="(min-width: 1024px) 480px, 100vw" className="object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-surface-container-high">
+              <Target size={28} className="text-on-surface-variant opacity-50" aria-hidden="true" />
+            </div>
+          )}
+          {quest.rewards && quest.rewards.length > 0 && (
+            <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-body-sm font-bold text-on-surface elev-1">
+              <Trophy size={11} aria-hidden="true" />
+              Reward
+            </span>
+          )}
+        </div>
+        <div className="space-y-1.5 p-4">
+          <h3 className="line-clamp-2 text-headline-sm leading-snug text-on-surface">
+            {quest.title}
+          </h3>
+          {quest.business_name && (
+            <p className="flex items-center gap-1.5 truncate text-body-sm text-on-surface-variant">
+              <Store size={13} className="shrink-0" aria-hidden="true" />
+              {quest.business_name}
+            </p>
+          )}
+          {quest.location_name && (
+            <p className="flex items-center gap-1.5 truncate text-body-sm text-on-surface-variant">
+              <MapPin size={13} className="shrink-0" aria-hidden="true" />
+              {quest.location_name}
+            </p>
+          )}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            {quest.category && <Badge variant="secondary">{quest.category}</Badge>}
+            <span className="flex items-center gap-1 text-body-sm text-on-surface-variant">
+              <Users size={13} aria-hidden="true" />
+              {quest.participant_count} joined
+            </span>
+          </div>
+        </div>
+      </Link>
+      <div className="mt-auto flex justify-end border-t border-outline-variant px-3 py-1.5">
+        <ShareButton
+          kind="quest"
+          id={quest.id}
+          title={quest.title}
+          label="Share"
+          className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-on-surface-variant transition-colors hover:bg-surface-container hover:text-secondary"
+        />
+      </div>
+    </Card>
+  );
+}
 
 /* ── FeaturedCard ────────────────────────────────────────────────────────── */
 function FeaturedCard({ challenge }: { challenge: FeaturedChallenge }) {
   return (
-    <Link href={`/challenges/${challenge.id}`}>
-      <Card padding="none" bordered className="flex-shrink-0 w-[280px] overflow-hidden">
+    <Link href={`/challenges/${challenge.id}`} className={`block h-full rounded-xl ${FOCUS_RING}`}>
+      <Card padding="none" bordered elevation={2} interactive className="h-full overflow-hidden">
         <div className="relative aspect-video w-full bg-surface-variant">
-          <Image src={challenge.coverImageUrl} alt={challenge.title} fill className="object-cover" sizes="280px" />
-          <div className="absolute top-2 left-2">
-            <Badge variant="secondary" className="text-[10px] shadow-sm">Featured</Badge>
+          <Image
+            src={challenge.coverImageUrl}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="280px"
+          />
+          <div className="absolute left-2 top-2">
+            <Badge variant="secondary" className="elev-1">Featured</Badge>
           </div>
           {challenge.verified && (
-            <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-white/70 backdrop-blur-sm px-2 py-0.5 border border-white/50">
+            <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest/85 px-2 py-0.5 backdrop-blur-sm">
               <CheckCircle2 size={11} className="text-secondary" aria-hidden="true" />
-              <span className="text-[10px] font-semibold text-secondary leading-none">Verified</span>
+              <span className="text-body-sm font-semibold leading-none text-secondary">
+                Verified
+              </span>
             </div>
           )}
         </div>
-        <div className="p-3 space-y-1.5">
-          <h3 className="type-headline-sm text-on-surface font-semibold leading-snug line-clamp-2">{challenge.title}</h3>
-          <p className="type-body-md text-on-surface-variant text-xs">by {challenge.creatorName}</p>
-          <div className="flex items-center gap-3 pt-0.5">
-            <span className="flex items-center gap-1 text-on-surface-variant text-xs">
-              <Users size={12} aria-hidden="true" />{challenge.memberCount.toLocaleString()}
+        <div className="space-y-1.5 p-3">
+          <h3 className="line-clamp-2 text-headline-sm leading-snug text-on-surface">
+            {challenge.title}
+          </h3>
+          <p className="text-body-sm text-on-surface-variant">by {challenge.creatorName}</p>
+          <div className="flex items-center gap-3 pt-0.5 text-body-sm text-on-surface-variant">
+            <span className="flex items-center gap-1">
+              <Users size={12} aria-hidden="true" />
+              {challenge.memberCount.toLocaleString()}
             </span>
-            <span className="flex items-center gap-1 text-on-surface-variant text-xs">
-              <Calendar size={12} aria-hidden="true" />{challenge.durationLabel}
+            <span className="flex items-center gap-1">
+              <Calendar size={12} aria-hidden="true" />
+              {challenge.durationLabel}
             </span>
           </div>
         </div>
@@ -113,60 +210,82 @@ function TrendingRow({
     startTransition(async () => {
       const { error } = await joinChallenge(challenge.id);
       if (error === "not-authed") {
-        // Redirect to login then back
         router.push(`/login?next=/challenges/${challenge.id}`);
         return;
       }
       if (error) {
-        // Generic error — reset, let user try again
         setJoinState("idle");
         return;
       }
-      // Success: navigate to challenge
       setJoinState("joined");
       router.push(`/challenges/${challenge.id}`);
     });
   };
 
+  // Not `interactive`: the row holds its own Join button, so the card is not a
+  // single link target and must not behave like one.
   return (
-    <Card bordered padding="none" className="flex items-center gap-3 p-3">
-      <Link href={`/challenges/${challenge.id}`} className="flex-shrink-0">
-        <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-surface-variant">
-          <Image src={challenge.thumbnailUrl} alt={challenge.title} fill className="object-cover" sizes="56px" />
+    <Card bordered padding="sm" className="flex items-center gap-3">
+      <Link
+        href={`/challenges/${challenge.id}`}
+        className="shrink-0 rounded-lg"
+        tabIndex={-1}
+        aria-hidden="true"
+      >
+        <div className="relative h-14 w-14 overflow-hidden rounded-lg bg-surface-variant">
+          <Image src={challenge.thumbnailUrl} alt="" fill className="object-cover" sizes="56px" />
         </div>
       </Link>
-      <div className="flex-1 min-w-0 space-y-1">
-        <h3 className="type-headline-sm text-on-surface font-semibold text-sm leading-tight line-clamp-1">{challenge.title}</h3>
-        <p className="type-body-md text-on-surface-variant text-xs">{challenge.creatorName}</p>
-        <div className="flex items-center gap-3 text-xs text-on-surface-variant">
+      <div className="min-w-0 flex-1 space-y-1">
+        <h3 className="line-clamp-1 text-body-md font-semibold leading-tight text-on-surface">
+          <Link href={`/challenges/${challenge.id}`} className={`rounded ${FOCUS_RING}`}>
+            {challenge.title}
+          </Link>
+        </h3>
+        <p className="truncate text-body-sm text-on-surface-variant">{challenge.creatorName}</p>
+        <div className="flex items-center gap-3 text-body-sm text-on-surface-variant">
           <span className="flex items-center gap-0.5">
-            <Flame size={11} className="text-secondary-fixed-dim" aria-hidden="true" />
+            <Flame size={11} className="text-secondary" aria-hidden="true" />
             Day {challenge.currentDay}/{challenge.totalDays}
           </span>
           <span className="flex items-center gap-1">
-            <Users size={11} aria-hidden="true" />{challenge.memberCount.toLocaleString()}
+            <Users size={11} aria-hidden="true" />
+            {challenge.memberCount.toLocaleString()}
           </span>
         </div>
-        <div className="h-1 w-full rounded-full bg-surface-container" role="progressbar"
-          aria-valuenow={challenge.progressPercent} aria-valuemin={0} aria-valuemax={100}
-          aria-label={`${challenge.progressPercent}% complete`}>
-          <div className="h-full rounded-full bg-secondary transition-all duration-500" style={{ width: `${challenge.progressPercent}%` }} />
+        <div
+          className="h-1 w-full overflow-hidden rounded-full bg-surface-container-highest"
+          role="progressbar"
+          aria-valuenow={challenge.progressPercent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`${challenge.title}: ${challenge.progressPercent}% complete`}
+        >
+          <div
+            className="h-full rounded-full bg-secondary transition-all duration-500"
+            style={{ width: `${challenge.progressPercent}%` }}
+          />
         </div>
       </div>
-      <div className="flex-shrink-0">
+      {/* Action column: the primary button, with Share directly beneath it.
+          Stacked rather than placed in the row because the row is already
+          full at 56px of art plus the title block, and a third item there
+          pushes the progress bar into the title on a narrow phone. */}
+      <div className="flex shrink-0 flex-col items-stretch gap-1">
         {challenge.isParticipant ? (
           <Link
             href={`/challenges/${challenge.id}`}
             className={[
-              "inline-flex items-center h-8 px-3 rounded-lg",
-              "bg-secondary/10 text-secondary text-xs font-semibold",
-              "hover:bg-secondary/20 transition-colors",
+              "inline-flex h-11 items-center rounded-xl px-4",
+              "bg-secondary-fixed text-body-sm font-semibold text-on-secondary-fixed-variant",
+              "pressable transition-colors hover:bg-secondary-fixed-dim",
+              FOCUS_RING,
             ].join(" ")}
           >
-            View →
+            View
           </Link>
         ) : joinState === "joined" ? (
-          <div className="flex items-center gap-1 text-green-600 text-xs font-semibold">
+          <div className="flex h-11 items-center gap-1 px-2 text-body-sm font-semibold text-on-tertiary-fixed-variant">
             <CheckCircle2 size={14} aria-hidden="true" />
             Joined
           </div>
@@ -174,7 +293,7 @@ function TrendingRow({
           <Button
             id={`join-${challenge.id}`}
             variant={isPublic ? "primary" : "outline"}
-            size="sm"
+            size="md"
             onClick={handleJoin}
             disabled={joinState === "loading" || isPending}
             aria-label={isPublic ? `Join ${challenge.title}` : `Request to join ${challenge.title}`}
@@ -191,6 +310,14 @@ function TrendingRow({
             )}
           </Button>
         )}
+        <ShareButton
+          kind="challenge"
+          id={challenge.id}
+          title={challenge.title}
+          isPrivate={!isPublic}
+          label="Share"
+          className="flex h-8 items-center justify-center gap-1 rounded-lg text-xs font-semibold text-on-surface-variant transition-colors hover:bg-surface-container hover:text-secondary"
+        />
       </div>
     </Card>
   );
@@ -200,155 +327,271 @@ function TrendingRow({
 export interface ExploreClientProps {
   featured: FeaturedChallenge[];
   trending: TrendingChallenge[];
-  quests?: import("./page").FeaturedQuest[];
+  quests?: FeaturedQuest[];
 }
 
 export function ExploreClient({ featured, trending, quests = [] }: ExploreClientProps) {
-  const [activeChip, setActiveChip] = useState<FilterChip>("Trending");
+  const [view, setView] = useState<View>("quests");
+  const [query, setQuery] = useState("");
   const [privateToast, setPrivateToast] = useState(false);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    },
+    []
+  );
 
   const showPrivateToast = () => {
     setPrivateToast(true);
-    setTimeout(() => setPrivateToast(false), 3500);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setPrivateToast(false), 3500);
+  };
+
+  /* Search filters whichever list is on screen. It deliberately does not hit
+     the network: both lists are server-rendered up front, so a substring match
+     is instant and complete for what is visible. A page of rows each, so there
+     is nothing to memoise. */
+  const q = query.trim().toLowerCase();
+  const matches = (...fields: (string | null | undefined)[]) =>
+    !q || fields.some((f) => f?.toLowerCase().includes(q));
+
+  const shownQuests = quests.filter((p) =>
+    matches(p.title, p.business_name, p.category, p.location_name)
+  );
+  const shownFeatured = featured.filter((c) => matches(c.title, c.creatorName));
+  const shownTrending = trending.filter((c) => matches(c.title, c.creatorName));
+
+  const onQuests = view === "quests";
+  const empty = onQuests
+    ? shownQuests.length === 0
+    : shownFeatured.length === 0 && shownTrending.length === 0;
+
+  const tab = (value: View, label: string, count: number) => {
+    const active = view === value;
+    return (
+      <button
+        key={value}
+        type="button"
+        role="tab"
+        aria-selected={active}
+        aria-controls={`${value}-panel`}
+        id={`${value}-tab`}
+        onClick={() => setView(value)}
+        className={[
+          // h-10 inside an h-12 track: the whole track is a 48px touch target
+          // even though the active pill is visually smaller.
+          "flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg px-3",
+          "text-body-md font-semibold transition-colors duration-150",
+          FOCUS_RING,
+          active
+            ? "bg-surface-container-lowest text-on-surface elev-1"
+            : "text-on-surface-variant hover:text-on-surface",
+        ].join(" ")}
+      >
+        {label}
+        <span
+          className={[
+            "rounded-full px-1.5 py-0.5 text-label-sm font-bold tabular-nums",
+            active ? "bg-secondary text-on-secondary" : "bg-surface-container-highest text-on-surface-variant",
+          ].join(" ")}
+        >
+          {count}
+        </span>
+      </button>
+    );
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-5 space-y-6">
-
-      {/* ── Private challenge toast ─────────────────────────────────── */}
-      {privateToast && (
-        <div
-          role="status"
-          aria-live="polite"
-          className={[
-            "fixed top-16 left-1/2 -translate-x-1/2 z-50",
-            "flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg",
-            "bg-on-surface text-surface text-sm font-medium",
-            "animate-in fade-in slide-in-from-top-2 duration-200",
-            "max-w-sm w-[calc(100%-2rem)]",
-          ].join(" ")}
-        >
-          <Lock size={14} aria-hidden="true" className="flex-shrink-0" />
-          {PRIVATE_MSG}
-        </div>
-      )}
-
-      {/* ── Headline ─────────────────────────────────────────────────── */}
-      <div className="space-y-1">
-        <h1 className="type-headline-md text-on-surface font-semibold">Challenges</h1>
-        <p className="type-body-md text-on-surface-variant">Discover communities that help you stay consistent.</p>
-      </div>
-
-      {/* ── Search ────────────────────────────────────────────────────── */}
-      <div className="relative flex items-center">
-        <span className="absolute left-4 text-on-surface-variant pointer-events-none flex items-center z-10">
-          <Search size={17} aria-hidden="true" />
-        </span>
-        <input
-          id="explore-search"
-          type="search"
-          placeholder="Search Challenges, Communities or Creators..."
-          className={[
-            "w-full h-11 pl-10 pr-4 rounded-full border border-outline-variant",
-            "bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant",
-            "text-[length:var(--font-size-body-lg)] transition-colors duration-150",
-            "focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary",
-          ].join(" ")}
-          aria-label="Search challenges, communities or creators"
-        />
-      </div>
-
-      {/* ── Filter chips ──────────────────────────────────────────────── */}
-      <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1 -mx-4 px-4" role="group" aria-label="Filter challenges">
-        {FILTER_CHIPS.map((chip) => {
-          const isActive = activeChip === chip;
-          return (
-            <button
-              key={chip}
-              type="button"
-              onClick={() => setActiveChip(chip)}
-              aria-pressed={isActive}
-              className={[
-                "flex-shrink-0 h-8 px-4 rounded-full border text-sm font-medium",
-                "transition-colors duration-150",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1",
-                isActive
-                  ? "bg-secondary text-on-secondary border-secondary"
-                  : "bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:bg-surface-container hover:text-on-surface",
-              ].join(" ")}
-            >
-              {chip}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Featured Premium Challenges ─────────────────────────────── */}
-      <section aria-label="Featured Premium Challenges">
-        <h2 className="type-headline-sm text-on-surface font-semibold mb-3">Featured Premium Challenges</h2>
-        {featured.length > 0 ? (
-          <div className="no-scrollbar flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-            {featured.map((c) => <FeaturedCard key={c.id} challenge={c} />)}
-          </div>
-        ) : (
-          <p className="text-on-surface-variant text-sm">No featured challenges yet. Create one to get started!</p>
-        )}
-      </section>
-
-      {/* ── Trending Challenges ─────────────────────────────────────── */}
-      <section aria-label="Trending Challenges">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="type-headline-sm text-on-surface font-semibold">Trending Challenges</h2>
-          <p className="type-label-caps text-on-surface-variant text-[10px]">ACTIVE NOW</p>
-        </div>
-        {trending.length > 0 ? (
-          <div className="space-y-3">
-            {trending.map((c) => (
-              <TrendingRow key={c.id} challenge={c} onPrivateClick={showPrivateToast} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-on-surface-variant text-sm">No challenges found. Be the first to create one!</p>
-        )}
-      </section>
-
-      {/* ── Active Business Quests ────────────────────────────────── */}
-      {quests.length > 0 && (
-        <section aria-label="Active Quests">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="type-headline-sm text-on-surface font-semibold">Business Quests</h2>
-            <Link href="/quests" className="text-xs text-secondary font-semibold">View all</Link>
-          </div>
-          <div className="no-scrollbar flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-            {quests.map(q => (
-              <Link key={q.id} href={`/quests/${q.id}`} className="flex-shrink-0 w-[200px]">
-                <div className="bg-surface-container-low border border-outline-variant rounded-2xl overflow-hidden hover:bg-surface-container transition-colors">
-                  <div className="relative w-full h-28 bg-surface-variant overflow-hidden">
-                    {(q.cover_url || q.thumbnail_url)
-                      ? <Image src={q.cover_url ?? q.thumbnail_url ?? ""} alt={q.title} fill className="object-cover" sizes="200px" />
-                      : <div className="w-full h-full flex items-center justify-center text-4xl">🎯</div>
-                    }
-                    {q.rewards && (
-                      <div className="absolute top-2 right-2 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
-                        🏆 Reward
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3 space-y-1">
-                    <p className="text-[13px] font-bold text-on-surface leading-tight line-clamp-2">{q.title}</p>
-                    {q.business_name && <p className="text-[11px] text-on-surface-variant">by {q.business_name}</p>}
-                    <div className="flex items-center gap-1 text-[11px] text-on-surface-variant">
-                      <Users size={11} />{q.participant_count} joined
-                    </div>
-                  </div>
-                </div>
+    <>
+      {/* ── Sticky header: brand, actions, then the toggle ─────────────── */}
+      <header className="sticky top-0 z-40 border-b border-outline-variant bg-surface/95 pt-safe backdrop-blur-sm">
+        <div className="mx-auto measure-page px-gutter lg:px-gutter-md">
+          <div className="flex h-14 items-center justify-between">
+            <div className="flex min-w-0 items-center gap-1">
+            <MobileMenu />
+            <Link href="/explore" className={`flex items-center rounded-lg ${FOCUS_RING}`}>
+              <Image
+                src="/brand/wordmark.png"
+                alt="StrivUp"
+                width={104}
+                height={29}
+                priority
+                className="h-[22px] w-auto"
+              />
+            </Link>
+            </div>
+            <div className="flex items-center gap-1">
+              <Link
+                href="/alerts"
+                aria-label="Alerts"
+                className={`flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant transition-colors duration-150 hover:bg-surface-variant ${FOCUS_RING}`}
+              >
+                <Bell size={20} strokeWidth={1.75} aria-hidden="true" />
               </Link>
-            ))}
+              <Link
+                href="/profile"
+                aria-label="Your profile"
+                className={`flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant transition-colors duration-150 hover:bg-surface-variant ${FOCUS_RING}`}
+              >
+                <User size={20} strokeWidth={1.75} aria-hidden="true" />
+              </Link>
+            </div>
           </div>
-        </section>
-      )}
 
-      <div className="h-4" aria-hidden="true" />
+          {/* Segmented toggle. Quests first and selected by default. */}
+          <div
+            role="tablist"
+            aria-label="Explore quests or challenges"
+            className="mb-3 flex h-12 items-center gap-1 rounded-xl bg-surface-container p-1"
+          >
+            {tab("quests", "Quests", shownQuests.length)}
+            {tab("challenges", "Challenges", shownFeatured.length + shownTrending.length)}
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto measure-page space-y-6 px-gutter py-5 lg:px-gutter-md">
+        {/* ── Private challenge toast ─────────────────────────────────── */}
+        {privateToast && (
+          <div
+            role="status"
+            aria-live="polite"
+            className={[
+              "fixed left-1/2 top-24 z-50 -translate-x-1/2",
+              "flex items-center gap-2 rounded-xl px-4 py-3 elev-5",
+              "bg-inverse-surface text-body-md font-medium text-inverse-on-surface",
+              "animate-in fade-in slide-in-from-top-2 duration-200",
+              "w-[calc(100%-2rem)] max-w-sm",
+            ].join(" ")}
+          >
+            <Lock size={14} aria-hidden="true" className="shrink-0" />
+            {PRIVATE_MSG}
+          </div>
+        )}
+
+        {/* ── Search ────────────────────────────────────────────────────── */}
+        <div className="relative flex items-center">
+          <span className="pointer-events-none absolute left-4 z-10 flex items-center text-on-surface-variant">
+            <Search size={17} aria-hidden="true" />
+          </span>
+          <input
+            id="explore-search"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={onQuests ? "Search quests or businesses…" : "Search challenges or creators…"}
+            className={[
+              "h-12 w-full rounded-xl border border-outline-variant pl-10 pr-4",
+              "bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant",
+              "text-[length:var(--text-body-lg)] transition-colors duration-150",
+              "focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/30",
+            ].join(" ")}
+            aria-label={onQuests ? "Search quests or businesses" : "Search challenges or creators"}
+          />
+        </div>
+
+        {/* ── Quests ────────────────────────────────────────────────────── */}
+        {onQuests && (
+          <section id="quests-panel" role="tabpanel" aria-labelledby="quests-tab" tabIndex={-1}>
+            {shownQuests.length > 0 ? (
+              <ul className="grid list-none grid-cols-1 gap-4 lg:grid-cols-2">
+                {shownQuests.map((p) => (
+                  <li key={p.id}>
+                    <QuestCard quest={p} />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                icon={<Target size={36} aria-hidden="true" />}
+                title={q ? `No quests match “${query.trim()}”` : "No quests running right now"}
+                body={
+                  q
+                    ? "Try a business name, a place, or clear the search."
+                    : "Local businesses post quests you can complete for rewards. Check back soon."
+                }
+              />
+            )}
+          </section>
+        )}
+
+        {/* ── Challenges ────────────────────────────────────────────────── */}
+        {!onQuests && (
+          <section
+            id="challenges-panel"
+            role="tabpanel"
+            aria-labelledby="challenges-tab"
+            tabIndex={-1}
+            className="space-y-8"
+          >
+            {empty ? (
+              <EmptyState
+                icon={<Flame size={36} aria-hidden="true" />}
+                title={q ? `No challenges match “${query.trim()}”` : "No challenges yet"}
+                body={
+                  q
+                    ? "Try a creator's name, or clear the search."
+                    : "Be the first to create one and invite your community."
+                }
+              />
+            ) : (
+              <>
+                {shownFeatured.length > 0 && (
+                  <div>
+                    <h2 className="mb-3 text-headline-md text-on-surface">
+                      Featured Premium Challenges
+                    </h2>
+                    <ul className="-mx-gutter flex list-none gap-3 overflow-x-auto px-gutter pb-3 no-scrollbar lg:-mx-gutter-md lg:px-gutter-md">
+                      {shownFeatured.map((c) => (
+                        <li key={c.id} className="w-[min(78vw,280px)] shrink-0">
+                          <FeaturedCard challenge={c} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {shownTrending.length > 0 && (
+                  <div>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h2 className="text-headline-md text-on-surface">Trending Challenges</h2>
+                      <p className="text-overline text-on-surface-variant">Active now</p>
+                    </div>
+                    <ul className="grid list-none grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
+                      {shownTrending.map((c) => (
+                        <li key={c.id}>
+                          <TrendingRow challenge={c} onPrivateClick={showPrivateToast} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+function EmptyState({
+  icon,
+  title,
+  body,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-3 px-gutter py-16 text-center">
+      <span className="text-on-surface-variant opacity-40">{icon}</span>
+      <p className="text-headline-sm text-on-surface">{title}</p>
+      <p className="max-w-xs text-body-md text-on-surface-variant">{body}</p>
     </div>
   );
 }

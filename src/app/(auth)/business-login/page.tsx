@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { BusinessLoginForm } from "./BusinessLoginForm";
+import { AuthScreen } from "../AuthScreen";
+import { authCardCls } from "../AuthCard";
 
 export const metadata: Metadata = {
   title: "Business Login — STRIVUP",
@@ -7,9 +9,13 @@ export const metadata: Metadata = {
 };
 
 export default function BusinessLoginPage() {
+  // Same shell and same card as the user screens — a visual change only. The
+  // form itself, and everything it does, is untouched.
   return (
-    <div className="min-h-screen flex items-center justify-center px-5 py-10 bg-[#F8F9FC]">
-      <BusinessLoginForm />
-    </div>
+    <AuthScreen>
+      <div className={authCardCls}>
+        <BusinessLoginForm />
+      </div>
+    </AuthScreen>
   );
 }

@@ -52,7 +52,7 @@ function ToggleSwitch({ id, checked, onChange }: {
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
         checked ? "bg-secondary" : "bg-outline-variant",
       ].join(" ")}>
-      <span className={["absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200", checked ? "translate-x-5" : "translate-x-0"].join(" ")} />
+      <span className={["absolute top-1 left-1 w-4 h-4 rounded-full bg-white elev-1 transition-transform duration-200", checked ? "translate-x-5" : "translate-x-0"].join(" ")} />
       <span className="sr-only">{checked ? "On" : "Off"}</span>
     </button>
   );
@@ -63,13 +63,13 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
   task: TaskRow; index: number; onChange: (u: TaskRow) => void; onRemove: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3 elev-1 surface-raised">
       <div className="flex items-center gap-2">
         <GripVertical size={16} className="text-on-surface-variant/40 flex-shrink-0 cursor-grab" aria-hidden="true" />
         <span className="text-xs font-semibold text-on-surface-variant flex-shrink-0">Task {index + 1}</span>
         <div className="flex-1" />
         <button type="button" onClick={onRemove} aria-label={`Remove task ${index + 1}`}
-          className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-red-50 hover:text-red-500 transition-colors">
+          className="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-error-container hover:text-error transition-colors tap-target">
           <Trash2 size={14} aria-hidden="true" />
         </button>
       </div>
@@ -78,14 +78,14 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
         value={task.title}
         onChange={(e) => onChange({ ...task, title: e.target.value })}
         placeholder="Task title (required)"
-        className="w-full h-9 px-3 rounded border border-outline-variant bg-surface text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors"
+        className="w-full h-9 px-3 rounded-xl border border-outline-variant bg-surface text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors tap-target"
       />
       <textarea
         value={task.description}
         onChange={(e) => onChange({ ...task, description: e.target.value })}
         placeholder="Description (optional)"
         rows={2}
-        className="w-full px-3 py-2 rounded border border-outline-variant bg-surface text-on-surface text-sm resize-none placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors"
+        className="w-full px-3 py-2 rounded-xl border border-outline-variant bg-surface text-on-surface text-sm resize-none placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-colors"
       />
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-1 min-w-32">
@@ -93,7 +93,7 @@ function TaskRowEditor({ task, index, onChange, onRemove }: {
           <select
             value={task.proofType}
             onChange={(e) => onChange({ ...task, proofType: e.target.value })}
-            className="flex-1 h-8 px-2 rounded border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+            className="flex-1 h-8 px-2 rounded-xl border border-outline-variant bg-surface text-on-surface text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary tap-target"
           >
             {PROOF_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
@@ -206,17 +206,17 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
     <div className="min-h-screen bg-surface">
       {/* Header */}
       <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
-        <div className="flex items-center gap-3 px-4 h-14 max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 px-4 h-14 mx-auto measure-page">
           <button
             type="button"
             onClick={() => router.back()}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
             aria-label="Go back"
           >
             <ArrowLeft size={20} aria-hidden="true" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="type-headline-sm text-on-surface font-semibold truncate">Manage Tasks</p>
+            <p className="text-headline-md text-on-surface font-semibold truncate">Manage Tasks</p>
             {challengeTitle && (
               <p className="text-xs text-on-surface-variant truncate">{challengeTitle}</p>
             )}
@@ -224,7 +224,7 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4 pb-32">
+      <div className="mx-auto measure-page px-4 py-6 space-y-4 pb-32">
 
         {/* Info */}
         <p className="text-sm text-on-surface-variant">
@@ -238,7 +238,7 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
           </div>
         )}
         {saved && (
-          <div role="status" className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-green-700 text-sm font-medium">
+          <div role="status" className="rounded-lg bg-success-container border border-success-outline px-4 py-3 text-on-success-container text-sm font-medium">
             ✓ Tasks saved successfully — redirecting…
           </div>
         )}
@@ -276,7 +276,7 @@ export default function ManageTasksPage({ params }: { params: Promise<{ id: stri
 
       {/* Sticky save bar */}
       <div className="fixed above-bottom-nav z-30 bg-surface/95 backdrop-blur-sm border-t border-outline-variant px-4 py-3">
-        <div className="max-w-2xl mx-auto flex gap-3">
+        <div className="mx-auto measure-page flex gap-3">
           <Button type="button" variant="outline" onClick={() => router.back()} className="flex-shrink-0">
             Cancel
           </Button>

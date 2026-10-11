@@ -42,24 +42,24 @@ export default async function SubmissionsPage({ params }: PageProps) {
     <div className="min-h-screen bg-surface">
       {/* Header */}
       <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
-        <div className="flex items-center gap-3 px-4 h-14 max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 px-4 h-14 mx-auto measure-page">
           <Link
             href={`/challenges/${id}`}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
             aria-label="Back to challenge"
           >
             <ArrowLeft size={20} aria-hidden="true" />
           </Link>
           <div className="flex items-center gap-2">
             <ClipboardList size={18} className="text-secondary" aria-hidden="true" />
-            <h1 className="type-headline-sm text-on-surface font-semibold">
+            <h1 className="text-headline-md text-on-surface font-semibold">
               Review Submissions
             </h1>
           </div>
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-5">
+      <div className="mx-auto measure-page px-4 py-5">
         <SubmissionsReviewClient
           initialSubmissions={submissions}
           challengeTitle={challenge.title as string}

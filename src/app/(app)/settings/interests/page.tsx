@@ -59,18 +59,18 @@ export default function InterestsPage() {
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
-        <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
+      <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
+        <div className="mx-auto measure-form flex items-center justify-between px-5 py-3.5">
           <div className="flex items-center gap-3">
-            <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+            <button aria-label="Back" onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target">
               <ArrowLeft size={19} className="text-on-surface" />
             </button>
-            <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Interests</h1>
+            <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Interests</h1>
           </div>
           <button
             onClick={handleSave}
             disabled={saving || selected.length < PROFILE_CONSTANTS.MIN_INTERESTS}
-            className="text-[14px] font-bold text-secondary disabled:opacity-40 flex items-center gap-1"
+            className="text-body-md font-bold text-secondary disabled:opacity-40 flex items-center gap-1"
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : saved ? <Check size={14} /> : null}
             {saving ? "Saving…" : saved ? "Saved" : "Save"}
@@ -78,10 +78,10 @@ export default function InterestsPage() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-4 flex-1 pb-36">
+      <div className="mx-auto measure-form px-5 pt-5 flex flex-col gap-4 flex-1 pb-36">
         <div>
-          <h2 className="text-[20px] font-bold text-on-surface tracking-[-0.02em]">Choose Your Interests</h2>
-          <p className="text-[13px] text-on-surface-variant mt-1">
+          <h2 className="text-headline-md font-bold text-on-surface tracking-[-0.02em]">Choose Your Interests</h2>
+          <p className="text-body-md text-on-surface-variant mt-1">
             Select at least {PROFILE_CONSTANTS.MIN_INTERESTS} to get personalised recommendations.
           </p>
         </div>
@@ -93,13 +93,13 @@ export default function InterestsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search interests…"
-            className="w-full h-11 rounded-xl border border-outline-variant bg-white pl-9 pr-4 text-[14px] text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors"
+            className="w-full h-11 rounded-xl border border-outline-variant bg-surface-container-lowest pl-9 pr-4 text-body-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary transition-colors"
           />
         </div>
 
         {error && (
           <div role="alert" className="px-4 py-3 rounded-xl bg-error-container border border-error/20">
-            <p className="text-[13px] text-error">{error}</p>
+            <p className="text-body-md text-error">{error}</p>
           </div>
         )}
 
@@ -112,10 +112,10 @@ export default function InterestsPage() {
                 key={interest.id}
                 onClick={() => toggle(interest.id)}
                 className={[
-                  "flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-medium border transition-all",
+                  "flex items-center gap-1.5 px-4 py-2 rounded-full text-body-md font-medium border transition-all",
                   on
-                    ? "bg-secondary text-white border-secondary shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
-                    : "bg-white text-on-surface border-outline-variant hover:border-secondary/50 hover:bg-surface-container-low",
+                    ? "bg-secondary text-white border-secondary elev-2"
+                    : "bg-surface-container-lowest text-on-surface border-outline-variant hover:border-secondary/50 hover:bg-surface-container-low",
                 ].join(" ")}
               >
                 {interest.name}
@@ -126,32 +126,32 @@ export default function InterestsPage() {
         </div>
 
         {/* Why card */}
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-          <p className="text-[13px] font-semibold text-secondary mb-1">Why does this matter?</p>
-          <p className="text-[12px] text-on-surface-variant leading-relaxed">
+        <div className="bg-secondary-fixed border border-secondary-fixed-dim rounded-2xl p-4">
+          <p className="text-body-md font-semibold text-secondary mb-1">Why does this matter?</p>
+          <p className="text-body-sm text-on-surface-variant leading-relaxed">
             Your interests power STRIVUP&apos;s recommendation engine — helping us surface challenges and quests that align with your goals, not just what&apos;s popular.
           </p>
         </div>
       </div>
 
       {/* Bottom save bar */}
-      <div className="fixed above-bottom-nav z-40 bg-white/95 backdrop-blur-md border-t border-outline-variant px-5 py-4">
-        <div className="max-w-lg mx-auto flex flex-col gap-2">
+      <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant px-5 py-4">
+        <div className="mx-auto measure-form flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <p className="text-[13px] text-on-surface-variant">
+            <p className="text-body-md text-on-surface-variant">
               {selected.length} selected
               {selected.length < PROFILE_CONSTANTS.MIN_INTERESTS && (
                 <span className="text-error"> · need {PROFILE_CONSTANTS.MIN_INTERESTS - selected.length} more</span>
               )}
             </p>
             {selected.length >= PROFILE_CONSTANTS.MIN_INTERESTS && (
-              <span className="text-[12px] font-semibold text-secondary">Ready to save</span>
+              <span className="text-body-sm font-semibold text-secondary">Ready to save</span>
             )}
           </div>
           <button
             onClick={handleSave}
             disabled={saving || selected.length < PROFILE_CONSTANTS.MIN_INTERESTS}
-            className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+            className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-body-lg flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity elev-2"
           >
             {saving ? <><Loader2 size={16} className="animate-spin" /> Saving…</> : "Save Interests"}
           </button>

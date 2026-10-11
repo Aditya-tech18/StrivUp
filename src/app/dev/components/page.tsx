@@ -25,9 +25,9 @@ export default function ComponentsPage() {
 
         {/* ── Header ── */}
         <header>
-          <p className="type-label-caps text-on-surface-variant mb-1">Design System</p>
-          <h1 className="type-display-lg text-on-background">Component Review</h1>
-          <p className="type-body-lg text-on-surface-variant mt-2">
+          <p className="text-overline text-on-surface-variant mb-1">Design System</p>
+          <h1 className="text-display-mobile text-on-background">Component Review</h1>
+          <p className="text-body-lg text-on-surface-variant mt-2">
             All primitive variants rendered from{" "}
             <code className="rounded bg-surface-container px-1 py-0.5 text-sm font-mono text-on-surface">
               src/components/ui/
@@ -37,7 +37,7 @@ export default function ComponentsPage() {
 
         {/* ── Color Palette ── */}
         <section aria-labelledby="palette-heading">
-          <h2 id="palette-heading" className="type-headline-md mb-[var(--spacing-stack-gap-md)]">
+          <h2 id="palette-heading" className="text-headline-lg-mobile mb-[var(--spacing-stack-gap-md)]">
             Color Tokens
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -53,7 +53,7 @@ export default function ComponentsPage() {
               { name: "tertiary-fixed",    bg: "bg-tertiary-fixed",             text: "text-on-tertiary-container" },
             ].map(({ name, bg, text }) => (
               <div key={name} className={`rounded-lg p-3 ${bg}`}>
-                <p className={`type-label-caps ${text}`}>{name}</p>
+                <p className={`text-overline ${text}`}>{name}</p>
               </div>
             ))}
           </div>
@@ -61,32 +61,32 @@ export default function ComponentsPage() {
 
         {/* ── Typography ── */}
         <section aria-labelledby="type-heading">
-          <h2 id="type-heading" className="type-headline-md mb-[var(--spacing-stack-gap-md)]">
+          <h2 id="type-heading" className="text-headline-lg-mobile mb-[var(--spacing-stack-gap-md)]">
             Typography Scale
           </h2>
           <Card bordered padding="lg">
             <div className="space-y-4">
-              <p className="type-display-lg">display-lg — 32/40 700 −2%</p>
-              <p className="type-headline-md">headline-md — 24/32 600 −1%</p>
-              <p className="type-headline-sm">headline-sm — 20/28 600</p>
-              <p className="type-body-lg">body-lg — 16/24 400</p>
-              <p className="type-body-md">body-md — 14/20 400</p>
-              <p className="type-label-caps">label-caps — 12/16 600 +5% uppercase</p>
-              <p className="type-stat-value">28 stat-value 700 −1%</p>
+              <p className="text-display-mobile">display-lg — 32/40 700 −2%</p>
+              <p className="text-headline-lg-mobile">headline-md — 24/32 600 −1%</p>
+              <p className="text-headline-md">headline-sm — 20/28 600</p>
+              <p className="text-body-lg">body-lg — 16/24 400</p>
+              <p className="text-body-md">body-md — 14/20 400</p>
+              <p className="text-overline">label-caps — 12/16 600 +5% uppercase</p>
+              <p className="text-headline-lg font-bold">28 stat-value 700 −1%</p>
             </div>
           </Card>
         </section>
 
         {/* ── Button ── */}
         <section aria-labelledby="button-heading">
-          <h2 id="button-heading" className="type-headline-md mb-[var(--spacing-stack-gap-md)]">
+          <h2 id="button-heading" className="text-headline-lg-mobile mb-[var(--spacing-stack-gap-md)]">
             Button
           </h2>
           <Card bordered padding="lg">
             <div className="space-y-[var(--spacing-stack-gap-md)]">
               {/* Variants */}
               <div>
-                <p className="type-label-caps text-on-surface-variant mb-2">Variants</p>
+                <p className="text-overline text-on-surface-variant mb-2">Variants</p>
                 <div className="flex flex-wrap gap-3">
                   <Button variant="primary">Primary</Button>
                   <Button variant="secondary">Secondary</Button>
@@ -95,7 +95,7 @@ export default function ComponentsPage() {
               </div>
               {/* Sizes */}
               <div>
-                <p className="type-label-caps text-on-surface-variant mb-2">Sizes</p>
+                <p className="text-overline text-on-surface-variant mb-2">Sizes</p>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button size="sm">Small</Button>
                   <Button size="md">Medium</Button>
@@ -104,7 +104,7 @@ export default function ComponentsPage() {
               </div>
               {/* Disabled */}
               <div>
-                <p className="type-label-caps text-on-surface-variant mb-2">Disabled</p>
+                <p className="text-overline text-on-surface-variant mb-2">Disabled</p>
                 <div className="flex flex-wrap gap-3">
                   <Button variant="primary" disabled>Primary</Button>
                   <Button variant="secondary" disabled>Secondary</Button>
@@ -113,7 +113,7 @@ export default function ComponentsPage() {
               </div>
               {/* Full width */}
               <div>
-                <p className="type-label-caps text-on-surface-variant mb-2">Full Width</p>
+                <p className="text-overline text-on-surface-variant mb-2">Full Width</p>
                 <Button fullWidth>Full Width Button</Button>
               </div>
             </div>
@@ -122,7 +122,7 @@ export default function ComponentsPage() {
 
         {/* ── Input ── */}
         <section aria-labelledby="input-heading">
-          <h2 id="input-heading" className="type-headline-md mb-[var(--spacing-stack-gap-md)]">
+          <h2 id="input-heading" className="text-headline-lg-mobile mb-[var(--spacing-stack-gap-md)]">
             Input
           </h2>
           <Card bordered padding="lg">
@@ -151,21 +151,21 @@ export default function ComponentsPage() {
 
         {/* ── Card ── */}
         <section aria-labelledby="card-heading">
-          <h2 id="card-heading" className="type-headline-md mb-[var(--spacing-stack-gap-md)]">
+          <h2 id="card-heading" className="text-headline-lg-mobile mb-[var(--spacing-stack-gap-md)]">
             Card
           </h2>
           <div className="space-y-3">
             <Card padding="md">
-              <p className="type-body-md text-on-surface-variant">Default card — no border, md padding</p>
+              <p className="text-body-md text-on-surface-variant">Default card — no border, md padding</p>
             </Card>
             <Card bordered padding="md">
-              <p className="type-body-md text-on-surface-variant">Bordered card</p>
+              <p className="text-body-md text-on-surface-variant">Bordered card</p>
             </Card>
             <Card bordered padding="lg">
               <CardHeader>
-                <p className="type-headline-sm">Card with header &amp; footer</p>
+                <p className="text-headline-md">Card with header &amp; footer</p>
               </CardHeader>
-              <p className="type-body-lg">Card body content goes here.</p>
+              <p className="text-body-lg">Card body content goes here.</p>
               <CardFooter>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" size="sm">Cancel</Button>
@@ -178,7 +178,7 @@ export default function ComponentsPage() {
 
         {/* ── Badge ── */}
         <section aria-labelledby="badge-heading">
-          <h2 id="badge-heading" className="type-headline-md mb-[var(--spacing-stack-gap-md)]">
+          <h2 id="badge-heading" className="text-headline-lg-mobile mb-[var(--spacing-stack-gap-md)]">
             Badge
           </h2>
           <Card bordered padding="md">
@@ -195,11 +195,11 @@ export default function ComponentsPage() {
 
         {/* ── BottomNav ── */}
         <section aria-labelledby="bottomnav-heading">
-          <h2 id="bottomnav-heading" className="type-headline-md mb-[var(--spacing-stack-gap-md)]">
+          <h2 id="bottomnav-heading" className="text-headline-lg-mobile mb-[var(--spacing-stack-gap-md)]">
             BottomNav
           </h2>
           <Card bordered padding="none">
-            <p className="type-body-md text-on-surface-variant p-4 pb-0">
+            <p className="text-body-md text-on-surface-variant p-4 pb-0">
               Preview (static — actual component is{" "}
               <code className="font-mono text-sm">position:fixed</code> on mobile):
             </p>
@@ -223,7 +223,7 @@ export default function ComponentsPage() {
                     ].join(" ")}
                   >
                     <span
-                      className="material-symbols-outlined text-[24px] leading-none"
+                      className="material-symbols-outlined text-headline-lg-mobile leading-none"
                       style={{
                         fontVariationSettings: active
                           ? "'FILL' 1, 'wght' 500"
@@ -233,7 +233,7 @@ export default function ComponentsPage() {
                     >
                       {icon}
                     </span>
-                    <span className="text-[10px] font-semibold tracking-wide">
+                    <span className="text-label-sm font-semibold tracking-wide">
                       {label}
                     </span>
                   </div>
@@ -241,7 +241,7 @@ export default function ComponentsPage() {
               </nav>
             </div>
           </Card>
-          <p className="type-body-md text-on-surface-variant mt-2">
+          <p className="text-body-md text-on-surface-variant mt-2">
             The live <code className="font-mono text-sm">{"<BottomNav />"}</code> component
             is fixed to the viewport bottom and hidden on{" "}
             <code className="font-mono text-sm">md+</code> screens.
@@ -250,7 +250,7 @@ export default function ComponentsPage() {
 
         {/* ── Spacing ── */}
         <section aria-labelledby="spacing-heading">
-          <h2 id="spacing-heading" className="type-headline-md mb-[var(--spacing-stack-gap-md)]">
+          <h2 id="spacing-heading" className="text-headline-lg-mobile mb-[var(--spacing-stack-gap-md)]">
             Spacing Tokens
           </h2>
           <Card bordered padding="md">
@@ -264,7 +264,7 @@ export default function ComponentsPage() {
               ].map(({ name, width }) => (
                 <div key={name} className="flex items-center gap-3">
                   <div className={`${width} h-4 rounded bg-secondary-container flex-shrink-0`} />
-                  <p className="type-body-md text-on-surface-variant">{name}</p>
+                  <p className="text-body-md text-on-surface-variant">{name}</p>
                 </div>
               ))}
             </div>
@@ -273,7 +273,7 @@ export default function ComponentsPage() {
 
         {/* ── Border Radius ── */}
         <section aria-labelledby="radius-heading">
-          <h2 id="radius-heading" className="type-headline-md mb-[var(--spacing-stack-gap-md)]">
+          <h2 id="radius-heading" className="text-headline-lg-mobile mb-[var(--spacing-stack-gap-md)]">
             Border Radius
           </h2>
           <Card bordered padding="md">
@@ -288,7 +288,7 @@ export default function ComponentsPage() {
                   <div
                     className={`w-12 h-12 bg-primary-container ${cls}`}
                   />
-                  <p className="type-label-caps text-on-surface-variant">{name}</p>
+                  <p className="text-overline text-on-surface-variant">{name}</p>
                 </div>
               ))}
             </div>

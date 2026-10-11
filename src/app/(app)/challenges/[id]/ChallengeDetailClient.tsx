@@ -16,11 +16,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { ProofComposer } from "@/components/features/challenge/ProofComposer";
+import { createClient } from "@/lib/supabase/client";
 import {
   AlertTriangle,
   Bell,
   Calendar,
+  Camera,
   CheckCircle2,
+  ChevronRight,
   ClipboardList,
   Clock,
   Filter,
@@ -36,10 +40,18 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
-import { Badge, Card } from "@/components/ui";
+import { Badge, BrandMark, Card } from "@/components/ui";
 import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
-import { createClient } from "@/lib/supabase/client";
+import {
+  callReviewProof,
+  uploadProof,
+  type SlotData,
+} from "@/lib/data/proofs";
 import { InviteSheet } from "@/components/features/InviteSheet";
+import { ShareButton } from "@/components/features/share/ShareButton";
+import { PeopleListSheet } from "@/components/features/people/PeopleList";
+import { getChallengeMembers, type Facepile as FacepileData } from "@/lib/data/social";
+import { Facepile } from "@/components/features/people/Facepile";
 import type { ChallengeTask, TaskSubmission } from "@/lib/data/tasks";
 import { PhysicalTaskCard } from "@/components/features/activity";
 import { currentChallengePeriodProgress } from "@/lib/data/activity";
@@ -61,6 +73,8 @@ export interface ChallengeDetail {
   totalDays: number;
   todayTask: string;
   visibility: "public" | "private";
+  /** Derived at creation time; tells a participant what to photograph. */
+  proofInstructions: string | null;
 }
 
 export interface LeaderboardEntry {
@@ -84,6 +98,8 @@ export interface ChallengeDetailClientProps {
   isCreator: boolean;
   tasks: ChallengeTask[];
   userSubmissions: TaskSubmission[];
+  /** A few members' faces plus the real total, for the facepile line. */
+  memberPile?: FacepileData;
 }
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
@@ -92,20 +108,6 @@ function formatCount(n: number): string {
   return n.toString();
 }
 
-function calcDayNumber(joinedAt: string | null): number {
-  if (!joinedAt) return 1;
-  const ms = Date.now() - new Date(joinedAt).getTime();
-  return Math.max(1, Math.floor(ms / 86_400_000) + 1);
-}
-
-function relativeTime(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime();
-  const h = Math.floor(ms / 3_600_000);
-  const d = Math.floor(ms / 86_400_000);
-  if (h < 1) return "just now";
-  if (h < 24) return `${h}h ago`;
-  return `${d}d ago`;
-}
 
 const PROOF_TYPE_ICONS: Record<string, string> = {
   photo: "📷",
@@ -115,189 +117,9 @@ const PROOF_TYPE_ICONS: Record<string, string> = {
   none: "✓",
 };
 
-/* ── Upload logic (shared between legacy and per-task modes) ─────────────── */
-interface UploadOpts {
-  challengeId: string;
-  userId: string | null;
-  joinedAt: string | null;
-  taskId?: string | null;
-  /** If set, PATCH this row instead of INSERT (for resubmits) */
-  existingSubmissionId?: string | null;
-}
 
-type SlotState = "idle" | "uploading" | "reviewing" | "pending" | "approved" | "rejected" | "error";
-interface SlotData {
-  state: SlotState;
-  preview: string | null;
-  error: string | null;
-  rejectionReason: string | null;
-}
 
-type UploadResult =
-  | { submissionId: string; preview: string; error: null }
-  | { submissionId: null; preview: null; error: string };
 
-/**
- * Resize an image file to at most `maxPx` on its longest side and re-encode
- * as JPEG at `quality` (0–1). Videos are returned unchanged.
- * Runs entirely on the client via an offscreen <canvas> — nothing oversized
- * ever hits Supabase Storage.
- */
-async function resizeImage(file: File, maxPx = 1024, quality = 0.85): Promise<File> {
-  // Pass videos through unchanged
-  if (!file.type.startsWith("image/")) return file;
-
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new window.Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const { naturalWidth: w, naturalHeight: h } = img;
-      const scale = Math.min(1, maxPx / Math.max(w, h));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.round(w * scale);
-      canvas.height = Math.round(h * scale);
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        resolve(file);
-        return;
-      }
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            resolve(file);
-            return;
-          }
-          resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
-        },
-        "image/jpeg",
-        quality
-      );
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Image load failed"));
-    };
-    img.src = url;
-  });
-}
-
-async function uploadProof(opts: UploadOpts, file: File): Promise<UploadResult> {
-  const { challengeId, userId, joinedAt, taskId, existingSubmissionId } = opts;
-
-  if (!userId) return { submissionId: null, preview: null, error: "Sign in to upload proof." };
-
-  const supabase = createClient();
-  const dayNumber = calcDayNumber(joinedAt);
-
-  // 1. Resize image client-side (videos pass through unchanged)
-  //    Max 1024px longest side, JPEG 85% — keeps uploads under ~300 KB
-  const resized = await resizeImage(file).catch(() => file);
-
-  // 2. Upload to storage
-  const ext = resized.name.split(".").pop() ?? "jpg";
-  const path = `${userId}/proofs/${challengeId}/${taskId ?? "main"}/${dayNumber}-${Date.now()}.${ext}`;
-  const { error: storageError } = await supabase.storage
-    .from("proof-media")
-    .upload(path, resized, { upsert: false });
-  if (storageError) return { submissionId: null, preview: null, error: storageError.message };
-
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("proof-media").getPublicUrl(path);
-
-  // 2. Upsert proof_submissions row — return the id for the review-proof call
-  let submissionId: string;
-  if (existingSubmissionId) {
-    // Resubmit: PATCH the existing row
-    const { error: updateError } = await supabase
-      .from("proof_submissions")
-      .update({
-        media_url: publicUrl,
-        verification_status: "pending",
-        rejection_reason: null,
-        reviewed_by: null,
-        reviewed_at: null,
-        submitted_at: new Date().toISOString(),
-        // Clear the previous verdict. Leaving ai_reviewed/file_hash set from the
-        // last attempt is what used to strand resubmissions in pending forever
-        // and leave a stale hash behind for the dedupe check.
-        ai_reviewed: false,
-        ai_classification: null,
-        ai_confidence: null,
-        ai_reasoning: null,
-        file_hash: null,
-      })
-      .eq("id", existingSubmissionId);
-    if (updateError) return { submissionId: null, preview: null, error: updateError.message };
-    submissionId = existingSubmissionId;
-  } else {
-    const { data: insertedRow, error: insertError } = await supabase
-      .from("proof_submissions")
-      .insert({
-        challenge_id: challengeId,
-        user_id: userId,
-        day_number: dayNumber,
-        task_id: taskId ?? null,
-        media_url: publicUrl,
-        verification_status: "pending",
-      })
-      .select("id")
-      .single();
-    if (insertError || !insertedRow)
-      return { submissionId: null, preview: null, error: insertError?.message ?? "Insert failed" };
-    submissionId = insertedRow.id as string;
-  }
-
-  // 3. Generate preview data URL
-  const dataUrl = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (ev) => resolve(ev.target?.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-
-  return { submissionId, preview: dataUrl, error: null };
-}
-
-/** Call the review-proof edge function and return normalised verdict. */
-async function callReviewProof(
-  submissionId: string
-): Promise<{ status: "approved" | "rejected" | "pending"; rejectionReason: string | null }> {
-  try {
-    const supabase = createClient();
-    const { data, error } = await supabase.functions.invoke("review-proof", {
-      body: { submission_id: submissionId },
-    });
-    if (error) return { status: "pending", rejectionReason: null };
-
-    // The function returns `status` alongside `classification`. Read `status`;
-    // fall back to deriving it from `classification` so an older deployed
-    // version of the function still produces the right UI state instead of
-    // silently showing "pending" on an already-decided submission.
-    const payload = (data ?? {}) as {
-      status?: string;
-      rejection_reason?: string | null;
-      classification?: string;
-    };
-    const status =
-      payload.status ??
-      (payload.classification === "match"
-        ? "approved"
-        : payload.classification === "mismatch" || payload.classification === "duplicate"
-          ? "rejected"
-          : "pending");
-
-    if (status === "approved") return { status: "approved", rejectionReason: null };
-    if (status === "rejected")
-      return { status: "rejected", rejectionReason: payload.rejection_reason ?? null };
-    return { status: "pending", rejectionReason: null };
-  } catch {
-    // Edge function errors should not block the UI — fall back to pending
-    return { status: "pending", rejectionReason: null };
-  }
-}
 
 /* ── Per-task upload slot ────────────────────────────────────────────────── */
 function TaskUploadSlot({
@@ -328,6 +150,7 @@ function TaskUploadSlot({
     submission?.status ?? null
   );
   const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const handleFile = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -365,8 +188,14 @@ function TaskUploadSlot({
         error: null,
         rejectionReason: verdict.rejectionReason,
       });
+
+      // An approved proof becomes visible to everyone, but the feed and the
+      // day's state live in server components that know nothing about this
+      // tile. Without telling them, the post only appeared after a manual
+      // reload — which is what "the page gets stuck" was describing.
+      if (verdict.status === "approved") router.refresh();
     },
-    [challengeId, userId, joinedAt, task.id, localStatus, submission]
+    [challengeId, userId, joinedAt, task.id, localStatus, submission, router]
   );
 
   const isApproved = slot.state === "approved";
@@ -379,19 +208,19 @@ function TaskUploadSlot({
   const shownRejectionReason = slot.rejectionReason ?? submission?.rejectionReason ?? null;
 
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
+    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3 elev-1 surface-raised">
       {/* Task header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-on-surface text-sm">{task.title}</h3>
             {!task.isRequired && (
-              <Badge variant="default" className="text-[10px]">
+              <Badge variant="default" className="text-label-sm">
                 Optional
               </Badge>
             )}
             {task.proofType && task.proofType !== "none" && (
-              <span className="text-[11px] text-on-surface-variant">
+              <span className="text-label-sm text-on-surface-variant">
                 {PROOF_TYPE_ICONS[task.proofType]} {task.proofType}
               </span>
             )}
@@ -402,13 +231,13 @@ function TaskUploadSlot({
         </div>
         {/* Status badge */}
         {isApproved && (
-          <div className="flex items-center gap-1 text-green-600 flex-shrink-0">
+          <div className="flex items-center gap-1 text-on-success-container flex-shrink-0">
             <CheckCircle2 size={16} aria-hidden="true" />
             <span className="text-xs font-semibold">Approved</span>
           </div>
         )}
         {(isPending || isReviewing) && (
-          <div className="flex items-center gap-1 text-yellow-600 flex-shrink-0">
+          <div className="flex items-center gap-1 text-on-warning-container flex-shrink-0">
             {isReviewing ? (
               <Loader2 size={14} className="animate-spin" aria-hidden="true" />
             ) : (
@@ -418,7 +247,7 @@ function TaskUploadSlot({
           </div>
         )}
         {isRejected && (
-          <div className="flex items-center gap-1 text-red-500 flex-shrink-0">
+          <div className="flex items-center gap-1 text-error flex-shrink-0">
             <XCircle size={14} aria-hidden="true" />
             <span className="text-xs font-semibold">Rejected</span>
           </div>
@@ -427,7 +256,7 @@ function TaskUploadSlot({
 
       {/* Rejection reason */}
       {isRejected && shownRejectionReason && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+        <div className="rounded-lg bg-error-container border border-error-outline px-3 py-2 text-xs text-on-error-container">
           <strong>Reason:</strong> {shownRejectionReason}
         </div>
       )}
@@ -462,7 +291,7 @@ function TaskUploadSlot({
                 "flex items-center justify-center gap-2",
                 "text-sm font-medium transition-colors",
                 isRejected
-                  ? "border-red-300 text-red-500 hover:bg-red-50"
+                  ? "border-error-outline text-error hover:bg-error-container"
                   : "border-secondary/30 text-secondary hover:bg-secondary/5",
                 !userId ? "opacity-50 cursor-not-allowed" : "",
               ].join(" ")}
@@ -490,7 +319,7 @@ function TaskUploadSlot({
 
           {slot.state === "error" && (
             <div className="space-y-2">
-              {slot.error && <p className="text-red-500 text-xs">{slot.error}</p>}
+              {slot.error && <p className="text-error text-xs">{slot.error}</p>}
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
@@ -574,6 +403,10 @@ function LegacyUploadCard({
   const isRejected = slot.state === "rejected";
 
   return (
+    // This card paints its own dark navy gradient, so everything inside it is
+    // light-on-dark: white/NN text and the 300/400 end of each colour ramp.
+    // Do not swap those for the success/warning/error tokens, which are tuned
+    // for a light surface and go nearly invisible here.
     <div
       className="rounded-xl p-5 space-y-4"
       style={{ background: "linear-gradient(135deg, #0d1c32 0%, #1a3a6b 100%)" }}
@@ -581,7 +414,7 @@ function LegacyUploadCard({
       <div>
         <div className="flex items-center gap-1.5 mb-1">
           <Calendar size={12} className="text-white/60" aria-hidden="true" />
-          <span className="type-label-caps text-white/60 text-[10px]">CURRENT CHALLENGE</span>
+          <span className="text-overline text-white/60 text-label-sm">CURRENT CHALLENGE</span>
         </div>
         <h2 className="text-white font-semibold text-base leading-snug">
           Day {challenge.currentDay}: {challenge.todayTask}
@@ -708,7 +541,7 @@ function LegacyUploadCard({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="w-full h-11 rounded-lg bg-white text-primary flex items-center justify-center gap-2 font-semibold text-sm hover:bg-white/90 transition-colors"
+            className="w-full h-11 rounded-xl bg-white text-primary flex items-center justify-center gap-2 font-semibold text-sm hover:bg-white/90 transition-colors"
           >
             <Upload size={16} aria-hidden="true" />
             Retry Upload
@@ -730,11 +563,14 @@ export function ChallengeDetailClient({
   isCreator,
   tasks,
   userSubmissions,
+  memberPile,
 }: ChallengeDetailClientProps) {
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [membersOpen, setMembersOpen] = useState(false);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isParticipant, setIsParticipant] = useState(initialIsParticipant);
+  const [composerOpen, setComposerOpen] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const hasTasks = tasks.length > 0;
 
@@ -790,27 +626,42 @@ export function ChallengeDetailClient({
     };
   }, [userId, challenge.id, hasPhysicalTask]);
 
-  // Join this challenge (client-side insert)
+  /* Join, optimistically.
+     The task list and the proof uploader are gated on isParticipant, so
+     waiting for the insert to come back meant tapping Join and then watching
+     a spinner before anything appeared. The row is flipped first and rolled
+     back if the write genuinely fails, which it does not normally do: the
+     only expected failure is the unique constraint, and that one means the
+     person is already a participant, so the optimistic state was right.
+
+     joinError is kept for the real failures, and the revert puts the button
+     back so the action can be retried. */
   const handleJoin = () => {
     if (!userId) {
       router.push(`/login?next=/challenges/${challenge.id}`);
       return;
     }
     setJoinError(null);
+    setIsParticipant(true);
+
     startTransition(async () => {
-      const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
       const { error } = await supabase.from("challenge_participants").insert({
         challenge_id: challenge.id,
         user_id: userId,
         status: "active",
       });
-      // Unique constraint = already joined → treat as success
+
+      // Unique constraint = already joined → the optimistic state stands.
       if (error && !error.message.includes("duplicate") && !error.message.includes("unique")) {
+        setIsParticipant(false);
         setJoinError(error.message);
         return;
       }
-      setIsParticipant(true);
+
+      // Pull the server's view of membership so the counts and the
+      // leaderboard reflect the new row.
+      router.refresh();
     });
   };
 
@@ -830,22 +681,29 @@ export function ChallengeDetailClient({
     <div className="min-h-screen bg-surface">
       {/* ── TopAppBar ────────────────────────────────────────────────── */}
       <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
-        <div className="flex items-center justify-between px-4 h-14 max-w-2xl mx-auto">
+        <div className="flex items-center justify-between px-4 h-14 mx-auto measure-page">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary-container flex items-center justify-center">
-              <Flame size={16} className="text-on-primary" aria-hidden="true" />
-            </div>
-            <span className="type-label-caps text-secondary tracking-widest font-semibold">
-              STRIVUP
-            </span>
+            <BrandMark variant="wordmark" height={20} priority />
           </div>
           <div className="flex items-center gap-1">
+            {/* Share. Everyone gets this, not just the creator: the person
+                most likely to pull someone else in is a participant who is
+                already doing it. A private challenge shares its invite link,
+                a public one shares the page, and both now carry a preview
+                card. */}
+            <ShareButton
+              kind="challenge"
+              id={challenge.id}
+              title={challenge.title}
+              isPrivate={challenge.visibility === "private"}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-secondary tap-target"
+            />
             {/* Invite — the cold-start mechanism. Creator-only. */}
             {isCreator && (
               <button
                 type="button"
                 onClick={() => setInviteOpen(true)}
-                className="flex items-center gap-1 text-xs text-secondary font-semibold hover:underline w-9 h-9 justify-center rounded-full hover:bg-surface-variant transition-colors"
+                className="flex items-center gap-1 text-xs text-secondary font-semibold hover:underline w-9 h-9 justify-center rounded-full hover:bg-surface-variant transition-colors tap-target"
                 title="Invite people"
                 aria-label="Invite people to this challenge"
               >
@@ -856,7 +714,7 @@ export function ChallengeDetailClient({
             {isCreator && (
               <Link
                 href={`/creator/challenges/${challenge.id}/manage-tasks`}
-                className="flex items-center gap-1 text-xs text-on-surface-variant font-medium hover:text-secondary transition-colors w-9 h-9 justify-center rounded-full hover:bg-surface-variant"
+                className="flex items-center gap-1 text-xs text-on-surface-variant font-medium hover:text-secondary transition-colors w-9 h-9 justify-center rounded-full hover:bg-surface-variant tap-target"
                 title="Manage tasks"
                 aria-label="Manage tasks"
               >
@@ -867,7 +725,7 @@ export function ChallengeDetailClient({
             {isCreator && (
               <Link
                 href={`/creator/challenges/${challenge.id}/submissions`}
-                className="flex items-center gap-1 text-xs text-secondary font-semibold hover:underline w-9 h-9 justify-center rounded-full hover:bg-surface-variant transition-colors"
+                className="flex items-center gap-1 text-xs text-secondary font-semibold hover:underline w-9 h-9 justify-center rounded-full hover:bg-surface-variant transition-colors tap-target"
                 title="Review submissions"
                 aria-label="Review submissions"
               >
@@ -877,7 +735,7 @@ export function ChallengeDetailClient({
             <Link
               href="/alerts"
               aria-label="Notifications"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
             >
               <Bell size={20} strokeWidth={1.75} aria-hidden="true" />
             </Link>
@@ -885,7 +743,7 @@ export function ChallengeDetailClient({
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto pb-8 space-y-5">
+      <div className="mx-auto measure-page pb-8 space-y-5">
         {/* ── Banner ────────────────────────────────────────────────── */}
         <div className="relative">
           <div className="relative h-48 w-full bg-surface-variant overflow-hidden">
@@ -901,22 +759,45 @@ export function ChallengeDetailClient({
           <div className="mx-4 -mt-6 relative z-10">
             <Card bordered padding="md" className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h1 className="type-headline-sm text-on-surface font-semibold leading-tight">
+                <h1 className="text-headline-md text-on-surface font-semibold leading-tight">
                   {challenge.title}
                 </h1>
                 <p className="text-xs text-on-surface-variant mt-0.5">
                   Created by {challenge.creatorName}
                 </p>
               </div>
-              <div className="flex items-center gap-1 bg-secondary-container rounded-full px-3 py-1 flex-shrink-0">
+              {/* Tappable: the count is the entry point to the list of who
+                  is actually in this, which is the thing that makes a
+                  challenge feel inhabited rather than empty. */}
+              <button
+                type="button"
+                onClick={() => setMembersOpen(true)}
+                aria-label={`See the ${challenge.memberCount} people in this challenge`}
+                className="flex items-center gap-1 bg-secondary-container rounded-full px-3 py-1 flex-shrink-0 transition-colors hover:bg-secondary-fixed-dim tap-target"
+              >
                 <Users size={12} className="text-on-secondary-container" aria-hidden="true" />
-                <span className="type-label-caps text-on-secondary-container text-[10px] font-semibold">
+                <span className="text-overline text-on-secondary-container text-label-sm font-semibold">
                   {formatCount(challenge.memberCount)} MEMBERS
                 </span>
-              </div>
+              </button>
             </Card>
           </div>
         </div>
+
+        {/* Who is in it, by face. Sits under the hero card where the member
+            pill above only gives a number. */}
+        {memberPile && memberPile.total > 0 && (
+          <div className="px-4 pt-3">
+            <Facepile
+              people={memberPile.people}
+              total={memberPile.total}
+              verb="Joined by"
+              noun="member"
+              size={24}
+              onOpen={() => setMembersOpen(true)}
+            />
+          </div>
+        )}
 
         <div className="px-4 space-y-5">
           {/* ── Stats row ───────────────────────────────────────────── */}
@@ -931,7 +812,7 @@ export function ChallengeDetailClient({
               },
             ].map(({ label, value, icon }) => (
               <Card key={label} bordered padding="sm" className="text-center" role="listitem">
-                <p className="type-label-caps text-on-surface-variant text-[10px]">{label}</p>
+                <p className="text-overline text-on-surface-variant text-label-sm">{label}</p>
                 <div className="flex items-center justify-center gap-1 mt-1">
                   {icon}
                   <p className="font-bold text-on-surface text-xl leading-tight">{value}</p>
@@ -943,11 +824,37 @@ export function ChallengeDetailClient({
           {/* ── Participant gate: task list / upload / join CTA ─────── */}
           {isParticipant ? (
             <>
+              {/* The first thing a participant should see on opening a
+                  challenge is the one action they came to do. It used to be
+                  buried under the task list. */}
+              {userId ? (
+                <section aria-label="Today's proof" className="mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setComposerOpen(true)}
+                    className="flex w-full items-center gap-3 rounded-2xl border border-secondary/30 bg-secondary/5 p-4 text-left transition-colors hover:bg-secondary/10"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-on-secondary">
+                      <Camera size={20} aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-body-lg font-bold text-on-surface">
+                        Post today&apos;s proof
+                      </span>
+                      <span className="block text-body-sm text-on-surface-variant">
+                        {challenge.proofInstructions ?? "Upload it, write a caption, post."}
+                      </span>
+                    </span>
+                    <ChevronRight size={18} className="shrink-0 text-secondary" aria-hidden="true" />
+                  </button>
+                </section>
+              ) : null}
+
               {/* Task list OR legacy single-proof card */}
               {hasTasks ? (
                 <section aria-label="Challenge tasks">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="type-headline-sm text-on-surface font-semibold">
+                    <h2 className="text-headline-md text-on-surface font-semibold">
                       Today&apos;s Tasks
                     </h2>
                     <span className="text-xs text-on-surface-variant">
@@ -1018,7 +925,7 @@ export function ChallengeDetailClient({
 
               {/* Rejected submissions notice (task mode) */}
               {hasTasks && userSubmissions.some((s) => s.status === "rejected") && (
-                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 flex gap-2 text-sm text-red-700">
+                <div className="rounded-lg bg-error-container border border-error-outline px-4 py-3 flex gap-2 text-sm text-on-error-container">
                   <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
                     <strong>Some tasks were rejected.</strong> Review the reasons above and
@@ -1032,11 +939,11 @@ export function ChallengeDetailClient({
             <section aria-label="Join this challenge">
               {challenge.visibility === "public" ? (
                 <div
-                  className="rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-8 text-center space-y-4"
+                  className="rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-8 text-center space-y-4 elev-1 surface-raised"
                   style={{ background: "linear-gradient(135deg, #0d1c32 0%, #1a3a6b 100%)" }}
                 >
                   <div>
-                    <p className="type-label-caps text-white/60 text-[10px] mb-1">
+                    <p className="text-overline text-white/60 text-label-sm mb-1">
                       READY TO COMMIT?
                     </p>
                     <h2 className="text-white font-semibold text-lg leading-snug">
@@ -1085,7 +992,7 @@ export function ChallengeDetailClient({
           {/* ── Leaderboard ───────────────────────────────────────────── */}
           <section aria-label="Leaderboard">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="type-headline-sm text-on-surface font-semibold">Leaderboard</h2>
+              <h2 className="text-headline-md text-on-surface font-semibold">Leaderboard</h2>
               <Link
                 href={`/challenges/${challenge.id}/leaderboard`}
                 className="text-secondary text-sm font-semibold hover:underline"
@@ -1107,7 +1014,7 @@ export function ChallengeDetailClient({
                     <span
                       className={[
                         "w-6 text-center font-bold text-sm flex-shrink-0",
-                        entry.rank === 1 ? "text-yellow-500" : "text-on-surface-variant",
+                        entry.rank === 1 ? "text-warning" : "text-on-surface-variant",
                       ].join(" ")}
                     >
                       {entry.rank}
@@ -1129,13 +1036,13 @@ export function ChallengeDetailClient({
                         {entry.badge === "champion" && (
                           <Badge
                             variant="secondary"
-                            className="text-[10px] !bg-yellow-100 !text-yellow-700"
+                            className="text-label-sm !bg-warning-container !text-on-warning-container"
                           >
                             Champion
                           </Badge>
                         )}
                         {entry.badge === "leader" && (
-                          <Badge variant="default" className="text-[10px]">
+                          <Badge variant="default" className="text-label-sm">
                             Leader
                           </Badge>
                         )}
@@ -1149,7 +1056,7 @@ export function ChallengeDetailClient({
                     {entry.rank === 1 && (
                       <Trophy
                         size={18}
-                        className="text-yellow-500 flex-shrink-0"
+                        className="text-warning flex-shrink-0"
                         aria-label="Champion trophy"
                       />
                     )}
@@ -1168,10 +1075,10 @@ export function ChallengeDetailClient({
           {/* ── Community Feed ────────────────────────────────────────── */}
           <section aria-label="Community Feed">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="type-headline-sm text-on-surface font-semibold">Community Feed</h2>
+              <h2 className="text-headline-md text-on-surface font-semibold">Community Feed</h2>
               <button
                 type="button"
-                className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
                 aria-label="Filter feed"
               >
                 <Filter size={18} strokeWidth={1.75} aria-hidden="true" />
@@ -1181,12 +1088,12 @@ export function ChallengeDetailClient({
             {feed.length > 0 ? (
               <div className="space-y-4">
                 {feed.map((post) => (
-                  <FeedCard key={post.id} post={post} />
+                  <FeedCard key={post.id} post={post} viewerId={userId} />
                 ))}
               </div>
             ) : (
               <div className="rounded-xl border border-outline-variant px-6 py-8 text-center">
-                <p className="type-body-md text-on-surface-variant text-sm">
+                <p className="text-body-md text-on-surface-variant text-sm">
                   No approved posts yet. Upload your proof above to be the first!
                 </p>
               </div>
@@ -1196,6 +1103,15 @@ export function ChallengeDetailClient({
 
         <div className="h-4" aria-hidden="true" />
       </div>
+      <PeopleListSheet
+        open={membersOpen}
+        title="Members"
+        viewerId={userId}
+        emptyMessage="Nobody has joined yet. Be the first."
+        onClose={() => setMembersOpen(false)}
+        load={() => getChallengeMembers(createClient(), challenge.id, userId)}
+      />
+
       {/* -- Invite sheet (creator-only) ------------------------------- */}
       {inviteOpen && isCreator ? (
         <InviteSheet
@@ -1204,6 +1120,17 @@ export function ChallengeDetailClient({
           onClose={() => setInviteOpen(false)}
         />
       ) : null}
+      <ProofComposer
+        // Remounts on each open, which is what keeps the previous attempt's
+        // preview and verdict from reappearing.
+        key={composerOpen ? "composer-open" : "composer-closed"}
+        open={composerOpen}
+        onClose={() => setComposerOpen(false)}
+        challengeId={challenge.id}
+        userId={userId}
+        joinedAt={joinedAt}
+        proofInstruction={challenge.proofInstructions}
+      />
     </div>
   );
 }

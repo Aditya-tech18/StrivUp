@@ -12,8 +12,7 @@
  */
 
 import type { ReactNode } from "react";
-import { Flame } from "lucide-react";
-import { AppSidebar, BottomNav, AlertsProvider } from "@/components/ui";
+import { AppSidebar, BottomNav, AlertsProvider, BrandMark } from "@/components/ui";
 
 export default function AppShellLayout({ children }: { children: ReactNode }) {
   return (
@@ -23,15 +22,15 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
         {/* ── Desktop sidebar (md+) ───────────────────────────────────── */}
         <aside
           aria-label="Sidebar navigation"
-          className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:border-r md:border-outline-variant md:bg-surface-container-low"
+          className="rail hidden md:fixed md:inset-y-0 md:flex md:flex-col md:border-r md:border-outline-variant md:bg-surface-container-low"
         >
-          {/* Brand mark */}
-          <div className="flex items-center gap-2 px-5 py-4 border-b border-outline-variant">
-            <div className="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
-              <Flame size={18} className="text-on-primary" aria-hidden="true" />
-            </div>
-            <span className="type-label-caps text-secondary tracking-widest text-sm font-semibold">
-              STRIVUP
+          {/* Brand mark. The square mark is what shows in the collapsed rail,
+              so it keeps the nav items' padding; the wordmark appears beside it
+              once the rail expands. */}
+          <div className="flex items-center gap-3 border-b border-outline-variant px-5 py-4">
+            <BrandMark variant="mark" height={22} priority className="shrink-0" />
+            <span className="rail-label">
+              <BrandMark variant="wordmark" height={18} />
             </span>
           </div>
 
@@ -39,8 +38,11 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
           <AppSidebar />
         </aside>
 
-        {/* ── Main content ────────────────────────────────────────────── */}
-        <main className="flex-1 min-w-0 md:ml-64 pb-bottom-nav">
+        {/* ── Main content ────────────────────────────────────────────────
+            Reserves the collapsed rail width only. The rail overlays this
+            column when it expands, so hovering the nav never reflows the
+            page behind it. */}
+        <main className="min-w-0 flex-1 pb-bottom-nav md:ml-[var(--rail-collapsed)]">
           {children}
         </main>
 

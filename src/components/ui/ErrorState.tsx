@@ -42,9 +42,9 @@ export function ErrorState({
         </div>
       ) : null}
 
-      <h1 className="text-[19px] font-bold text-on-surface">{title}</h1>
+      <h1 className="text-headline-md font-bold text-on-surface">{title}</h1>
 
-      <p className="mt-2 max-w-sm text-[14px] leading-relaxed text-on-surface-variant">
+      <p className="mt-2 max-w-sm text-body-md leading-relaxed text-on-surface-variant">
         {message}
       </p>
 
@@ -55,7 +55,7 @@ export function ErrorState({
       ) : null}
 
       {reference ? (
-        <p className="mt-8 font-mono text-[11px] text-on-surface-variant/70">
+        <p className="mt-8 font-mono text-label-sm text-on-surface-variant/70">
           Reference: {reference}
         </p>
       ) : null}

@@ -92,7 +92,7 @@ export function InviteSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="invite-sheet-title"
-        className="w-full max-w-md rounded-xl bg-surface-container-lowest p-space-md shadow-2xl"
+        className="w-full max-w-md rounded-xl bg-surface-container-lowest p-space-md elev-5"
       >
         <div className="flex items-start justify-between">
           <div>
@@ -107,7 +107,7 @@ export function InviteSheet({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container tap-target"
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -129,7 +129,12 @@ export function InviteSheet({
             </div>
 
             <div className="mt-space-md flex gap-space-sm">
-              <Button variant="primary" fullWidth onClick={handleShare}>
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={handleShare}
+                className="pop-press share-pulse"
+              >
                 <Share2 size={16} aria-hidden="true" />
                 Share link
               </Button>
@@ -157,7 +162,7 @@ export function InviteSheet({
             <button
               type="button"
               onClick={handleRotate}
-              className="mt-space-md flex w-full items-center justify-center gap-1.5 py-2 text-label-md text-on-surface-variant transition-colors hover:text-on-surface"
+              className="mt-space-md flex w-full items-center justify-center gap-1.5 py-2 text-label-md text-on-surface-variant transition-colors hover:text-on-surface tap-target"
             >
               <RefreshCw size={14} aria-hidden="true" />
               Generate a new link

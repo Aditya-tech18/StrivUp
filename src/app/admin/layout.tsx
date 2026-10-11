@@ -23,7 +23,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   ]);
 
   return (
-    <div className="min-h-screen bg-[#F4F6FA] md:flex">
+    <div className="min-h-screen bg-surface md:flex">
       <AdminSidebar
         email={user.email ?? ""}
         isAdmin={role.isAdmin}

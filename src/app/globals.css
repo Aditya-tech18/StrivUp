@@ -88,11 +88,112 @@
   --color-on-error: #ffffff;
   --color-error-container: #ffdad6;
   --color-on-error-container: #93000a;
+  --color-error-outline: #ffb4ab;
+
+  /* ── Semantic states ─────────────────────────────────────────────────────
+     Success and warning were the two states the MD3 ramps above do not cover,
+     so screens reached for raw Tailwind greens and ambers instead. Several of
+     those failed AA: text-amber-500 on white is 2.15:1 and text-green-600 is
+     3.30:1. Each pairing below is checked against its own container, and the
+     `-outline` entries are the hairline for that container.
+
+       text-success                 on white          5.48:1
+       text-on-success-container    on success-cont   7.29:1
+       text-warning                 on white          5.02:1
+       text-on-warning-container    on warning-cont   6.84:1
+       text-on-error-container      on error-cont     7.24:1
+       on-* inverse (white on success / warning)      5.48 / 5.02:1        */
+  --color-success: #047857;
+  --color-on-success: #ffffff;
+  --color-success-container: #ecfdf5;
+  --color-on-success-container: #065f46;
+  --color-success-outline: #a7f3d0;
+
+  --color-warning: #b45309;
+  --color-on-warning: #ffffff;
+  --color-warning-container: #fffbeb;
+  --color-on-warning-container: #92400e;
+  --color-warning-outline: #fde68a;
+
+  /* ── Categorical chart series ────────────────────────────────────────────
+     An analytics funnel needs more hues than the three brand ramps provide,
+     so the charts were picking colours ad hoc (blue-400, indigo-500,
+     purple-500 alongside tokens). Six fixed series instead.
+
+     Each is at least 4.7:1 against the page, so a bar is visible on its own.
+     They are NOT mutually distinguishable in greyscale, and six hues cannot
+     be: every chart that uses them carries a text label per series, so colour
+     is supplementary rather than the only way to read the value.           */
+  --color-chart-1: #1d4ed8;
+  --color-chart-2: #0e7490;
+  --color-chart-3: #6d28d9;
+  --color-chart-4: #b45309;
+  --color-chart-5: #047857;
+  --color-chart-6: #be185d;
+
+  /* ── Share card ──────────────────────────────────────────────────────────
+     The dark teal a shared challenge or quest is drawn on, in the preview
+     image WhatsApp renders and in the landing page that link opens. The two
+     have to match: a recipient taps the card and should arrive at the same
+     card, so the values here are the ones in src/lib/share/ogCard.tsx.
+
+     Teal rather than one of the brand colours because this surface always
+     carries a creator's photograph. On --color-surface a cover reads as a
+     document, and on --color-primary (black) it reads as a video thumbnail;
+     neither says "event". It is the dark end of --color-chart-2 (#0e7490),
+     so it stays inside the palette already defined above.
+
+       white            on share-card        10.97:1
+       white/80         on share-card         7.64:1   (body)
+       white/60         on share-card         5.03:1   (overline, muted labels)
+
+     white/55 measures 4.49:1 and is therefore not used: it misses AA for
+     normal text by a hair, which is exactly the kind of near-miss that
+     survives review because it looks fine.
+   */
+  --color-share-card: #0c4349;
+  --color-share-card-deep: #062a2e;
+  --color-share-card-edge: #15616d;
+
+  /* ── Admin chrome ────────────────────────────────────────────────────────
+     The admin console is a dark rail and dark panels around light content.
+     That is deliberate: it should not be mistakable for the user app. It was
+     drawn with hardcoded hex (#0d1c32, #161C2A, #F4F6FA) and white-alpha text,
+     and two of those alphas failed AA as body text: white/40 is 3.77:1 on the
+     rail and white/30 is 2.69:1.
+
+       text-on-admin-chrome          on admin-chrome   17.08:1
+       text-on-admin-chrome-variant  on admin-chrome    8.85:1
+       text-on-admin-chrome-variant  on -chrome-high    8.85:1
+
+     The old canvas (#f4f6fa) is within 1.03:1 of --color-surface, so the
+     console's page background is just bg-surface and needs no token.        */
+  --color-admin-chrome: #0d1c32;
+  --color-admin-chrome-high: #161c2a;
+  --color-on-admin-chrome: #ffffff;
+  --color-on-admin-chrome-variant: #b6bbc2;
+  /* The console's accent on dark. text-secondary (#1d4ed8) is 1.3:1 on the
+     rail, so the brand blue cannot be used there; this is 6.72:1. */
+  --color-admin-accent: #60a5fa;
 
   /* ── Type scale ──────────────────────────────────────────────────────────
      Each entry carries line-height, tracking and weight, so a single
      `text-headline-sm` is the complete style. The `-mobile` variants are
      tighter display sizes used on narrow viewports.                        */
+
+  /* Hero sizes, one step above display. Only the entry screen uses these —
+     display (40px) is not large enough to carry a landing page on a laptop,
+     and the rotating word needs the room. Tracking tightens as size grows,
+     which is why these are separate entries rather than a scale factor. */
+  --text-hero: 68px;
+  --text-hero--line-height: 72px;
+  --text-hero--letter-spacing: -0.035em;
+  --text-hero--font-weight: 800;
+
+  --text-hero-mobile: 40px;
+  --text-hero-mobile--line-height: 44px;
+  --text-hero-mobile--letter-spacing: -0.03em;
+  --text-hero-mobile--font-weight: 800;
 
   --text-display: 40px;
   --text-display--line-height: 48px;
@@ -199,61 +300,65 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* ─── Legacy type utilities ─────────────────────────────────────────────────
-   Superseded by the `text-*` scale above. Kept as thin aliases so the ~60
-   existing components keep rendering while screens migrate incrementally.
-   Do not use these in new code; delete once no references remain.          */
-.type-display-lg {
-  font-size: var(--text-display-mobile);
-  line-height: var(--text-display-mobile--line-height);
-  letter-spacing: var(--text-display-mobile--letter-spacing);
-  font-weight: var(--text-display-mobile--font-weight);
+/* ─── Page measures ──────────────────────────────────────────────────────────
+   The business console alone used six different clamps (max-w-lg, 2xl, 4xl,
+   5xl, 6xl, sm), so content jumped width as you moved between its pages. Three
+   named measures instead, each widening once. Use exactly one per page shell,
+   with mx-auto.
+
+     measure-form   a single-column form or settings page. Stays narrow because
+                    a form is read one field at a time.
+     measure-page   a standard content page: a list, a detail view, a feed.
+     measure-wide   a dashboard, where two columns of information sit side by
+                    side on a laptop.
+     measure-console the admin console's tables and review queues, which need
+                    more width than anything in the user app.                */
+.measure-form { width: 100%; max-width: 32rem; }   /* lg  */
+.measure-page { width: 100%; max-width: 42rem; }   /* 2xl */
+.measure-wide { width: 100%; max-width: 48rem; }   /* 3xl */
+.measure-console { width: 100%; max-width: 56rem; } /* 4xl, admin tables */
+
+@media (min-width: 48rem) {        /* md */
+  .measure-form { max-width: 42rem; }  /* 2xl */
 }
-.type-headline-md {
-  font-size: var(--text-headline-lg-mobile);
-  line-height: var(--text-headline-lg-mobile--line-height);
-  letter-spacing: var(--text-headline-lg-mobile--letter-spacing);
-  font-weight: var(--text-headline-lg-mobile--font-weight);
+@media (min-width: 64rem) {        /* lg */
+  .measure-page { max-width: 64rem; }  /* 5xl */
+  .measure-wide { max-width: 72rem; }  /* 6xl */  .measure-console { max-width: 80rem; } /* 7xl */
 }
-.type-headline-sm {
-  font-size: var(--text-headline-md);
-  line-height: var(--text-headline-md--line-height);
-  letter-spacing: var(--text-headline-md--letter-spacing);
-  font-weight: var(--text-headline-md--font-weight);
-}
-.type-body-lg {
-  font-size: var(--text-body-lg);
-  line-height: var(--text-body-lg--line-height);
-  font-weight: var(--text-body-lg--font-weight);
-}
-.type-body-md {
-  font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
-  font-weight: var(--text-body-md--font-weight);
-}
-.type-label-caps {
+
+/* ─── Overline ───────────────────────────────────────────────────────────────
+   The only type style that is more than a size: small caps-styled labels above
+   a heading or inside a chip. Everything else comes straight off the `text-*`
+   scale, so this is the one bundled type class left after the `.type-*` aliases
+   were retired.                                                            */
+.text-overline {
   font-size: var(--text-label-md);
   line-height: var(--text-label-md--line-height);
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
-.type-body-sm {
-  font-size: var(--text-body-sm);
-  line-height: var(--text-body-sm--line-height);
-  font-weight: var(--text-body-sm--font-weight);
+
+/* ─── Entrance fade-up ──────────────────────────────────────────────────────
+   Staggered entrance for the gateway screen. It used to live in an inline
+   <style> block inside the component, which re-injected the keyframe on every
+   render and had no reduced-motion guard. Three delay steps is all any screen
+   here needs; add a step rather than an inline style.                       */
+@keyframes striv-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.type-title-lg {
-  font-size: var(--text-headline-md);
-  line-height: var(--text-headline-md--line-height);
-  letter-spacing: var(--text-headline-md--letter-spacing);
-  font-weight: var(--text-headline-md--font-weight);
+
+.fade-up {
+  animation: striv-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.type-stat-value {
-  font-size: 28px;
-  line-height: 2rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+.fade-up-1 { animation-delay: 80ms; }
+.fade-up-2 { animation-delay: 160ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up, .fade-up-1, .fade-up-2 {
+    animation: none;
+  }
 }
 
 /* ─── StrivCoin earn flourish ───────────────────────────────────────────────
@@ -366,5 +471,412 @@ body {
   :where(a, button, input, select, textarea, summary, [tabindex], [role="button"], [role="tab"], [role="switch"]):focus-visible {
     outline: 2px solid var(--color-secondary);
     outline-offset: 2px;
+  }
+}
+
+/* ─── Mobile app behaviour ───────────────────────────────────────────────────
+   StrivUp ships to Play as a Trusted Web Activity, so on Android it is the
+   app: there is no browser chrome to explain away anything that behaves like a
+   web page. These are the handful of defaults that otherwise give it away.  */
+
+@layer base {
+  html {
+    /* Mobile Safari and Chrome inflate text in some layouts unless told not
+       to, which silently breaks a type scale. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    /* Stops the rubber-band scroll from chaining to the browser/WebView and
+       firing pull-to-refresh in the middle of a form. */
+    overscroll-behavior-y: contain;
+    /* A stray wide child should not make the whole app scroll sideways.
+       `clip` rather than `hidden` because `hidden` would make every
+       position: sticky ancestor stop sticking. */
+    overflow-x: clip;
+  }
+
+  /* The grey flash on tap is a browser tell. Removing it is only safe because
+       the rule above gives every control a real focus ring, and :active states
+       are set per component. */
+  :where(a, button, [role="button"], [role="tab"], label, summary) {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Removes the 300ms wait for a possible double-tap-to-zoom on controls,
+     without disabling pinch zoom anywhere. */
+  :where(a, button, input, select, textarea, summary, [role="button"], [role="tab"], [role="switch"]) {
+    touch-action: manipulation;
+  }
+
+  /* Long-pressing a button should not start a text selection. Content text is
+     untouched, so quest codes and captions stay copyable. */
+  :where(button, [role="button"], [role="tab"], nav) {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* iOS zooms the viewport when a focused field's text is under 16px, and it
+     does not zoom back out. Several forms use the 14px step deliberately, so
+     rather than changing them, lift only what a touch device would zoom.
+     max() keeps anything already larger at its own size. */
+  @media (pointer: coarse) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    textarea,
+    select {
+      font-size: max(16px, 1em);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DEPTH SYSTEM
+   ═══════════════════════════════════════════════════════════════════════════
+
+   The app had no elevation tokens at all, which is the main reason it reads
+   flat. This layer gives every surface a believable z-position.
+
+   Deliberately CSS only. A WebGL or canvas 3D layer would cost a multi hundred
+   kB bundle, main thread time and a GPU wake on every scroll, which loses the
+   "keep load times low" constraint to win an aesthetic one. Everything here is
+   box-shadow, gradient and transform: compositor friendly, zero JS, zero bytes
+   over the wire beyond this file.
+
+   Shadows are tinted with the warm neutral of the surface ramp rather than
+   pure black, which is what stops stacked cards looking like grey smudges.
+   ────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Two shadows per level: a tight contact shadow that reads as the object
+     touching the surface, and a wide ambient one that reads as distance.
+     One shadow alone always looks like a sticker. */
+  --shadow-e1: 0 1px 2px -1px rgb(28 20 22 / 0.08),
+               0 1px 3px 0   rgb(28 20 22 / 0.06);
+  --shadow-e2: 0 2px 4px -2px rgb(28 20 22 / 0.10),
+               0 4px 8px -2px rgb(28 20 22 / 0.07);
+  --shadow-e3: 0 4px 8px -4px  rgb(28 20 22 / 0.12),
+               0 10px 20px -6px rgb(28 20 22 / 0.09);
+  --shadow-e4: 0 8px 16px -8px  rgb(28 20 22 / 0.14),
+               0 20px 36px -12px rgb(28 20 22 / 0.12);
+  /* Modals and sheets: dark enough to read as "in front of everything". */
+  --shadow-e5: 0 16px 32px -12px rgb(28 20 22 / 0.18),
+               0 32px 64px -20px rgb(28 20 22 / 0.16);
+
+  /* Brand-tinted glow for the primary action. Blue, never neutral. */
+  --shadow-brand: 0 2px 8px -2px rgb(29 78 216 / 0.32),
+                  0 8px 20px -6px rgb(29 78 216 / 0.24);
+}
+
+@layer utilities {
+  .elev-1 { box-shadow: var(--shadow-e1); }
+  .elev-2 { box-shadow: var(--shadow-e2); }
+  .elev-3 { box-shadow: var(--shadow-e3); }
+  .elev-4 { box-shadow: var(--shadow-e4); }
+  .elev-5 { box-shadow: var(--shadow-e5); }
+
+  /* A raised surface is lit from above: a hairline highlight on the top edge
+     and a slightly darker bottom edge. This is what sells thickness, more than
+     the shadow does. */
+  .surface-raised {
+    background-image: linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.9) 0%,
+      rgb(255 255 255 / 0) 42%
+    );
+    border-top: 1px solid rgb(255 255 255 / 0.85);
+    border-bottom: 1px solid rgb(28 20 22 / 0.06);
+  }
+
+  /* Guarantees a 44px hit area on a control that is visually smaller, without
+     changing the layout: the box is an overlay centred on the control. Use it
+     on icon buttons and dense chips rather than growing them, which would
+     break the rows they sit in. */
+  .tap-target {
+    position: relative;
+  }
+  .tap-target::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
+
+  /* Interactive lift. Transform and shadow only, so it stays on the
+     compositor and never triggers layout. */
+  .lift {
+    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+  .lift:hover  { transform: translateY(-2px); box-shadow: var(--shadow-e3); }
+  .lift:active { transform: translateY(0);    box-shadow: var(--shadow-e1); }
+
+  /* Pressable, for tap targets on mobile where hover does not exist. */
+  .pressable { transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .pressable:active { transform: scale(0.97); }
+
+  /* ── Share button: a physical key ──────────────────────────────────────
+     Share is the one action in this app whose whole job is to be tapped by
+     someone who was not looking for it, so it is the one control that gets
+     to behave like an object. It sits slightly proud of the surface, lifts
+     further under a pointer, and travels down into the page when pressed:
+     the shadow shrinks as the element moves, which is what reads as depth
+     rather than as a button simply changing size.
+
+     Driven by box-shadow and translate, both compositor-only, so it stays
+     smooth on a mid-range phone. Honours prefers-reduced-motion below. */
+  .pop-press {
+    transform: translateY(-1px);
+    box-shadow:
+      0 2px 4px -1px rgb(0 0 0 / 0.12),
+      0 4px 10px -2px rgb(0 0 0 / 0.10);
+    transition:
+      transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 140ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 140ms ease;
+  }
+  .pop-press:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.14),
+      0 8px 18px -4px rgb(0 0 0 / 0.14);
+  }
+  .pop-press:active {
+    transform: translateY(1px) scale(0.97);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.14);
+  }
+  .pop-press:focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+  }
+
+  /* The share control breathes, continuously, everywhere it appears.
+     Sharing is the one action nobody arrives intending to take, so it has to
+     ask for attention on its own; a hover state cannot do that on a phone,
+     where there is no hover at all.
+
+     Kept deliberately small (3% at the extreme, over 2.4s) and eased so it
+     spends most of the cycle near rest: a loop that is obvious on the first
+     pass is unbearable on the hundredth, and this sits on screens people
+     read. Pointer and press states below override it so the animation never
+     fights the feedback for an actual interaction. */
+  @keyframes share-breathe {
+    0%, 100% { transform: translateY(-1px) scale(1); }
+    50%      { transform: translateY(-2px) scale(1.03); }
+  }
+
+  .pop-press.share-pulse {
+    animation: share-breathe 2.4s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+  }
+  /* Touching or hovering hands control back to the press states, which are
+     about what the person is doing rather than about being noticed. */
+  .pop-press.share-pulse:hover,
+  .pop-press.share-pulse:active,
+  .pop-press.share-pulse:focus-visible {
+    animation: none;
+  }
+
+  /* Frosted layer for sticky headers. backdrop-filter is the one expensive
+     property here, so it is opt-in per element rather than applied broadly,
+     and it always has an opaque colour behind it as a fallback. */
+  .glass {
+    background-color: rgb(251 249 249 / 0.82);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+  }
+
+  /* Depth for the brand action. */
+  .elev-brand { box-shadow: var(--shadow-brand); }
+
+  /* ── Floating label, for the auth screens ──────────────────────────────
+     The label rests on the field and lifts away once the field is focused or
+     has a value.
+
+     Written here rather than as Tailwind peer variants because the resting
+     state is a single condition — empty AND unfocused — and splitting it
+     across `peer-placeholder-shown:` and `peer-focus:` utilities leaves two
+     rules of identical specificity whose outcome depends on the order Tailwind
+     emits them in. One selector with both conditions has no ordering to get
+     wrong, and reads as the rule it actually is.
+
+     `.float-field` must carry placeholder=" " — :placeholder-shown is how the
+     empty state is detected. */
+  .float-label {
+    position: absolute;
+    left: 0;
+    top: 1rem;
+    transform-origin: left center;
+    pointer-events: none;
+    /* Default is the LIFTED state; the rule below puts it back down. */
+    translate: 0 -1rem;
+    scale: 0.75;
+    transition: translate 200ms ease, scale 200ms ease, color 200ms ease;
+  }
+
+  /* Rest only while empty AND unfocused. The two conditions live in one
+     selector, so they cannot be reordered apart. */
+  .float-field:placeholder-shown:not(:focus) ~ .float-label {
+    translate: 0 0;
+    scale: 1;
+  }
+
+  .float-field:focus ~ .float-label { color: var(--color-secondary); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-label { transition: none; }
+}
+
+/* ─── Desktop sidebar rail ──────────────────────────────────────────────────
+   An icon rail that widens to a full sidebar while the pointer is over it, or
+   while anything inside it has keyboard focus.
+
+   Done in CSS rather than React state on purpose. The three navigation
+   components — SidebarNav, BusinessSidebarNav, ModeSwitcher — each build their
+   own items, badges and gating, and none of them should have to know whether
+   the rail is open. They mark their text with .rail-label and the rail does
+   the rest, so the collapse cannot fall out of step with the navigation and no
+   component re-renders on hover.
+
+   The rail is fixed and overlays the page when it expands; the main column
+   reserves only the collapsed width. Animating the content's margin instead
+   would reflow the whole page every time the pointer crossed the edge.      */
+@layer utilities {
+  :root {
+    --rail-collapsed: 4.5rem;
+    --rail-expanded: 16rem;
+  }
+
+  @media (min-width: 768px) {
+    .rail {
+      /* The rail expands OVER the page, so it has to win against page chrome
+         and lose to anything modal. The bands in use:
+
+           10      in-page content
+           30, 40  sticky page headers and fixed bottom action bars
+           45      this rail
+           50      modals, toasts, the mobile BottomNav
+           60      modals opened from inside a modal
+
+         It was 40 — the same as the challenge and creator page headers — and
+         an equal z-index is settled by document order, which the rail loses
+         because it is markup-ordered before <main>. That is why the headers
+         were painting across the top of it. */
+      z-index: 45;
+      width: var(--rail-collapsed);
+      /* Labels keep their natural width and are clipped, so nothing reflows
+         as the rail widens — the text is simply revealed. */
+      overflow-x: hidden;
+      transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+                  box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .rail:hover,
+    .rail:focus-within {
+      width: var(--rail-expanded);
+      box-shadow: var(--shadow-e3);
+    }
+
+    .rail-label {
+      opacity: 0;
+      translate: -4px 0;
+      white-space: nowrap;
+      transition: opacity 140ms ease-out, translate 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .rail:hover .rail-label,
+    .rail:focus-within .rail-label {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail, .rail-label { transition: none; }
+  .rail-label { translate: none; }
+}
+
+@layer utilities {
+  /* Password strength meter. The transitions are here rather than as Tailwind
+     utilities because the elements also carry an inline transform/opacity that
+     changes per keystroke, and a per-segment transitionDelay — keeping the
+     timing in one place is what makes the bars fill in sequence instead of
+     snapping together. */
+  .pw-bar {
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 220ms ease-out,
+                background-color 200ms ease-out;
+  }
+  .pw-fade {
+    transition: opacity 240ms ease-out, color 200ms ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The meter still changes — it just stops sliding. The information is in the
+     colour and the fill, never in the movement. */
+  .pw-bar, .pw-fade { transition: none; }
+}
+
+@layer utilities {
+  /* Heatmap squares. Each carries its own transition-delay so the grid fills
+     on a diagonal rather than all at once; the delay is set inline because it
+     depends on the cell's position. */
+  .heat-cell {
+    transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1),
+                scale 320ms cubic-bezier(0.22, 1, 0.36, 1),
+                background-color 200ms ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The grid is information, so it still appears — it just stops sweeping in.
+     The delay has to go too, or the cells would pop in one by one with no
+     animation to justify the wait. */
+  .heat-cell { transition: none !important; transition-delay: 0ms !important; }
+}
+
+@layer utilities {
+  /* The swapping word on the entry screen. The overshoot in the easing is what
+     stands in for framer-motion's spring — it settles slightly past the mark
+     and comes back, which a plain ease-out does not do. Transform and opacity
+     only, so it stays on the compositor. */
+  .rotating-word {
+    transition: translate 520ms cubic-bezier(0.22, 1.4, 0.36, 1),
+                opacity 320ms ease-out;
+    will-change: translate, opacity;
+  }
+}
+
+/* The headline still swaps words with reduced motion — it just cuts instead of
+   sliding, so the information is never lost. */
+@media (prefers-reduced-motion: reduce) {
+  .rotating-word { transition: opacity 200ms linear; translate: none !important; }
+}
+
+/* Motion is decoration here, never information: with reduced motion the lift
+   and press collapse to nothing and the shadows stay, so hierarchy survives.
+   WCAG 2.3.3. */
+@media (prefers-reduced-motion: reduce) {
+  .lift, .pressable, .pop-press { transition: none; }
+  /* The lift is decoration; the shadow still marks it as raised. */
+  .pop-press, .pop-press:hover, .pop-press:active { transform: none; }
+  /* A looping attention-getter is exactly what this setting asks us to stop. */
+  .pop-press.share-pulse { animation: none; }
+  .lift:hover  { transform: none; }
+  .lift:active { transform: none; }
+  .pressable:active { transform: none; }
+}
+
+/* Forced-colors mode strips box-shadow entirely, so depth must fall back to
+   something the OS honours, or every card merges into the page. WCAG 1.4.11. */
+@media (forced-colors: active) {
+  .elev-1, .elev-2, .elev-3, .elev-4, .elev-5, .surface-raised {
+    border: 1px solid CanvasText;
   }
 }

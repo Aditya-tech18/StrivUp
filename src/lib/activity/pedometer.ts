@@ -190,21 +190,24 @@ export function todayIn(timeZone: string): string {
 
 export interface PushResult {
   storedToday: number;
+  storedDistanceToday: number;
   inserted: number;
   updated: number;
   flagged: number;
 }
 
 /**
- * Pushes today's running total to the server.
+ * Pushes today's running totals to the server.
  *
  * `steps` is the whole day's count, not a delta — the server keeps the higher
  * of what it already has and what arrives, so a page reload or a second tab
- * can never knock the day's total backwards.
+ * can never knock the day's total backwards. `distanceM` works the same way
+ * and is measured separately, by GPS; it is never derived from the step count.
  */
 export async function pushSteps(
   steps: number,
-  timeZone = "Asia/Kolkata"
+  timeZone = "Asia/Kolkata",
+  distanceM = 0
 ): Promise<PushResult> {
   const res = await fetch("/api/activity/native/sync", {
     method: "POST",
@@ -212,13 +215,14 @@ export async function pushSteps(
     body: JSON.stringify({
       provider: "device_sensor",
       timezone: timeZone,
-      records: [{ local_date: todayIn(timeZone), steps }],
+      records: [{ local_date: todayIn(timeZone), steps, distance_m: distanceM }],
     }),
   });
 
   const body = (await res.json().catch(() => ({}))) as {
     error?: string;
     storedToday?: number;
+    storedDistanceToday?: number;
     inserted?: number;
     updated?: number;
     flagged?: number;
@@ -227,18 +231,24 @@ export async function pushSteps(
 
   return {
     storedToday: body.storedToday ?? steps,
+    storedDistanceToday: body.storedDistanceToday ?? distanceM,
     inserted: body.inserted ?? 0,
     updated: body.updated ?? 0,
     flagged: body.flagged ?? 0,
   };
 }
 
-/** Today's already-stored step count, used as the starting point on mount. */
-export async function fetchStoredToday(timeZone = "Asia/Kolkata"): Promise<number> {
+/** Today's already-stored totals, used as the starting point on mount. */
+export async function fetchStoredToday(
+  timeZone = "Asia/Kolkata"
+): Promise<{ steps: number; distanceM: number }> {
   const res = await fetch(`/api/activity/today?tz=${encodeURIComponent(timeZone)}`, {
     cache: "no-store",
   });
-  if (!res.ok) return 0;
-  const body = (await res.json().catch(() => ({}))) as { steps?: number };
-  return body.steps ?? 0;
+  if (!res.ok) return { steps: 0, distanceM: 0 };
+  const body = (await res.json().catch(() => ({}))) as {
+    steps?: number;
+    distance_m?: number;
+  };
+  return { steps: body.steps ?? 0, distanceM: body.distance_m ?? 0 };
 }

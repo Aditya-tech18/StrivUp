@@ -28,10 +28,10 @@ function SettingsGroup({
   const router = useRouter();
   return (
     <section>
-      <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em] mb-2 px-1">
+      <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em] mb-2 px-1">
         {title}
       </p>
-      <div className="bg-white rounded-2xl border border-outline-variant overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+      <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden elev-1 surface-raised">
         {items.map((item, idx) => (
           <button
             key={item.label}
@@ -53,13 +53,13 @@ function SettingsGroup({
             <div className="flex-1 min-w-0">
               <p
                 className={[
-                  "text-[14px] font-semibold leading-tight",
+                  "text-body-md font-semibold leading-tight",
                   item.destructive ? "text-error" : "text-on-surface",
                 ].join(" ")}
               >
                 {item.label}
               </p>
-              <p className="text-[12px] text-on-surface-variant mt-0.5 leading-snug">
+              <p className="text-body-sm text-on-surface-variant mt-0.5 leading-snug">
                 {item.subtitle}
               </p>
             </div>
@@ -177,43 +177,43 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 pt-safe z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant">
-        <div className="max-w-lg mx-auto flex items-center gap-3 px-5 py-3.5">
+      <div className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
+        <div className="mx-auto measure-form flex items-center gap-3 px-5 py-3.5">
           <button aria-label="Back"
             onClick={() => router.back()}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target"
           >
             <ArrowLeft size={19} className="text-on-surface" />
           </button>
-          <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">Settings</h1>
+          <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Settings</h1>
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-5 pt-5 flex flex-col gap-5">
+      <div className="mx-auto measure-form px-5 pt-5 flex flex-col gap-5">
 
         {/* ── Profile card ─────────────────────────────────────────────── */}
         {profile && (
-          <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-4">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-4">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-full bg-secondary/10 overflow-hidden shrink-0 flex items-center justify-center border border-outline-variant">
                 {profile.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-[18px] font-bold text-secondary">{initial}</span>
+                  <span className="text-headline-md font-bold text-secondary">{initial}</span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[15px] font-bold text-on-surface truncate">
+                <p className="text-body-lg font-bold text-on-surface truncate">
                   {profile.full_name ?? "Your Name"}
                 </p>
                 {profile.username && (
-                  <p className="text-[13px] text-on-surface-variant">@{profile.username}</p>
+                  <p className="text-body-md text-on-surface-variant">@{profile.username}</p>
                 )}
               </div>
               <button
                 onClick={() => router.push("/settings/edit-profile")}
-                className="shrink-0 px-3.5 py-1.5 rounded-lg border border-outline-variant text-[13px] font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
+                className="shrink-0 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-md font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors tap-target"
               >
                 Edit
               </button>
@@ -230,13 +230,13 @@ export default function SettingsPage() {
         <button
           onClick={handleLogOut}
           disabled={loggingOut}
-          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl bg-white border border-outline-variant text-[14px] font-semibold text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-body-md font-semibold text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-50 elev-1 surface-raised"
         >
           <LogOut size={16} className="text-on-surface-variant" />
           {loggingOut ? "Signing out…" : "Sign Out"}
         </button>
 
-        <p className="text-center text-[11px] text-on-surface-variant pb-2">
+        <p className="text-center text-label-sm text-on-surface-variant pb-2">
           STRIVUP · India&apos;s Platform for Growth
         </p>
       </div>

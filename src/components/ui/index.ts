@@ -20,10 +20,14 @@ export { SidebarNav } from "./SidebarNav";
 
 export { BusinessSidebarNav } from "./BusinessSidebarNav";
 
-export { AdminSidebarNav } from "./AdminSidebarNav";
 
 export { ModeSwitcher } from "./ModeSwitcher";
 
 export { AppSidebar } from "./AppSidebar";
 
 export { AlertsProvider, useUnreadCount } from "./AlertsContext";
+export { ServiceWorkerRegistrar } from "./ServiceWorkerRegistrar";
+export { BrandMark } from "./BrandMark";
+export { MobileMenu } from "./MobileMenu";
+export { InstallAppPrompt } from "./InstallAppPrompt";
+export { UserAvatar } from "./UserAvatar";

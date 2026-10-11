@@ -27,8 +27,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, MobileMenu } from "@/components/ui";
 import { useUnreadCount } from "@/components/ui/AlertsContext";
+import { FollowRequests } from "@/components/features/profile/FollowRequests";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,8 @@ function NotifIcon({ type }: { type: NotificationType }) {
   const cls = "shrink-0 mt-0.5";
   switch (type) {
     case "new_follower":
+    case "follow_request":
+    case "follow_accepted":
       return <UserPlus size={20} className={`${cls} text-secondary`} aria-hidden="true" />;
     case "proof_approved":
       return <CheckCircle2 size={20} className={`${cls} text-success`} aria-hidden="true" />;
@@ -176,7 +179,7 @@ export default function AlertsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="type-body-md text-on-surface-variant">Loading…</p>
+        <p className="text-body-md text-on-surface-variant">Loading…</p>
       </div>
     );
   }
@@ -187,7 +190,10 @@ export default function AlertsPage() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <h1 className="type-headline-sm text-on-surface">Alerts</h1>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <MobileMenu />
+            <h1 className="text-headline-md text-on-surface">Alerts</h1>
+          </div>
           {hasUnread && (
             <Button
               variant="outline"
@@ -200,11 +206,17 @@ export default function AlertsPage() {
           )}
         </div>
 
+        {/* Pending follow requests, for private accounts. Renders nothing when
+            there are none, so a public account never sees an empty card. */}
+        <div className="mb-5">
+          <FollowRequests />
+        </div>
+
         {/* Empty state */}
         {notifications.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
             <Bell size={40} className="text-on-surface-variant opacity-40" aria-hidden="true" />
-            <p className="type-body-lg text-on-surface-variant">No notifications yet.</p>
+            <p className="text-body-lg text-on-surface-variant">No notifications yet.</p>
           </div>
         )}
 
@@ -238,18 +250,18 @@ export default function AlertsPage() {
                 <div className="flex-1 min-w-0">
                   <p
                     className={[
-                      "type-body-md truncate",
+                      "text-body-md truncate",
                       notif.is_read ? "text-on-surface" : "font-semibold text-on-surface",
                     ].join(" ")}
                   >
                     {notif.title}
                   </p>
                   {notif.message && (
-                    <p className="type-body-md text-on-surface-variant line-clamp-2 mt-0.5">
+                    <p className="text-body-md text-on-surface-variant line-clamp-2 mt-0.5">
                       {notif.message}
                     </p>
                   )}
-                  <p className="type-body-md text-on-surface-variant mt-1 text-xs">
+                  <p className="text-body-md text-on-surface-variant mt-1 text-xs">
                     {relativeTime(notif.created_at)}
                   </p>
                 </div>

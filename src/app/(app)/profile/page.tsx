@@ -3,10 +3,15 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Camera, Check, ChevronRight, Edit2, Flame,
+  Camera, Check, ChevronRight, Coins, Edit2, Flame,
   Loader2, Plus, Settings, ShieldCheck, Trash2, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { SocialIcon, PLATFORM_NAME } from "@/components/ui/SocialIcon";
+import { ActivityHeatmap } from "@/components/ui/ActivityHeatmap";
+import { MobileMenu } from "@/components/ui";
+import { MyPosts } from "@/components/features/profile/MyPosts";
+import { getMyPosts, type MyPostRow } from "@/lib/data/social";
 import {
   getMyProfile, upsertMyProfile,
   getMySocialLinks, addMySocialLink, deleteMySocialLink,
@@ -31,6 +36,9 @@ interface ChallengeStats {
 }
 interface HeatmapEntry { submission_date: string; submission_count: number; }
 
+/** Sentinel for the combined view, which has no challenge_id to key on. */
+const ALL_ACTIVITY = "all";
+
 // ── Platform labels (no emojis) ─────────────────────────────────────────
 const PLATFORM_LABEL: Record<string, string> = {
   instagram: "Instagram",
@@ -54,128 +62,36 @@ const PLATFORMS: { value: SocialPlatform; label: string }[] = [
 
 // ── Skeleton ───────────────────────────────────────────────────────────────
 function Sk({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-xl bg-[#e4e2e4] ${className}`} />;
+  return <div className={`animate-pulse rounded-xl bg-surface-container-highest ${className}`} />;
 }
 
-// ── Heatmap ────────────────────────────────────────────────────────────────
-function ConsistencyHeatmap({
-  entries, currentStreak,
-}: {
-  entries: HeatmapEntry[];
-  currentStreak: number;
-}) {
-  const today = new Date();
-  const WEEKS = 26;
-  const dateMap = new Map(entries.map(e => [e.submission_date, e.submission_count]));
-
-  const grid: { date: string; count: number }[][] = [];
-  for (let w = WEEKS - 1; w >= 0; w--) {
-    const week: { date: string; count: number }[] = [];
-    for (let d = 0; d < 7; d++) {
-      const dt = new Date(today);
-      dt.setDate(today.getDate() - (w * 7 + (6 - d)));
-      const key = dt.toISOString().split("T")[0];
-      week.push({ date: key, count: dateMap.get(key) ?? 0 });
-    }
-    grid.push(week);
-  }
-
-  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const monthLabels: { label: string; col: number }[] = [];
-  grid.forEach((week, i) => {
-    const d = new Date(week[0].date);
-    if (i === 0 || new Date(grid[i - 1][0].date).getMonth() !== d.getMonth())
-      monthLabels.push({ label: MONTHS[d.getMonth()], col: i });
-  });
-
-  const cellColor = (n: number) =>
-    n === 0 ? "bg-[#ebedf0]" :
-    n === 1 ? "bg-secondary/20" :
-    n === 2 ? "bg-secondary/45" :
-    n === 3 ? "bg-secondary/70" : "bg-secondary";
-
-  return (
-    <div className="w-full overflow-x-auto no-scrollbar">
-      <div className="min-w-[480px]">
-        {/* Month labels */}
-        <div className="relative flex h-4 mb-1 ml-7">
-          {monthLabels.map(ml => (
-            <span
-              key={ml.col}
-              className="absolute text-[9px] text-on-surface-variant"
-              style={{ left: `${ml.col * 14}px` }}
-            >
-              {ml.label}
-            </span>
-          ))}
-        </div>
-        <div className="flex gap-[2px]">
-          {/* Day labels */}
-          <div className="flex flex-col gap-[2px] mr-1">
-            {["", "Mon", "", "Wed", "", "Fri", ""].map((l, i) => (
-              <div key={i} className="h-[12px] text-[9px] text-on-surface-variant flex items-center justify-end w-6 pr-1">
-                {l}
-              </div>
-            ))}
-          </div>
-          {/* Cells */}
-          {grid.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-[2px]">
-              {week.map((cell, di) => (
-                <div
-                  key={di}
-                  title={`${cell.date}: ${cell.count} submission${cell.count !== 1 ? "s" : ""}`}
-                  className={`w-[12px] h-[12px] rounded-[2px] transition-opacity ${cellColor(cell.count)}`}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-        {/* Legend + streak */}
-        <div className="flex items-center justify-between mt-2.5">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[9px] text-on-surface-variant">Less</span>
-            {[0, 1, 2, 3, 4].map(n => (
-              <div key={n} className={`w-[10px] h-[10px] rounded-[2px] ${cellColor(n)}`} />
-            ))}
-            <span className="text-[9px] text-on-surface-variant">More</span>
-          </div>
-          <span className="flex items-center gap-1 text-[11px] font-bold text-on-surface">
-            <Flame size={12} className="text-orange-400" />
-            {currentStreak} day streak
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ── Challenge Card ─────────────────────────────────────────────────────────
 function ChallengeCard({ stats }: { stats: ChallengeStats }) {
   return (
-    <div className="flex flex-col rounded-xl overflow-hidden border border-outline-variant bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+    <div className="flex flex-col rounded-xl overflow-hidden border border-outline-variant bg-surface-container-lowest shadow-[0_1px_4px_rgba(0,0,0,0.06)] elev-1 surface-raised">
       <div className="relative w-full aspect-[4/3] bg-surface-container overflow-hidden">
         {stats.thumbnail_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={stats.thumbnail_url} alt={stats.title} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-secondary/10 to-secondary/5 flex items-center justify-center">
-            <span className="text-[28px] font-black text-secondary/30">
+            <span className="text-headline-lg font-black text-secondary/30">
               {stats.title.charAt(0)}
             </span>
           </div>
         )}
-        <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-[#16a34a] flex items-center justify-center shadow">
+        <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-success flex items-center justify-center shadow">
           <Check size={11} className="text-white" strokeWidth={3} />
         </div>
       </div>
       <div className="p-2 flex flex-col gap-0.5">
-        <p className="text-[11px] font-bold text-on-surface leading-tight line-clamp-2">{stats.title}</p>
-        <p className="text-[10px] text-on-surface-variant">
+        <p className="text-label-sm font-bold text-on-surface leading-tight line-clamp-2">{stats.title}</p>
+        <p className="text-label-sm text-on-surface-variant">
           Day {stats.current_day}{stats.duration_days ? `/${stats.duration_days}` : ""}
           {stats.consistency_pct >= 90 ? " · On fire" : ""}
         </p>
-        <p className="text-[10px] font-bold text-secondary">{stats.consistency_pct}% Consistency</p>
+        <p className="text-label-sm font-bold text-secondary">{stats.consistency_pct}% Consistency</p>
       </div>
     </div>
   );
@@ -224,10 +140,10 @@ function FollowModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl flex flex-col max-h-[80vh] shadow-2xl">
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl flex flex-col max-h-[80vh] elev-5">
         <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant shrink-0">
-          <h2 className="text-[17px] font-bold text-on-surface">{title}</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+          <h2 className="text-body-lg font-bold text-on-surface">{title}</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target">
             <X size={18} className="text-on-surface-variant" />
           </button>
         </div>
@@ -237,7 +153,7 @@ function FollowModal({
               <Loader2 size={22} className="animate-spin text-secondary" />
             </div>
           ) : users.length === 0 ? (
-            <p className="text-center py-12 text-[14px] text-on-surface-variant">No {title.toLowerCase()} yet.</p>
+            <p className="text-center py-12 text-body-md text-on-surface-variant">No {title.toLowerCase()} yet.</p>
           ) : (
             <>
               {users.map(u => (
@@ -247,14 +163,14 @@ function FollowModal({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-[15px] font-bold text-secondary">
+                      <span className="text-body-lg font-bold text-secondary">
                         {(u.full_name ?? u.username ?? "?").charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-[14px] font-semibold text-on-surface truncate">
+                      <p className="text-body-md font-semibold text-on-surface truncate">
                         {u.full_name ?? u.username ?? "Unknown"}
                       </p>
                       {u.verification_status === "approved" && (
@@ -262,7 +178,7 @@ function FollowModal({
                       )}
                     </div>
                     {u.username && (
-                      <p className="text-[12px] text-on-surface-variant">@{u.username}</p>
+                      <p className="text-body-sm text-on-surface-variant">@{u.username}</p>
                     )}
                   </div>
                 </div>
@@ -272,7 +188,7 @@ function FollowModal({
                   <button
                     onClick={() => { const next = page + 1; setPage(next); setBusy(true); load(next); }}
                     disabled={busy}
-                    className="text-[13px] text-secondary font-semibold disabled:opacity-40"
+                    className="text-body-md text-secondary font-semibold disabled:opacity-40"
                   >
                     {busy ? <Loader2 size={14} className="animate-spin inline" /> : "Load more"}
                   </button>
@@ -298,13 +214,13 @@ function ManageModal({
   const active = allStats.filter(s => s.status === "active");
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-5 max-h-[80vh] overflow-y-auto shadow-2xl">
+      <div className="w-full max-w-md bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl p-5 max-h-[80vh] overflow-y-auto elev-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-[17px] font-bold text-on-surface">Manage Challenges</h2>
-            <p className="text-[12px] text-on-surface-variant mt-0.5">Pin up to 3 to display on your profile.</p>
+            <h2 className="text-body-lg font-bold text-on-surface">Manage Challenges</h2>
+            <p className="text-body-sm text-on-surface-variant mt-0.5">Pin up to 3 to display on your profile.</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors tap-target">
             <X size={18} className="text-on-surface-variant" />
           </button>
         </div>
@@ -330,13 +246,13 @@ function ManageModal({
                   {pinned && <Check size={11} className="text-white" strokeWidth={3} />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-semibold text-on-surface truncate">{s.title}</p>
-                  <p className="text-[11px] text-on-surface-variant">
+                  <p className="text-body-md font-semibold text-on-surface truncate">{s.title}</p>
+                  <p className="text-label-sm text-on-surface-variant">
                     Day {s.current_day}{s.duration_days ? `/${s.duration_days}` : ""} · {s.consistency_pct}% consistency
                   </p>
                 </div>
                 {pinned && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary shrink-0">
+                  <span className="text-label-sm font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary shrink-0">
                     Pinned
                   </span>
                 )}
@@ -346,7 +262,7 @@ function ManageModal({
         </div>
         <button
           onClick={onClose}
-          className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-[14px] shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+          className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-body-md elev-2"
         >
           Done
         </button>
@@ -373,11 +289,14 @@ export default function ProfilePage() {
   const [manageOpen,  setManageOpen]  = useState(false);
 
   const [allStats,    setAllStats]    = useState<ChallengeStats[]>([]);
+  const [myPosts,     setMyPosts]     = useState<MyPostRow[]>([]);
   const [activeStats, setActiveStats] = useState<ChallengeStats[]>([]);
   const [pinnedIds,   setPinnedIds]   = useState<string[]>([]);
   const [achievements,setAchievements]= useState<ChallengeStats[]>([]);
 
-  const [heatId,      setHeatId]      = useState<string | null>(null);
+  const [coinBalance, setCoinBalance] = useState<number | null>(null);
+
+  const [heatId,      setHeatId]      = useState<string>(ALL_ACTIVITY);
   const [heatEntries, setHeatEntries] = useState<HeatmapEntry[]>([]);
   const [heatStreak,  setHeatStreak]  = useState(0);
 
@@ -396,6 +315,12 @@ export default function ProfilePage() {
 
   const loadAll = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
+
+    // Coin balance is decoration on this screen: never let it fail the page.
+    if (user) {
+      const { data: bal } = await supabase.rpc("striv_coin_balance", { p_user_id: user.id });
+      setCoinBalance((bal as number | null) ?? 0);
+    }
     if (!user) { router.replace("/login"); return; }
     setUserId(user.id);
 
@@ -423,6 +348,10 @@ export default function ProfilePage() {
 
       const stats = (statsData ?? []) as ChallengeStats[];
       setAllStats(stats);
+      // Own proofs, for the manage-posts grid below. Loaded with the rest of
+      // the profile rather than on demand: it is the section people scroll
+      // to, and a spinner there reads as the section being broken.
+      setMyPosts(await getMyPosts(supabase, user.id));
       setAchievements(stats.filter(s => s.status === "completed"));
 
       const pinned: string[] = p?.pinned_challenge_ids ?? [];
@@ -433,19 +362,23 @@ export default function ProfilePage() {
         : stats.filter(s => s.status === "active").slice(0, 3);
       setActiveStats(active);
 
-      const def = stats.find(s => s.status === "active");
-      if (def) {
-        setHeatId(def.challenge_id);
-        setHeatStreak(def.current_streak ?? 0);
-        const { data: hmData } = await supabase
-          .from("profile_heatmap")
-          .select("submission_date,submission_count")
-          .eq("user_id", user.id)
-          .eq("challenge_id", def.challenge_id);
-        setHeatEntries((hmData ?? []) as HeatmapEntry[]);
-      }
-    } catch {
-      // Views not yet created — stats/heatmap stay empty
+      // Default to every kind of proof. Scoping to the first active challenge
+      // meant someone whose activity is all quests saw an empty grid, and
+      // someone with no active challenge saw no grid at all.
+      setHeatStreak(stats.find(s => s.status === "active")?.current_streak ?? 0);
+      const { data: hmData, error: hmError } = await supabase
+        .from("profile_activity_heatmap")
+        .select("submission_date,submission_count")
+        .eq("user_id", user.id);
+      // supabase-js reports query failures in `error`, not by throwing, so a
+      // discarded error here rendered as a confident "0 proofs" — the grid
+      // could not tell "you posted nothing" from "the query failed". Log it
+      // and leave the grid empty rather than claim a number we do not have.
+      if (hmError) console.error("heatmap query failed", hmError);
+      setHeatEntries((hmData ?? []) as HeatmapEntry[]);
+    } catch (err) {
+      // Views not yet created — stats and heatmap stay empty, but say so.
+      console.error("profile stats/heatmap load failed", err);
     }
   }, [supabase, router]);
 
@@ -463,13 +396,22 @@ export default function ProfilePage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     try {
-      const { data } = await supabase
-        .from("profile_heatmap")
-        .select("submission_date,submission_count")
-        .eq("user_id", user.id)
-        .eq("challenge_id", cid);
+      // Two different views: the combined one spans challenges and quests and
+      // has no challenge_id, the per-challenge one is scoped to a single run.
+      const query = cid === ALL_ACTIVITY
+        ? supabase
+            .from("profile_activity_heatmap")
+            .select("submission_date,submission_count")
+            .eq("user_id", user.id)
+        : supabase
+            .from("profile_heatmap")
+            .select("submission_date,submission_count")
+            .eq("user_id", user.id)
+            .eq("challenge_id", cid);
+      const { data, error } = await query;
+      if (error) console.error("heatmap query failed", error);
       setHeatEntries((data ?? []) as HeatmapEntry[]);
-    } catch { /* view not ready */ }
+    } catch (err) { console.error("heatmap switch failed", err); }
     setHeatStreak(allStats.find(s => s.challenge_id === cid)?.current_streak ?? 0);
   };
 
@@ -539,12 +481,12 @@ export default function ProfilePage() {
   // ── Loading skeleton ───────────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen bg-surface pb-28">
-      <div className="flex items-center justify-between px-5 py-3.5 bg-white border-b border-outline-variant">
+      <div className="flex items-center justify-between px-5 py-3.5 bg-surface-container-lowest border-b border-outline-variant">
         <Sk className="h-5 w-24" />
         <div className="flex gap-2"><Sk className="w-9 h-9 rounded-xl" /><Sk className="w-9 h-9 rounded-xl" /></div>
       </div>
-      <div className="max-w-lg mx-auto px-4 py-4 flex flex-col gap-3">
-        <div className="bg-white rounded-2xl border border-outline-variant p-5 flex flex-col gap-4">
+      <div className="mx-auto measure-page px-4 py-4 flex flex-col gap-3">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4 elev-1 surface-raised">
           <div className="flex gap-4">
             <Sk className="w-[76px] h-[76px] rounded-full shrink-0" />
             <div className="flex-1 flex flex-col gap-2 pt-1">
@@ -555,7 +497,7 @@ export default function ProfilePage() {
             <Sk className="h-10 w-20" /><Sk className="h-10 w-20" />
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-outline-variant p-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 elev-1 surface-raised">
           <Sk className="h-4 w-40 mb-3" />
           <div className="grid grid-cols-3 gap-2">
             <Sk className="aspect-[4/3] rounded-xl" />
@@ -574,21 +516,24 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-surface pb-28">
 
       {/* ── Sticky header ───────────────────────────────────────────────── */}
-      <div className="sticky top-0 pt-safe z-30 bg-white/90 backdrop-blur-md border-b border-outline-variant">
-        <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
-          <h1 className="text-[17px] font-bold text-on-surface tracking-[-0.01em]">My Profile</h1>
+      <div className="sticky top-0 pt-safe z-30 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
+        <div className="mx-auto measure-page flex items-center justify-between px-5 py-3.5">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <MobileMenu />
+            <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">My Profile</h1>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setEditing(v => !v)}
               aria-label="Edit profile"
-              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors"
+              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors tap-target"
             >
               <Edit2 size={15} className="text-on-surface-variant" />
             </button>
             <button
               onClick={() => router.push("/settings")}
               aria-label="Settings"
-              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors"
+              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors tap-target"
             >
               <Settings size={15} className="text-on-surface-variant" />
             </button>
@@ -598,9 +543,9 @@ export default function ProfilePage() {
 
       {/* ── Error banner ─────────────────────────────────────────────────── */}
       {error && (
-        <div className="max-w-lg mx-auto px-4 mt-3">
+        <div className="mx-auto measure-page px-4 mt-3">
           <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-error-container border border-error/20">
-            <p className="text-[13px] text-error flex-1">{error}</p>
+            <p className="text-body-md text-error flex-1">{error}</p>
             <button onClick={() => setError(null)}>
               <X size={14} className="text-error" />
             </button>
@@ -608,10 +553,10 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div className="max-w-lg mx-auto px-4 py-4 flex flex-col gap-3">
+      <div className="mx-auto measure-page px-4 py-4 flex flex-col gap-3">
 
         {/* ── Profile card ─────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] overflow-hidden">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] overflow-hidden elev-1 surface-raised">
           <div className="px-4 pt-5 pb-4">
 
             {/* Avatar + name */}
@@ -626,13 +571,13 @@ export default function ProfilePage() {
                     <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-[28px] font-black text-secondary">
+                      <span className="text-headline-lg font-black text-secondary">
                         {displayName.charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
                 </div>
-                <div className="absolute bottom-0 right-0 w-[22px] h-[22px] rounded-full bg-secondary border-2 border-white flex items-center justify-center shadow-md">
+                <div className="absolute bottom-0 right-0 w-[22px] h-[22px] rounded-full bg-secondary border-2 border-white flex items-center justify-center elev-2">
                   {uploading
                     ? <Loader2 size={10} className="text-white animate-spin" />
                     : <Camera size={10} className="text-white" />
@@ -649,7 +594,7 @@ export default function ProfilePage() {
 
               <div className="flex-1 min-w-0 pt-1">
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-[17px] font-bold text-on-surface tracking-[-0.01em] truncate">
+                  <h2 className="text-body-lg font-bold text-on-surface tracking-[-0.01em] truncate">
                     {displayName}
                   </h2>
                   {isVerified && (
@@ -657,15 +602,15 @@ export default function ProfilePage() {
                   )}
                 </div>
                 {profile?.username && (
-                  <p className="text-[13px] text-on-surface-variant">@{profile.username}</p>
+                  <p className="text-body-md text-on-surface-variant">@{profile.username}</p>
                 )}
                 {!editing && profile?.bio && (
-                  <p className="text-[13px] text-on-surface mt-1.5 leading-snug">{profile.bio}</p>
+                  <p className="text-body-md text-on-surface mt-1.5 leading-snug">{profile.bio}</p>
                 )}
                 {!editing && !profile?.bio && (
                   <button
                     onClick={() => setEditing(true)}
-                    className="mt-1.5 text-[12px] text-secondary font-medium hover:underline"
+                    className="mt-1.5 text-body-sm text-secondary font-medium hover:underline"
                   >
                     + Add bio
                   </button>
@@ -673,7 +618,7 @@ export default function ProfilePage() {
                 {!editing && (
                   <button
                     onClick={() => router.push("/settings/edit-profile")}
-                    className="mt-2.5 px-3.5 py-1.5 rounded-lg border border-outline-variant text-[12px] font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors"
+                    className="mt-2.5 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-sm font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors tap-target"
                   >
                     Edit Profile
                   </button>
@@ -684,40 +629,63 @@ export default function ProfilePage() {
             {/* Followers / Following */}
             <div className="flex items-center gap-5 mt-4 pt-3.5 border-t border-outline-variant">
               <button onClick={() => setShowFoll(true)} className="flex flex-col items-center group">
-                <span className="text-[20px] font-bold text-on-surface tabular-nums tracking-tight">
+                <span className="text-headline-md font-bold text-on-surface tabular-nums tracking-tight">
                   {fmtN(fCount)}
                 </span>
-                <span className="text-[11px] text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
+                <span className="text-label-sm text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
                   Followers
                 </span>
               </button>
               <div className="w-px h-7 bg-outline-variant" />
               <button onClick={() => setShowFolg(true)} className="flex flex-col items-center group">
-                <span className="text-[20px] font-bold text-on-surface tabular-nums tracking-tight">
+                <span className="text-headline-md font-bold text-on-surface tabular-nums tracking-tight">
                   {fmtN(fgCount)}
                 </span>
-                <span className="text-[11px] text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
+                <span className="text-label-sm text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
                   Following
                 </span>
               </button>
+              {coinBalance !== null && (
+                <>
+                  <div className="w-px h-7 bg-outline-variant" />
+                  <button
+                    onClick={() => router.push("/coins")}
+                    className="flex flex-col items-center group"
+                    aria-label={`${coinBalance} StrivCoins. Open your wallet.`}
+                  >
+                    <span className="flex items-center gap-1 text-[20px] font-bold text-on-surface tabular-nums tracking-tight">
+                      <Coins size={15} className="text-on-tertiary-container" aria-hidden="true" />
+                      {fmtN(coinBalance)}
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
+                      StrivCoins
+                    </span>
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Social links pills */}
             {links.length > 0 && !editing && (
               <div className="flex flex-wrap gap-2 mt-3">
+                {/* Icon only. The pills used to carry the platform name AND a
+                    truncated URL, which read as "LINKEDIN linkedin.co…" — two
+                    labels for one link, neither of them useful. The mark is
+                    the recognisable part; the name lives in the accessible
+                    label for anyone who cannot see it. */}
                 {links.map(link => {
-                  const label = PLATFORM_LABEL[link.platform] ?? link.platform;
-                  const display = link.url.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/");
+                  const name = PLATFORM_NAME[link.platform] ?? link.platform;
                   return (
                     <a
                       key={link.id}
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container border border-outline-variant text-[11px] font-medium text-on-surface-variant hover:text-secondary hover:border-secondary transition-colors"
+                      title={name}
+                      aria-label={`${name} (opens in a new tab)`}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-outline-variant bg-surface-container text-on-surface-variant transition-all duration-150 hover:border-secondary hover:bg-secondary/10 hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1 tap-target"
                     >
-                      <span className="font-semibold text-[10px] uppercase tracking-wide text-secondary/70">{label}</span>
-                      <span className="truncate max-w-[80px]">{display}</span>
+                      <SocialIcon platform={link.platform} size={15} />
                     </a>
                   );
                 })}
@@ -726,7 +694,7 @@ export default function ProfilePage() {
             {links.length === 0 && !editing && (
               <button
                 onClick={() => setEditing(true)}
-                className="mt-3 flex items-center gap-1.5 text-[12px] text-on-surface-variant hover:text-secondary transition-colors"
+                className="mt-3 flex items-center gap-1.5 text-body-sm text-on-surface-variant hover:text-secondary transition-colors"
               >
                 <Plus size={13} /> Add social links
               </button>
@@ -735,57 +703,60 @@ export default function ProfilePage() {
 
           {/* Inline edit form */}
           {editing && (
-            <div className="border-t border-outline-variant px-4 py-4 bg-[#FAFAFA] flex flex-col gap-3">
-              <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
+            <div className="border-t border-outline-variant px-4 py-4 bg-surface-container-low flex flex-col gap-3">
+              <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
                 Editing Profile
               </p>
 
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-medium text-on-surface-variant">Full Name</label>
+                <label className="text-label-sm font-medium text-on-surface-variant">Full Name</label>
                 <input
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   maxLength={80}
-                  className="w-full h-10 rounded-xl border border-outline-variant bg-white px-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                  className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary tap-target"
                 />
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-medium text-on-surface-variant">Username</label>
+                <label className="text-label-sm font-medium text-on-surface-variant">Username</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[13px]">@</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-body-md">@</span>
                   <input
                     value={username}
                     onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))}
                     maxLength={30}
-                    className="w-full h-10 rounded-xl border border-outline-variant bg-white pl-7 pr-3 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                    className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest pl-7 pr-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary tap-target"
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between">
-                  <label className="text-[11px] font-medium text-on-surface-variant">Bio</label>
-                  <span className="text-[10px] text-on-surface-variant">{bio.length}/150</span>
+                  <label className="text-label-sm font-medium text-on-surface-variant">Bio</label>
+                  <span className="text-label-sm text-on-surface-variant">{bio.length}/150</span>
                 </div>
                 <textarea
                   value={bio}
                   onChange={e => setBio(e.target.value)}
                   maxLength={150}
                   rows={3}
-                  className="w-full rounded-xl border border-outline-variant bg-white px-3 py-2 text-[14px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary resize-none"
+                  className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary resize-none"
                 />
               </div>
 
               {/* Social links in edit mode */}
               <div className="flex flex-col gap-2">
-                <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Social Links</p>
+                <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">Social Links</p>
                 {links.map(link => {
                   const label = PLATFORM_LABEL[link.platform] ?? link.platform;
                   return (
-                    <div key={link.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-white">
-                      <span className="text-[10px] font-bold text-secondary/70 uppercase tracking-wide shrink-0 w-16 truncate">{label}</span>
-                      <span className="flex-1 text-[12px] text-on-surface truncate">{link.url}</span>
+                    <div key={link.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-surface-container-lowest elev-1 surface-raised">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-container text-on-surface-variant">
+                        <SocialIcon platform={link.platform} size={14} />
+                      </span>
+                      <span className="sr-only">{label}</span>
+                      <span className="flex-1 text-body-sm text-on-surface truncate">{link.url}</span>
                       <button onClick={() => handleDelLink(link.id)} className="text-on-surface-variant hover:text-error transition-colors shrink-0">
                         <Trash2 size={13} />
                       </button>
@@ -793,7 +764,7 @@ export default function ProfilePage() {
                   );
                 })}
                 {!addingLink && links.length < PROFILE_CONSTANTS.MAX_SOCIAL_LINKS && (
-                  <button onClick={() => setAddingLink(true)} className="flex items-center gap-1.5 text-[13px] text-secondary font-semibold">
+                  <button onClick={() => setAddingLink(true)} className="flex items-center gap-1.5 text-body-md text-secondary font-semibold">
                     <Plus size={14} /> Add Social Link
                   </button>
                 )}
@@ -802,7 +773,7 @@ export default function ProfilePage() {
                     <select
                       value={newPlat}
                       onChange={e => setNewPlat(e.target.value as SocialPlatform)}
-                      className="h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none"
+                      className="h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none tap-target"
                     >
                       {PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                     </select>
@@ -811,10 +782,10 @@ export default function ProfilePage() {
                         value={newUrl}
                         onChange={e => setNewUrl(e.target.value)}
                         placeholder="https://…"
-                        className="flex-1 h-9 rounded-xl border border-outline-variant bg-white px-3 text-[13px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary"
+                        className="flex-1 h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary tap-target"
                       />
-                      <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-[13px] font-semibold disabled:opacity-40">Add</button>
-                      <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-[13px]">✕</button>
+                      <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-body-md font-semibold disabled:opacity-40 tap-target">Add</button>
+                      <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-body-md tap-target">✕</button>
                     </div>
                   </div>
                 )}
@@ -824,11 +795,11 @@ export default function ProfilePage() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-[14px] flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+                  className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-body-md flex items-center justify-center gap-1.5 disabled:opacity-50 elev-2 tap-target"
                 >
                   {saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Save Changes"}
                 </button>
-                <button onClick={() => setEditing(false)} className="flex-1 h-10 rounded-xl border border-outline-variant text-on-surface font-semibold text-[14px]">
+                <button onClick={() => setEditing(false)} className="flex-1 h-10 rounded-xl border border-outline-variant text-on-surface font-semibold text-body-md tap-target">
                   Cancel
                 </button>
               </div>
@@ -837,16 +808,16 @@ export default function ProfilePage() {
         </div>
 
         {/* ── My Active Challenges ─────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em]">
+            <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">
               My Active Challenges
               {activeStats.length > 0 && (
                 <span className="text-on-surface-variant font-normal ml-1">({activeStats.length})</span>
               )}
             </h3>
             {allStats.filter(s => s.status === "active").length > 0 && (
-              <button onClick={() => setManageOpen(true)} className="text-[13px] text-secondary font-bold hover:opacity-75 transition-opacity">
+              <button onClick={() => setManageOpen(true)} className="text-body-md text-secondary font-bold hover:opacity-75 transition-opacity">
                 Manage
               </button>
             )}
@@ -861,13 +832,13 @@ export default function ProfilePage() {
               <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
                 <Flame size={22} className="text-on-surface-variant" />
               </div>
-              <p className="text-[14px] font-semibold text-on-surface">No active challenges yet.</p>
-              <p className="text-[12px] text-on-surface-variant max-w-[200px]">
+              <p className="text-body-md font-semibold text-on-surface">No active challenges yet.</p>
+              <p className="text-body-sm text-on-surface-variant max-w-[200px]">
                 Join a challenge to start tracking your progress here.
               </p>
               <button
                 onClick={() => router.push("/explore")}
-                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-[13px] font-bold shadow-[0_2px_8px_rgba(29,78,216,0.2)]"
+                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-body-md font-bold elev-2 tap-target"
               >
                 Explore Challenges
               </button>
@@ -875,51 +846,79 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* ── Consistency Heatmap ────────────────────────────────────────── */}
-        {allStats.filter(s => s.status === "active").length > 0 && (
-          <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em]">Consistency Heatmap</h3>
-              <select
-                value={heatId ?? ""}
-                onChange={e => switchHeatmap(e.target.value)}
-                className="text-[11px] font-medium text-on-surface bg-surface-container border border-outline-variant rounded-lg px-2 py-1.5 focus:outline-none max-w-[140px] truncate"
-              >
-                {allStats.filter(s => s.status === "active").map(s => (
-                  <option key={s.challenge_id} value={s.challenge_id}>
-                    {s.title.length > 22 ? s.title.slice(0, 22) + "…" : s.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <ConsistencyHeatmap entries={heatEntries} currentStreak={heatStreak} />
+        {/* ── My Posts ─────────────────────────────────────────────────── */}
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">
+              My Posts
+              {myPosts.length > 0 && (
+                <span className="ml-1 font-normal text-on-surface-variant">({myPosts.length})</span>
+              )}
+            </h3>
           </div>
-        )}
+          {userId && <MyPosts posts={myPosts} viewerId={userId} />}
+        </div>
+
+        {/* ── Consistency Heatmap ────────────────────────────────────────── */}
+        {/* id is the landing target for the streak pill in the feed header;
+            scroll-mt clears the sticky header so the card is not hidden. */}
+        {/* Always rendered. It used to be gated on having an active challenge,
+            which hid the grid entirely from anyone whose activity is quests. */}
+        <div id="consistency" className="scroll-mt-20 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
+          <div className="flex items-center justify-between mb-3 gap-2">
+            <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Consistency</h3>
+            <select
+              aria-label="Heatmap source"
+              value={heatId}
+              onChange={e => switchHeatmap(e.target.value)}
+              className="text-label-sm font-medium text-on-surface bg-surface-container border border-outline-variant rounded-xl px-2 py-1.5 focus:outline-none max-w-[150px] truncate tap-target"
+            >
+              <option value={ALL_ACTIVITY}>All activity</option>
+              {allStats.filter(s => s.status === "active").map(s => (
+                <option key={s.challenge_id} value={s.challenge_id}>
+                  {s.title.length > 22 ? s.title.slice(0, 22) + "…" : s.title}
+                </option>
+              ))}
+            </select>
+          </div>
+          <ActivityHeatmap
+            days={heatEntries.map(e => ({ date: e.submission_date, count: e.submission_count }))}
+            label={heatId === ALL_ACTIVITY ? "Your activity over the last six months" : "Challenge activity over the last six months"}
+            period="the last 6 months"
+            actions={
+              heatId !== ALL_ACTIVITY && heatStreak > 0 ? (
+                <span className="text-label-sm font-semibold text-secondary">
+                  {heatStreak}-day streak
+                </span>
+              ) : null
+            }
+          />
+        </div>
 
         {/* ── Achievements ─────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4">
-          <h3 className="text-[15px] font-bold text-on-surface tracking-[-0.01em] mb-3">Achievements</h3>
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
+          <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em] mb-3">Achievements</h3>
           {achievements.length > 0 ? (
             <div>
               {achievements.map((a, i) => {
-                const BG = ["bg-amber-50","bg-blue-50","bg-violet-50","bg-orange-50","bg-green-50","bg-rose-50","bg-teal-50","bg-sky-50"];
-                const FG = ["text-amber-600","text-blue-600","text-violet-600","text-orange-600","text-green-600","text-rose-600","text-teal-600","text-sky-600"];
+                const BG = ["bg-warning-container","bg-secondary-fixed","bg-chart-3/10","bg-warning-container","bg-success-container","bg-error-container","bg-chart-2/10","bg-chart-2/10"];
+                const FG = ["text-on-warning-container","text-secondary","text-chart-3","text-on-warning-container","text-on-success-container","text-on-error-container","text-chart-2","text-chart-2"];
                 const idx = i % BG.length;
                 return (
                   <div key={a.challenge_id} className="flex items-center gap-3 py-3 border-b border-outline-variant last:border-0">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${BG[idx]}`}>
-                      <span className={`text-[13px] font-black ${FG[idx]}`}>{a.title.charAt(0)}</span>
+                      <span className={`text-body-md font-black ${FG[idx]}`}>{a.title.charAt(0)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-semibold text-on-surface truncate">{a.title}</p>
-                      <p className="text-[11px] text-on-surface-variant">
+                      <p className="text-body-md font-semibold text-on-surface truncate">{a.title}</p>
+                      <p className="text-label-sm text-on-surface-variant">
                         Completed{a.completed_at
                           ? ` · ${new Date(a.completed_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
                           : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100">
+                      <span className="text-label-sm font-bold px-2 py-0.5 rounded-full bg-success-container text-on-success-container border border-success-outline">
                         Completed
                       </span>
                       <ChevronRight size={14} className="text-outline" />
@@ -933,12 +932,12 @@ export default function ProfilePage() {
               <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
                 <ChevronRight size={20} className="text-on-surface-variant" />
               </div>
-              <p className="text-[13px] text-on-surface-variant max-w-[220px] leading-relaxed">
+              <p className="text-body-md text-on-surface-variant max-w-[220px] leading-relaxed">
                 Your achievements will appear here as you complete challenges and quests.
               </p>
               <button
                 onClick={() => router.push("/explore")}
-                className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-[13px] font-semibold hover:bg-surface-container transition-colors"
+                className="mt-1 px-4 py-2 rounded-xl border border-outline-variant text-on-surface text-body-md font-semibold hover:bg-surface-container transition-colors tap-target"
               >
                 Start a Challenge
               </button>

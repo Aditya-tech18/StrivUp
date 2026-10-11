@@ -32,16 +32,16 @@ export default async function LeaderboardPage({ params }: PageProps) {
     <div className="min-h-screen bg-surface">
       {/* Header */}
       <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
-        <div className="flex items-center gap-3 px-4 h-14 max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 px-4 h-14 mx-auto measure-page">
           <Link
             href={`/challenges/${id}`}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
             aria-label="Back to challenge"
           >
             <ArrowLeft size={20} aria-hidden="true" />
           </Link>
           <div>
-            <h1 className="type-headline-sm text-on-surface font-semibold leading-tight">
+            <h1 className="text-headline-md text-on-surface font-semibold leading-tight">
               Leaderboard
             </h1>
             <p className="text-xs text-on-surface-variant">{challenge.title}</p>
@@ -49,7 +49,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
+      <div className="mx-auto measure-page px-4 py-5 space-y-4">
         {entries.length > 0 ? (
           <Card bordered padding="none">
             {entries.map((entry, idx) => (
@@ -64,7 +64,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
                 <span
                   className={[
                     "w-7 text-center font-bold flex-shrink-0",
-                    entry.rank === 1 ? "text-yellow-500 text-base" : "text-on-surface-variant text-sm",
+                    entry.rank === 1 ? "text-warning text-base" : "text-on-surface-variant text-sm",
                   ].join(" ")}
                 >
                   {entry.rank}
@@ -94,17 +94,17 @@ export default async function LeaderboardPage({ params }: PageProps) {
                 {/* Badge + trophy */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {entry.badge === "champion" && (
-                    <span className="text-[10px] font-semibold text-yellow-700 bg-yellow-100 rounded-full px-2 py-0.5">
+                    <span className="text-label-sm font-semibold text-on-warning-container bg-warning-container rounded-full px-2 py-0.5">
                       Champion
                     </span>
                   )}
                   {entry.badge === "leader" && (
-                    <span className="text-[10px] font-semibold text-secondary bg-secondary/10 rounded-full px-2 py-0.5">
+                    <span className="text-label-sm font-semibold text-secondary bg-secondary/10 rounded-full px-2 py-0.5">
                       Leader
                     </span>
                   )}
                   {entry.rank === 1 && (
-                    <Trophy size={16} className="text-yellow-500" aria-label="Champion" />
+                    <Trophy size={16} className="text-warning" aria-label="Champion" />
                   )}
                 </div>
               </div>
@@ -112,14 +112,14 @@ export default async function LeaderboardPage({ params }: PageProps) {
           </Card>
         ) : (
           <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-            <div className="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center">
-              <Trophy size={32} className="text-yellow-500" aria-hidden="true" />
+            <div className="w-16 h-16 rounded-full bg-warning-container flex items-center justify-center">
+              <Trophy size={32} className="text-warning" aria-hidden="true" />
             </div>
             <div className="space-y-1">
-              <p className="type-headline-sm text-on-surface font-semibold">
+              <p className="text-headline-md text-on-surface font-semibold">
                 No rankings yet
               </p>
-              <p className="type-body-md text-on-surface-variant text-sm max-w-xs">
+              <p className="text-body-md text-on-surface-variant text-sm max-w-xs">
                 Rankings appear once participants start building streaks.
               </p>
             </div>

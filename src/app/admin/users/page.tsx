@@ -7,7 +7,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
   const { user } = await requireAdmin();
   const { status, q } = await searchParams;
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto measure-console">
       <PageHeader title="Users" subtitle="Search accounts, review reports and apply account status. Every change is logged." />
       <UsersClient currentAdminId={user.id} initialStatus={status ?? ""} initialQuery={q ?? ""} />
     </div>

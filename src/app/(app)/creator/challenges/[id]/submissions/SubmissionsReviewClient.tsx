@@ -81,7 +81,7 @@ function SubmissionRow({
   };
 
   return (
-    <div className="border border-outline-variant rounded-xl overflow-hidden bg-surface-container-lowest">
+    <div className="border border-outline-variant rounded-xl overflow-hidden bg-surface-container-lowest elev-1 surface-raised">
       {/* Header row */}
       <div className="flex items-center gap-3 px-4 py-3">
         {/* Avatar */}
@@ -106,17 +106,17 @@ function SubmissionRow({
         {/* Current status badge */}
         <div className="flex-shrink-0">
           {submission.status === "approved" && (
-            <span className="flex items-center gap-1 text-green-700 bg-green-100 text-[11px] font-semibold rounded-full px-2 py-0.5">
+            <span className="flex items-center gap-1 text-on-success-container bg-success-container text-label-sm font-semibold rounded-full px-2 py-0.5">
               <CheckCircle2 size={11} /> Approved
             </span>
           )}
           {submission.status === "pending" && (
-            <span className="flex items-center gap-1 text-yellow-700 bg-yellow-100 text-[11px] font-semibold rounded-full px-2 py-0.5">
+            <span className="flex items-center gap-1 text-on-warning-container bg-warning-container text-label-sm font-semibold rounded-full px-2 py-0.5">
               <Clock size={11} /> Pending
             </span>
           )}
           {submission.status === "rejected" && (
-            <span className="flex items-center gap-1 text-red-700 bg-red-100 text-[11px] font-semibold rounded-full px-2 py-0.5">
+            <span className="flex items-center gap-1 text-on-error-container bg-error-container text-label-sm font-semibold rounded-full px-2 py-0.5">
               <XCircle size={11} /> Rejected
             </span>
           )}
@@ -141,14 +141,14 @@ function SubmissionRow({
 
       {/* Rejection reason (if already rejected) */}
       {submission.status === "rejected" && submission.rejectionReason && (
-        <div className="mx-4 mb-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+        <div className="mx-4 mb-3 rounded-lg bg-error-container border border-error-outline px-3 py-2 text-xs text-on-error-container">
           <strong>Rejection reason:</strong> {submission.rejectionReason}
         </div>
       )}
 
       {/* Error */}
       {rowError && (
-        <p className="mx-4 mb-3 text-xs text-red-600">{rowError}</p>
+        <p className="mx-4 mb-3 text-xs text-on-error-container">{rowError}</p>
       )}
 
       {/* Actions — only show when not already reviewed (or allow re-review) */}
@@ -163,14 +163,14 @@ function SubmissionRow({
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="Explain why this proof is rejected (required)…"
                 rows={2}
-                className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary"
+                className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary"
               />
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={handleReject}
                   disabled={!rejectionReason.trim() || isPending}
-                  className="flex-1 h-9 rounded-lg bg-red-600 text-white text-sm font-semibold disabled:opacity-50 hover:bg-red-700 transition-colors flex items-center justify-center gap-1.5"
+                  className="flex-1 h-9 rounded-xl bg-error text-white text-sm font-semibold disabled:opacity-50 hover:bg-error transition-colors flex items-center justify-center gap-1.5 tap-target"
                 >
                   {isPending ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
                   Confirm Reject
@@ -178,7 +178,7 @@ function SubmissionRow({
                 <button
                   type="button"
                   onClick={() => { setShowRejectForm(false); setRejectionReason(""); }}
-                  className="px-4 h-9 rounded-lg border border-outline-variant text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+                  className="px-4 h-9 rounded-xl border border-outline-variant text-sm text-on-surface-variant hover:bg-surface-container transition-colors tap-target"
                 >
                   Cancel
                 </button>
@@ -192,7 +192,7 @@ function SubmissionRow({
                 type="button"
                 onClick={handleApprove}
                 disabled={isPending}
-                className="flex-1 h-9 rounded-lg bg-secondary text-on-secondary text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-1.5"
+                className="flex-1 h-9 rounded-xl bg-secondary text-on-secondary text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-1.5 tap-target"
               >
                 {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 Approve
@@ -201,7 +201,7 @@ function SubmissionRow({
                 type="button"
                 onClick={() => setShowRejectForm(true)}
                 disabled={isPending}
-                className="flex-1 h-9 rounded-lg border border-red-300 text-red-600 text-sm font-semibold hover:bg-red-50 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 h-9 rounded-xl border border-error-outline text-on-error-container text-sm font-semibold hover:bg-error-container disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5 tap-target"
               >
                 <X size={14} />
                 Reject
@@ -217,7 +217,7 @@ function SubmissionRow({
           <button
             type="button"
             onClick={() => setShowRejectForm(!showRejectForm)}
-            className="flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-red-600 transition-colors"
+            className="flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-on-error-container transition-colors"
           >
             <ChevronDown size={12} className={showRejectForm ? "rotate-180" : ""} />
             Override decision
@@ -229,21 +229,21 @@ function SubmissionRow({
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="Reason for overriding approval…"
                 rows={2}
-                className="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-400"
+                className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm resize-none focus:border-error focus:outline-none focus:ring-2 focus:ring-error/30"
               />
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={handleReject}
                   disabled={!rejectionReason.trim() || isPending}
-                  className="h-9 px-4 rounded-lg bg-red-600 text-white text-sm font-semibold disabled:opacity-50 hover:bg-red-700 transition-colors"
+                  className="h-9 px-4 rounded-xl bg-error text-white text-sm font-semibold disabled:opacity-50 hover:bg-error transition-colors tap-target"
                 >
                   {isPending ? <Loader2 size={14} className="animate-spin" /> : "Reject"}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setShowRejectForm(false); setRejectionReason(""); }}
-                  className="h-9 px-4 rounded-lg border border-outline-variant text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+                  className="h-9 px-4 rounded-xl border border-outline-variant text-sm text-on-surface-variant hover:bg-surface-container transition-colors tap-target"
                 >
                   Cancel
                 </button>
@@ -313,18 +313,18 @@ export function SubmissionsReviewClient({
               "flex-1 h-8 rounded-lg text-sm font-medium transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
               activeTab === tab.value
-                ? "bg-surface text-on-surface shadow-sm"
+                ? "bg-surface text-on-surface elev-1"
                 : "text-on-surface-variant hover:text-on-surface",
             ].join(" ")}
           >
             {tab.label}
             {counts[tab.value] > 0 && (
               <span className={[
-                "ml-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-bold w-4 h-4",
+                "ml-1.5 inline-flex items-center justify-center rounded-full text-label-sm font-bold w-4 h-4",
                 tab.value === "pending"
-                  ? "bg-yellow-100 text-yellow-700"
+                  ? "bg-warning-container text-on-warning-container"
                   : tab.value === "rejected"
-                  ? "bg-red-100 text-red-700"
+                  ? "bg-error-container text-on-error-container"
                   : "bg-secondary/10 text-secondary",
               ].join(" ")}>
                 {counts[tab.value]}

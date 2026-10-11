@@ -8,10 +8,10 @@ import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, getQuestSubmissions, reviewSubmission, type QuestTaskSubmission, type Quest } from "@/lib/data/businessQuests";
 
 const TABS = [
-  { value: "pending",                label: "Pending",       cls: "text-amber-700 bg-amber-50 border-amber-200" },
-  { value: "approved",               label: "Approved",      cls: "text-green-700 bg-green-50 border-green-200" },
-  { value: "rejected",               label: "Rejected",      cls: "text-red-700 bg-red-50 border-red-200" },
-  { value: "resubmission_required",  label: "Resubmission",  cls: "text-purple-700 bg-purple-50 border-purple-200" },
+  { value: "pending",                label: "Pending",       cls: "text-on-warning-container bg-warning-container border-warning-outline" },
+  { value: "approved",               label: "Approved",      cls: "text-on-success-container bg-success-container border-success-outline" },
+  { value: "rejected",               label: "Rejected",      cls: "text-on-error-container bg-error-container border-error-outline" },
+  { value: "resubmission_required",  label: "Resubmission",  cls: "text-chart-3 bg-chart-3/10 border-chart-3/25" },
 ] as const;
 type TabValue = typeof TABS[number]["value"];
 
@@ -89,8 +89,8 @@ export default function ProofVerificationPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8F9FC]">
-      <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-surface">
+      <div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -100,37 +100,37 @@ export default function ProofVerificationPage() {
   }, {} as Record<TabValue, number>);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FC] pb-28">
-      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-gray-600" /></Link>
-        <h1 className="text-[17px] font-black text-gray-900 flex-1">Proof Verification</h1>
+    <div className="min-h-screen bg-surface pb-28">
+      <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
+        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">Proof Verification</h1>
         {tabCounts.pending > 0 && (
-          <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{tabCounts.pending}</span>
+          <span className="bg-error text-white text-xs font-bold px-2 py-0.5 rounded-full">{tabCounts.pending}</span>
         )}
       </div>
 
       {/* Quest selector */}
-      <div className="bg-white border-b border-gray-100 px-5 py-3">
-        <div className="relative max-w-2xl mx-auto">
+      <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-3">
+        <div className="relative mx-auto measure-page">
           <select aria-label="Filter by quest" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
-            className="w-full h-10 rounded-xl border border-gray-200 bg-gray-50 px-4 pr-10 text-sm font-medium text-gray-700 focus:outline-none focus:border-blue-500 appearance-none">
+            className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none tap-target">
             <option value="all">All Quests</option>
             {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
           </select>
-          <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
         </div>
       </div>
 
       {/* Tab row */}
-      <div className="bg-white border-b border-gray-100 px-5 flex gap-1 overflow-x-auto scrollbar-none">
+      <div className="bg-surface-container-lowest border-b border-outline-variant px-5 flex gap-1 overflow-x-auto scrollbar-none">
         {TABS.map(t => (
           <button key={t.value} onClick={() => setTab(t.value)}
             className={`shrink-0 flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
-              tab === t.value ? "border-blue-600 text-blue-600" : "border-transparent text-gray-600"
+              tab === t.value ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"
             }`}>
             {t.label}
             {tabCounts[t.value] > 0 && (
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${tab === t.value ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-gray-100 text-gray-600 border-gray-200"}`}>
+              <span className={`text-label-sm font-bold px-1.5 py-0.5 rounded-full border ${tab === t.value ? "bg-secondary-fixed text-secondary border-secondary-fixed-dim" : "bg-surface-container text-on-surface-variant border-outline-variant"}`}>
                 {tabCounts[t.value]}
               </span>
             )}
@@ -138,11 +138,11 @@ export default function ProofVerificationPage() {
         ))}
       </div>
 
-      <div className="px-5 py-5 max-w-2xl mx-auto flex flex-col gap-3">
+      <div className="px-5 py-5 mx-auto measure-page flex flex-col gap-3">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center bg-white rounded-2xl border border-gray-100">
-            <CheckCircle2 size={32} className="text-gray-200" />
-            <p className="text-sm text-gray-600">No {tab === "pending" ? "pending" : tab} submissions.</p>
+          <div className="flex flex-col items-center gap-3 py-16 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
+            <CheckCircle2 size={32} className="text-on-surface-variant" />
+            <p className="text-sm text-on-surface-variant">No {tab === "pending" ? "pending" : tab} submissions.</p>
           </div>
         ) : (
           filtered.map(sub => {
@@ -150,22 +150,22 @@ export default function ProofVerificationPage() {
             const taskTitle = (sub.task as { title: string } | undefined)?.title ?? "—";
             const isImg = sub.media_url && /\.(jpg|jpeg|png|webp|gif)/i.test(sub.media_url);
             return (
-              <div key={sub.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              <div key={sub.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden elev-1 surface-raised">
                 <div className="p-4">
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 font-bold text-blue-600 text-sm">
+                    <div className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center shrink-0 font-bold text-secondary text-sm">
                       {pName.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900">{pName}</p>
-                      <p className="text-xs text-gray-600 truncate">Task: {taskTitle}</p>
-                      <p className="text-xs text-gray-600">{timeAgo(sub.submitted_at)}</p>
+                      <p className="text-sm font-bold text-on-surface">{pName}</p>
+                      <p className="text-xs text-on-surface-variant truncate">Task: {taskTitle}</p>
+                      <p className="text-xs text-on-surface-variant">{timeAgo(sub.submitted_at)}</p>
                     </div>
                     {sub.verification_status !== "pending" && (
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
-                        sub.verification_status === "approved" ? "text-green-700 bg-green-50 border-green-200" :
-                        sub.verification_status === "rejected" ? "text-red-700 bg-red-50 border-red-200" :
-                        "text-purple-700 bg-purple-50 border-purple-200"
+                      <span className={`text-label-sm font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                        sub.verification_status === "approved" ? "text-on-success-container bg-success-container border-success-outline" :
+                        sub.verification_status === "rejected" ? "text-on-error-container bg-error-container border-error-outline" :
+                        "text-chart-3 bg-chart-3/10 border-chart-3/25"
                       }`}>
                         {sub.verification_status === "approved" ? "Approved" : sub.verification_status === "rejected" ? "Rejected" : "Resubmission"}
                       </span>
@@ -174,38 +174,38 @@ export default function ProofVerificationPage() {
 
                   {/* Media preview */}
                   {sub.media_url && isImg && (
-                    <div className="w-full h-48 rounded-xl overflow-hidden bg-gray-100 mb-3">
+                    <div className="w-full h-48 rounded-xl overflow-hidden bg-surface-container mb-3">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={sub.media_url} alt="proof" className="w-full h-full object-cover" />
                     </div>
                   )}
                   {sub.media_url && !isImg && (
                     <a href={sub.media_url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-blue-600 text-sm font-medium mb-3 hover:underline">
+                      className="flex items-center gap-2 text-secondary text-sm font-medium mb-3 hover:underline">
                       <ExternalLink size={14} /> View Submitted Proof
                     </a>
                   )}
                   {sub.caption && (
-                    <p className="text-sm text-gray-600 bg-gray-50 rounded-xl px-3 py-2 mb-3">{sub.caption}</p>
+                    <p className="text-sm text-on-surface-variant bg-surface-container-low rounded-xl px-3 py-2 mb-3">{sub.caption}</p>
                   )}
                   {sub.rejection_reason && (
-                    <p className="text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2 mb-3">Reason: {sub.rejection_reason}</p>
+                    <p className="text-xs text-on-error-container bg-error-container rounded-xl px-3 py-2 mb-3">Reason: {sub.rejection_reason}</p>
                   )}
                 </div>
 
                 {/* Actions — only for pending */}
                 {sub.verification_status === "pending" && (
-                  <div className="border-t border-gray-50 px-4 py-3 flex gap-2">
+                  <div className="border-t border-outline-variant px-4 py-3 flex gap-2">
                     <button onClick={() => { setShowRejectModal(sub.id); setRejectReason(""); }}
-                      className="flex-1 h-9 rounded-xl border-2 border-red-200 text-red-600 text-sm font-bold flex items-center justify-center gap-1.5">
+                      className="flex-1 h-9 rounded-xl border-2 border-error-outline text-on-error-container text-sm font-bold flex items-center justify-center gap-1.5 tap-target">
                       <XCircle size={16} /> Reject
                     </button>
                     <button onClick={() => { setShowRejectModal(`resubmit-${sub.id}`); setRejectReason(""); }}
-                      className="flex-1 h-9 rounded-xl border-2 border-purple-200 text-purple-600 text-sm font-bold">
+                      className="flex-1 h-9 rounded-xl border-2 border-chart-3/25 text-chart-3 text-sm font-bold tap-target">
                       Resubmit
                     </button>
                     <button onClick={() => handleApprove(sub.id)} disabled={reviewing === sub.id}
-                      className="flex-1 h-9 rounded-xl bg-green-600 text-white text-sm font-bold flex items-center justify-center gap-1.5 disabled:opacity-40">
+                      className="flex-1 h-9 rounded-xl bg-success text-white text-sm font-bold flex items-center justify-center gap-1.5 disabled:opacity-40 tap-target">
                       {reviewing === sub.id ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><CheckCircle2 size={16} /> Approve</>}
                     </button>
                   </div>
@@ -219,17 +219,17 @@ export default function ProofVerificationPage() {
       {/* Reject / Resubmit Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center px-4">
-          <div className="w-full max-w-md bg-white rounded-2xl p-5">
-            <h3 className="text-[17px] font-black text-gray-900 mb-1">
+          <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl p-5 elev-5">
+            <h3 className="text-body-lg font-black text-on-surface mb-1">
               {showRejectModal.startsWith("resubmit-") ? "Request Resubmission" : "Reject Submission"}
             </h3>
-            <p className="text-sm text-gray-500 mb-4">Optionally provide a reason for the participant.</p>
+            <p className="text-sm text-on-surface-variant mb-4">Optionally provide a reason for the participant.</p>
             <textarea aria-label="Rejection reason (optional)" value={rejectReason} onChange={e => setRejectReason(e.target.value)}
               placeholder="Reason (optional)..." rows={3}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-blue-500 resize-none mb-4" />
+              className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:outline-none focus:border-secondary resize-none mb-4" />
             <div className="flex gap-3">
               <button onClick={() => { setShowRejectModal(null); setRejectReason(""); }}
-                className="flex-1 h-11 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm">
+                className="flex-1 h-11 rounded-xl border border-outline-variant text-on-surface-variant font-semibold text-sm">
                 Cancel
               </button>
               <button
@@ -239,7 +239,7 @@ export default function ProofVerificationPage() {
                   else handleReject(id);
                 }}
                 disabled={!!reviewing}
-                className={`flex-1 h-11 rounded-xl text-white font-bold text-sm disabled:opacity-40 ${showRejectModal.startsWith("resubmit-") ? "bg-purple-600" : "bg-red-500"}`}>
+                className={`flex-1 h-11 rounded-xl text-white font-bold text-sm disabled:opacity-40 ${showRejectModal.startsWith("resubmit-") ? "bg-chart-3" : "bg-error"}`}>
                 {reviewing ? "…" : showRejectModal.startsWith("resubmit-") ? "Request Resubmission" : "Reject"}
               </button>
             </div>

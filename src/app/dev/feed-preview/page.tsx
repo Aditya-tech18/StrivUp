@@ -14,6 +14,11 @@ import { TodaysTasks } from "@/components/features/TodaysTasks";
 import { CoinPill } from "@/components/features/CoinPill";
 import { Flame } from "lucide-react";
 import type { TodaySummary, TodayTask } from "@/lib/data/today";
+import { pickHomeTasks } from "@/lib/data/today";
+import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAccountsRail";
+import type { SuggestedProfile, PersonCard } from "@/lib/data/social";
+import { Facepile } from "@/components/features/people/Facepile";
+import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
 
 function task(over: Partial<TodayTask> & { key: string }): TodayTask {
   return {
@@ -25,6 +30,9 @@ function task(over: Partial<TodayTask> & { key: string }): TodayTask {
     dayNumber: 42,
     durationDays: 100,
     proofType: null,
+    thumbnailUrl: null,
+    consistencyPct: 72,
+    kind: "challenge",
     state: "todo",
     ...over,
   };
@@ -94,6 +102,93 @@ const CASES: Array<{ label: string; note: string; data: TodaySummary }> = [
   },
 ];
 
+const FACES: PersonCard[] = [
+  {
+    id: "f1", username: "anna_rose1405", fullName: "Anna Rose",
+    /* A local file, so it genuinely loads in the harness. This matters:
+       the first version of these fixtures used remote URLs that all failed
+       in this sandbox, so every face took the fallback branch and the
+       loaded-image branch was never once rendered. That is the branch that
+       was broken in production. */
+    avatarUrl: "/icons/icon-192.png",
+    bio: null,
+  },
+  // A URL that will 404: proves the onError fallback, not just the null path.
+  { id: "f2", username: "broken", fullName: "Broken Link",
+    avatarUrl: "https://api.dicebear.com/this-404s.png", bio: null },
+  { id: "f3", username: "nopic", fullName: "No Picture", avatarUrl: null, bio: null },
+];
+
+/* A whole FeedCard, not just the Facepile on its own. The facepile looked
+   correct in isolation while being invisible inside a real card, so the
+   integration is what gets rendered here now. */
+const POST: FeedPost = {
+  id: "post-1",
+  authorName: "Adi Chaubey",
+  authorAvatarUrl: "/icons/icon-192.png",
+  verified: false,
+  category: "Study",
+  dayLabel: "2H AGO",
+  streakDay: 12,
+  proofImageUrl: "/og.png",
+  mediaWidth: 1200,
+  mediaHeight: 630,
+  caption: "Day 12. Two hours in the library, no phone.",
+  likeCount: 86,
+  likePreview: FACES,
+  commentCount: 4,
+  viewerHasLiked: false,
+  authorId: "f9",
+  adminRemoved: false,
+};
+
+const SUGGESTED: SuggestedProfile[] = [
+  {
+    id: "p1", username: "ananya", fullName: "Ananya Rao",
+    avatarUrl: null, bio: "Marathon in training. Up at 5.",
+    challengesCompleted: 56, questsCompleted: 23,
+    challengesJoined: 61, questsJoined: 25,
+    followerCount: 412, sharedInterests: 3,
+  },
+  {
+    id: "p2", username: "devk", fullName: "Dev Kapoor",
+    avatarUrl: null, bio: "Shipping something every week.",
+    challengesCompleted: 0, questsCompleted: 0,
+    challengesJoined: 4, questsJoined: 2,
+    followerCount: 18, sharedInterests: 1,
+  },
+  {
+    id: "p3", username: null, fullName: "Meera",
+    avatarUrl: null, bio: null,
+    challengesCompleted: 0, questsCompleted: 0,
+    challengesJoined: 0, questsJoined: 0,
+    followerCount: 0, sharedInterests: 0,
+  },
+];
+
+/* Five challenges at different consistencies, to show that pickHomeTasks
+   returns the two strongest plus the weakest with work outstanding. */
+const MANY: TodayTask[] = [
+  task({ key: "a", challengeId: "a", challengeTitle: "Reading", title: "Read 20 pages", consistencyPct: 95 }),
+  task({ key: "b", challengeId: "b", challengeTitle: "Running", title: "Run 5k", consistencyPct: 88 }),
+  task({ key: "c", challengeId: "c", challengeTitle: "Spanish", title: "One lesson", consistencyPct: 60 }),
+  task({ key: "d", challengeId: "d", challengeTitle: "Cold showers", title: "Log it", consistencyPct: 20 }),
+  task({ key: "e", challengeId: "e", challengeTitle: "Journalling", title: "Write", consistencyPct: 45, state: "done" }),
+];
+
+const QUEST_TASKS: TodayTask[] = [
+  task({
+    key: "q1", challengeId: "q1", challengeTitle: "Veer Ji Chaap",
+    title: "Order the malai chaap", dayLabel: "1 of 3 done",
+    kind: "quest", consistencyPct: null, dayNumber: 1, durationDays: 3,
+  }),
+  task({
+    key: "q2", challengeId: "q1", challengeTitle: "Veer Ji Chaap",
+    title: "Upload the bill", dayLabel: "1 of 3 done",
+    kind: "quest", consistencyPct: null, dayNumber: 1, durationDays: 3, state: "done",
+  }),
+];
+
 export default function FeedPreviewPage() {
   if (process.env.NODE_ENV === "production") notFound();
 
@@ -110,6 +205,59 @@ export default function FeedPreviewPage() {
           </p>
         </header>
 
+        <section className="flex flex-col gap-space-sm">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">Feed card with likes</h2>
+            <p className="text-body-sm text-on-surface-variant">
+              The real card. The facepile has to be visible here, not only in
+              the isolated row below.
+            </p>
+          </div>
+          <FeedCard post={POST} viewerId="me" />
+        </section>
+
+        <section className="flex flex-col gap-space-sm">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">Facepile</h2>
+            <p className="text-body-sm text-on-surface-variant">
+              A real picture, a broken URL and a missing one, so the fallback
+              is visible next to the thing it replaces.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 rounded-xl bg-surface-container-lowest p-space-md elev-1 surface-raised">
+            <Facepile people={FACES} total={86} verb="Liked by" noun="like" />
+            <Facepile people={FACES} total={3} verb="Joined by" noun="member" size={24} />
+            <Facepile people={[]} total={12} verb="Joined by" noun="member" />
+            <Facepile people={FACES.slice(0, 1)} total={1} verb="Liked by" noun="like" />
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-space-sm">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">People to follow</h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Finished work, then current work, then &ldquo;just getting started&rdquo;.
+            </p>
+          </div>
+          <SuggestedAccountsRail people={SUGGESTED} viewerId="me" />
+        </section>
+
+        <section className="flex flex-col gap-space-sm">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">
+              Today&apos;s Tasks: three of five, with the quest toggle
+            </h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Reading 95% and Running 88% are the two kept up; Cold showers
+              20% is the one slipping. Spanish and Journalling are held back.
+            </p>
+          </div>
+          <TodaysTasks
+            summary={summary({ tasks: pickHomeTasks(MANY), total: 3, completed: 0, percent: 0 })}
+            questTasks={QUEST_TASKS}
+          />
+        </section>
+
         {/* Header pills, as they sit in the feed */}
         <section className="flex flex-col gap-space-sm">
           <div className="border-l-2 border-secondary pl-space-sm">
@@ -118,16 +266,16 @@ export default function FeedPreviewPage() {
               Streak + StrivCoin. Second row shows the first-visit-of-day flourish.
             </p>
           </div>
-          <div className="flex flex-col gap-space-sm rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
+          <div className="flex flex-col gap-space-sm rounded-xl bg-surface-container-lowest p-space-md elev-1 surface-raised">
             <div className="flex items-center justify-end gap-space-xs">
-              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 shadow-sm">
+              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1">
                 <Flame size={15} className="text-secondary" aria-hidden="true" />
                 <span className="text-label-md font-bold text-on-surface">14</span>
               </div>
               <CoinPill balance={248} earnedToday={0} />
             </div>
             <div className="flex items-center justify-end gap-space-xs">
-              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 shadow-sm">
+              <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1">
                 <Flame size={15} className="text-secondary" aria-hidden="true" />
                 <span className="text-label-md font-bold text-on-surface">14</span>
               </div>

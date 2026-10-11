@@ -54,30 +54,30 @@ export default function DeactivatedPage() {
     const label = enforced.status === "banned" ? "Account Banned" : enforced.status === "suspended" ? "Account Suspended" : "Account Deactivated";
     const Icon = enforced.status === "banned" ? Ban : ShieldAlert;
     return (
-      <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center px-5">
+      <div className="min-h-screen bg-surface-container-low flex items-center justify-center px-5">
         <div className="max-w-sm w-full flex flex-col items-center gap-6 text-center py-10">
-          <div className="w-20 h-20 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center">
-            <Icon size={36} className="text-red-600" strokeWidth={1.5} />
+          <div className="w-20 h-20 rounded-2xl bg-error-container border border-error-outline flex items-center justify-center">
+            <Icon size={36} className="text-on-error-container" strokeWidth={1.5} />
           </div>
           <div>
-            <h1 className="text-[22px] font-bold text-on-surface tracking-[-0.02em]">{label}</h1>
-            <p className="text-[14px] text-on-surface-variant mt-2 leading-relaxed">
+            <h1 className="text-headline-md font-bold text-on-surface tracking-[-0.02em]">{label}</h1>
+            <p className="text-body-md text-on-surface-variant mt-2 leading-relaxed">
               {enforced.status === "banned"
                 ? "This account can no longer use STRIVUP because of a serious or repeated policy violation."
                 : "STRIVUP has restricted this account while a policy issue is reviewed. Your data is preserved."}
             </p>
           </div>
           {enforced.reason && (
-            <div className="w-full rounded-2xl border border-red-100 bg-red-50 p-4 text-left">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-red-800">Reason</p>
-              <p className="mt-1 text-[14px] text-red-900">{enforced.reason}</p>
+            <div className="w-full rounded-2xl border border-error-outline bg-error-container p-4 text-left">
+              <p className="text-label-sm font-bold uppercase tracking-wider text-on-error-container">Reason</p>
+              <p className="mt-1 text-body-md text-on-error-container">{enforced.reason}</p>
             </div>
           )}
-          <p className="text-[13px] text-on-surface-variant">
+          <p className="text-body-md text-on-surface-variant">
             If you think this is a mistake, email <span className="font-semibold text-on-surface">strivup.officialteam@gmail.com</span> with your username.
           </p>
           <button onClick={handleLogOut}
-            className="w-full h-12 rounded-xl border border-outline-variant text-on-surface font-semibold text-[15px] hover:bg-surface-container-low transition-colors">
+            className="w-full h-12 rounded-xl border border-outline-variant text-on-surface font-semibold text-body-lg hover:bg-surface-container-low transition-colors">
             Sign Out
           </button>
         </div>
@@ -88,26 +88,26 @@ export default function DeactivatedPage() {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center px-5">
       <div className="max-w-sm w-full flex flex-col items-center gap-6 text-center py-10">
-        <div className="w-20 h-20 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.15)]">
-          <Clock size={36} className="text-amber-500" strokeWidth={1.5} />
+        <div className="w-20 h-20 rounded-2xl bg-warning-container border border-warning-outline flex items-center justify-center elev-3">
+          <Clock size={36} className="text-warning" strokeWidth={1.5} />
         </div>
 
         <div className="max-w-xs">
-          <h1 className="text-[22px] font-bold text-on-surface tracking-[-0.02em]">Account Deactivated</h1>
-          <p className="text-[14px] text-on-surface-variant mt-2 leading-relaxed">
+          <h1 className="text-headline-md font-bold text-on-surface tracking-[-0.02em]">Account Deactivated</h1>
+          <p className="text-body-md text-on-surface-variant mt-2 leading-relaxed">
             Your account is currently deactivated. Your data is safe and you can reactivate anytime by signing back in.
           </p>
         </div>
 
-        <div className="w-full bg-amber-50 border border-amber-100 rounded-2xl p-4 text-left space-y-2">
+        <div className="w-full bg-warning-container border border-warning-outline rounded-2xl p-4 text-left space-y-2">
           {[
             "Your profile and progress are preserved",
             "No one can see your profile while deactivated",
             "Reactivate instantly by signing back in",
           ].map(item => (
             <div key={item} className="flex items-start gap-2.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
-              <p className="text-[13px] text-on-surface">{item}</p>
+              <div className="w-1.5 h-1.5 rounded-full bg-warning mt-1.5 shrink-0" />
+              <p className="text-body-md text-on-surface">{item}</p>
             </div>
           ))}
         </div>
@@ -116,13 +116,13 @@ export default function DeactivatedPage() {
           <button
             onClick={handleReactivate}
             disabled={loading}
-            className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 shadow-[0_2px_8px_rgba(29,78,216,0.25)]"
+            className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-body-lg flex items-center justify-center gap-2 disabled:opacity-50 elev-2"
           >
             {loading ? <><Loader2 size={16} className="animate-spin" /> Reactivating…</> : "Reactivate Account"}
           </button>
           <button
             onClick={handleLogOut}
-            className="w-full h-12 rounded-xl border border-outline-variant text-on-surface font-semibold text-[15px] hover:bg-surface-container-low transition-colors"
+            className="w-full h-12 rounded-xl border border-outline-variant text-on-surface font-semibold text-body-lg hover:bg-surface-container-low transition-colors"
           >
             Sign Out
           </button>

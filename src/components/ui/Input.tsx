@@ -26,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="type-body-md font-medium text-on-surface"
+            className="text-body-md font-medium text-on-surface"
           >
             {label}
           </label>
@@ -42,11 +42,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={[
-              "w-full rounded border bg-surface-container-lowest",
+              "w-full rounded-xl border bg-surface-container-lowest",
               "text-on-surface placeholder:text-on-surface-variant",
-              "text-[var(--font-size-body-lg)] leading-6",
+              "text-[length:var(--text-body-lg)] leading-6",
               "transition-colors duration-150",
-              "h-10 px-3",
+              // 48px, not 40: a form field is a touch target, and the bespoke
+              // fields in the auth forms are already h-12.
+              "h-12 px-3",
               leadingIcon ? "pl-9" : "",
               hasError
                 ? "border-error focus:ring-error/30 focus:border-error"
@@ -66,12 +68,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         </div>
 
         {error && (
-          <p id={`${inputId}-error`} className="type-body-md text-error" role="alert">
+          <p id={`${inputId}-error`} className="text-body-md text-error" role="alert">
             {error}
           </p>
         )}
         {hint && !error && (
-          <p id={`${inputId}-hint`} className="type-body-md text-on-surface-variant">
+          <p id={`${inputId}-hint`} className="text-body-md text-on-surface-variant">
             {hint}
           </p>
         )}

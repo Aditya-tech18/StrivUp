@@ -2,11 +2,18 @@
 /**
  * /search — Global search for users, challenges and quests.
  */
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, ShieldCheck, Users, X } from "lucide-react";
+import { Search, ShieldCheck, Target, Trophy, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { MobileMenu } from "@/components/ui";
+import { PeopleList } from "@/components/features/people/PeopleList";
+import {
+  getProfileSuggestions,
+  suggestionBlurb,
+  type SuggestedProfile,
+} from "@/lib/data/social";
 
 type Tab = "users" | "challenges" | "quests";
 
@@ -48,6 +55,24 @@ export default function SearchPage() {
   const [users, setUsers] = useState<UserResult[]>([]);
   const [challenges, setChallenges] = useState<ChallengeResult[]>([]);
   const [quests, setQuests] = useState<QuestResult[]>([]);
+  // null while loading, so the empty state does not flash before the
+  // suggestions arrive.
+  const [suggestions, setSuggestions] = useState<SuggestedProfile[] | null>(null);
+  const [viewerId, setViewerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const client = createClient();
+      const { data: { user } } = await client.auth.getUser();
+      if (cancelled) return;
+      setViewerId(user?.id ?? null);
+      const people = user ? await getProfileSuggestions(client, 15) : [];
+      if (!cancelled) setSuggestions(people);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -100,11 +125,12 @@ export default function SearchPage() {
   const hasResults = users.length > 0 || challenges.length > 0 || quests.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pb-28">
+    <div className="min-h-screen bg-surface-container-low pb-28">
       {/* Header */}
-      <div className="sticky top-0 pt-safe z-40 bg-white border-b border-outline-variant">
-        <div className="max-w-lg mx-auto px-5 py-3">
-          <div className="flex items-center gap-2 bg-surface-container rounded-xl border border-outline-variant px-4 h-11 focus-within:ring-2 focus-within:ring-secondary focus-within:border-secondary">
+      <div className="sticky top-0 pt-safe z-40 bg-surface-container-lowest border-b border-outline-variant">
+        <div className="mx-auto flex measure-page items-center gap-1.5 px-5 py-3">
+          <MobileMenu />
+          <div className="flex min-w-0 flex-1 items-center gap-2 bg-surface-container rounded-xl border border-outline-variant px-4 h-11 focus-within:ring-2 focus-within:ring-secondary focus-within:border-secondary">
             <Search size={18} className="text-on-surface-variant shrink-0" />
             <input aria-label="Search people, challenges and quests"
               ref={inputRef}
@@ -124,15 +150,15 @@ export default function SearchPage() {
 
         {/* Tabs */}
         {hasResults && (
-          <div className="flex gap-0 border-t border-outline-variant/50 max-w-lg mx-auto">
+          <div className="flex gap-0 border-t border-outline-variant/50 mx-auto measure-page">
             {(["users","challenges","quests"] as Tab[]).map(t => (
               <button key={t} onClick={() => setTab(t)}
                 className={`flex-1 py-2.5 text-xs font-bold capitalize flex items-center justify-center gap-1.5 border-b-2 transition-colors ${
                   tab === t ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"
-                }`}>
+                } tap-target`}>
                 {t}
                 {counts[t] > 0 && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${tab === t ? "bg-secondary text-on-secondary" : "bg-surface-container text-on-surface-variant"}`}>
+                  <span className={`text-label-sm px-1.5 py-0.5 rounded-full font-black ${tab === t ? "bg-secondary text-on-secondary" : "bg-surface-container text-on-surface-variant"}`}>
                     {counts[t]}
                   </span>
                 )}
@@ -142,7 +168,7 @@ export default function SearchPage() {
         )}
       </div>
 
-      <div className="max-w-lg mx-auto px-5 pt-4">
+      <div className="mx-auto measure-page px-5 pt-4">
         {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-16">
@@ -150,12 +176,44 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Empty query */}
+        {/* Empty query: suggestions rather than an empty screen. An empty
+            search page teaches nothing about what is on the platform, and
+            "who should I follow" is the question most people arrive with. */}
         {!loading && query.length < 2 && (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <Search size={36} className="text-on-surface-variant opacity-30" />
-            <p className="text-sm text-on-surface-variant">Search for people, challenges or quests.</p>
-          </div>
+          suggestions === null ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="w-6 h-6 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
+            </div>
+          ) : suggestions.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              <h2 className="text-label-md font-bold uppercase tracking-wider text-on-surface-variant">
+                Suggested for you
+              </h2>
+              <div className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest elev-1 surface-raised">
+                <PeopleList
+                  people={suggestions.map((p) => ({
+                    id: p.id,
+                    username: p.username,
+                    fullName: p.fullName,
+                    avatarUrl: p.avatarUrl,
+                    // The blurb earns the tap in a way a bio often does not,
+                    // so it takes the bio's slot when there is one to show.
+                    bio: p.bio ?? suggestionBlurb(p),
+                    isFollowing: false,
+                    isRequested: false,
+                    isSelf: false,
+                  }))}
+                  viewerId={viewerId}
+                  emptyMessage="No suggestions right now."
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-20 text-center">
+              <Search size={36} className="text-on-surface-variant opacity-30" />
+              <p className="text-sm text-on-surface-variant">Search for people, challenges or quests.</p>
+            </div>
+          )
         )}
 
         {/* No results */}
@@ -169,8 +227,8 @@ export default function SearchPage() {
         {!loading && tab === "users" && users.length > 0 && (
           <div className="flex flex-col gap-2">
             {users.map(user => (
-              <Link key={user.id} href={`/profile/${user.id}`}>
-                <div className="bg-white rounded-2xl border border-outline-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container transition-colors">
+              <Link key={user.id} href={`/u/${user.id}`}>
+                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-4 py-3 flex items-center gap-3 hover:bg-surface-container transition-colors elev-1 surface-raised">
                   <div className="w-11 h-11 rounded-full bg-secondary/10 overflow-hidden shrink-0 flex items-center justify-center">
                     {user.avatar_url
                       // eslint-disable-next-line @next/next/no-img-element
@@ -197,17 +255,17 @@ export default function SearchPage() {
           <div className="flex flex-col gap-2">
             {challenges.map(ch => (
               <Link key={ch.id} href={`/challenges/${ch.id}`}>
-                <div className="bg-white rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3">
+                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3 elev-1 surface-raised">
                   <div className="w-16 h-16 rounded-xl bg-surface-container overflow-hidden shrink-0 flex items-center justify-center">
                     {ch.thumbnail_url
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={ch.thumbnail_url} alt={ch.title} className="w-full h-full object-cover" />
-                      : <span className="text-2xl">🏆</span>
+                      : <Trophy size={22} className="text-on-surface-variant opacity-50" aria-hidden="true" />
                     }
                   </div>
                   <div className="flex-1 min-w-0 py-0.5">
                     <p className="text-sm font-bold text-on-surface line-clamp-1">{ch.title}</p>
-                    {ch.category && <span className="text-[10px] font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">{ch.category}</span>}
+                    {ch.category && <span className="text-label-sm font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">{ch.category}</span>}
                     {ch.description && <p className="text-xs text-on-surface-variant line-clamp-1 mt-1">{ch.description}</p>}
                     <div className="flex items-center gap-1 text-xs text-on-surface-variant mt-1">
                       <Users size={11} />{ch.participant_count} participants
@@ -224,18 +282,18 @@ export default function SearchPage() {
           <div className="flex flex-col gap-2">
             {quests.map(q => (
               <Link key={q.id} href={`/quests/${q.id}`}>
-                <div className="bg-white rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3">
+                <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden hover:bg-surface-container transition-colors flex gap-3 p-3 elev-1 surface-raised">
                   <div className="w-16 h-16 rounded-xl bg-surface-container overflow-hidden shrink-0 flex items-center justify-center">
                     {(q.cover_url || q.thumbnail_url)
                       // eslint-disable-next-line @next/next/no-img-element
                       ? <img src={q.cover_url ?? q.thumbnail_url ?? ""} alt={q.title} className="w-full h-full object-cover" />
-                      : <span className="text-2xl">🎯</span>
+                      : <Target size={22} className="text-on-surface-variant opacity-50" aria-hidden="true" />
                     }
                   </div>
                   <div className="flex-1 min-w-0 py-0.5">
                     <p className="text-sm font-bold text-on-surface line-clamp-1">{q.title}</p>
-                    {q.business_name && <p className="text-[10px] text-on-surface-variant">by {q.business_name}</p>}
-                    {q.category && <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{q.category}</span>}
+                    {q.business_name && <p className="text-label-sm text-on-surface-variant">by {q.business_name}</p>}
+                    {q.category && <span className="text-label-sm font-semibold text-secondary bg-secondary-fixed px-2 py-0.5 rounded-full">{q.category}</span>}
                     <div className="flex items-center gap-1 text-xs text-on-surface-variant mt-1">
                       <Users size={11} />{q.participant_count} participants
                     </div>

@@ -15,8 +15,11 @@ import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Upload, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { Button, Card, Input } from "@/components/ui";
 import { createQuest, type CreateQuestInput } from "@/lib/data/quests";
+import { LocationPinPicker } from "@/components/features/quest/LocationPinPicker";
+import { isValidCoordinate } from "@/lib/location/geo";
 
 export default function CreateQuestPage() {
   const router = useRouter();
@@ -96,10 +99,16 @@ export default function CreateQuestPage() {
         return;
       }
 
+      /* The pin is optional — the column is nullable and most live quests have
+         none. It is validated only when supplied, so a half-filled pair is
+         caught but an empty one is simply a quest without a pin. */
+      const hasAnyCoord = latitude.trim() !== "" || longitude.trim() !== "";
       const lat = parseFloat(latitude);
       const lon = parseFloat(longitude);
-      if (isNaN(lat) || isNaN(lon)) {
-        setError("Latitude and longitude must be valid numbers.");
+      if (hasAnyCoord && !isValidCoordinate(lat, lon)) {
+        setError(
+          "That map pin isn't valid. Use the location button, fill in both fields, or clear them both."
+        );
         return;
       }
 
@@ -115,10 +124,11 @@ export default function CreateQuestPage() {
           // Upload thumbnail if provided
           if (thumbnailFile) {
             setUploadingThumbnail(true);
-            const fileName = `quest_thumbnails/${Date.now()}_${thumbnailFile.name}`;
+            const { file: thumb } = await compressImage(thumbnailFile, IMAGE_PRESETS.thumbnail);
+            const fileName = `quest_thumbnails/${Date.now()}_${thumb.name}`;
             const { error: uploadErr } = await supabase.storage
               .from("proof-media")
-              .upload(fileName, thumbnailFile, { upsert: false });
+              .upload(fileName, thumb, { upsert: false });
 
             if (uploadErr) {
               throw new Error(`Thumbnail upload failed: ${uploadErr.message}`);
@@ -147,8 +157,8 @@ export default function CreateQuestPage() {
             category: category.trim(),
             business_name: businessName.trim(),
             location_name: locationName.trim(),
-            latitude: lat,
-            longitude: lon,
+            latitude: hasAnyCoord ? lat : null,
+            longitude: hasAnyCoord ? lon : null,
             reward_description: rewardDescription.trim(),
             proof_type: proofType,
             thumbnail_url: thumbnailUrl,
@@ -197,13 +207,13 @@ export default function CreateQuestPage() {
         >
           <ChevronLeft size={24} aria-hidden="true" />
         </button>
-        <h1 className="type-body-md font-semibold text-on-surface">
+        <h1 className="text-body-md font-semibold text-on-surface">
           Create a Quest
         </h1>
       </div>
 
       {/* Form */}
-      <div className="mx-auto max-w-2xl px-4 py-6">
+      <div className="mx-auto measure-form px-4 py-6">
         {error && (
           <div role="alert" className="flex gap-2 rounded-lg bg-error/10 border border-error/30 px-3 py-2 mb-4">
             <AlertCircle
@@ -211,7 +221,7 @@ export default function CreateQuestPage() {
               className="shrink-0 mt-0.5 text-error"
               aria-hidden="true"
             />
-            <p className="type-body-md text-error text-sm">{error}</p>
+            <p className="text-body-md text-error text-sm">{error}</p>
           </div>
         )}
 
@@ -229,7 +239,7 @@ export default function CreateQuestPage() {
 
           {/* Description */}
           <Card bordered padding="md">
-            <label className="block type-label-caps text-on-surface-variant mb-2">
+            <label className="block text-overline text-on-surface-variant mb-2">
               Description
             </label>
             <textarea aria-label="Description"
@@ -238,9 +248,9 @@ export default function CreateQuestPage() {
               onChange={(e) => setDescription(e.target.value)}
               maxLength={1000}
               rows={4}
-              className="w-full type-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary resize-none"
+              className="w-full text-body-md rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary resize-none"
             />
-            <p className="type-body-sm text-on-surface-variant mt-1">
+            <p className="text-body-sm text-on-surface-variant mt-1">
               {description.length} / 1000
             </p>
           </Card>
@@ -278,32 +288,16 @@ export default function CreateQuestPage() {
             />
           </Card>
 
-          {/* Latitude & Longitude */}
-          <Card bordered padding="md" className="space-y-3">
-            <p className="type-label-caps text-on-surface-variant">
-              Coordinates
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <input aria-label="Latitude"
-                type="number"
-                placeholder="Latitude"
-                step="0.0001"
-                value={latitude}
-                onChange={(e) => setLatitude(e.target.value)}
-                className="w-full type-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
-              />
-              <input aria-label="Longitude"
-                type="number"
-                placeholder="Longitude"
-                step="0.0001"
-                value={longitude}
-                onChange={(e) => setLongitude(e.target.value)}
-                className="w-full type-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
-              />
-            </div>
-            <p className="type-body-sm text-on-surface-variant text-xs">
-              Enter decimal coordinates (e.g., 40.7829 for latitude)
-            </p>
+          {/* Map pin */}
+          <Card bordered padding="md">
+            <LocationPinPicker
+              latitude={latitude}
+              longitude={longitude}
+              onChange={({ latitude: nextLat, longitude: nextLon }) => {
+                setLatitude(nextLat);
+                setLongitude(nextLon);
+              }}
+            />
           </Card>
 
           {/* Reward Description */}
@@ -319,7 +313,7 @@ export default function CreateQuestPage() {
 
           {/* Proof Type */}
           <Card bordered padding="md">
-            <label className="block type-label-caps text-on-surface-variant mb-2">
+            <label className="block text-overline text-on-surface-variant mb-2">
               Proof Type
             </label>
             <select aria-label="Proof Type"
@@ -327,7 +321,7 @@ export default function CreateQuestPage() {
               onChange={(e) =>
                 setProofType(e.target.value as "photo" | "checkin" | "none")
               }
-              className="w-full type-body-md rounded border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"
+              className="w-full text-body-md rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary tap-target"
             >
               <option value="photo">Photo Upload</option>
               <option value="checkin">Check-in</option>
@@ -337,7 +331,7 @@ export default function CreateQuestPage() {
 
           {/* Thumbnail Upload */}
           <Card bordered padding="md">
-            <p className="type-label-caps text-on-surface-variant mb-3">
+            <p className="text-overline text-on-surface-variant mb-3">
               Quest Thumbnail
             </p>
             {thumbnailPreview ? (
@@ -371,10 +365,10 @@ export default function CreateQuestPage() {
                   aria-hidden="true"
                 />
                 <div className="text-center">
-                  <p className="type-body-md font-medium text-on-surface">
+                  <p className="text-body-md font-medium text-on-surface">
                     Upload thumbnail
                   </p>
-                  <p className="type-body-sm text-on-surface-variant">
+                  <p className="text-body-sm text-on-surface-variant">
                     JPG, PNG or WebP • Max 5 MB
                   </p>
                 </div>

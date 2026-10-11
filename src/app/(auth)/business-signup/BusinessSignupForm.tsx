@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { Building2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { PasswordStrength } from "@/components/ui/PasswordStrength";
 
 const schema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
@@ -30,10 +31,10 @@ function GoogleIcon() {
   );
 }
 
-const socialBtnCls = "w-full flex items-center justify-center gap-3 h-12 px-4 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container transition-colors text-[length:var(--font-size-body-lg)] font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary disabled:opacity-50 disabled:cursor-not-allowed";
+const socialBtnCls = "w-full flex items-center justify-center gap-3 h-12 px-4 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container transition-colors text-[length:var(--text-body-lg)] font-medium text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary disabled:opacity-50 disabled:cursor-not-allowed";
 
 function pwdCls(err: boolean) {
-  return `w-full h-12 px-4 pr-11 rounded-xl border bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant text-[length:var(--font-size-body-lg)] transition-colors focus:outline-none focus:ring-2 ${err ? "border-error focus:ring-error/20" : "border-outline-variant focus:border-secondary focus:ring-secondary/20"}`;
+  return `w-full h-12 px-4 pr-11 rounded-xl border bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant text-[length:var(--text-body-lg)] transition-colors focus:outline-none focus:ring-2 ${err ? "border-error focus:ring-error/20" : "border-outline-variant focus:border-secondary focus:ring-secondary/20"}`;
 }
 
 export function BusinessSignupForm() {
@@ -43,9 +44,16 @@ export function BusinessSignupForm() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit,
+    formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
+
+  // Teed off the field's own onChange rather than react-hook-form's watch(),
+  // which returns a non-memoizable subscription and makes React Compiler skip
+  // optimising the whole form.
+  const [passwordValue, setPasswordValue] = useState("");
+  const passwordField = register("password");
 
   const onSubmit = async (data: FormValues) => {
     setAuthError(null);
@@ -97,12 +105,12 @@ export function BusinessSignupForm() {
         <Building2 size={28} className="text-secondary" />
       </div>
       <div>
-        <h2 className="type-headline-md text-on-surface font-black">Check your inbox</h2>
-        <p className="type-body-md text-on-surface-variant mt-2">
+        <h2 className="text-headline-lg-mobile text-on-surface font-black">Check your inbox</h2>
+        <p className="text-body-md text-on-surface-variant mt-2">
           We sent a confirmation link to your email. Click it to activate your business account.
         </p>
       </div>
-      <Link href="/business-login" className="type-body-md text-secondary font-semibold hover:underline">
+      <Link href="/business-login" className="text-body-md text-secondary font-semibold hover:underline">
         Already confirmed? Login →
       </Link>
     </div>
@@ -115,14 +123,14 @@ export function BusinessSignupForm() {
           <Building2 size={28} className="text-secondary" />
         </div>
         <div>
-          <p className="text-[11px] font-black tracking-[0.2em] text-secondary uppercase mb-1">STRIVUP BUSINESS</p>
-          <h1 className="type-headline-md text-on-surface font-black">Create Business Account</h1>
-          <p className="type-body-md text-on-surface-variant mt-1">Attract customers, run campaigns, grow your brand.</p>
+          <p className="text-label-sm font-black tracking-[0.2em] text-secondary uppercase mb-1">STRIVUP BUSINESS</p>
+          <h1 className="text-headline-lg-mobile text-on-surface font-black">Create Business Account</h1>
+          <p className="text-body-md text-on-surface-variant mt-1">Attract customers, run campaigns, grow your brand.</p>
         </div>
       </div>
 
       {authError && (
-        <div role="alert" className="rounded-xl border border-error/30 bg-error-container px-4 py-3 type-body-md text-error">{authError}</div>
+        <div role="alert" className="rounded-xl border border-error/30 bg-error-container px-4 py-3 text-body-md text-error">{authError}</div>
       )}
 
       <button type="button" onClick={handleGoogle} disabled={busy} className={socialBtnCls}>
@@ -132,7 +140,7 @@ export function BusinessSignupForm() {
 
       <div className="flex items-center gap-3">
         <hr className="flex-1 border-outline-variant" />
-        <span className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest">or</span>
+        <span className="text-label-sm font-medium text-on-surface-variant uppercase tracking-widest">or</span>
         <hr className="flex-1 border-outline-variant" />
       </div>
 
@@ -142,19 +150,22 @@ export function BusinessSignupForm() {
         <Input id="biz-email" label="Business Email" type="email" autoComplete="email"
           placeholder="hello@yourbusiness.com" error={errors.email?.message} disabled={busy} {...register("email")} />
         <div className="flex flex-col gap-1">
-          <label htmlFor="biz-pwd" className="type-body-md font-medium text-on-surface">Password</label>
+          <label htmlFor="biz-pwd" className="text-body-md font-medium text-on-surface">Password</label>
           <div className="relative">
             <input id="biz-pwd" type={showPwd ? "text" : "password"} autoComplete="new-password"
               placeholder="Min. 8 chars, 1 letter + 1 number" disabled={busy}
-              className={`${pwdCls(!!errors.password)} disabled:opacity-50`} {...register("password")}
+              className={`${pwdCls(!!errors.password)} disabled:opacity-50`} {...passwordField}
+              onChange={(event) => { passwordField.onChange(event); setPasswordValue(event.target.value); }}
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? "password-error" : undefined} />
             <button type="button" onClick={() => setShowPwd(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant" aria-label="Toggle password">
+              className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-on-surface-variant" aria-label="Toggle password">
               {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-          {errors.password && <p id="password-error" role="alert" className="type-body-md text-error">{errors.password.message}</p>}
+          {errors.password && <p id="password-error" role="alert" className="text-body-md text-error">{errors.password.message}</p>}
+          {/* Advisory only — the zod schema is still the one gate on submit. */}
+          <PasswordStrength value={passwordValue} className="mt-2" />
         </div>
         <Button type="submit" variant="primary" fullWidth disabled={busy} size="lg">
           {isSubmitting ? <><Loader2 size={16} className="animate-spin mr-2" />Creating…</> : "Create Business Account"}
@@ -162,11 +173,11 @@ export function BusinessSignupForm() {
       </form>
 
       <div className="space-y-2 text-center">
-        <p className="type-body-md text-on-surface-variant">
+        <p className="text-body-md text-on-surface-variant">
           Already have a business account?{" "}
           <Link href="/business-login" className="text-secondary font-semibold hover:underline">Login</Link>
         </p>
-        <p className="type-body-md text-on-surface-variant">
+        <p className="text-body-md text-on-surface-variant">
           Not a business?{" "}
           <Link href="/signup" className="text-secondary font-semibold hover:underline">Sign up as User</Link>
         </p>
