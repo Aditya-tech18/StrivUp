@@ -631,6 +631,7 @@ export interface BusinessQuestDetail {
     id: string;
     title: string;
     reward_type: string;
+    description: string | null;
     value: string | null;
     rank_from: number | null;
     rank_to: number | null;
@@ -709,7 +710,7 @@ export async function getBusinessQuestDetail(
   // Fetch rewards
   const { data: rewards } = await supabase
     .from("quest_rewards")
-    .select("id,title,reward_type,value,rank_from,rank_to,is_leaderboard")
+    .select("id,title,reward_type,description,value,rank_from,rank_to,is_leaderboard")
     .eq("quest_id", id);
 
   // Fetch the business profile if the quest is attached to one

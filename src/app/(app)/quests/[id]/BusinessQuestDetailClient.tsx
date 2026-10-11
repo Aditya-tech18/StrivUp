@@ -11,15 +11,16 @@
  * (OrderVerificationModal) instead of a plain file upload.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Bookmark, Calendar, Check, CheckCircle2, ChevronRight,
-  Clock, ExternalLink, ImageIcon, Loader2, MapPin, PlayCircle, Share2,
-  ShieldCheck, Trophy, Upload, Users,
+  Clock, ExternalLink, Heart, ImageIcon, Loader2, PlayCircle, Share2,
+  ChevronDown, Lock, ShieldCheck, Trophy, Upload, Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { formatCount } from "@/lib/formatCount";
 import type { BusinessQuestDetail, OrderPlatformLink } from "@/lib/data/quests";
 import {
   getQuestLeaderboard, getVerificationsByTask,
@@ -29,7 +30,7 @@ import OrderVerificationModal from "@/components/features/quest/OrderVerificatio
 import VerificationStepper from "@/components/features/quest/VerificationStepper";
 import {
   BusinessProfileCard, GoogleBusinessCard, LeaderboardPreviewCard,
-  QuestProgressCard, RewardCard, formatAddress, type RewardSummary,
+  formatAddress,
 } from "@/components/features/quest/QuestSidebarCards";
 
 interface Props {
@@ -39,11 +40,12 @@ interface Props {
   currentUserName: string | null;
 }
 
-type TabId = "overview" | "tasks" | "leaderboard" | "rules" | "about";
+type TabId = "overview" | "tasks" | "rewards" | "leaderboard" | "rules" | "about";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview",    label: "Overview" },
   { id: "tasks",       label: "Tasks" },
+  { id: "rewards",     label: "Rewards" },
   { id: "leaderboard", label: "Leaderboard" },
   { id: "rules",       label: "Rules" },
   { id: "about",       label: "About Business" },
@@ -78,13 +80,6 @@ const DEFAULT_RULES = [
   "Reward eligibility follows the Quest's published reward conditions.",
 ];
 
-function formatDate(d: string | null): string | null {
-  if (!d) return null;
-  return new Date(d).toLocaleDateString("en-IN", {
-    day: "numeric", month: "short", year: "numeric",
-  });
-}
-
 function formatShort(d: string): string {
   return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }
@@ -104,49 +99,6 @@ function durationDays(start: string | null, end: string | null): number | null {
   return Math.max(1, Math.round(ms / 86_400_000));
 }
 
-/**
- * Collapse the Quest's reward rows into the headline the card renders.
- * Reads rank_from/rank_to and value straight off the records — a Quest with no
- * rewards configured simply has no reward card.
- */
-function summariseRewards(rewards: BusinessQuestDetail["rewards"]): RewardSummary | null {
-  if (rewards.length === 0) return null;
-
-  const primary =
-    rewards.find((r) => r.is_leaderboard) ??
-    [...rewards].sort((a, b) => (a.rank_from ?? 999) - (b.rank_from ?? 999))[0];
-
-  const from = primary.rank_from;
-  const to = primary.rank_to ?? primary.rank_from;
-  const winners = from != null && to != null ? to - from + 1 : null;
-
-  const subline =
-    winners != null && winners > 1
-      ? `For Top ${to} Users`
-      : from != null
-        ? `For Rank ${from}`
-        : null;
-
-  // Total pool is only stated when it can actually be computed from a numeric
-  // per-winner value — a guessed pool would be a fabricated number.
-  let totalPool: string | null = null;
-  const numeric = primary.value?.match(/₹\s*([\d,]+(?:\.\d+)?)/);
-  if (numeric && winners != null) {
-    const per = Number(numeric[1].replace(/,/g, ""));
-    if (Number.isFinite(per)) {
-      totalPool = `₹${(per * winners).toLocaleString("en-IN")}`;
-    }
-  }
-
-  return {
-    headline: primary.value ? `${primary.value} ${primary.title}` : primary.title,
-    subline,
-    winners,
-    perWinner: primary.value ?? null,
-    totalPool,
-  };
-}
-
 export default function BusinessQuestDetailClient({
   quest, currentUserId, currentUserName,
 }: Props) {
@@ -158,6 +110,15 @@ export default function BusinessQuestDetailClient({
   const [joining, setJoining] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
+
+  // Favouriting follows the BUSINESS, not this quest: it opts the viewer into a
+  // notification whenever that business publishes anything new.
+  const [favorited, setFavorited] = useState(false);
+  const [favoriting, setFavoriting] = useState(false);
+
+  // Kept in state rather than read straight off the prop so the realtime
+  // subscription below can move it without a page reload.
+  const [participantCount, setParticipantCount] = useState(quest.participant_count);
   const [shareNote, setShareNote] = useState<string | null>(null);
 
   const [verifications, setVerifications] = useState<Map<string, OrderVerification>>(new Map());
@@ -167,12 +128,19 @@ export default function BusinessQuestDetailClient({
 
   const tasks = quest.tasks;
   const totalTasks = tasks.length;
-  const reward = useMemo(() => summariseRewards(quest.rewards), [quest.rewards]);
   const hasLeaderboard = quest.rewards.some((r) => r.is_leaderboard);
   const days = durationDays(quest.start_date, quest.end_date);
   const daysLeft = daysRemaining(quest.end_date);
   const isVerifiedBiz = quest.business_verification === "verified";
   const isEnded = quest.quest_status === "completed" || quest.quest_status === "expired";
+
+  // "Live" means you can still join right now: published/active, not ended,
+  // and the deadline has not passed. A paused or draft quest is not live even
+  // if its dates are still open.
+  const isLive =
+    !isEnded &&
+    (quest.quest_status === "active" || quest.quest_status === "published") &&
+    (daysLeft == null || daysLeft > 0);
   const businessName = quest.business?.business_name ?? quest.business_name ?? "Business";
   const userName = currentUserName?.split(" ")[0] ?? "there";
 
@@ -249,6 +217,80 @@ export default function BusinessQuestDetailClient({
 
   /* ── Share ──────────────────────────────────────────────────────────── */
 
+  // Reflect the stored state on load, so the heart is not empty on a page the
+  // viewer has already favourited.
+  useEffect(() => {
+    if (!currentUserId || !quest.business_id) return;
+    let cancelled = false;
+    (async () => {
+      const { isBusinessFavorited } = await import("@/lib/data/businessFavorites");
+      const fav = await isBusinessFavorited(supabase, currentUserId, quest.business_id!);
+      if (!cancelled) setFavorited(fav);
+    })();
+    return () => { cancelled = true; };
+  }, [currentUserId, quest.business_id, supabase]);
+
+  // The in-card join button is the primary one; the sticky bar is a fallback
+  // that only appears once that button has scrolled out of view, so the two
+  // are never on screen together.
+  const joinRef = useRef<HTMLDivElement | null>(null);
+  const [showStickyJoin, setShowStickyJoin] = useState(false);
+
+  useEffect(() => {
+    const el = joinRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyJoin(!entry.isIntersecting),
+      { rootMargin: "-80px 0px 0px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [tab]);
+
+  // Live participant count. The trigger on quest_participants keeps
+  // quests.participant_count true, so listening to that one row is cheaper and
+  // simpler than recounting on every join.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`quest-participants-${quest.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "quests", filter: `id=eq.${quest.id}` },
+        (payload) => {
+          const next = (payload.new as { participant_count?: number } | null)?.participant_count;
+          if (typeof next === "number") setParticipantCount(next);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [quest.id, supabase]);
+
+  const toggleFavorite = useCallback(async () => {
+    if (!currentUserId || !quest.business_id) return;
+
+    // Flip immediately so the tap feels instant, and roll back if the write
+    // fails — a heart that lies is worse than one that is slow.
+    const next = !favorited;
+    setFavorited(next);
+    setFavoriting(true);
+    try {
+      const { favoriteBusiness, unfavoriteBusiness } = await import(
+        "@/lib/data/businessFavorites"
+      );
+      const { error } = next
+        ? await favoriteBusiness(supabase, currentUserId, quest.business_id)
+        : await unfavoriteBusiness(supabase, currentUserId, quest.business_id);
+      if (error) setFavorited(!next);
+    } catch {
+      setFavorited(!next);
+    } finally {
+      setFavoriting(false);
+    }
+  }, [currentUserId, quest.business_id, favorited, supabase]);
+
   const handleShare = useCallback(async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
     try {
@@ -290,7 +332,7 @@ export default function BusinessQuestDetailClient({
   /* ── Render ─────────────────────────────────────────────────────────── */
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] pb-24">
+    <div className="min-h-screen bg-[#F7F8FA] pb-24 pb-bottom-nav">
 
       {/* ── Top bar ─────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-200 pt-safe">
@@ -312,6 +354,26 @@ export default function BusinessQuestDetailClient({
             </span>
           )}
           <button
+            onClick={toggleFavorite}
+            disabled={favoriting || !currentUserId || !quest.business_id}
+            aria-pressed={favorited}
+            aria-label={favorited ? "Unfollow this business" : "Follow this business for new quests"}
+            title={
+              !currentUserId
+                ? "Sign in to follow this business"
+                : favorited
+                  ? `You'll be notified about new quests from ${businessName}`
+                  : `Get notified when ${businessName} posts a new quest`
+            }
+            className={`h-9 w-9 rounded-xl border flex items-center justify-center transition-colors disabled:opacity-50 ${
+              favorited
+                ? "border-rose-200 bg-rose-50 text-rose-600"
+                : "border-gray-200 hover:bg-gray-50 text-gray-700"
+            }`}
+          >
+            <Heart size={15} className={favorited ? "fill-rose-500 text-rose-500" : ""} />
+          </button>
+          <button
             onClick={handleShare}
             className="h-9 px-3 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 hidden sm:flex items-center gap-1.5 transition-colors"
           >
@@ -332,7 +394,7 @@ export default function BusinessQuestDetailClient({
         </div>
       </header>
 
-      <div className="max-w-[1400px] mx-auto px-5 lg:px-8 py-6">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-5 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
 
           {/* ── Main column ──────────────────────────────────────────── */}
@@ -384,54 +446,59 @@ export default function BusinessQuestDetailClient({
                   </p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-1">
-                  {locationLine && (
-                    <span className="flex items-center gap-1.5 text-sm text-gray-200">
-                      <MapPin size={14} className="shrink-0" /> {locationLine}
-                    </span>
-                  )}
-                  {quest.start_date && quest.end_date && (
-                    <span className="flex items-center gap-1.5 text-sm text-gray-200">
-                      <Calendar size={14} className="shrink-0" />
-                      {formatDate(quest.start_date)} – {formatDate(quest.end_date)}
-                    </span>
-                  )}
-                  {days != null && (
-                    <span className="flex items-center gap-1.5 text-sm font-semibold text-white bg-white/15 border border-white/20 px-2.5 py-0.5 rounded-full">
-                      <Clock size={13} /> {days} Days
-                    </span>
-                  )}
-                </div>
+                {/* Location, dates and duration deliberately left out of the
+                    hero — they already appear in the details list further down,
+                    and repeating them here crowded the title. */}
               </div>
             </section>
 
-            {/* At-a-glance stats — the three numbers that decide whether to join */}
-            <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {reward && (
-                <StatPill
-                  icon={Trophy} tone="amber"
-                  value={reward.perWinner ?? reward.headline}
-                  label={reward.subline ?? "Reward"}
-                />
+            {/* Two facts decide whether someone joins: how many people are
+                already in, and how long is left. Everything else was noise. */}
+            <section className="bg-white rounded-2xl border border-gray-200 px-4 sm:px-5 py-3.5 flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2">
+              {isLive && (
+                <span className="flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 px-2.5 py-1">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+                  </span>
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-green-700">
+                    Live
+                  </span>
+                </span>
               )}
-              <StatPill
-                icon={Users} tone="blue"
-                value={quest.participant_count.toLocaleString("en-IN")}
-                label="Participants"
-              />
-              <StatPill
-                icon={Calendar} tone="violet"
-                value={
-                  quest.start_date && quest.end_date
-                    ? `${formatShort(quest.start_date)} – ${formatShort(quest.end_date)}`
-                    : days != null ? `${days} Days` : "—"
-                }
-                label={
-                  daysLeft != null
-                    ? daysLeft > 0 ? `Ends in ${daysLeft} days` : "Ended"
-                    : "Duration"
-                }
-              />
+
+              <span className="flex items-center gap-2">
+                <Users size={16} className="text-blue-600 shrink-0" />
+                <span className="text-sm text-gray-700">
+                  <strong className="text-gray-900 font-bold tabular-nums">
+                    {formatCount(participantCount)}
+                  </strong>{" "}
+                  {participantCount === 1 ? "participant" : "participants"}
+                </span>
+              </span>
+
+              {quest.end_date && (
+                <span className="flex items-center gap-2">
+                  <Calendar size={16} className="text-violet-600 shrink-0" />
+                  <span className="text-sm text-gray-700">
+                    {daysLeft != null && daysLeft <= 0 ? (
+                      <strong className="text-gray-500 font-semibold">Closed</strong>
+                    ) : (
+                      <>
+                        Register by{" "}
+                        <strong className="text-gray-900 font-bold">
+                          {formatShort(quest.end_date)}
+                        </strong>
+                        {daysLeft != null && (
+                          <span className={daysLeft <= 3 ? "text-rose-600 font-semibold" : "text-gray-500"}>
+                            {" "}· {daysLeft === 1 ? "1 day left" : `${daysLeft} days left`}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </span>
+                </span>
+              )}
             </section>
 
             {/* Progress — always visible, not buried in the right rail */}
@@ -486,7 +553,11 @@ export default function BusinessQuestDetailClient({
                   quest={quest}
                   days={days}
                   locationLine={locationLine}
-                  reward={reward}
+                  joined={hasJoined}
+                  onJoin={handleJoin}
+                  joining={joining}
+                  ended={isEnded}
+                  joinRef={joinRef}
                 />
                 <TaskSection
                   tasks={tasks}
@@ -496,6 +567,7 @@ export default function BusinessQuestDetailClient({
                   loading={loading}
                   joined={hasJoined}
                   platforms={quest.order_platforms}
+                  isLive={isLive}
                 />
                 <VerificationStepper />
               </>
@@ -512,10 +584,13 @@ export default function BusinessQuestDetailClient({
                   loading={loading}
                   joined={hasJoined}
                   platforms={quest.order_platforms}
+                  isLive={isLive}
                 />
                 <VerificationStepper />
               </>
             )}
+
+            {tab === "rewards" && <RewardsPanel rewards={quest.rewards} />}
 
             {/* ── Leaderboard ───────────────────────────────────────── */}
             {tab === "leaderboard" && (
@@ -578,18 +653,6 @@ export default function BusinessQuestDetailClient({
               verified={isVerifiedBiz}
               questId={quest.id}
             />
-            <RewardCard
-              reward={reward}
-              joined={hasJoined}
-              onJoin={handleJoin}
-              joining={joining}
-              ended={isEnded}
-            />
-            <QuestProgressCard
-              completed={completedCount}
-              total={totalTasks}
-              joined={hasJoined}
-            />
             <LeaderboardPreviewCard
               rows={leaderboard}
               totalTasks={totalTasks}
@@ -646,47 +709,51 @@ export default function BusinessQuestDetailClient({
           }}
         />
       )}
+
+      {/* Sticky join bar. Appears only once the in-card button has scrolled
+          past, so the action is always reachable without ever duplicating it
+          on screen. Hidden entirely once joined or ended — a bar that says
+          nothing actionable is just a strip of wasted screen. */}
+      {showStickyJoin && !hasJoined && !isEnded && (
+        <div className="fixed above-bottom-nav z-40 border-t border-gray-200 bg-white/95 backdrop-blur-sm pb-safe">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-5 lg:px-8 py-3 flex items-center gap-4">
+            <div className="min-w-0 flex-1 hidden sm:block">
+              <p className="text-sm font-bold text-gray-900 truncate">{quest.title}</p>
+              <p className="text-xs text-gray-500">
+                {formatCount(participantCount)} joined
+                {daysLeft != null && daysLeft > 0 && ` · ${daysLeft} days left`}
+              </p>
+            </div>
+            <button
+              onClick={handleJoin}
+              disabled={joining}
+              className="h-11 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm transition-colors w-full sm:w-auto"
+            >
+              {joining ? "Joining…" : "Join Quest"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 /* ── Stat pill ─────────────────────────────────────────────────────────── */
 
-const PILL_TONE = {
-  amber:  { wrap: "bg-amber-50 border-amber-100",   icon: "text-amber-500" },
-  blue:   { wrap: "bg-blue-50 border-blue-100",     icon: "text-blue-600" },
-  violet: { wrap: "bg-violet-50 border-violet-100", icon: "text-violet-600" },
-} as const;
-
-function StatPill({
-  icon: Icon, value, label, tone,
-}: {
-  icon: typeof Trophy;
-  value: string;
-  label: string;
-  tone: keyof typeof PILL_TONE;
-}) {
-  const t = PILL_TONE[tone];
-  return (
-    <div className={`rounded-2xl border px-4 py-3.5 flex items-center gap-3 ${t.wrap}`}>
-      <Icon size={20} className={`${t.icon} shrink-0`} aria-hidden="true" />
-      <div className="min-w-0">
-        <p className="text-[15px] font-bold text-gray-900 leading-tight truncate">{value}</p>
-        <p className="text-[11px] text-gray-500 truncate">{label}</p>
-      </div>
-    </div>
-  );
-}
-
 /* ── About this Quest ──────────────────────────────────────────────────── */
 
 function AboutQuestCard({
-  quest, days, locationLine, reward,
+  quest, days, locationLine, joined, onJoin, joining, ended, joinRef,
 }: {
   quest: BusinessQuestDetail;
   days: number | null;
   locationLine: string | null;
-  reward: RewardSummary | null;
+  joined: boolean;
+  onJoin: () => void;
+  joining: boolean;
+  ended: boolean;
+  /** Watched by the page so the sticky bar appears once this scrolls away. */
+  joinRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const gallery = quest.tasks
     .map((t) => ({ url: t.image_url, label: t.title }))
@@ -697,19 +764,43 @@ function AboutQuestCard({
     quest.category ? { k: "Category", v: quest.category } : null,
     locationLine ? { k: "Location", v: locationLine } : null,
     days != null ? { k: "Duration", v: `${days} Days` } : null,
-    reward
-      ? {
-          k: "Reward",
-          v: reward.subline
-            ? `${reward.subline.replace(/^For /, "")} — ${reward.perWinner ?? reward.headline}`
-            : reward.headline,
-        }
+    // Reward moved to its own tab; the dates are what people actually ask for
+    // when deciding whether they still have time.
+    quest.start_date && quest.end_date
+      ? { k: "Timeline", v: `${formatShort(quest.start_date)} – ${formatShort(quest.end_date)}` }
       : null,
   ].filter(Boolean) as { k: string; v: string }[];
 
   return (
     <section className="bg-white rounded-2xl border border-gray-200 p-6">
-      <h2 className="text-[17px] font-bold text-gray-900">About This Quest</h2>
+      {/* The action sits on the heading row, top-right, so it is the first
+          thing in reach rather than something to scroll past the facts for. */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <h2 className="text-[17px] font-bold text-gray-900">About This Quest</h2>
+
+        <div ref={joinRef} className="shrink-0 w-full sm:w-auto">
+          {ended ? (
+            <button
+              disabled
+              className="h-10 px-6 rounded-xl bg-gray-100 text-gray-400 font-bold text-sm cursor-not-allowed w-full sm:w-auto"
+            >
+              Quest Ended
+            </button>
+          ) : joined ? (
+            <div className="inline-flex h-10 px-5 rounded-xl bg-green-50 border border-green-200 text-green-700 font-bold text-sm items-center justify-center gap-2 w-full sm:w-auto">
+              <ShieldCheck size={16} /> You&apos;ve Joined
+            </div>
+          ) : (
+            <button
+              onClick={onJoin}
+              disabled={joining}
+              className="h-10 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm transition-colors w-full sm:w-auto"
+            >
+              {joining ? "Joining…" : "Join Quest"}
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-6 mt-3">
         <div className="min-w-0">
@@ -752,7 +843,7 @@ function AboutQuestCard({
 /* ── Task list ─────────────────────────────────────────────────────────── */
 
 function TaskSection({
-  tasks, completedTaskIds, verifications, onProof, loading, joined, platforms,
+  tasks, completedTaskIds, verifications, onProof, loading, joined, platforms, isLive,
 }: {
   tasks: BusinessQuestDetail["tasks"];
   completedTaskIds: Set<string>;
@@ -761,6 +852,7 @@ function TaskSection({
   loading: boolean;
   joined: boolean;
   platforms: OrderPlatformLink[] | null;
+  isLive: boolean;
 }) {
   if (tasks.length === 0) return null;
 
@@ -795,6 +887,7 @@ function TaskSection({
             loading={loading}
             joined={joined}
             platforms={platforms}
+            isLive={isLive}
           />
         ))}
       </ul>
@@ -803,7 +896,7 @@ function TaskSection({
 }
 
 function TaskCard({
-  task, index, completed, verification, onProof, loading, joined, platforms,
+  task, index, completed, verification, onProof, loading, joined, platforms, isLive,
 }: {
   task: BusinessQuestDetail["tasks"][number];
   index: number;
@@ -813,14 +906,15 @@ function TaskCard({
   loading: boolean;
   joined: boolean;
   platforms: OrderPlatformLink[] | null;
+  /** The quest is open for submissions right now. */
+  isLive: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+
   const proofLabel = PROOF_LABEL[task.proof_type] ?? task.proof_type;
-  // Only order_verification tasks are fulfilled through an ordering platform.
   const showPlatforms =
     task.proof_type === "order_verification" && (platforms?.length ?? 0) > 0;
 
-  // The status line reflects where this task actually stands, so a user who
-  // walks away mid-flow can see what is waiting on whom.
   const state = completed
     ? { label: "Verified Order", cls: "text-green-700 bg-green-50 border-green-200", Icon: CheckCircle2 }
     : verification?.status === "order_verified"
@@ -829,17 +923,34 @@ function TaskCard({
         ? { label: "Awaiting business", cls: "text-amber-700 bg-amber-50 border-amber-200", Icon: Clock }
         : null;
 
-  return (
-    <li className="group rounded-2xl border border-gray-200 hover:border-gray-300 bg-white transition-colors">
-      <div className="flex items-center gap-4 p-4">
+  // Why the upload button is unavailable, checked in the order a user hits them.
+  // Tasks are deliberately NOT sequential: someone may be able to do task 3
+  // today and task 1 tomorrow, and forcing an order would just block them.
+  const blockedReason = !joined
+    ? "Join the Quest to start"
+    : !isLive
+      ? "This Quest is closed"
+      : null;
 
-        {/* Number */}
-        <span className="w-7 h-7 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center shrink-0">
-          {index}
+  return (
+    <li className="rounded-2xl border border-gray-200 bg-white transition-colors hover:border-gray-300">
+      {/* Below sm the row would be number + thumb + text + two buttons on a
+          375px screen, which overflows. Actions drop to their own full-width
+          row instead of being squeezed. */}
+      <div className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
+
+        <span
+          className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
+            completed ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+          }`}
+        >
+          {completed ? <Check size={14} strokeWidth={3} /> : index}
         </span>
 
-        {/* Thumbnail */}
-        <div className="w-[72px] h-[72px] rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0 flex items-center justify-center">
+        <div
+          className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0 flex items-center justify-center"
+        >
           {task.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={task.image_url} alt="" className="w-full h-full object-cover" />
@@ -848,84 +959,317 @@ function TaskCard({
           )}
         </div>
 
-        {/* Body */}
+        {/* Title plus one status line. Every other chip moved into View Details
+            so the row stays scannable. */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-[15px] font-bold text-gray-900 truncate">{task.title}</h3>
-            <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
-                task.is_required
-                  ? "text-red-600 bg-red-50 border-red-100"
-                  : "text-gray-500 bg-gray-50 border-gray-200"
-              }`}
-            >
-              {task.is_required ? "Required" : "Optional"}
-            </span>
-          </div>
-
+          <h3 className="text-[15px] font-bold text-gray-900 truncate">{task.title}</h3>
           {task.description && (
-            <p className="text-sm text-gray-500 leading-relaxed mt-1 line-clamp-2">
+            <p className="text-sm text-gray-500 leading-relaxed mt-0.5 line-clamp-1">
               {task.description}
             </p>
           )}
-
-          <div className="flex items-center gap-2 flex-wrap mt-2">
-            <span className="text-[11px] font-medium text-gray-400">
-              Proof Type: <span className="text-gray-600">{proofLabel}</span>
-            </span>
-            {showPlatforms && platforms!.map((p) => (
-              p.url ? (
-                <a
-                  key={p.platform}
-                  href={p.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  {p.label} <ExternalLink size={9} />
-                </a>
-              ) : (
+          {(state || blockedReason) && (
+            <div className="mt-1.5">
+              {state ? (
                 <span
-                  key={p.platform}
-                  className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600"
+                  className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${state.cls}`}
                 >
-                  {p.label}
+                  <state.Icon size={11} /> {state.label}
                 </span>
-              )
-            ))}
-            {state && (
-              <span
-                className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${state.cls}`}
-              >
-                <state.Icon size={11} /> {state.label}
-              </span>
-            )}
-          </div>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-500">
+                  <Lock size={10} /> {blockedReason}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
         </div>
 
-        {/* Action */}
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            className="flex-1 sm:flex-none justify-center h-9 px-3.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-bold text-gray-700 flex items-center gap-1.5 transition-colors"
+          >
+            View Details
+            <ChevronDown size={14} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+          </button>
+
           {completed ? (
-            <span className="h-9 px-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-xs font-bold flex items-center gap-1.5">
+            <span className="flex-1 sm:flex-none justify-center h-9 px-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-xs font-bold flex items-center gap-1.5">
               <Check size={14} /> Completed
             </span>
           ) : (
             <button
               onClick={onProof}
-              disabled={loading}
-              className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+              disabled={loading || Boolean(blockedReason)}
+              title={blockedReason ?? undefined}
+              className="flex-1 sm:flex-none justify-center h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
             >
-              {loading
-                ? <Loader2 size={14} className="animate-spin" />
-                : <Upload size={14} />}
-              {joined ? "Upload Proof" : "Join to Start"}
+              {loading ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : blockedReason ? (
+                <Lock size={14} />
+              ) : (
+                <Upload size={14} />
+              )}
+              Upload Proof
             </button>
           )}
-          <ChevronRight size={18} className="text-gray-300 hidden sm:block" aria-hidden="true" />
         </div>
       </div>
+
+      {/* Everything needed to actually do the task. */}
+      {open && (
+        <div className="border-t border-gray-100 px-4 py-4 bg-gray-50/60 rounded-b-2xl space-y-3">
+          {task.description && (
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-1">
+                What to do
+              </p>
+              <p className="text-sm text-gray-700 leading-relaxed">{task.description}</p>
+            </div>
+          )}
+
+          {task.instructions && (
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-1">
+                Instructions
+              </p>
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                {task.instructions}
+              </p>
+            </div>
+          )}
+
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-1.5">
+              Requirements
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  task.is_required
+                    ? "text-red-600 bg-red-50 border-red-100"
+                    : "text-gray-500 bg-gray-50 border-gray-200"
+                }`}
+              >
+                {task.is_required ? "Required" : "Optional"}
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-white text-gray-600">
+                {proofLabel}
+              </span>
+            </div>
+          </div>
+
+          {showPlatforms && (
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-1.5">
+                Where to order
+              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                {platforms!.map((pl) =>
+                  pl.url ? (
+                    <a
+                      key={pl.platform}
+                      href={pl.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      {pl.label} <ExternalLink size={11} />
+                    </a>
+                  ) : (
+                    <span
+                      key={pl.platform}
+                      className="inline-flex items-center h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-500"
+                    >
+                      {pl.label}
+                    </span>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </li>
+  );
+}
+
+/* ── Rewards panel ─────────────────────────────────────────────────────── */
+
+/** "Winner", "Top 10", "Ranks 4–10" — however the business sliced it. */
+function rankLabel(from: number | null, to: number | null): string {
+  if (from == null && to == null) return "All participants";
+  if (from == null) return `Up to rank ${to}`;
+  if (to == null || to === from) {
+    if (from === 1) return "Winner";
+    if (from === 2) return "1st runner-up";
+    if (from === 3) return "2nd runner-up";
+    return `Rank ${from}`;
+  }
+  if (from === 1) return `Top ${to}`;
+  return `Ranks ${from}–${to}`;
+}
+
+/** How many people this tier pays out to, when the range says so. */
+function winnerCount(from: number | null, to: number | null): number | null {
+  if (from == null || to == null) return null;
+  const n = to - from + 1;
+  return n > 0 ? n : null;
+}
+
+/**
+ * Parses a rupee figure out of a free-text value so the pool can be totalled.
+ * Returns null for anything non-numeric ("A free meal") — a pool is only shown
+ * when it can actually be computed, never guessed.
+ */
+function parseAmount(value: string | null): number | null {
+  if (!value) return null;
+  const m = value.replace(/,/g, "").match(/(\d+(?:\.\d+)?)/);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isFinite(n) ? n : null;
+}
+
+function RewardsPanel({ rewards }: { rewards: BusinessQuestDetail["rewards"] }) {
+  if (rewards.length === 0) {
+    return (
+      <section className="bg-white rounded-2xl border border-gray-200 p-6">
+        <h2 className="text-[17px] font-bold text-gray-900">Rewards</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          This Quest doesn&apos;t have any rewards listed yet.
+        </p>
+      </section>
+    );
+  }
+
+  // Highest tier first, so the headline prize leads.
+  const tiers = [...rewards].sort(
+    (a, b) => (a.rank_from ?? 9999) - (b.rank_from ?? 9999)
+  );
+
+  let totalPool = 0;
+  let poolComplete = true;
+  let totalWinners = 0;
+  let winnersComplete = true;
+
+  for (const r of tiers) {
+    const amount = parseAmount(r.value);
+    const count = winnerCount(r.rank_from, r.rank_to);
+    if (amount != null && count != null) totalPool += amount * count;
+    else poolComplete = false;
+    if (count != null) totalWinners += count;
+    else winnersComplete = false;
+  }
+
+  return (
+    <section className="bg-white rounded-2xl border border-gray-200 p-6">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-[17px] font-bold text-gray-900">Rewards</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            What you get for finishing, and how it&apos;s split.
+          </p>
+        </div>
+
+        {/* Only stated when every tier gave a number — a partial total would
+            understate the prize and read as a mistake. */}
+        {poolComplete && totalPool > 0 && (
+          <div className="text-right">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
+              Total pool
+            </p>
+            <p className="text-[22px] font-bold text-gray-900 leading-tight">
+              ₹{totalPool.toLocaleString("en-IN")}
+            </p>
+            {winnersComplete && totalWinners > 0 && (
+              <p className="text-[11px] text-gray-500">
+                across {totalWinners} {totalWinners === 1 ? "winner" : "winners"}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      <ul className="flex flex-col gap-3 mt-5">
+        {tiers.map((r, i) => {
+          const count = winnerCount(r.rank_from, r.rank_to);
+          const amount = parseAmount(r.value);
+          const tierPool = amount != null && count != null ? amount * count : null;
+          const isTop = i === 0;
+
+          return (
+            <li
+              key={r.id}
+              className={`rounded-2xl border p-4 flex items-start sm:items-center gap-3 sm:gap-4 ${
+                isTop ? "border-amber-200 bg-amber-50/50" : "border-gray-200 bg-white"
+              }`}
+            >
+              <span
+                className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 ${
+                  isTop ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                <Trophy size={20} />
+              </span>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-[15px] font-bold text-gray-900">
+                    {rankLabel(r.rank_from, r.rank_to)}
+                  </p>
+                  {count != null && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600">
+                      {count} {count === 1 ? "winner" : "winners"}
+                    </span>
+                  )}
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600 capitalize">
+                    {r.reward_type.replace(/_/g, " ")}
+                  </span>
+                </div>
+
+                <p className="text-sm text-gray-500 mt-0.5">{r.title}</p>
+
+                {r.description && (
+                  <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                    {r.description}
+                  </p>
+                )}
+              </div>
+
+              <div className="text-right shrink-0">
+                <p
+                  className={`text-[19px] font-bold leading-tight ${
+                    isTop ? "text-amber-700" : "text-gray-900"
+                  }`}
+                >
+                  {r.value ?? "—"}
+                </p>
+                <p className="text-[11px] text-gray-500">
+                  {count != null && count > 1 ? "each" : "prize"}
+                </p>
+                {tierPool != null && count != null && count > 1 && (
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    ₹{tierPool.toLocaleString("en-IN")} total
+                  </p>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {tiers.some((r) => r.is_leaderboard) && (
+        <p className="text-xs text-gray-500 mt-4 flex items-start gap-1.5">
+          <Trophy size={13} className="mt-0.5 shrink-0 text-gray-400" />
+          Ranks are decided by the leaderboard once the Quest closes. Finish the required
+          tasks to be counted.
+        </p>
+      )}
+    </section>
   );
 }
 
