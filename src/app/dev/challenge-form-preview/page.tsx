@@ -13,6 +13,10 @@ import { useState } from "react";
 import { CoverPicker } from "@/components/features/challenge/CoverPicker";
 import { CategoryPicker } from "@/components/features/challenge/CategoryPicker";
 import { ProofSummary } from "@/components/features/challenge/ProofSummary";
+import {
+  DurationPicker,
+  type DurationChoice,
+} from "@/components/features/challenge/DurationPicker";
 import { inferProof, type CoverPreset } from "@/lib/challenges/presets";
 
 const SAMPLES: [string, string][] = [
@@ -40,6 +44,7 @@ export default function ChallengeFormPreviewPage() {
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("30 Day Running Streak");
   const [override, setOverride] = useState<string | null>(null);
+  const [duration, setDuration] = useState<DurationChoice | null>(null);
 
   const inferred = inferProof(title, "", category);
 
@@ -65,6 +70,14 @@ export default function ChallengeFormPreviewPage() {
 
         <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
           <CategoryPicker value={category} onChange={setCategory} />
+        </section>
+
+        <section className="space-y-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+          <DurationPicker value={duration} onChange={setDuration} />
+          <p className="text-label-sm text-on-surface-variant" data-testid="duration-value">
+            duration_days ={" "}
+            {duration === null ? "(not chosen)" : duration.days === null ? "NULL" : duration.days}
+          </p>
         </section>
 
         <section className="space-y-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
