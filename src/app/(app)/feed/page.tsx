@@ -1,26 +1,30 @@
 /**
  * app/(app)/feed/page.tsx — Home Feed
  *
- * Server component. Three stacked sections, in deliberate order:
+ * Server component. Four stacked sections, in deliberate order:
  *
+ *   0. Active Challenges and Quests — your in-flight sprints, in a rail that
+ *      scrolls itself and loops. First on the page on purpose.
  *   1. Today's Tasks    — what YOU owe today, with a closing meter.
- *   2. Active Challenges — a swipeable carousel of your in-flight sprints.
+ *   2. People to follow — who is worth watching, once the above is handled.
  *   3. Live Cohort Proof — what everyone else is shipping.
  *
  * The order is the product thesis: the home screen is a to-do list first and a
  * social feed second. A passive wall of other people's proofs gives nobody a
- * reason to open the app on day 9; an unfinished checklist does.
+ * reason to open the app on day 9; an unfinished checklist does. Suggestions
+ * sit below the things already committed to, for the same reason.
  *
  * All counts are real. Where the design mockups showed large placeholder
  * figures ("4,821 builders grinding"), this renders actual data and leans on
  * early-adopter framing when the numbers are small.
  */
 
-import Image from "next/image";
 import Link from "next/link";
 import { Bell, ChevronRight, Flame, Trophy, User } from "lucide-react";
 import { FeedCard } from "@/components/features/FeedCard";
-import { TodaysTasks } from "@/components/features/TodaysTasks";
+import { HomeRotator } from "@/components/features/home/HomeRotator";
+import { AutoScrollRail } from "@/components/features/home/AutoScrollRail";
+import { ActiveCard } from "@/components/features/home/ActiveCard";
 import { createClient } from "@/lib/supabase/server";
 import { getFeedPosts } from "@/lib/data/feed";
 import {
@@ -29,8 +33,7 @@ import {
   pickHomeTasks,
   type TodayTask,
 } from "@/lib/data/today";
-import { getProfileSuggestions, getFacepiles, type Facepile as FacepileData } from "@/lib/data/social";
-import { Facepile } from "@/components/features/people/Facepile";
+import { getProfileSuggestions, getFacepiles } from "@/lib/data/social";
 import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAccountsRail";
 import { getCoinStateWithCheckin } from "@/lib/data/coins";
 import { CoinPill } from "@/components/features/CoinPill";
@@ -54,102 +57,6 @@ function greeting(completed: number, total: number): string {
   if (completed === total) return "Fully Locked In";
   if (completed === 0) return "Stay Locked In";
   return `${total - completed} Left Today`;
-}
-
-/* ── Active challenge card (carousel item) ───────────────────────────────── */
-/**
- * A card in the Active rail. Carries the creator's cover, because a wall of
- * identical text cards is unreadable once someone is in more than two things,
- * and the cover is how people recognise their own challenge at a glance.
- */
-function ActiveCard({ task, pile }: { task: TodayTask; pile?: FacepileData }) {
-  const isQuest = task.kind === "quest";
-  const progress =
-    task.durationDays && task.durationDays > 0
-      ? Math.min(100, Math.round((task.dayNumber / task.durationDays) * 100))
-      : 0;
-
-  return (
-    <Link
-      href={`/${isQuest ? "quests" : "challenges"}/${task.challengeId}`}
-      className="relative flex w-[280px] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-xl bg-surface-container-lowest elev-1 surface-raised"
-    >
-      <div className="relative h-28 w-full shrink-0 overflow-hidden bg-surface-container">
-        {task.thumbnailUrl ? (
-          <Image
-            src={task.thumbnailUrl}
-            alt=""
-            fill
-            sizes="280px"
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-surface-container-high">
-            <Trophy size={24} className="text-on-surface-variant opacity-40" aria-hidden="true" />
-          </div>
-        )}
-        <span className="absolute left-2 top-2 flex w-fit items-center gap-1 rounded-full bg-surface-container-lowest/90 px-2 py-0.5 text-label-sm font-medium text-on-surface backdrop-blur-sm">
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${isQuest ? "bg-tertiary-fixed" : "bg-secondary"}`}
-            aria-hidden="true"
-          />
-          {isQuest ? "Quest" : "Challenge"}
-        </span>
-      </div>
-
-      <div className="flex flex-1 flex-col justify-between gap-space-md p-space-md">
-      <div className="flex flex-col gap-space-sm">
-        <h4 className="line-clamp-2 text-headline-sm text-on-surface">{task.challengeTitle}</h4>
-      </div>
-
-      <div className="flex flex-col gap-2 pt-space-xs">
-        <div className="flex items-baseline justify-between text-label-sm">
-          <span className="font-semibold text-on-surface">
-            {isQuest ? (
-              task.dayLabel
-            ) : (
-              <>
-                Day {task.dayNumber}
-                {task.durationDays ? (
-                  <span className="font-normal text-on-surface-variant">/{task.durationDays}</span>
-                ) : null}
-              </>
-            )}
-          </span>
-          <span
-            className={
-              task.state === "done"
-                ? "font-semibold text-on-tertiary-container"
-                : "font-medium text-on-surface-variant"
-            }
-          >
-            {task.state === "done"
-              ? "Logged today"
-              : task.state === "pending"
-                ? "Verifying"
-                : "Not logged yet"}
-          </span>
-        </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container">
-          <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
-        </div>
-
-        {/* Who else is in it. The faces are the point: a card showing "12
-            joined" and a card showing three faces plus a name are the same
-            number and a different thing. */}
-        {pile && pile.total > 0 && (
-          <Facepile
-            people={pile.people}
-            total={pile.total}
-            verb="Joined by"
-            noun="person"
-            size={20}
-          />
-        )}
-      </div>
-      </div>
-    </Link>
-  );
 }
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
@@ -315,19 +222,11 @@ export default async function FeedPage() {
           </section>
         ) : null}
 
-        {/* ── 0. People to follow ─────────────────────────────────────
-            Above the fold on purpose: a habit app is only worth opening if
-            somebody can see you, and an account following nobody has nothing
-            in its feed to come back for. Skippable, and it hides itself once
-            there is nobody left to suggest. */}
-        {user && suggestions.length > 0 ? (
-          <SuggestedAccountsRail people={suggestions} viewerId={user.id} />
-        ) : null}
-
-        {/* ── 1. Today's Tasks ───────────────────────────────────────── */}
-        <TodaysTasks summary={homeSummary} questTasks={questTasks} />
-
-        {/* ── 2. Active challenges ───────────────────────────────────── */}
+        {/* ── 0. Active challenges and quests ─────────────────────────
+            CHANGED: moved up from below Today's Tasks, into the slot People
+            to follow used to hold. What someone has already committed to
+            outranks who they might follow: the rail is the reason the app
+            was opened, and it is now the first thing under the header. */}
         {activeItems.length > 0 ? (
           <section
             className="flex flex-col gap-space-sm"
@@ -351,7 +250,12 @@ export default async function FeedPage() {
               </Link>
             </div>
 
-            <div className="no-scrollbar -mx-gutter flex snap-x snap-mandatory gap-space-md overflow-x-auto px-gutter pb-2">
+            {/* CHANGED: the plain overflow container became AutoScrollRail,
+                which scrolls the row continuously and loops it without a
+                seam. Manual swiping, the links and the facepiles are
+                untouched; the rail hands control back the moment it is
+                touched, hovered or focused. */}
+            <AutoScrollRail label="Active challenges and quests">
               {activeItems.map((task) => (
                 <ActiveCard
                   key={task.key}
@@ -363,8 +267,21 @@ export default async function FeedPage() {
                   }
                 />
               ))}
-            </div>
+            </AutoScrollRail>
           </section>
+        ) : null}
+
+        {/* ── 1. Today's Tasks ───────────────────────────────────────── */}
+        <HomeRotator summary={homeSummary} questTasks={questTasks} />
+
+        {/* ── 2. People to follow ─────────────────────────────────────
+            CHANGED: moved down into the slot the Active rail used to hold.
+            Still above the feed, because an account following nobody has
+            nothing to come back for, but no longer ahead of the things the
+            person is already doing. Skippable, and it hides itself once
+            there is nobody left to suggest. */}
+        {user && suggestions.length > 0 ? (
+          <SuggestedAccountsRail people={suggestions} viewerId={user.id} />
         ) : null}
 
         {/* ── 3. Live cohort proof ───────────────────────────────────── */}

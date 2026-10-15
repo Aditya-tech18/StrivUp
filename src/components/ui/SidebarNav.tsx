@@ -8,7 +8,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BadgeCheck, BarChart3, Bell, Compass, Home, LayoutDashboard, ListChecks, MapPin, PlusSquare, ReceiptText,
+  BadgeCheck, BarChart3, Bell, Compass, Gift, Home, LayoutDashboard, ListChecks, MapPin, PlusSquare, ReceiptText,
   Search, Settings, Store, Trophy, User,
 } from "lucide-react";
 import type { LucideProps } from "lucide-react";
@@ -29,6 +29,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/quests",         icon: MapPin,     label: "Quests"  },
   { href: "/challenges/new", icon: PlusSquare, label: "Create"  },
   { href: "/creator/challenges", icon: Trophy, label: "My Challenges" },
+  { href: "/rewards",        icon: Gift,       label: "My Rewards" },
   { href: "/alerts",         icon: Bell,       label: "Alerts", showBadge: true },
   { href: "/profile",        icon: User,       label: "Profile" },
 ];

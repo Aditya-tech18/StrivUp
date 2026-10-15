@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Camera, Check, ChevronRight, Coins, Edit2, Flame,
+  Camera, Check, ChevronRight, Coins, Edit2, Flame, Gift,
   Loader2, Plus, Settings, ShieldCheck, Trash2, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -845,6 +846,30 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+
+        {/* ── My Rewards ───────────────────────────────────────────────── */}
+        {/* An entry point, not a summary. Amounts, statuses and what is
+            actually payable all live on /rewards, which reads them under RLS
+            from reward_allocations. Deliberately nothing numeric here: a
+            figure on this card would be a second place for the same money to
+            be stated, and the two would eventually disagree. */}
+        <Link
+          href="/rewards"
+          className="flex items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 shadow-[0_1px_4px_rgba(0,0,0,0.07)] transition-colors hover:bg-surface-container elev-1 surface-raised tap-target"
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10">
+            <Gift size={22} className="text-secondary" aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-body-lg font-bold tracking-[-0.01em] text-on-surface">
+              My Rewards
+            </span>
+            <span className="block text-body-sm text-on-surface-variant">
+              Cash prizes, coupons and badges you have earned
+            </span>
+          </span>
+          <ChevronRight size={20} className="shrink-0 text-on-surface-variant" aria-hidden="true" />
+        </Link>
 
         {/* ── My Posts ─────────────────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
