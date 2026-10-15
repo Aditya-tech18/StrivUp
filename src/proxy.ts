@@ -51,6 +51,11 @@ const APP_ROUTE_PREFIXES = [
   // renders the viewer's own step history, so an anonymous hit has nothing
   // legitimate to show.
   "/activity",
+  // My Rewards. Personal and money-adjacent: the pages render the viewer's
+  // own allocations, claims and payout state. /rewards/terms is public and is
+  // exempted below, because a person has to be able to read the rules before
+  // signing in, and a share or a Play listing may link straight to them.
+  "/rewards",
 ];
 
 /**
@@ -83,6 +88,17 @@ const APP_ROUTE_PREFIXES = [
  */
 const SHAREABLE_DETAIL =
   /^\/(?:challenges|quests)\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?:\/opengraph-image[^/]*)?$|^\/join\/[a-z0-9]{4,32}(?:\/opengraph-image[^/]*)?$/i;
+
+/**
+ * Routes under a gated prefix that are nonetheless public.
+ *
+ * /rewards/terms is the reward rules themselves. They have to be readable
+ * before anyone signs in: a person deciding whether to enter should be able to
+ * read the terms first, the Play listing and the in-app share links point
+ * straight at them, and a reward page that can only be read by someone already
+ * holding a reward is not disclosure. The page reads nothing user-specific.
+ */
+const PUBLIC_UNDER_GATED_PREFIX = new Set(["/rewards/terms"]);
 
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams, search, origin } = request.nextUrl;
@@ -134,7 +150,8 @@ export async function proxy(request: NextRequest) {
   // Narrows the auth redirect only. The deactivation gate below still keys on
   // isAppRoute, so a deactivated account opening a shared link is held on
   // /deactivated exactly as it was before.
-  const isPublicShare = SHAREABLE_DETAIL.test(pathname);
+  const isPublicShare =
+    SHAREABLE_DETAIL.test(pathname) || PUBLIC_UNDER_GATED_PREFIX.has(pathname);
 
   // ── 3. Auth guard ─────────────────────────────────────────────────────────
   // Carry the intended destination so an invite link survives the sign-in
