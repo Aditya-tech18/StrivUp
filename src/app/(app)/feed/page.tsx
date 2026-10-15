@@ -20,7 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Bell, ChevronRight, Flame, Trophy, User } from "lucide-react";
 import { FeedCard } from "@/components/features/FeedCard";
-import { TodaysTasks } from "@/components/features/TodaysTasks";
+import { HomeRotator } from "@/components/features/home/HomeRotator";
 import { createClient } from "@/lib/supabase/server";
 import { getFeedPosts } from "@/lib/data/feed";
 import {
@@ -72,7 +72,13 @@ function ActiveCard({ task, pile }: { task: TodayTask; pile?: FacepileData }) {
   return (
     <Link
       href={`/${isQuest ? "quests" : "challenges"}/${task.challengeId}`}
-      className="relative flex w-[280px] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-xl bg-surface-container-lowest elev-1 surface-raised"
+      /* Quests bulge, challenges do not. The rail mixes a business's paid
+         quest with the user's own challenges, and without something to
+         separate them the quest is just another card in the row. */
+      className={[
+        "relative flex w-[280px] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-xl bg-surface-container-lowest elev-1 surface-raised",
+        isQuest ? "bulge" : "",
+      ].join(" ")}
     >
       <div className="relative h-28 w-full shrink-0 overflow-hidden bg-surface-container">
         {task.thumbnailUrl ? (
@@ -325,7 +331,7 @@ export default async function FeedPage() {
         ) : null}
 
         {/* ── 1. Today's Tasks ───────────────────────────────────────── */}
-        <TodaysTasks summary={homeSummary} questTasks={questTasks} />
+        <HomeRotator summary={homeSummary} questTasks={questTasks} />
 
         {/* ── 2. Active challenges ───────────────────────────────────── */}
         {activeItems.length > 0 ? (

@@ -680,6 +680,33 @@ body {
     animation: none;
   }
 
+  /* ── Quest card bulge ──────────────────────────────────────────────────
+     A quest is a paid, time-limited thing a business is running, and it sits
+     in the same rail as the user's own challenges, where it would otherwise
+     be just another card. This swells it slightly, on a loop, so the eye
+     lands there first.
+
+     Slower and smaller than the share pulse (3.2s, 2%): this is a whole card
+     rather than a button, and the same amplitude on a 280px card reads as
+     the layout wobbling. transform only, so it composites. Hovering stops
+     it, because by then it has done its job and a moving target is a worse
+     thing to aim at. */
+  @keyframes card-bulge {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.02); }
+  }
+
+  .bulge {
+    animation: card-bulge 3.2s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+    will-change: transform;
+  }
+  .bulge:hover,
+  .bulge:focus-within {
+    animation: none;
+    transform: scale(1.02);
+    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   /* Frosted layer for sticky headers. backdrop-filter is the one expensive
      property here, so it is opt-in per element rather than applied broadly,
      and it always has an opaque colour behind it as a fallback. */
@@ -868,6 +895,7 @@ body {
   .pop-press, .pop-press:hover, .pop-press:active { transform: none; }
   /* A looping attention-getter is exactly what this setting asks us to stop. */
   .pop-press.share-pulse { animation: none; }
+  .bulge, .bulge:hover { animation: none; transform: none; }
   .lift:hover  { transform: none; }
   .lift:active { transform: none; }
   .pressable:active { transform: none; }

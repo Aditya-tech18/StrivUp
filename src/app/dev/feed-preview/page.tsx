@@ -19,6 +19,7 @@ import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAcc
 import type { SuggestedProfile, PersonCard } from "@/lib/data/social";
 import { Facepile } from "@/components/features/people/Facepile";
 import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
+import { HomeRotator } from "@/components/features/home/HomeRotator";
 
 function task(over: Partial<TodayTask> & { key: string }): TodayTask {
   return {
@@ -204,6 +205,22 @@ export default function FeedPreviewPage() {
             Fabricated data. Not reachable in production.
           </p>
         </header>
+
+        <section className="flex flex-col gap-space-sm">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">
+              Rotator: banner, quests, challenges
+            </h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Three seconds each, looping. Touching it stops the rotation for
+              the rest of the visit.
+            </p>
+          </div>
+          <HomeRotator
+            summary={summary({ tasks: pickHomeTasks(MANY), total: 3, completed: 0, percent: 0 })}
+            questTasks={QUEST_TASKS}
+          />
+        </section>
 
         <section className="flex flex-col gap-space-sm">
           <div className="border-l-2 border-secondary pl-space-sm">
