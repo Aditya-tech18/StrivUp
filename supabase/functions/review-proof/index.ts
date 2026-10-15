@@ -332,21 +332,67 @@ Deno.serve(async (req) => {
       proof_methods: string[] | null;
     } | null;
 
+    /* An explicit per-task spec, if the creator defined one. This is the same
+       list the participant was shown before uploading (see
+       src/components/features/proof/ProofRequirementsNotice.tsx), so the model
+       is held to exactly what they were promised — not to its own taste. */
+    let spec: {
+      activity_label: string;
+      required_elements: string[];
+      optional_elements: string[];
+      reject_if: string[];
+    } | null = null;
+
+    if (submission.task_id) {
+      const { data: req } = await supabase
+        .from("proof_requirements")
+        .select("activity_label, required_elements, optional_elements, reject_if")
+        .eq("challenge_task_id", submission.task_id)
+        .maybeSingle();
+      if (req && Array.isArray(req.required_elements) && req.required_elements.length > 0) {
+        spec = req as typeof spec;
+      }
+    }
+
     const requirement = task
       ? `Task: "${task.title}". ${task.description ?? ""} Expected proof type: ${task.proof_type ?? "unspecified"}.`
       : `Challenge: "${challenge?.title ?? "unknown"}" (category: ${challenge?.category ?? "unspecified"}). Expected proof: ${(challenge?.proof_methods ?? []).join(", ") || "unspecified"}.`;
 
-    const prompt = [
-      "You are checking whether a submitted photo is genuine evidence of completing a specific daily habit-challenge task.",
-      requirement,
-      "",
-      "Judge whether the image plausibly shows real evidence of this activity.",
-      "Be reasonably lenient: the goal is to catch obvious mismatches (for example a random selfie submitted for a coding challenge), not to nitpick photo quality, lighting, or framing.",
-      "",
-      "Set `matches` to true if the image is plausible evidence, false if it clearly is not.",
-      "Set `confidence` to how certain you are of that judgement, from 0 to 1. Use a value below 0.6 only when you genuinely cannot tell — those cases go to a human reviewer.",
-      "Keep `reasoning` to one short sentence, written so the participant can read it.",
-    ].join("\n");
+    const prompt = spec
+      ? [
+          "You are checking whether a submitted image is genuine evidence that someone completed a specific task.",
+          requirement,
+          "",
+          `The participant said they would do: ${spec.activity_label}.`,
+          "",
+          "The image MUST show ALL of:",
+          ...spec.required_elements.map((r) => `  - ${r}`),
+          ...(spec.optional_elements.length > 0
+            ? ["", "These strengthen the proof but are not required:", ...spec.optional_elements.map((o) => `  - ${o}`)]
+            : []),
+          ...(spec.reject_if.length > 0
+            ? ["", "Reject the proof if it is only one of these:", ...spec.reject_if.map((r) => `  - ${r}`)]
+            : []),
+          "",
+          "Judge against the required list, not against whether the image looks nice or merely related.",
+          "An image that is about the right topic but misses a required element is NOT proof — set `matches` to false.",
+          "",
+          "Set `confidence` from 0 to 1. Use below 0.6 only when you genuinely cannot tell whether a required element is present — those go to a human reviewer.",
+          "In `reasoning`, name the specific required element that was missing or satisfied, in one short sentence the participant can read.",
+        ].join("\n")
+      : [
+          // No spec defined for this task — fall back to the original, lenient
+          // judgement rather than inventing requirements the creator never set.
+          "You are checking whether a submitted photo is genuine evidence of completing a specific daily habit-challenge task.",
+          requirement,
+          "",
+          "Judge whether the image plausibly shows real evidence of this activity.",
+          "Be reasonably lenient: the goal is to catch obvious mismatches (for example a random selfie submitted for a coding challenge), not to nitpick photo quality, lighting, or framing.",
+          "",
+          "Set `matches` to true if the image is plausible evidence, false if it clearly is not.",
+          "Set `confidence` to how certain you are of that judgement, from 0 to 1. Use a value below 0.6 only when you genuinely cannot tell — those cases go to a human reviewer.",
+          "Keep `reasoning` to one short sentence, written so the participant can read it.",
+        ].join("\n");
 
     const aiResponse = await fetch(GEMINI_ENDPOINT, {
       method: "POST",

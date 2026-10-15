@@ -4,9 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 /**
  * GET /api/activity/today?tz=Asia/Kolkata
  *
- * Today's stored step count. The in-app counter calls this on mount so it
- * resumes from where the user left off instead of restarting at zero after a
- * page reload.
+ * Today's stored step count and GPS distance. The in-app counter calls this on
+ * mount so it resumes from where the user left off instead of restarting at
+ * zero after a page reload.
  *
  * Deliberately uses the normal authenticated client, not the service role:
  * `activity_records` already has an RLS policy letting a user read their own
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase
     .from("activity_records")
-    .select("steps")
+    .select("steps, distance_m")
     .eq("user_id", user.id)
     .eq("activity_type", "steps")
     .eq("local_date", today)
@@ -41,12 +41,17 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error("[GET /api/activity/today]", error.message);
-    return NextResponse.json({ steps: 0, timezone });
+    return NextResponse.json({ steps: 0, distance_m: 0, timezone });
   }
 
   /* Several sources can report the same day; resume from the largest so the
-     counter never appears to lose progress. */
-  const steps = (data ?? []).reduce((max, r) => Math.max(max, (r.steps as number) ?? 0), 0);
+     counter never appears to lose progress. Steps and distance are maxed
+     independently — one source may carry a step count with no GPS distance
+     and another the reverse, and taking both from whichever row won on steps
+     would silently discard the other's measurement. */
+  const rows = data ?? [];
+  const steps = rows.reduce((max, r) => Math.max(max, (r.steps as number) ?? 0), 0);
+  const distance = rows.reduce((max, r) => Math.max(max, Number(r.distance_m ?? 0)), 0);
 
-  return NextResponse.json({ steps, timezone });
+  return NextResponse.json({ steps, distance_m: distance, timezone });
 }

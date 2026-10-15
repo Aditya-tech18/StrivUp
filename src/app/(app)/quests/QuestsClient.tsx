@@ -21,6 +21,13 @@ import { createClient } from "@/lib/supabase/client";
 import { Badge, Card, MobileMenu } from "@/components/ui";
 import type { Quest } from "@/lib/data/quests";
 import { sortQuestsByDistance } from "@/lib/data/quests";
+import {
+  GeoError,
+  clearCachedFix,
+  formatDistance,
+  geoErrorMessage,
+  getFixCached,
+} from "@/lib/location/geo";
 
 interface QuestsClientProps {
   initialHotQuests: Quest[];
@@ -29,6 +36,10 @@ interface QuestsClientProps {
 }
 
 type FilterType = "trending" | "near_me" | "premium" | string;
+
+/** A quest the Near Me sort has measured. `distance` is metres, or null when
+ *  the quest carries no map pin. */
+type QuestWithDistance = Quest & { distance?: number | null };
 
 /**
  * Quest thumbnails are optional in the schema, and an <img> with src="" renders
@@ -76,7 +87,9 @@ export default function QuestsClient({
   const [supabase] = useState(() => createClient());
 
   const [activeFilter, setActiveFilter] = useState<FilterType>("trending");
-  const [questList, setQuestList] = useState<Quest[]>(initialTrendingQuests);
+  /* Distance is attached only by the Near Me sort, so it is optional here
+     rather than a second parallel list the render would have to reconcile. */
+  const [questList, setQuestList] = useState<QuestWithDistance[]>(initialTrendingQuests);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
   const [loadingNearMe, setLoadingNearMe] = useState(false);
   /* Set when Near Me ran but no quest in the list carries coordinates, so the
@@ -101,57 +114,40 @@ export default function QuestsClient({
         setQuestList(initialTrendingQuests);
       } else if (filterId === "near_me") {
         setLoadingNearMe(true);
-        if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              const { latitude, longitude } = position.coords;
-              try {
-                /* Reorders the same list Trending shows rather than running a
-                   second, narrower query, so Near Me can never surface a
-                   different set of quests. */
-                const nearbyQuests = await sortQuestsByDistance(
-                  supabase,
-                  initialTrendingQuests,
-                  latitude,
-                  longitude
-                );
-                setQuestList(nearbyQuests);
-                setUnpinnedNotice(
-                  nearbyQuests.length > 0 &&
-                    nearbyQuests.every((q) => q.distance === null)
-                );
-              } catch (err) {
-                console.error("Error fetching nearby quests:", err);
-                setGeolocationError("Failed to load nearby quests.");
-              } finally {
-                setLoadingNearMe(false);
-              }
-            },
-            (error) => {
-              setLoadingNearMe(false);
-              if (error.code === error.PERMISSION_DENIED) {
-                setGeolocationError(
-                  "Location permission denied. Enable location to see nearby quests."
-                );
-              } else if (error.code === error.POSITION_UNAVAILABLE) {
-                setGeolocationError(
-                  "Your location is unavailable. Please check your device settings."
-                );
-              } else {
-                setGeolocationError(
-                  "Unable to retrieve your location. Please try again."
-                );
-              }
-              setQuestList(initialTrendingQuests);
-              setActiveFilter("trending");
+        /* One async path for every outcome, replacing the nested success and
+           error callbacks. getFixCached also means tapping away and back does
+           not re-prompt or re-spin the radio within the cache window — the fix
+           lives in sessionStorage and never reaches the server. */
+        void (async () => {
+          try {
+            const fix = await getFixCached();
+            /* Reorders the same list Trending shows rather than running a
+               second, narrower query, so Near Me can never surface a
+               different set of quests. */
+            const nearbyQuests = await sortQuestsByDistance(
+              supabase,
+              initialTrendingQuests,
+              fix.latitude,
+              fix.longitude
+            );
+            setQuestList(nearbyQuests);
+            setUnpinnedNotice(
+              nearbyQuests.length > 0 && nearbyQuests.every((q) => q.distance === null)
+            );
+          } catch (err) {
+            if (err instanceof GeoError) {
+              if (err.kind === "denied") clearCachedFix();
+              setGeolocationError(geoErrorMessage(err));
+            } else {
+              console.error("Error fetching nearby quests:", err);
+              setGeolocationError("Failed to load nearby quests.");
             }
-          );
-        } else {
-          setGeolocationError("Geolocation is not supported on your device.");
-          setLoadingNearMe(false);
-          setQuestList(initialTrendingQuests);
-          setActiveFilter("trending");
-        }
+            setQuestList(initialTrendingQuests);
+            setActiveFilter("trending");
+          } finally {
+            setLoadingNearMe(false);
+          }
+        })();
       } else if (filterId === "premium") {
         setQuestList(initialTrendingQuests);
       } else {
@@ -320,6 +316,14 @@ export default function QuestsClient({
                           <MapPin size={14} className="shrink-0" aria-hidden="true" />
                           <span className="truncate">{quest.location_name}</span>
                         </p>
+                        {/* The sort already computed this and used to throw it
+                            away, leaving Near Me reordering the list with no
+                            visible reason. */}
+                        {typeof quest.distance === "number" && (
+                          <p className="mt-0.5 text-body-sm font-medium text-secondary">
+                            {formatDistance(quest.distance)}
+                          </p>
+                        )}
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                           <Badge variant="secondary">{quest.category}</Badge>
                           {quest.participant_count > 0 && (

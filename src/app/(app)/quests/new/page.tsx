@@ -18,6 +18,8 @@ import { createClient } from "@/lib/supabase/client";
 import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { Button, Card, Input } from "@/components/ui";
 import { createQuest, type CreateQuestInput } from "@/lib/data/quests";
+import { LocationPinPicker } from "@/components/features/quest/LocationPinPicker";
+import { isValidCoordinate } from "@/lib/location/geo";
 
 export default function CreateQuestPage() {
   const router = useRouter();
@@ -97,10 +99,16 @@ export default function CreateQuestPage() {
         return;
       }
 
+      /* The pin is optional — the column is nullable and most live quests have
+         none. It is validated only when supplied, so a half-filled pair is
+         caught but an empty one is simply a quest without a pin. */
+      const hasAnyCoord = latitude.trim() !== "" || longitude.trim() !== "";
       const lat = parseFloat(latitude);
       const lon = parseFloat(longitude);
-      if (isNaN(lat) || isNaN(lon)) {
-        setError("Latitude and longitude must be valid numbers.");
+      if (hasAnyCoord && !isValidCoordinate(lat, lon)) {
+        setError(
+          "That map pin isn't valid. Use the location button, fill in both fields, or clear them both."
+        );
         return;
       }
 
@@ -149,8 +157,8 @@ export default function CreateQuestPage() {
             category: category.trim(),
             business_name: businessName.trim(),
             location_name: locationName.trim(),
-            latitude: lat,
-            longitude: lon,
+            latitude: hasAnyCoord ? lat : null,
+            longitude: hasAnyCoord ? lon : null,
             reward_description: rewardDescription.trim(),
             proof_type: proofType,
             thumbnail_url: thumbnailUrl,
@@ -280,32 +288,16 @@ export default function CreateQuestPage() {
             />
           </Card>
 
-          {/* Latitude & Longitude */}
-          <Card bordered padding="md" className="space-y-3">
-            <p className="text-overline text-on-surface-variant">
-              Coordinates
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <input aria-label="Latitude"
-                type="number"
-                placeholder="Latitude"
-                step="0.0001"
-                value={latitude}
-                onChange={(e) => setLatitude(e.target.value)}
-                className="w-full text-body-md rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
-              />
-              <input aria-label="Longitude"
-                type="number"
-                placeholder="Longitude"
-                step="0.0001"
-                value={longitude}
-                onChange={(e) => setLongitude(e.target.value)}
-                className="w-full text-body-md rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2 text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
-              />
-            </div>
-            <p className="text-body-sm text-on-surface-variant text-xs">
-              Enter decimal coordinates (e.g., 40.7829 for latitude)
-            </p>
+          {/* Map pin */}
+          <Card bordered padding="md">
+            <LocationPinPicker
+              latitude={latitude}
+              longitude={longitude}
+              onChange={({ latitude: nextLat, longitude: nextLon }) => {
+                setLatitude(nextLat);
+                setLongitude(nextLon);
+              }}
+            />
           </Card>
 
           {/* Reward Description */}

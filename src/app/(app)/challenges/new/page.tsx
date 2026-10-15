@@ -38,6 +38,10 @@ import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { ensureInviteCode, inviteUrl } from "@/lib/data/invites";
 import { CoverPicker } from "@/components/features/challenge/CoverPicker";
 import { CategoryPicker } from "@/components/features/challenge/CategoryPicker";
+import {
+  DurationPicker,
+  type DurationChoice,
+} from "@/components/features/challenge/DurationPicker";
 import { ProofSummary } from "@/components/features/challenge/ProofSummary";
 import {
   coverToFile,
@@ -52,13 +56,20 @@ import {
   type PhysicalConfigDraft,
 } from "@/components/features/activity/PhysicalActivityConfigFields";
 import { upsertChallengeTaskActivityConfig } from "@/lib/data/activity";
+import {
+  ProofRequirementPicker,
+  type ProofRequirementDraft,
+} from "@/components/features/proof/ProofRequirementPicker";
+import { upsertChallengeTaskProofRequirement } from "@/lib/data/proofRequirements";
 
 /* ── Zod schema ─────────────────────────────────────────────────────────── */
+// Duration is not here. It is no longer a text value a <select> produces — it
+// is a number of days, sometimes null for ongoing — so it lives beside the
+// form as state and is checked in onSubmit, the way visibility and the cover
+// already are. orgName is gone entirely; see the note on LivePreviewCard.
 const schema = z.object({
   title:       z.string().min(1, "Title is required."),
-  orgName:     z.string().optional(),
   category:    z.string().min(1, "Please select a category."),
-  duration:    z.string().min(1, "Please select a duration."),
   description: z.string().optional(),
 });
 type FormValues = z.infer<typeof schema>;
@@ -84,9 +95,6 @@ const PROOF_TYPE_LABELS: Record<string, string> = {
   none: "none",
   physical_activity: "🏃 steps",
 };
-
-/* ── Config ────────────────────────────────────────────────────────────── */
-const DURATIONS  = ["30 Days", "60 Days", "90 Days", "Indefinite"] as const;
 
 /* ── ToggleSwitch ────────────────────────────────────────────────────────── */
 function ToggleSwitch({ id, checked, onChange }: {
@@ -115,24 +123,16 @@ function ToggleSwitch({ id, checked, onChange }: {
   );
 }
 
-/* ── Select styling ─────────────────────────────────────────────────────── */
-const selectCls = [
-  "w-full h-10 px-3 rounded border border-outline-variant",
-  "bg-surface-container-lowest text-on-surface",
-  "text-[length:var(--text-body-lg)]",
-  "transition-colors duration-150",
-  "focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary",
-  "disabled:opacity-40 appearance-none",
-].join(" ");
-
 /* ── TaskRowEditor ───────────────────────────────────────────────────────── */
-function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhysicalConfigChange }: {
+function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhysicalConfigChange, proofRequirement, onProofRequirementChange }: {
   task: TaskRow;
   index: number;
   onChange: (updated: TaskRow) => void;
   onRemove: () => void;
   physicalConfig: PhysicalConfigDraft;
   onPhysicalConfigChange: (next: PhysicalConfigDraft) => void;
+  proofRequirement: ProofRequirementDraft | null;
+  onProofRequirementChange: (next: ProofRequirementDraft | null) => void;
 }) {
   return (
     <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3 elev-1 surface-raised">
@@ -213,13 +213,32 @@ function TaskRowEditor({ task, index, onChange, onRemove, physicalConfig, onPhys
           onChange={onPhysicalConfigChange}
         />
       )}
+
+      {/* Steps verify themselves from the counter, and "none" asks for nothing —
+          neither needs a photo spec. Everything else is judged against one. */}
+      {task.proofType !== "physical_activity" && task.proofType !== "none" && (
+        <ProofRequirementPicker
+          value={proofRequirement}
+          onChange={onProofRequirementChange}
+          taskTitle={task.title}
+          taskDescription={task.description}
+        />
+      )}
     </div>
   );
 }
 
 /* ── LivePreviewCard ─────────────────────────────────────────────────────── */
-function LivePreviewCard({ title, orgName, duration, thumbnail }: {
-  title: string; orgName: string; duration: string; thumbnail: string | null;
+/**
+ * There used to be an "Organisation Name" field above this card, feeding the
+ * byline. It was asked for on every challenge and then dropped: `challenges`
+ * has no organisation column and the insert never carried it, so whatever a
+ * creator typed reached the preview and nothing else. The byline is now the
+ * creator, which is what the published card actually shows — getFeaturedChallenges
+ * reads it from profiles.full_name.
+ */
+function LivePreviewCard({ title, creatorName, duration, thumbnail }: {
+  title: string; creatorName: string; duration: string; thumbnail: string | null;
 }) {
   return (
     <Card bordered padding="none" className="overflow-hidden w-full max-w-sm mx-auto">
@@ -240,7 +259,7 @@ function LivePreviewCard({ title, orgName, duration, thumbnail }: {
         <h3 className="text-headline-md text-on-surface font-semibold leading-snug line-clamp-2">
           {title || <span className="text-on-surface-variant italic font-normal">Your challenge title…</span>}
         </h3>
-        <p className="text-xs text-on-surface-variant">by {orgName || "Your organisation"}</p>
+        <p className="text-xs text-on-surface-variant">by {creatorName}</p>
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2">
             <div className="flex -space-x-2">
@@ -335,6 +354,10 @@ export default function CreateChallengePage() {
   const [thumbnail, setThumbnail]             = useState<string | null>(null);
   const [thumbnailFile, setThumbnailFile]     = useState<File | null>(null);
   const [visibility, setVisibility]           = useState<"public" | "private">("public");
+  // null until chosen, so "not picked yet" is distinguishable from "ongoing",
+  // which is a legitimate choice that also means duration_days IS NULL.
+  const [duration, setDuration]               = useState<DurationChoice | null>(null);
+  const [durationError, setDurationError]     = useState<string | null>(null);
   const [dailyProof, setDailyProof]           = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(false);
   // Cover: either a generated preset or an uploaded file, never both.
@@ -356,6 +379,10 @@ export default function CreateChallengePage() {
   // Physical targets, keyed by the task's local React key — a drafted task has
   // no database id until the insert below returns one.
   const [physicalConfigs, setPhysicalConfigs] = useState<Record<string, PhysicalConfigDraft>>({});
+
+  // What each task's proof must show, keyed by local task key like the above.
+  const [proofRequirements, setProofRequirements] =
+    useState<Record<string, ProofRequirementDraft | null>>({});
 
   const addTask = () =>
     setTasks((prev) => [...prev, {
@@ -381,11 +408,11 @@ export default function CreateChallengePage() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { title: "", orgName: "", category: "", duration: "", description: "" },
+    defaultValues: { title: "", category: "", description: "" },
   });
 
-  const [titleVal, orgNameVal, durationVal, categoryVal, descriptionVal] =
-    watch(["title", "orgName", "duration", "category", "description"]);
+  const [titleVal, categoryVal, descriptionVal] =
+    watch(["title", "category", "description"]);
 
   // Recomputed on every keystroke, so the proof card tracks the challenge as
   // it is described rather than being chosen once and forgotten.
@@ -393,7 +420,7 @@ export default function CreateChallengePage() {
   const effectiveProof = proofOverride
     ? PROOF_OPTIONS.find((o) => o.id === proofOverride) ?? inferredProof
     : inferredProof;
-  const canSubmit = !!watch("title") && !!watch("category") && !!watch("duration");
+  const canSubmit = !!watch("title") && !!watch("category") && duration !== null;
 
   /* ── File handlers ───────────────────────────────────────────────────── */
   const loadFile = (file: File) => {
@@ -410,7 +437,16 @@ export default function CreateChallengePage() {
   /* ── Submit ──────────────────────────────────────────────────────────── */
   const onSubmit = async (data: FormValues) => {
     setSubmitError(null);
+    setDurationError(null);
     const supabase = createClient();
+
+    // Duration is outside the zod schema, so it needs its own guard. The
+    // submit button is disabled without one; this catches a form submitted by
+    // Enter from a text field, which bypasses the button entirely.
+    if (duration === null) {
+      setDurationError("Choose how long this challenge runs.");
+      return;
+    }
 
     // Validate tasks — all must have a title
     const invalidTask = tasks.find((t) => !t.title.trim());
@@ -448,20 +484,14 @@ export default function CreateChallengePage() {
       thumbnailUrl = publicUrl;
     }
 
-    // 3. Duration map
-    const durationMap: Record<string, number | null> = {
-      "30 Days": 30, "60 Days": 60, "90 Days": 90, "Indefinite": null,
-    };
-    const durationDays = durationMap[data.duration] ?? null;
-
-    // 4. Insert challenge row
+    // 3. Insert challenge row
     const { data: challenge, error: insertError } = await supabase
       .from("challenges")
       .insert({
         title: data.title,
         description: data.description || null,
         category: data.category,
-        duration_days: durationDays,
+        duration_days: duration.days,
         visibility,
         // The short label stays in proof_methods for the cards; the sentence
         // participants actually read goes in proof_instructions.
@@ -504,9 +534,34 @@ export default function CreateChallengePage() {
         );
         for (let idx = 0; idx < tasks.length; idx++) {
           const t = tasks[idx];
-          if (t.proofType !== "physical_activity") continue;
           const taskId = bySortOrder.get(idx);
           if (!taskId) continue;
+
+          // Save the proof spec first — it is what the participant is shown and
+          // what the AI reviewer judges against, so a task without it silently
+          // falls back to lenient review.
+          const req = proofRequirements[t.key];
+          if (req && req.required_elements.length > 0) {
+            const { error: reqError } = await upsertChallengeTaskProofRequirement(
+              supabase,
+              taskId,
+              {
+                activity_category: req.activity_category,
+                custom_activity: req.custom_activity,
+                activity_label: req.activity_label,
+                required_elements: req.required_elements,
+                optional_elements: req.optional_elements,
+                reject_if: req.reject_if,
+                participant_hint: req.participant_hint,
+                generated_by: req.generated_by,
+              }
+            );
+            if (reqError) {
+              setSubmitError(`Proof requirements for "${t.title}" could not be saved: ${reqError}`);
+            }
+          }
+
+          if (t.proofType !== "physical_activity") continue;
 
           const cfg = physicalConfigs[t.key] ?? DEFAULT_PHYSICAL_CONFIG;
           const { error: cfgError } = await upsertChallengeTaskActivityConfig(supabase, {
@@ -725,8 +780,6 @@ export default function CreateChallengePage() {
                 onUpload={loadFile}
               />
 
-              <Input id="challenge-org" label="Organisation Name" placeholder="e.g. Dev Collective" {...register("orgName")} />
-
               <CategoryPicker
                 value={categoryVal ?? ""}
                 onChange={(next) =>
@@ -740,21 +793,14 @@ export default function CreateChallengePage() {
           {/* ── Section 2: Duration + Visibility + Description ──────── */}
           <section aria-label="Duration and Visibility">
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="challenge-duration" className="text-body-md font-medium text-on-surface">Duration</label>
-                  <select
-                    id="challenge-duration"
-                    className={[selectCls, errors.duration ? "border-error focus:ring-error/30 focus:border-error" : ""].join(" ")}
-                    aria-invalid={!!errors.duration}
-                    {...register("duration")}
-                  >
-                    <option value="">Select…</option>
-                    {DURATIONS.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                  {errors.duration && <p className="text-body-md text-error text-xs" role="alert">{errors.duration.message}</p>}
-                </div>
-              </div>
+              <DurationPicker
+                value={duration}
+                onChange={(next) => {
+                  setDuration(next);
+                  setDurationError(null);
+                }}
+                error={durationError}
+              />
 
               {/* Visibility. Was a bare public/private segmented toggle with
                   no indication of what either one does — and "private" has a
@@ -865,6 +911,10 @@ export default function CreateChallengePage() {
                   onPhysicalConfigChange={(next) =>
                     setPhysicalConfigs((prev) => ({ ...prev, [task.key]: next }))
                   }
+                  proofRequirement={proofRequirements[task.key] ?? null}
+                  onProofRequirementChange={(next) =>
+                    setProofRequirements((prev) => ({ ...prev, [task.key]: next }))
+                  }
                 />
               ))}
             </div>
@@ -926,7 +976,18 @@ export default function CreateChallengePage() {
           {/* ── Live card preview ────────────────────────────────────── */}
           <section aria-label="Live card preview">
             <p className="text-overline text-on-surface-variant text-label-sm mb-3">LIVE CARD PREVIEW</p>
-            <LivePreviewCard title={titleVal} orgName={orgNameVal ?? ""} duration={durationVal} thumbnail={thumbnail} />
+            <LivePreviewCard
+              title={titleVal}
+              creatorName="you"
+              duration={
+                duration === null
+                  ? ""
+                  : duration.days === null
+                    ? "Ongoing"
+                    : `${duration.days} Days`
+              }
+              thumbnail={thumbnail}
+            />
           </section>
 
         </div>
