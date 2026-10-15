@@ -328,10 +328,19 @@ export interface ExploreClientProps {
   featured: FeaturedChallenge[];
   trending: TrendingChallenge[];
   quests?: FeaturedQuest[];
+  /** CHANGED: which tab opens first. /explore keeps "quests", /challenges
+   *  passes "challenges". A prop rather than a query param so the two routes
+   *  each have their own URL and the back button behaves. */
+  initialView?: View;
 }
 
-export function ExploreClient({ featured, trending, quests = [] }: ExploreClientProps) {
-  const [view, setView] = useState<View>("quests");
+export function ExploreClient({
+  featured,
+  trending,
+  quests = [],
+  initialView = "quests",
+}: ExploreClientProps) {
+  const [view, setView] = useState<View>(initialView);
   const [query, setQuery] = useState("");
   const [privateToast, setPrivateToast] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

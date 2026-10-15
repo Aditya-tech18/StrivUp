@@ -8,7 +8,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { getFeaturedChallenges, getTrendingChallenges } from "@/lib/data/challenges";
+import { getDiscoveryData } from "@/lib/data/discovery";
 import { ExploreClient } from "./ExploreClient";
 
 /* ── Public types — re-exported so ExploreClient and challenges.ts can import */
@@ -57,36 +57,12 @@ export default async function ExplorePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const [featured, trending, questRes] = await Promise.all([
-    getFeaturedChallenges(supabase),
-    getTrendingChallenges(supabase, user?.id ?? null),
-    supabase
-      .from("quests")
-      .select(
-        "id, title, cover_url, thumbnail_url, business_name, category, location_name, participant_count, quest_rewards!quest_id ( id )"
-      )
-      .in("quest_status", ["active", "published"])
-      .eq("visibility", "public")
-      .order("created_at", { ascending: false })
-      .limit(30),
-  ]);
-
-  if (questRes.error) {
-    // Discovery still works without the Quest rail; don't fail the whole page.
-    console.error("[ExplorePage] quests", questRes.error.message);
-  }
-
-  const quests: FeaturedQuest[] = (questRes.data ?? []).map((q) => ({
-    id: q.id as string,
-    title: q.title as string,
-    cover_url: (q.cover_url as string | null) ?? null,
-    thumbnail_url: (q.thumbnail_url as string | null) ?? null,
-    business_name: (q.business_name as string | null) ?? null,
-    category: (q.category as string | null) ?? null,
-    location_name: (q.location_name as string | null) ?? null,
-    participant_count: (q.participant_count as number | null) ?? 0,
-    rewards: (q.quest_rewards as { id: string }[] | null) ?? null,
-  }));
+  // CHANGED: the fetch moved to lib/data/discovery.ts so /challenges can run
+  // the same one. Behaviour here is identical.
+  const { featured, trending, quests } = await getDiscoveryData(
+    supabase,
+    user?.id ?? null
+  );
 
   return (
     <div className="min-h-screen bg-surface">

@@ -134,6 +134,10 @@ export async function getFeedPosts(
       commentCount: counts.get(row.id as string)?.comment_count ?? 0,
       viewerHasLiked: counts.get(row.id as string)?.viewer_liked ?? false,
       adminRemoved: Boolean(row.admin_removed),
+      // CHANGED: carried through for the share button on the card. The
+      // challenge was already joined in the select for `category`.
+      challengeId: row.challenge_id as string,
+      challengeTitle: challenge?.title ?? "a StrivUp challenge",
     };
   });
 }

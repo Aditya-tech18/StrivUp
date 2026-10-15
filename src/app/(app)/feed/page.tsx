@@ -20,7 +20,7 @@
  */
 
 import Link from "next/link";
-import { Bell, ChevronRight, Flame, Trophy, User } from "lucide-react";
+import { ChevronRight, Flame, Trophy, User } from "lucide-react";
 import { FeedCard } from "@/components/features/FeedCard";
 import { HomeRotator } from "@/components/features/home/HomeRotator";
 import { AutoScrollRail } from "@/components/features/home/AutoScrollRail";
@@ -37,7 +37,7 @@ import { getProfileSuggestions, getFacepiles } from "@/lib/data/social";
 import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAccountsRail";
 import { getCoinStateWithCheckin } from "@/lib/data/coins";
 import { CoinPill } from "@/components/features/CoinPill";
-import { BrandMark, MobileMenu } from "@/components/ui";
+import { AlertsBell, BrandMark, MobileMenu } from "@/components/ui";
 
 /** "Thursday, 24 May" — matches the design's date eyebrow. */
 function todayLabel(): string {
@@ -141,13 +141,10 @@ export default async function FeedPage() {
           </div>
 
           <div className="flex items-center gap-space-xs">
-            <Link
-              href="/alerts"
-              aria-label="Alerts"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:text-on-surface"
-            >
-              <Bell size={22} strokeWidth={1.75} aria-hidden="true" />
-            </Link>
+            {/* CHANGED: Alerts left the bottom bar, so its unread badge
+                moved onto this bell. Same destination, same position; it now
+                carries the count the bottom tab used to show. */}
+            <AlertsBell />
             <Link
               href="/profile"
               aria-label="Profile"

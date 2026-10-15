@@ -3,84 +3,42 @@
 /**
  * Alerts page — /alerts
  *
- * Lists the current user's notifications newest-first. Each row shows:
- *  - Icon based on type (UserPlus, CheckCircle2, XCircle, Users, Bell)
- *  - title + message
- *  - relative timestamp ("2h ago")
- *  - visual distinction between read/unread (dot + tinted background)
+ * Rebuilt against the mockup: notifications grouped by when they happened,
+ * each row carrying a coloured accent down its left edge, a tinted icon tile,
+ * the cover of whatever it is about, and a pill saying where tapping goes.
  *
- * Tapping a row marks it read (is_read = true) then navigates:
- *  - related_challenge_id → /challenges/[id]
- *  - related_user_id (no challenge) → /u/[id]  (public profile route)
- *  - neither → no navigation, just mark read
+ * What the redesign is actually for. The old list was one flat column of
+ * near-identical rows: the same grey card whether a payout-bearing quest had
+ * a new participant or somebody liked a photo, and nothing on a row said
+ * where it would take you. Colour by kind and an explicit destination are
+ * what make a long list scannable.
  *
- * "Mark all as read" button updates both the DB and the global unread badge.
+ * One real bug fixed along the way: notifications carry related_quest_id in
+ * the live schema and this page never selected it, so a quest notification
+ * marked itself read and then navigated nowhere. Quest rows now route to
+ * /quests/[id].
+ *
+ * Still true from before: tapping a row marks it read optimistically and then
+ * navigates. "Mark all as read" updates the database and the global badge.
+ * Pending follow requests keep their own card at the top.
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Bell,
-  CheckCircle2,
-  Users,
-  UserPlus,
-  XCircle,
-} from "lucide-react";
+import { Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { Button, Card, MobileMenu } from "@/components/ui";
+import { Button, MobileMenu } from "@/components/ui";
 import { useUnreadCount } from "@/components/ui/AlertsContext";
 import { FollowRequests } from "@/components/features/profile/FollowRequests";
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-type NotificationType =
-  | "new_follower"
-  | "proof_approved"
-  | "proof_rejected"
-  | "challenge_joined"
-  | string;
-
-interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string | null;
-  is_read: boolean;
-  related_challenge_id: string | null;
-  related_user_id: string | null;
-  created_at: string;
-}
-
-// ── Icon map ──────────────────────────────────────────────────────────────────
-
-function NotifIcon({ type }: { type: NotificationType }) {
-  const cls = "shrink-0 mt-0.5";
-  switch (type) {
-    case "new_follower":
-    case "follow_request":
-    case "follow_accepted":
-      return <UserPlus size={20} className={`${cls} text-secondary`} aria-hidden="true" />;
-    case "proof_approved":
-      return <CheckCircle2 size={20} className={`${cls} text-success`} aria-hidden="true" />;
-    case "proof_rejected":
-      return <XCircle size={20} className={`${cls} text-error`} aria-hidden="true" />;
-    case "challenge_joined":
-      return <Users size={20} className={`${cls} text-primary`} aria-hidden="true" />;
-    default:
-      return <Bell size={20} className={`${cls} text-on-surface-variant`} aria-hidden="true" />;
-  }
-}
-
-// ── Relative timestamp ────────────────────────────────────────────────────────
-
-function relativeTime(isoString: string): string {
-  const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-  return new Date(isoString).toLocaleDateString();
-}
+import {
+  AlertRow,
+  destinationFor,
+  groupFor,
+  GROUPS,
+  type CoverMap,
+  type Group,
+  type Notification,
+} from "@/components/features/alerts/AlertRow";
 
 // ── Page component ────────────────────────────────────────────────────────────
 
@@ -90,6 +48,7 @@ export default function AlertsPage() {
   const { markAllRead, markOneRead } = useUnreadCount();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [covers, setCovers] = useState<CoverMap>(new Map());
   const [loading, setLoading] = useState(true);
   const [markingAll, setMarkingAll] = useState(false);
 
@@ -106,16 +65,47 @@ export default function AlertsPage() {
       const { data } = await supabase
         .from("notifications")
         .select(
-          "id, type, title, message, is_read, related_challenge_id, related_user_id, created_at"
+          "id, type, title, message, is_read, related_challenge_id, related_quest_id, related_user_id, created_at"
         )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(100);
 
-      if (!cancelled) {
-        setNotifications((data ?? []) as Notification[]);
-        setLoading(false);
+      if (cancelled) return;
+      const rows = (data ?? []) as Notification[];
+      setNotifications(rows);
+      setLoading(false);
+
+      /* Cover art, two batched queries for the whole page rather than one per
+         row. Decoration: a failure here leaves the icon tile showing and
+         changes nothing else, so it is deliberately not awaited before the
+         list is painted. */
+      const challengeIds = [...new Set(rows.map((r) => r.related_challenge_id).filter(Boolean))] as string[];
+      const questIds = [...new Set(rows.map((r) => r.related_quest_id).filter(Boolean))] as string[];
+
+      const [chRes, qRes] = await Promise.all([
+        challengeIds.length
+          ? supabase.from("challenges").select("id, thumbnail_url").in("id", challengeIds)
+          : Promise.resolve({ data: [] as { id: string; thumbnail_url: string | null }[] }),
+        questIds.length
+          ? supabase.from("quests").select("id, thumbnail_url, cover_url").in("id", questIds)
+          : Promise.resolve({ data: [] as { id: string; thumbnail_url: string | null; cover_url: string | null }[] }),
+      ]);
+
+      if (cancelled) return;
+      const map: CoverMap = new Map();
+      for (const c of (chRes.data ?? []) as { id: string; thumbnail_url: string | null }[]) {
+        if (c.thumbnail_url) map.set(c.id, c.thumbnail_url);
       }
+      for (const q of (qRes.data ?? []) as {
+        id: string;
+        thumbnail_url: string | null;
+        cover_url: string | null;
+      }[]) {
+        const url = q.thumbnail_url ?? q.cover_url;
+        if (url) map.set(q.id, url);
+      }
+      setCovers(map);
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,16 +128,8 @@ export default function AlertsPage() {
           .eq("id", notif.id);
       }
 
-      // Navigate
-      if (notif.related_challenge_id) {
-        router.push(`/challenges/${notif.related_challenge_id}`);
-      } else if (notif.related_user_id) {
-        // /u/[handle] accepts a UUID as well as a username, which matters
-        // here because related_user_id is always a UUID. The old
-        // /profile/[id] target never existed — every follow notification
-        // tap 404'd.
-        router.push(`/u/${notif.related_user_id}`);
-      }
+      const dest = destinationFor(notif);
+      if (dest) router.push(dest.href);
     },
     [markOneRead, router, supabase]
   );
@@ -172,6 +154,23 @@ export default function AlertsPage() {
     setMarkingAll(false);
   }, [markAllRead, supabase]);
 
+  // ── Grouping ───────────────────────────────────────────────────────────────
+
+  const grouped = useMemo(() => {
+    const buckets = new Map<Group, Notification[]>();
+    for (const n of notifications) {
+      const g = groupFor(n.created_at);
+      const list = buckets.get(g);
+      if (list) list.push(n);
+      else buckets.set(g, [n]);
+    }
+    // Fixed order, newest bucket first, skipping any that are empty.
+    return GROUPS.filter((g) => buckets.has(g)).map((g) => ({
+      group: g,
+      items: buckets.get(g) as Notification[],
+    }));
+  }, [notifications]);
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   const hasUnread = notifications.some((n) => !n.is_read);
@@ -189,10 +188,15 @@ export default function AlertsPage() {
       <div className="mx-auto max-w-xl">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="mb-5 flex items-center justify-between">
           <div className="flex min-w-0 items-center gap-1.5">
             <MobileMenu />
             <h1 className="text-headline-md text-on-surface">Alerts</h1>
+            {hasUnread && (
+              <span className="ml-1 rounded-full bg-error px-2 py-0.5 text-label-sm font-bold text-white">
+                {notifications.filter((n) => !n.is_read).length}
+              </span>
+            )}
           </div>
           {hasUnread && (
             <Button
@@ -220,55 +224,32 @@ export default function AlertsPage() {
           </div>
         )}
 
-        {/* Notification list */}
-        <ul className="flex flex-col gap-2" role="list">
-          {notifications.map((notif) => (
-            <li key={notif.id}>
-              <button
-                type="button"
-                onClick={() => handleTap(notif)}
-                className={[
-                  "w-full text-left rounded-xl px-4 py-3.5 flex items-start gap-3",
-                  "transition-colors duration-150 border",
-                  notif.is_read
-                    ? "bg-surface-container-low border-outline-variant hover:bg-surface-container"
-                    : "bg-secondary/5 border-secondary/20 hover:bg-secondary/10",
-                ].join(" ")}
-                aria-label={notif.title}
-              >
-                {/* Unread dot */}
-                <span className="shrink-0 mt-1.5">
-                  {!notif.is_read ? (
-                    <span className="block w-2 h-2 rounded-full bg-secondary" aria-hidden="true" />
-                  ) : (
-                    <span className="block w-2 h-2" aria-hidden="true" />
-                  )}
-                </span>
+        {/* Grouped list */}
+        {grouped.map(({ group, items }) => (
+          <section key={group} className="mb-5" aria-labelledby={`group-${group}`}>
+            <h2
+              id={`group-${group}`}
+              className="mb-2 px-1 text-label-md font-semibold text-on-surface-variant"
+            >
+              {group}
+            </h2>
 
-                <NotifIcon type={notif.type} />
-
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={[
-                      "text-body-md truncate",
-                      notif.is_read ? "text-on-surface" : "font-semibold text-on-surface",
-                    ].join(" ")}
-                  >
-                    {notif.title}
-                  </p>
-                  {notif.message && (
-                    <p className="text-body-md text-on-surface-variant line-clamp-2 mt-0.5">
-                      {notif.message}
-                    </p>
-                  )}
-                  <p className="text-body-md text-on-surface-variant mt-1 text-xs">
-                    {relativeTime(notif.created_at)}
-                  </p>
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
+            <ul className="flex flex-col gap-2" role="list">
+              {items.map((notif) => {
+                const coverId = notif.related_quest_id ?? notif.related_challenge_id;
+                return (
+                  <li key={notif.id}>
+                    <AlertRow
+                      notif={notif}
+                      cover={coverId ? covers.get(coverId) : undefined}
+                      onTap={handleTap}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
       </div>
     </div>
   );

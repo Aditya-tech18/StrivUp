@@ -23,6 +23,7 @@ import { clampAspect } from "@/lib/image";
 import { PeopleListSheet } from "@/components/features/people/PeopleList";
 import { getPostLikers, type PersonCard } from "@/lib/data/social";
 import { Facepile } from "@/components/features/people/Facepile";
+import { ShareButton } from "@/components/features/share/ShareButton";
 
 /* ── Public type ─────────────────────────────────────────────────────────── */
 export interface FeedPost {
@@ -48,6 +49,11 @@ export interface FeedPost {
   /** Needed so the proof owner can moderate comments on their own post. */
   authorId: string;
   adminRemoved: boolean;
+  /** CHANGED: the challenge this proof was logged against. Carried so the
+   *  share button has something with a public page and og: tags to send.
+   *  A proof has no page of its own. */
+  challengeId: string;
+  challengeTitle: string;
 }
 
 /* ── FeedCard ────────────────────────────────────────────────────────────── */
@@ -301,6 +307,22 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
               />
               <span className="text-body-md text-sm">{commentCount}</span>
             </button>
+
+            {/* CHANGED: share, beside comment. It opens the phone's own app
+                picker via navigator.share, falling back to the clipboard
+                where that is unavailable.
+
+                It shares the challenge this proof belongs to, because that
+                is the only URL a recipient can actually open: a proof has no
+                public page, so a link to one would be a dead end with no
+                preview. ShareButton is the same component the challenge and
+                quest screens use, so the pulse and press behaviour match. */}
+            <ShareButton
+              kind="challenge"
+              id={post.challengeId}
+              title={post.challengeTitle}
+              className="flex items-center gap-1.5 text-on-surface-variant transition-colors duration-150 hover:text-secondary"
+            />
           </div>
 
           <div className="flex items-center gap-2">
