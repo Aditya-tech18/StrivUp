@@ -20,6 +20,8 @@ import type { SuggestedProfile, PersonCard } from "@/lib/data/social";
 import { Facepile } from "@/components/features/people/Facepile";
 import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
 import { HomeRotator } from "@/components/features/home/HomeRotator";
+import { AutoScrollRail } from "@/components/features/home/AutoScrollRail";
+import { ActiveCard } from "@/components/features/home/ActiveCard";
 
 function task(over: Partial<TodayTask> & { key: string }): TodayTask {
   return {
@@ -190,6 +192,23 @@ const QUEST_TASKS: TodayTask[] = [
   }),
 ];
 
+/* Eight items for the Active rail harness, alternating kind so both border
+   colours are on screen at once. Wider than any viewport, which is the
+   condition the loop needs. */
+const RAIL_ITEMS: TodayTask[] = Array.from({ length: 8 }, (_, i) =>
+  task({
+    key: `rail-${i}`,
+    challengeId: `rail-${i}`,
+    challengeTitle: i % 2 === 0 ? `Challenge ${i + 1}` : `Quest ${i + 1}`,
+    kind: i % 2 === 0 ? "challenge" : "quest",
+    dayLabel: i % 2 === 0 ? `Day ${i + 1} of 30` : `${i} of 3 done`,
+    dayNumber: i + 1,
+    durationDays: 30,
+    thumbnailUrl: null,
+    state: "todo",
+  })
+);
+
 export default function FeedPreviewPage() {
   if (process.env.NODE_ENV === "production") notFound();
 
@@ -205,6 +224,24 @@ export default function FeedPreviewPage() {
             Fabricated data. Not reachable in production.
           </p>
         </header>
+
+        {/* The self-scrolling Active rail. Eight items, which is more than
+            fits, so the loop and its duplicate copy are both exercised. */}
+        <section className="flex flex-col gap-space-sm" data-testid="active-rail-section">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">
+              Active rail: auto-scroll, loop, borders
+            </h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Quests blue, challenges black. Hover pauses it.
+            </p>
+          </div>
+          <AutoScrollRail label="Active challenges and quests">
+            {RAIL_ITEMS.map((t) => (
+              <ActiveCard key={t.key} task={t} />
+            ))}
+          </AutoScrollRail>
+        </section>
 
         <section className="flex flex-col gap-space-sm">
           <div className="border-l-2 border-secondary pl-space-sm">
