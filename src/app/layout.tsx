@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { InstallAppPrompt, ServiceWorkerRegistrar } from "@/components/ui";
 import "./globals.css";
+import { getSiteUrl, isPubliclyFetchable } from "@/lib/siteUrl";
 
 /**
  * Inter — loaded via next/font/google for automatic self-hosting.
@@ -18,10 +19,26 @@ const inter = Inter({
 
 /**
  * Canonical origin, used to resolve Open Graph / Twitter image URLs.
- * Set NEXT_PUBLIC_SITE_URL in Vercel to the production domain; the localhost
- * fallback keeps dev and preview builds working without extra config.
+ *
+ * CHANGED: this used to be
+ *   process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+ * and NEXT_PUBLIC_SITE_URL was never set in Vercel, so production shipped
+ * metadataBase = http://localhost:3000. Every og:image and og:url Next
+ * resolved against it pointed at localhost, which is why link previews showed
+ * the title and the description but no picture. getSiteUrl() defaults to the
+ * deployment's own production domain, so this is correct with no environment
+ * variable set at all. See src/lib/siteUrl.ts.
  */
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = getSiteUrl();
+
+/* A build that would ship localhost in its og: tags says so, once, at the
+   point the value is read. The previous failure was silent for weeks. */
+if (!isPubliclyFetchable(siteUrl) && process.env.NODE_ENV === "production") {
+  console.warn(
+    `[metadata] metadataBase resolved to ${siteUrl}, which no social crawler can fetch. ` +
+      "Link previews will have no image. Set NEXT_PUBLIC_SITE_URL to the public origin."
+  );
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
