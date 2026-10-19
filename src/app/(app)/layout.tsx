@@ -12,7 +12,7 @@
  */
 
 import type { ReactNode } from "react";
-import { AppSidebar, BottomNav, AlertsProvider, BrandMark } from "@/components/ui";
+import { AppSidebar, BottomNav, AlertsProvider, AppTour, BrandMark } from "@/components/ui";
 
 export default function AppShellLayout({ children }: { children: ReactNode }) {
   return (
@@ -48,6 +48,11 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
 
         {/* ── Mobile bottom nav (client component, self-contained) ────── */}
         <BottomNav />
+
+        {/* The product tour lives in the shell, not on a page: it navigates
+            between routes as it runs, and a page-level mount would unmount
+            itself on the second step. */}
+        <AppTour />
       </div>
     </AlertsProvider>
   );

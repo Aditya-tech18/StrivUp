@@ -20,17 +20,20 @@ export interface NavItem {
   icon: ComponentType<LucideProps>;
   label: string;
   showBadge?: boolean;
+  /** Anchor for the product tour. The mobile BottomNav uses the same values,
+   *  so one tour step spotlights whichever nav is on screen. */
+  tourId?: string;
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/feed",           icon: Home,       label: "Home"    },
-  { href: "/explore",        icon: Compass,    label: "Explore" },
-  { href: "/search",         icon: Search,     label: "Search"  },
-  { href: "/quests",         icon: MapPin,     label: "Quests"  },
-  { href: "/challenges/new", icon: PlusSquare, label: "Create"  },
-  { href: "/creator/challenges", icon: Trophy, label: "My Challenges" },
-  { href: "/alerts",         icon: Bell,       label: "Alerts", showBadge: true },
-  { href: "/profile",        icon: User,       label: "Profile" },
+  { href: "/feed",           icon: Home,       label: "Home",   tourId: "nav-feed"    },
+  { href: "/explore",        icon: Compass,    label: "Explore", tourId: "nav-explore" },
+  { href: "/search",         icon: Search,     label: "Search", tourId: "nav-search"  },
+  { href: "/quests",         icon: MapPin,     label: "Quests", tourId: "nav-quests"  },
+  { href: "/challenges/new", icon: PlusSquare, label: "Create", tourId: "nav-create"  },
+  { href: "/creator/challenges", icon: Trophy, label: "My Challenges", tourId: "nav-my-challenges" },
+  { href: "/alerts",         icon: Bell,       label: "Alerts", showBadge: true, tourId: "nav-alerts" },
+  { href: "/profile",        icon: User,       label: "Profile", tourId: "nav-profile" },
 ];
 
 // Business dashboard navigation (shown on /business/*).
@@ -58,13 +61,14 @@ export function SidebarNav() {
 
   return (
     <nav className="flex-1 px-3 py-4 space-y-1" aria-label="Main navigation">
-      {items.map(({ href, icon: Icon, label, showBadge }) => {
+      {items.map(({ href, icon: Icon, label, showBadge, tourId }) => {
         const isActive = href === activeHref;
         const badgeCount = showBadge ? unreadCount : 0;
         return (
           <Link
             key={href}
             href={href}
+            data-tour={tourId}
             aria-current={isActive ? "page" : undefined}
             className={[
               "flex items-center gap-3 px-3 py-2.5 rounded-lg",

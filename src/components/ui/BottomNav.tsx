@@ -18,14 +18,18 @@ interface NavItem {
   showBadge?: boolean;
   /** Keep this item active for any pathname under this prefix. */
   activePrefix?: string;
+  /** Anchor for the product tour; shared with SidebarNav. */
+  tourId?: string;
 }
 
+/* tourId values match SidebarNav's, so a tour step spotlights whichever of
+   the two navs is on screen at this breakpoint. */
 const USER_ITEMS: NavItem[] = [
-  { href: "/feed",           icon: Home,     label: "Home"    },
-  { href: "/explore",        icon: Compass,  label: "Explore" },
-  { href: "/challenges/new", icon: Plus,     label: "Create"  },
-  { href: "/search",         icon: Search,   label: "Search"  },
-  { href: "/alerts",         icon: Bell,     label: "Alerts", showBadge: true },
+  { href: "/feed",           icon: Home,     label: "Home",    tourId: "nav-feed"    },
+  { href: "/explore",        icon: Compass,  label: "Explore", tourId: "nav-explore" },
+  { href: "/challenges/new", icon: Plus,     label: "Create",  tourId: "nav-create"  },
+  { href: "/search",         icon: Search,   label: "Search",  tourId: "nav-search"  },
+  { href: "/alerts",         icon: Bell,     label: "Alerts", showBadge: true, tourId: "nav-alerts" },
 ];
 
 const BUSINESS_ITEMS: NavItem[] = [
@@ -73,6 +77,7 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
           <Link
             key={item.href}
             href={item.href}
+            data-tour={item.tourId}
             aria-current={isActive ? "page" : undefined}
             aria-label={isCreate ? item.label : undefined}
             className={[

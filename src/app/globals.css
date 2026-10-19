@@ -793,7 +793,29 @@ body {
       opacity: 1;
       translate: 0 0;
     }
+
+    /* The product tour pins the rail open. A spotlight on a nav item would
+       otherwise frame a bare icon with its label clipped away, because the
+       rail only widens on hover and the tour is not hovering it. Sits here
+       beside the rail's own rules so the two are read together.
+
+       Two more bands beyond the list above: 80 is the PWA install prompt,
+       and 90 is the tour overlay, which has to cover everything including
+       that prompt. */
+    html[data-tour-open] .rail {
+      width: var(--rail-expanded);
+      box-shadow: var(--shadow-e3);
+    }
+    html[data-tour-open] .rail .rail-label {
+      opacity: 1;
+      translate: 0 0;
+    }
   }
+}
+
+/* Outside the md layer: the install prompt is shown at every width. */
+html[data-tour-open] [data-install-prompt] {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -147,6 +147,10 @@ export function InstallAppPrompt() {
       role="dialog"
       aria-modal="false"
       aria-labelledby="install-prompt-title"
+      /* Hidden while the product tour runs: two floating overlays competing
+         for the same corner is noise, and the tour has a step about
+         installing anyway. */
+      data-install-prompt
       className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] flex justify-center px-gutter pb-[calc(env(safe-area-inset-bottom)+4.5rem)] md:pb-6"
     >
       <div className="pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 elev-4">
