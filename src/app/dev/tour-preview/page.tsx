@@ -32,6 +32,7 @@ const ANCHORS = [
   ["nav-quests", "Quests"],
   ["nav-create", "Create"],
   ["nav-my-challenges", "My Challenges"],
+  ["nav-rewards", "My Rewards"],
   ["nav-alerts", "Alerts"],
   ["nav-profile", "Profile"],
 ];

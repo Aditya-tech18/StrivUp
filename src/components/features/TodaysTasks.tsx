@@ -126,13 +126,24 @@ function TaskRow({ task }: { task: TodayTask }) {
 export function TodaysTasks({
   summary,
   questTasks = [],
+  view: controlledView,
+  onViewChange,
 }: {
   summary: TodaySummary;
   /** Outstanding quest tasks. Empty for anyone not on a quest, which hides
    *  the toggle entirely rather than offering an empty tab. */
   questTasks?: TodayTask[];
+  /** Pass this to drive the toggle from outside, as the home rotator does.
+   *  Left out, the component owns its own tab the way it always has. */
+  view?: "challenges" | "quests";
+  onViewChange?: (view: "challenges" | "quests") => void;
 }) {
-  const [view, setView] = useState<"challenges" | "quests">("challenges");
+  const [ownView, setOwnView] = useState<"challenges" | "quests">("challenges");
+  const view = controlledView ?? ownView;
+  const setView = (next: "challenges" | "quests") => {
+    setOwnView(next);
+    onViewChange?.(next);
+  };
   // Initial value comes from the server so first paint matches the markup and
   // there is no hydration mismatch from calling Date.now() during render.
   // The interval then recomputes from the real clock rather than decrementing,

@@ -6,11 +6,11 @@
  * role cannot read directly.
  */
 
-import { ImageResponse } from "next/og";
 import { getInviteSharePreview } from "@/lib/data/share";
 import {
   OG_SIZE,
   OG_CONTENT_TYPE,
+  renderOgImage,
   OgShareCard,
   OgFallbackCard,
   loadOgFonts,
@@ -27,8 +27,12 @@ export default async function Image({ params }: { params: Promise<{ code: string
     loadOgFonts(),
   ]);
 
-  return new ImageResponse(
+  // CHANGED: renderOgImage rasterises the card and re-encodes it as JPEG.
+  // The PNG next/og emits measured 1,063,335 bytes with a photographic
+  // cover, which WhatsApp will not take; the same frame as JPEG is about
+  // an eighth of that. It also carries the edge cache headers.
+  return renderOgImage(
     preview ? <OgShareCard preview={preview} /> : <OgFallbackCard />,
-    { ...size, fonts }
+    fonts
   );
 }

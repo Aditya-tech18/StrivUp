@@ -1,6 +1,10 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+// CHANGED: shared resolver. The old inline fallback meant an unset
+// NEXT_PUBLIC_SITE_URL pointed this at localhost in production too.
+import { getSiteUrl } from "@/lib/siteUrl";
+
+const siteUrl = getSiteUrl();
 
 /**
  * sitemap.xml — the publicly reachable pages only.

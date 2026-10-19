@@ -11,15 +11,16 @@
  * (OrderVerificationModal) instead of a plain file upload.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Bookmark, Calendar, Check, CheckCircle2, ChevronRight,
-  Clock, ExternalLink, ImageIcon, Loader2, MapPin, PlayCircle, SendHorizontal, Share2,
-  ShieldCheck, Trophy, Upload, Users,
+  ChevronDown, Clock, ExternalLink, Heart, ImageIcon, Loader2, Lock,
+  PlayCircle, SendHorizontal, Share2, ShieldCheck, Trophy, Upload, Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { formatCount } from "@/lib/formatCount";
 import type { BusinessQuestDetail, OrderPlatformLink } from "@/lib/data/quests";
 import {
   getQuestLeaderboard, getVerificationsByTask,
@@ -33,7 +34,7 @@ import { getQuestMembers, getFacepile, type Facepile as FacepileData } from "@/l
 import { Facepile } from "@/components/features/people/Facepile";
 import {
   BusinessProfileCard, GoogleBusinessCard, LeaderboardPreviewCard,
-  QuestProgressCard, RewardCard, formatAddress, type RewardSummary,
+  formatAddress,
 } from "@/components/features/quest/QuestSidebarCards";
 
 interface Props {
@@ -43,11 +44,12 @@ interface Props {
   currentUserName: string | null;
 }
 
-type TabId = "overview" | "tasks" | "leaderboard" | "rules" | "about";
+type TabId = "overview" | "tasks" | "rewards" | "leaderboard" | "rules" | "about";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview",    label: "Overview" },
   { id: "tasks",       label: "Tasks" },
+  { id: "rewards",     label: "Rewards" },
   { id: "leaderboard", label: "Leaderboard" },
   { id: "rules",       label: "Rules" },
   { id: "about",       label: "About Business" },
@@ -82,13 +84,6 @@ const DEFAULT_RULES = [
   "Reward eligibility follows the Quest's published reward conditions.",
 ];
 
-function formatDate(d: string | null): string | null {
-  if (!d) return null;
-  return new Date(d).toLocaleDateString("en-IN", {
-    day: "numeric", month: "short", year: "numeric",
-  });
-}
-
 function formatShort(d: string): string {
   return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }
@@ -108,49 +103,6 @@ function durationDays(start: string | null, end: string | null): number | null {
   return Math.max(1, Math.round(ms / 86_400_000));
 }
 
-/**
- * Collapse the Quest's reward rows into the headline the card renders.
- * Reads rank_from/rank_to and value straight off the records — a Quest with no
- * rewards configured simply has no reward card.
- */
-function summariseRewards(rewards: BusinessQuestDetail["rewards"]): RewardSummary | null {
-  if (rewards.length === 0) return null;
-
-  const primary =
-    rewards.find((r) => r.is_leaderboard) ??
-    [...rewards].sort((a, b) => (a.rank_from ?? 999) - (b.rank_from ?? 999))[0];
-
-  const from = primary.rank_from;
-  const to = primary.rank_to ?? primary.rank_from;
-  const winners = from != null && to != null ? to - from + 1 : null;
-
-  const subline =
-    winners != null && winners > 1
-      ? `For Top ${to} Users`
-      : from != null
-        ? `For Rank ${from}`
-        : null;
-
-  // Total pool is only stated when it can actually be computed from a numeric
-  // per-winner value — a guessed pool would be a fabricated number.
-  let totalPool: string | null = null;
-  const numeric = primary.value?.match(/₹\s*([\d,]+(?:\.\d+)?)/);
-  if (numeric && winners != null) {
-    const per = Number(numeric[1].replace(/,/g, ""));
-    if (Number.isFinite(per)) {
-      totalPool = `₹${(per * winners).toLocaleString("en-IN")}`;
-    }
-  }
-
-  return {
-    headline: primary.value ? `${primary.value} ${primary.title}` : primary.title,
-    subline,
-    winners,
-    perWinner: primary.value ?? null,
-    totalPool,
-  };
-}
-
 export default function BusinessQuestDetailClient({
   quest, currentUserId, currentUserName,
 }: Props) {
@@ -162,6 +114,15 @@ export default function BusinessQuestDetailClient({
   const [joining, setJoining] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
+
+  // Favouriting follows the BUSINESS, not this quest: it opts the viewer into a
+  // notification whenever that business publishes anything new.
+  const [favorited, setFavorited] = useState(false);
+  const [favoriting, setFavoriting] = useState(false);
+
+  // Kept in state rather than read straight off the prop so the realtime
+  // subscription below can move it without a page reload.
+  const [participantCount, setParticipantCount] = useState(quest.participant_count);
   const [shareNote, setShareNote] = useState<string | null>(null);
 
   const [verifications, setVerifications] = useState<Map<string, OrderVerification>>(new Map());
@@ -174,12 +135,19 @@ export default function BusinessQuestDetailClient({
 
   const tasks = quest.tasks;
   const totalTasks = tasks.length;
-  const reward = useMemo(() => summariseRewards(quest.rewards), [quest.rewards]);
   const hasLeaderboard = quest.rewards.some((r) => r.is_leaderboard);
   const days = durationDays(quest.start_date, quest.end_date);
   const daysLeft = daysRemaining(quest.end_date);
   const isVerifiedBiz = quest.business_verification === "verified";
   const isEnded = quest.quest_status === "completed" || quest.quest_status === "expired";
+
+  // "Live" means you can still join right now: published/active, not ended,
+  // and the deadline has not passed. A paused or draft quest is not live even
+  // if its dates are still open.
+  const isLive =
+    !isEnded &&
+    (quest.quest_status === "active" || quest.quest_status === "published") &&
+    (daysLeft == null || daysLeft > 0);
   const businessName = quest.business?.business_name ?? quest.business_name ?? "Business";
   const userName = currentUserName?.split(" ")[0] ?? "there";
 
@@ -260,6 +228,80 @@ export default function BusinessQuestDetailClient({
 
   /* ── Share ──────────────────────────────────────────────────────────── */
 
+  // Reflect the stored state on load, so the heart is not empty on a page the
+  // viewer has already favourited.
+  useEffect(() => {
+    if (!currentUserId || !quest.business_id) return;
+    let cancelled = false;
+    (async () => {
+      const { isBusinessFavorited } = await import("@/lib/data/businessFavorites");
+      const fav = await isBusinessFavorited(supabase, currentUserId, quest.business_id!);
+      if (!cancelled) setFavorited(fav);
+    })();
+    return () => { cancelled = true; };
+  }, [currentUserId, quest.business_id, supabase]);
+
+  // The in-card join button is the primary one; the sticky bar is a fallback
+  // that only appears once that button has scrolled out of view, so the two
+  // are never on screen together.
+  const joinRef = useRef<HTMLDivElement | null>(null);
+  const [showStickyJoin, setShowStickyJoin] = useState(false);
+
+  useEffect(() => {
+    const el = joinRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyJoin(!entry.isIntersecting),
+      { rootMargin: "-80px 0px 0px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [tab]);
+
+  // Live participant count. The trigger on quest_participants keeps
+  // quests.participant_count true, so listening to that one row is cheaper and
+  // simpler than recounting on every join.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`quest-participants-${quest.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "quests", filter: `id=eq.${quest.id}` },
+        (payload) => {
+          const next = (payload.new as { participant_count?: number } | null)?.participant_count;
+          if (typeof next === "number") setParticipantCount(next);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [quest.id, supabase]);
+
+  const toggleFavorite = useCallback(async () => {
+    if (!currentUserId || !quest.business_id) return;
+
+    // Flip immediately so the tap feels instant, and roll back if the write
+    // fails — a heart that lies is worse than one that is slow.
+    const next = !favorited;
+    setFavorited(next);
+    setFavoriting(true);
+    try {
+      const { favoriteBusiness, unfavoriteBusiness } = await import(
+        "@/lib/data/businessFavorites"
+      );
+      const { error } = next
+        ? await favoriteBusiness(supabase, currentUserId, quest.business_id)
+        : await unfavoriteBusiness(supabase, currentUserId, quest.business_id);
+      if (error) setFavorited(!next);
+    } catch {
+      setFavorited(!next);
+    } finally {
+      setFavoriting(false);
+    }
+  }, [currentUserId, quest.business_id, favorited, supabase]);
+
   const handleShare = useCallback(async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
     try {
@@ -301,7 +343,7 @@ export default function BusinessQuestDetailClient({
   /* ── Render ─────────────────────────────────────────────────────────── */
 
   return (
-    <div className="min-h-screen bg-surface pb-24">
+    <div className="min-h-screen bg-surface pb-24 pb-bottom-nav">
 
       {/* ── Top bar ─────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 bg-surface-container-lowest/95 backdrop-blur border-b border-outline-variant pt-safe">
@@ -322,6 +364,26 @@ export default function BusinessQuestDetailClient({
               {shareNote}
             </span>
           )}
+          <button
+            onClick={toggleFavorite}
+            disabled={favoriting || !currentUserId || !quest.business_id}
+            aria-pressed={favorited}
+            aria-label={favorited ? "Unfollow this business" : "Follow this business for new quests"}
+            title={
+              !currentUserId
+                ? "Sign in to follow this business"
+                : favorited
+                  ? `You'll be notified about new quests from ${businessName}`
+                  : `Get notified when ${businessName} posts a new quest`
+            }
+            className={`h-9 w-9 rounded-xl border flex items-center justify-center transition-colors disabled:opacity-50 ${
+              favorited
+                ? "border-rose-200 bg-rose-50 text-rose-600"
+                : "border-gray-200 hover:bg-gray-50 text-gray-700"
+            }`}
+          >
+            <Heart size={15} className={favorited ? "fill-rose-500 text-rose-500" : ""} />
+          </button>
           <button
             onClick={handleShare}
             aria-label={`Share ${quest.title}`}
@@ -415,54 +477,59 @@ export default function BusinessQuestDetailClient({
                   </p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-1">
-                  {locationLine && (
-                    <span className="flex items-center gap-1.5 text-body-sm text-white/85">
-                      <MapPin size={14} className="shrink-0" aria-hidden="true" /> {locationLine}
-                    </span>
-                  )}
-                  {quest.start_date && quest.end_date && (
-                    <span className="flex items-center gap-1.5 text-body-sm text-white/85">
-                      <Calendar size={14} className="shrink-0" aria-hidden="true" />
-                      {formatDate(quest.start_date)} – {formatDate(quest.end_date)}
-                    </span>
-                  )}
-                  {days != null && (
-                    <span className="flex items-center gap-1.5 text-sm font-semibold text-white bg-surface-container-lowest/15 border border-white/20 px-2.5 py-0.5 rounded-full">
-                      <Clock size={13} /> {days} Days
-                    </span>
-                  )}
-                </div>
+                {/* Location, dates and duration deliberately left out of the
+                    hero — they already appear in the details list further down,
+                    and repeating them here crowded the title. */}
               </div>
             </section>
 
-            {/* At-a-glance stats — the three numbers that decide whether to join */}
-            <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {reward && (
-                <StatPill
-                  icon={Trophy} tone="amber"
-                  value={reward.perWinner ?? reward.headline}
-                  label={reward.subline ?? "Reward"}
-                />
+            {/* Two facts decide whether someone joins: how many people are
+                already in, and how long is left. Everything else was noise. */}
+            <section className="bg-white rounded-2xl border border-gray-200 px-4 sm:px-5 py-3.5 flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2">
+              {isLive && (
+                <span className="flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 px-2.5 py-1">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+                  </span>
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-green-700">
+                    Live
+                  </span>
+                </span>
               )}
-              <StatPill
-                icon={Users} tone="blue"
-                value={quest.participant_count.toLocaleString("en-IN")}
-                label="Participants"
-              />
-              <StatPill
-                icon={Calendar} tone="violet"
-                value={
-                  quest.start_date && quest.end_date
-                    ? `${formatShort(quest.start_date)} – ${formatShort(quest.end_date)}`
-                    : days != null ? `${days} Days` : "—"
-                }
-                label={
-                  daysLeft != null
-                    ? daysLeft > 0 ? `Ends in ${daysLeft} days` : "Ended"
-                    : "Duration"
-                }
-              />
+
+              <span className="flex items-center gap-2">
+                <Users size={16} className="text-blue-600 shrink-0" />
+                <span className="text-sm text-gray-700">
+                  <strong className="text-gray-900 font-bold tabular-nums">
+                    {formatCount(participantCount)}
+                  </strong>{" "}
+                  {participantCount === 1 ? "participant" : "participants"}
+                </span>
+              </span>
+
+              {quest.end_date && (
+                <span className="flex items-center gap-2">
+                  <Calendar size={16} className="text-violet-600 shrink-0" />
+                  <span className="text-sm text-gray-700">
+                    {daysLeft != null && daysLeft <= 0 ? (
+                      <strong className="text-gray-500 font-semibold">Closed</strong>
+                    ) : (
+                      <>
+                        Register by{" "}
+                        <strong className="text-gray-900 font-bold">
+                          {formatShort(quest.end_date)}
+                        </strong>
+                        {daysLeft != null && (
+                          <span className={daysLeft <= 3 ? "text-rose-600 font-semibold" : "text-gray-500"}>
+                            {" "}· {daysLeft === 1 ? "1 day left" : `${daysLeft} days left`}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </span>
+                </span>
+              )}
             </section>
 
             {/* Progress — always visible, not buried in the right rail */}
@@ -517,7 +584,11 @@ export default function BusinessQuestDetailClient({
                   quest={quest}
                   days={days}
                   locationLine={locationLine}
-                  reward={reward}
+                  joined={hasJoined}
+                  onJoin={handleJoin}
+                  joining={joining}
+                  ended={isEnded}
+                  joinRef={joinRef}
                 />
                 <TaskSection
                   tasks={tasks}
@@ -527,6 +598,7 @@ export default function BusinessQuestDetailClient({
                   loading={loading}
                   joined={hasJoined}
                   platforms={quest.order_platforms}
+                  isLive={isLive}
                 />
                 <VerificationStepper />
               </>
@@ -543,10 +615,13 @@ export default function BusinessQuestDetailClient({
                   loading={loading}
                   joined={hasJoined}
                   platforms={quest.order_platforms}
+                  isLive={isLive}
                 />
                 <VerificationStepper />
               </>
             )}
+
+            {tab === "rewards" && <RewardsPanel rewards={quest.rewards} />}
 
             {/* ── Leaderboard ───────────────────────────────────────── */}
             {tab === "leaderboard" && (
@@ -609,18 +684,6 @@ export default function BusinessQuestDetailClient({
               fallbackName={businessName}
               verified={isVerifiedBiz}
               questId={quest.id}
-            />
-            <RewardCard
-              reward={reward}
-              joined={hasJoined}
-              onJoin={handleJoin}
-              joining={joining}
-              ended={isEnded}
-            />
-            <QuestProgressCard
-              completed={completedCount}
-              total={totalTasks}
-              joined={hasJoined}
             />
             <LeaderboardPreviewCard
               onViewAll={() => setShowLeaderboard(true)}
@@ -718,47 +781,51 @@ export default function BusinessQuestDetailClient({
         totalTasks={totalTasks}
         currentUserId={currentUserId}
       />
+
+      {/* Sticky join bar. Appears only once the in-card button has scrolled
+          past, so the action is always reachable without ever duplicating it
+          on screen. Hidden entirely once joined or ended — a bar that says
+          nothing actionable is just a strip of wasted screen. */}
+      {showStickyJoin && !hasJoined && !isEnded && (
+        <div className="fixed above-bottom-nav z-40 border-t border-outline-variant bg-surface-container-lowest/95 backdrop-blur-sm pb-safe">
+          <div className="mx-auto max-w-[1400px] px-gutter lg:px-gutter-lg py-3 flex items-center gap-4">
+            <div className="min-w-0 flex-1 hidden sm:block">
+              <p className="text-sm font-bold text-on-surface truncate">{quest.title}</p>
+              <p className="text-xs text-on-surface-variant">
+                {formatCount(participantCount)} joined
+                {daysLeft != null && daysLeft > 0 && ` · ${daysLeft} days left`}
+              </p>
+            </div>
+            <button
+              onClick={handleJoin}
+              disabled={joining}
+              className="h-11 px-8 rounded-xl bg-secondary hover:bg-secondary-container disabled:opacity-50 text-on-secondary font-bold text-sm transition-colors w-full sm:w-auto"
+            >
+              {joining ? "Joining…" : "Join Quest"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 /* ── Stat pill ─────────────────────────────────────────────────────────── */
 
-const PILL_TONE = {
-  amber:  { wrap: "bg-warning-container border-warning-outline",   icon: "text-warning" },
-  blue:   { wrap: "bg-secondary-fixed border-secondary-fixed-dim",     icon: "text-secondary" },
-  violet: { wrap: "bg-chart-3/10 border-chart-3/25", icon: "text-chart-3" },
-} as const;
-
-function StatPill({
-  icon: Icon, value, label, tone,
-}: {
-  icon: typeof Trophy;
-  value: string;
-  label: string;
-  tone: keyof typeof PILL_TONE;
-}) {
-  const t = PILL_TONE[tone];
-  return (
-    <div className={`rounded-2xl border px-4 py-3.5 flex items-center gap-3 ${t.wrap}`}>
-      <Icon size={20} className={`${t.icon} shrink-0`} aria-hidden="true" />
-      <div className="min-w-0">
-        <p className="text-body-lg font-bold text-on-surface leading-tight truncate">{value}</p>
-        <p className="text-label-sm text-on-surface-variant truncate">{label}</p>
-      </div>
-    </div>
-  );
-}
-
 /* ── About this Quest ──────────────────────────────────────────────────── */
 
 function AboutQuestCard({
-  quest, days, locationLine, reward,
+  quest, days, locationLine, joined, onJoin, joining, ended, joinRef,
 }: {
   quest: BusinessQuestDetail;
   days: number | null;
   locationLine: string | null;
-  reward: RewardSummary | null;
+  joined: boolean;
+  onJoin: () => void;
+  joining: boolean;
+  ended: boolean;
+  /** Watched by the page so the sticky bar appears once this scrolls away. */
+  joinRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const gallery = quest.tasks
     .map((t) => ({ url: t.image_url, label: t.title }))
@@ -769,19 +836,43 @@ function AboutQuestCard({
     quest.category ? { k: "Category", v: quest.category } : null,
     locationLine ? { k: "Location", v: locationLine } : null,
     days != null ? { k: "Duration", v: `${days} Days` } : null,
-    reward
-      ? {
-          k: "Reward",
-          v: reward.subline
-            ? `${reward.subline.replace(/^For /, "")} — ${reward.perWinner ?? reward.headline}`
-            : reward.headline,
-        }
+    // Reward moved to its own tab; the dates are what people actually ask for
+    // when deciding whether they still have time.
+    quest.start_date && quest.end_date
+      ? { k: "Timeline", v: `${formatShort(quest.start_date)} – ${formatShort(quest.end_date)}` }
       : null,
   ].filter(Boolean) as { k: string; v: string }[];
 
   return (
     <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 sm:p-6 elev-1 surface-raised">
-      <h2 className="text-body-lg font-bold text-on-surface">About This Quest</h2>
+      {/* The action sits on the heading row, top-right, so it is the first
+          thing in reach rather than something to scroll past the facts for. */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <h2 className="text-body-lg font-bold text-on-surface">About This Quest</h2>
+
+        <div ref={joinRef} className="shrink-0 w-full sm:w-auto">
+          {ended ? (
+            <button
+              disabled
+              className="h-10 px-6 rounded-xl bg-surface-container text-on-surface-variant font-bold text-sm cursor-not-allowed w-full sm:w-auto"
+            >
+              Quest Ended
+            </button>
+          ) : joined ? (
+            <div className="inline-flex h-10 px-5 rounded-xl bg-success-container border border-success-outline text-on-success-container font-bold text-sm items-center justify-center gap-2 w-full sm:w-auto">
+              <ShieldCheck size={16} /> You&apos;ve Joined
+            </div>
+          ) : (
+            <button
+              onClick={onJoin}
+              disabled={joining}
+              className="h-10 px-6 rounded-xl bg-secondary hover:bg-secondary-container disabled:opacity-50 text-on-secondary font-bold text-sm transition-colors w-full sm:w-auto"
+            >
+              {joining ? "Joining…" : "Join Quest"}
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-6 mt-3">
         <div className="min-w-0">
@@ -824,7 +915,7 @@ function AboutQuestCard({
 /* ── Task list ─────────────────────────────────────────────────────────── */
 
 function TaskSection({
-  tasks, completedTaskIds, verifications, onProof, loading, joined, platforms,
+  tasks, completedTaskIds, verifications, onProof, loading, joined, platforms, isLive,
 }: {
   tasks: BusinessQuestDetail["tasks"];
   completedTaskIds: Set<string>;
@@ -833,6 +924,7 @@ function TaskSection({
   loading: boolean;
   joined: boolean;
   platforms: OrderPlatformLink[] | null;
+  isLive: boolean;
 }) {
   if (tasks.length === 0) return null;
 
@@ -867,6 +959,7 @@ function TaskSection({
             loading={loading}
             joined={joined}
             platforms={platforms}
+            isLive={isLive}
           />
         ))}
       </ul>
@@ -875,7 +968,7 @@ function TaskSection({
 }
 
 function TaskCard({
-  task, index, completed, verification, onProof, loading, joined, platforms,
+  task, index, completed, verification, onProof, loading, joined, platforms, isLive,
 }: {
   task: BusinessQuestDetail["tasks"][number];
   index: number;
@@ -885,14 +978,15 @@ function TaskCard({
   loading: boolean;
   joined: boolean;
   platforms: OrderPlatformLink[] | null;
+  /** The quest is open for submissions right now. */
+  isLive: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+
   const proofLabel = PROOF_LABEL[task.proof_type] ?? task.proof_type;
-  // Only order_verification tasks are fulfilled through an ordering platform.
   const showPlatforms =
     task.proof_type === "order_verification" && (platforms?.length ?? 0) > 0;
 
-  // The status line reflects where this task actually stands, so a user who
-  // walks away mid-flow can see what is waiting on whom.
   const state = completed
     ? { label: "Verified Order", cls: "text-on-success-container bg-success-container border-success-outline", Icon: CheckCircle2 }
     : verification?.status === "order_verified"
@@ -901,147 +995,353 @@ function TaskCard({
         ? { label: "Awaiting business", cls: "text-on-warning-container bg-warning-container border-warning-outline", Icon: Clock }
         : null;
 
-  const chip =
-    "inline-flex h-7 items-center gap-1 rounded-full border px-2.5 text-label-sm font-bold";
-
-  /* The row action. Full width below sm so it is reachable with a thumb,
-     inline from sm up.
-     
-     Not a solid blue button with a glow on it: there are one of these per
-     task, and four of them stacked read as four page-level CTAs competing
-     with the real one. Before joining it is tonal, because joining is what
-     the page's own Join Quest button is for and this is the same action said
-     twice. After joining, uploading proof is the task's actual work, so it
-     goes solid — but still flat, since the glow is reserved for the one
-     primary action on the screen. */
-  const action = completed ? (
-    <span
-      className={`${chip} h-11 w-full justify-center border-success-outline bg-success-container px-4 text-on-success-container sm:h-10 sm:w-auto`}
-    >
-      <Check size={15} aria-hidden="true" /> Completed
-    </span>
-  ) : (
-    <button
-      onClick={onProof}
-      disabled={loading}
-      className={[
-        "inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl px-4",
-        "text-body-md font-bold transition-colors disabled:opacity-50",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
-        "sm:h-10 sm:w-auto sm:text-body-sm",
-        joined
-          ? "bg-secondary text-white hover:opacity-90"
-          : "border border-secondary-fixed-dim bg-secondary-fixed text-on-secondary-fixed-variant hover:bg-secondary-fixed-dim",
-      ].join(" ")}
-    >
-      {loading ? (
-        <Loader2 size={15} className="animate-spin" aria-hidden="true" />
-      ) : (
-        <Upload size={15} aria-hidden="true" />
-      )}
-      {joined ? "Upload Proof" : "Join to Start"}
-    </button>
-  );
+  // Why the upload button is unavailable, checked in the order a user hits them.
+  // Tasks are deliberately NOT sequential: someone may be able to do task 3
+  // today and task 1 tomorrow, and forcing an order would just block them.
+  const blockedReason = !joined
+    ? "Join the Quest to start"
+    : !isLive
+      ? "This Quest is closed"
+      : null;
 
   return (
-    <li className="group rounded-2xl border border-outline-variant bg-surface-container-lowest transition-colors elev-1 surface-raised hover:border-outline">
-      {/* Stacks on a phone. As one row, the number, the thumbnail and a
-          shrink-0 button left about 60px for the title, so every task read as
-          "Tr", "M", "Ex" and the proof type wrapped one word per line. */}
-      <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
+    <li className="rounded-2xl border border-outline-variant bg-surface-container-lowest transition-colors hover:border-outline">
+      {/* Below sm the row would be number + thumb + text + two buttons on a
+          375px screen, which overflows. Actions drop to their own full-width
+          row instead of being squeezed. */}
+      <div className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
 
-        <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center sm:gap-4">
+        <span
+          className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
+            completed ? "bg-success-container text-on-success-container" : "bg-secondary-fixed text-secondary"
+          }`}
+        >
+          {completed ? <Check size={14} strokeWidth={3} /> : index}
+        </span>
 
-          {/* Number */}
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-container text-label-sm font-bold text-on-surface-variant">
-            {index}
-          </span>
+        <div
+          className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-xl overflow-hidden bg-surface-container border border-outline-variant shrink-0 flex items-center justify-center"
+        >
+          {task.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={task.image_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <ImageIcon size={20} className="text-on-surface-variant/50" aria-hidden="true" />
+          )}
+        </div>
 
-          {/* Thumbnail. The empty-state tile is hidden on phones: 56px of a
-              400px row showing a placeholder icon is 56px the title needs
-              more. With art, it is worth the room at any size. */}
-          <div
-            className={`h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low sm:h-[72px] sm:w-[72px] ${
-              task.image_url ? "flex" : "hidden sm:flex"
-            }`}
+        {/* Title plus one status line. Every other chip moved into View Details
+            so the row stays scannable. */}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-body-md font-bold text-on-surface truncate">{task.title}</h3>
+          {task.description && (
+            <p className="text-body-sm text-on-surface-variant leading-relaxed mt-0.5 line-clamp-1">
+              {task.description}
+            </p>
+          )}
+          {(state || blockedReason) && (
+            <div className="mt-1.5">
+              {state ? (
+                <span
+                  className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${state.cls}`}
+                >
+                  <state.Icon size={11} /> {state.label}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border border-outline-variant bg-surface-container text-on-surface-variant">
+                  <Lock size={10} /> {blockedReason}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            className="flex-1 sm:flex-none justify-center h-9 px-3.5 rounded-xl border border-outline-variant hover:bg-surface-container text-xs font-bold text-on-surface flex items-center gap-1.5 transition-colors"
           >
-            {task.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={task.image_url} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <ImageIcon size={20} className="text-on-surface-variant" aria-hidden="true" />
-            )}
-          </div>
+            View Details
+            <ChevronDown size={14} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+          </button>
 
-          {/* Body */}
-          <div className="min-w-0 flex-1">
-            {/* line-clamp, not truncate: a task title is the one thing on
-                this card that must stay readable, and two lines of it beat one
-                ellipsis. It gets the full width, because Required/Optional sat
-                beside it and took about 80px of the 400px row for a word that
-                belongs with the rest of the metadata below. */}
-            <h3 className="line-clamp-2 text-body-lg font-bold leading-snug text-on-surface">
-              {task.title}
-            </h3>
+          {completed ? (
+            <span className="flex-1 sm:flex-none justify-center h-9 px-4 rounded-xl bg-success-container border border-success-outline text-on-success-container text-xs font-bold flex items-center gap-1.5">
+              <Check size={14} /> Completed
+            </span>
+          ) : (
+            <button
+              onClick={onProof}
+              disabled={loading || Boolean(blockedReason)}
+              title={blockedReason ?? undefined}
+              className="flex-1 sm:flex-none justify-center h-9 px-4 rounded-xl bg-secondary hover:bg-secondary-container disabled:bg-surface-container disabled:text-on-surface-variant disabled:cursor-not-allowed text-on-secondary text-xs font-bold flex items-center gap-1.5 transition-colors"
+            >
+              {loading ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : blockedReason ? (
+                <Lock size={14} />
+              ) : (
+                <Upload size={14} />
+              )}
+              Upload Proof
+            </button>
+          )}
+        </div>
+      </div>
 
-            {task.description && (
-              <p className="mt-1 line-clamp-2 text-body-sm leading-relaxed text-on-surface-variant">
-                {task.description}
+      {/* Everything needed to actually do the task. */}
+      {open && (
+        <div className="border-t border-gray-100 px-4 py-4 bg-gray-50/60 rounded-b-2xl space-y-3">
+          {task.description && (
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-1">
+                What to do
               </p>
-            )}
+              <p className="text-sm text-gray-700 leading-relaxed">{task.description}</p>
+            </div>
+          )}
 
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {task.instructions && (
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-1">
+                Instructions
+              </p>
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                {task.instructions}
+              </p>
+            </div>
+          )}
+
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-1.5">
+              Requirements
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
               <span
-                className={`${chip} ${
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                   task.is_required
-                    ? "border-error-outline bg-error-container text-on-error-container"
-                    : "border-outline-variant bg-surface-container-low text-on-surface-variant"
+                    ? "text-red-600 bg-red-50 border-red-100"
+                    : "text-gray-500 bg-gray-50 border-gray-200"
                 }`}
               >
                 {task.is_required ? "Required" : "Optional"}
               </span>
-              {/* A chip, not "Proof Type: Photo Proof". The label says what it
-                  is without the prefix, and it wraps as one unit. */}
-              <span className={`${chip} border-outline-variant bg-surface-container-low text-on-surface-variant`}>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-white text-gray-600">
                 {proofLabel}
               </span>
-              {showPlatforms && platforms!.map((p) => (
-                p.url ? (
-                  <a
-                    key={p.platform}
-                    href={p.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className={`${chip} tap-target border-outline-variant bg-surface-container-low text-on-surface-variant transition-colors hover:bg-surface-container`}
-                  >
-                    {p.label} <ExternalLink size={10} aria-hidden="true" />
-                  </a>
-                ) : (
-                  <span
-                    key={p.platform}
-                    className={`${chip} border-outline-variant bg-surface-container-low text-on-surface-variant`}
-                  >
-                    {p.label}
-                  </span>
-                )
-              ))}
-              {state && (
-                <span className={`${chip} ${state.cls}`}>
-                  <state.Icon size={11} aria-hidden="true" /> {state.label}
-                </span>
-              )}
             </div>
           </div>
+
+          {showPlatforms && (
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-1.5">
+                Where to order
+              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                {platforms!.map((pl) =>
+                  pl.url ? (
+                    <a
+                      key={pl.platform}
+                      href={pl.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      {pl.label} <ExternalLink size={11} />
+                    </a>
+                  ) : (
+                    <span
+                      key={pl.platform}
+                      className="inline-flex items-center h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-500"
+                    >
+                      {pl.label}
+                    </span>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
+/* ── Rewards panel ─────────────────────────────────────────────────────── */
+
+/** "Winner", "Top 10", "Ranks 4–10" — however the business sliced it. */
+function rankLabel(from: number | null, to: number | null): string {
+  if (from == null && to == null) return "All participants";
+  if (from == null) return `Up to rank ${to}`;
+  if (to == null || to === from) {
+    if (from === 1) return "Winner";
+    if (from === 2) return "1st runner-up";
+    if (from === 3) return "2nd runner-up";
+    return `Rank ${from}`;
+  }
+  if (from === 1) return `Top ${to}`;
+  return `Ranks ${from}–${to}`;
+}
+
+/** How many people this tier pays out to, when the range says so. */
+function winnerCount(from: number | null, to: number | null): number | null {
+  if (from == null || to == null) return null;
+  const n = to - from + 1;
+  return n > 0 ? n : null;
+}
+
+/**
+ * Parses a rupee figure out of a free-text value so the pool can be totalled.
+ * Returns null for anything non-numeric ("A free meal") — a pool is only shown
+ * when it can actually be computed, never guessed.
+ */
+function parseAmount(value: string | null): number | null {
+  if (!value) return null;
+  const m = value.replace(/,/g, "").match(/(\d+(?:\.\d+)?)/);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isFinite(n) ? n : null;
+}
+
+function RewardsPanel({ rewards }: { rewards: BusinessQuestDetail["rewards"] }) {
+  if (rewards.length === 0) {
+    return (
+      <section className="bg-white rounded-2xl border border-gray-200 p-6">
+        <h2 className="text-[17px] font-bold text-gray-900">Rewards</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          This Quest doesn&apos;t have any rewards listed yet.
+        </p>
+      </section>
+    );
+  }
+
+  // Highest tier first, so the headline prize leads.
+  const tiers = [...rewards].sort(
+    (a, b) => (a.rank_from ?? 9999) - (b.rank_from ?? 9999)
+  );
+
+  let totalPool = 0;
+  let poolComplete = true;
+  let totalWinners = 0;
+  let winnersComplete = true;
+
+  for (const r of tiers) {
+    const amount = parseAmount(r.value);
+    const count = winnerCount(r.rank_from, r.rank_to);
+    if (amount != null && count != null) totalPool += amount * count;
+    else poolComplete = false;
+    if (count != null) totalWinners += count;
+    else winnersComplete = false;
+  }
+
+  return (
+    <section className="bg-white rounded-2xl border border-gray-200 p-6">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-[17px] font-bold text-gray-900">Rewards</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            What you get for finishing, and how it&apos;s split.
+          </p>
         </div>
 
-        {/* Action */}
-        <div className="flex shrink-0 items-center gap-2">
-          {action}
-          <ChevronRight size={18} className="hidden text-on-surface-variant lg:block" aria-hidden="true" />
-        </div>
+        {/* Only stated when every tier gave a number — a partial total would
+            understate the prize and read as a mistake. */}
+        {poolComplete && totalPool > 0 && (
+          <div className="text-right">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
+              Total pool
+            </p>
+            <p className="text-[22px] font-bold text-gray-900 leading-tight">
+              ₹{totalPool.toLocaleString("en-IN")}
+            </p>
+            {winnersComplete && totalWinners > 0 && (
+              <p className="text-[11px] text-gray-500">
+                across {totalWinners} {totalWinners === 1 ? "winner" : "winners"}
+              </p>
+            )}
+          </div>
+        )}
       </div>
-    </li>
+
+      <ul className="flex flex-col gap-3 mt-5">
+        {tiers.map((r, i) => {
+          const count = winnerCount(r.rank_from, r.rank_to);
+          const amount = parseAmount(r.value);
+          const tierPool = amount != null && count != null ? amount * count : null;
+          const isTop = i === 0;
+
+          return (
+            <li
+              key={r.id}
+              className={`rounded-2xl border p-4 flex items-start sm:items-center gap-3 sm:gap-4 ${
+                isTop ? "border-amber-200 bg-amber-50/50" : "border-gray-200 bg-white"
+              }`}
+            >
+              <span
+                className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 ${
+                  isTop ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                <Trophy size={20} />
+              </span>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-[15px] font-bold text-gray-900">
+                    {rankLabel(r.rank_from, r.rank_to)}
+                  </p>
+                  {count != null && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600">
+                      {count} {count === 1 ? "winner" : "winners"}
+                    </span>
+                  )}
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600 capitalize">
+                    {r.reward_type.replace(/_/g, " ")}
+                  </span>
+                </div>
+
+                <p className="text-sm text-gray-500 mt-0.5">{r.title}</p>
+
+                {r.description && (
+                  <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                    {r.description}
+                  </p>
+                )}
+              </div>
+
+              <div className="text-right shrink-0">
+                <p
+                  className={`text-[19px] font-bold leading-tight ${
+                    isTop ? "text-amber-700" : "text-gray-900"
+                  }`}
+                >
+                  {r.value ?? "—"}
+                </p>
+                <p className="text-[11px] text-gray-500">
+                  {count != null && count > 1 ? "each" : "prize"}
+                </p>
+                {tierPool != null && count != null && count > 1 && (
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    ₹{tierPool.toLocaleString("en-IN")} total
+                  </p>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {tiers.some((r) => r.is_leaderboard) && (
+        <p className="text-xs text-gray-500 mt-4 flex items-start gap-1.5">
+          <Trophy size={13} className="mt-0.5 shrink-0 text-gray-400" />
+          Ranks are decided by the leaderboard once the Quest closes. Finish the required
+          tasks to be counted.
+        </p>
+      )}
+    </section>
   );
 }
 

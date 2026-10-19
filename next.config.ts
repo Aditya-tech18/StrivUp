@@ -32,6 +32,11 @@ const nextConfig: NextConfig = {
        than WebP at the same quality. Next falls back down the list by what
        the browser sends in Accept, so nothing breaks on older clients. */
     formats: ["image/avif", "image/webp"],
+    /* Next 16 refuses any `quality` prop that is not listed here and
+       silently falls back to 75. The Food Quests banner is a dense
+       four-panel infographic with small labels, and 75 visibly mushes the
+       text, so 90 has to be an allowed value for it to take effect. */
+    qualities: [75, 90],
     /* Covers are immutable once uploaded: a new cover is a new Storage path,
        never a rewrite of an existing one. The default 60s TTL meant the
        optimizer re-fetched and re-encoded the same bytes all day. */

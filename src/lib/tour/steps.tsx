@@ -68,6 +68,9 @@ export const TOUR_STEPS: TourStep[] = [
         challenge began. You can be in several at once.
       </>
     ),
+    /* Not in the phone's bottom bar — that slot went to Challenges — so this
+       anchors only on the desktop rail and shows centred on a phone, which
+       is why the copy stands on its own. */
     target: '[data-tour="nav-explore"]',
     route: "/explore",
   },
@@ -217,6 +220,22 @@ export const TOUR_STEPS: TourStep[] = [
     placement: "center",
   },
 
+  {
+    id: "rewards",
+    chapter: "Out in the world",
+    title: "My Rewards",
+    body: (
+      <>
+        What you&apos;ve earned from quests collects here — what&apos;s been paid, and what is
+        approved and still on its way. Some rewards need you to <strong>claim</strong> them,
+        which is the only point you&apos;re ever asked for a UPI ID. StrivUp will never ask for
+        a PIN, an OTP or a banking password.
+      </>
+    ),
+    target: '[data-tour="nav-rewards"]',
+    route: "/rewards",
+  },
+
   /* ── You ───────────────────────────────────────────────────────────────── */
   {
     id: "alerts",
@@ -224,10 +243,13 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Alerts, and who wants to follow you",
     body: (
       <>
-        Likes, comments, follows and proof results land here. If your account is private,
-        incoming <strong>follow requests</strong> appear at the top for you to accept or decline.
+        Likes, comments, follows and proof results land here — tap the bell, which carries your
+        unread count. If your account is private, incoming <strong>follow requests</strong>{" "}
+        appear at the top for you to accept or decline.
       </>
     ),
+    /* The bell in the home header carries this same anchor, which is what
+       the step spotlights on a phone now that Alerts has no bottom-bar tab. */
     target: '[data-tour="nav-alerts"]',
     route: "/alerts",
   },

@@ -680,6 +680,84 @@ body {
     animation: none;
   }
 
+  /* ── Quest card bulge ──────────────────────────────────────────────────
+     A quest is a paid, time-limited thing a business is running, and it sits
+     in the same rail as the user's own challenges, where it would otherwise
+     be just another card. This swells it slightly, on a loop, so the eye
+     lands there first.
+
+     Slower and smaller than the share pulse (3.2s, 2%): this is a whole card
+     rather than a button, and the same amplitude on a 280px card reads as
+     the layout wobbling. transform only, so it composites. Hovering stops
+     it, because by then it has done its job and a moving target is a worse
+     thing to aim at. */
+  @keyframes card-bulge {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.02); }
+  }
+
+  .bulge {
+    animation: card-bulge 3.2s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+    will-change: transform;
+  }
+  .bulge:hover,
+  .bulge:focus-within {
+    animation: none;
+    transform: scale(1.02);
+    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* ── Quest tab glow ────────────────────────────────────────────────────
+     The bottom bar has five equal slots and no way to say that one of them
+     matters more. Quests are the paid side of the product, so the Quest tab
+     gets a halo that breathes.
+
+     box-shadow and transform only: both composite on the GPU, so this stays
+     smooth on a mid-range Android, and both are supported everywhere iOS
+     Safari and Chrome ship. No filter: drop-shadow, which repaints on every
+     frame on older Androids, and no background-image animation, which is not
+     interpolable at all.
+
+     The blue is written as literal rgba rather than color-mix() on the token.
+     color-mix needs iOS 16.2 and Chrome 111, and an unsupported colour makes
+     the whole box-shadow declaration invalid, so on an older phone the glow
+     would not degrade, it would simply be absent. The value is
+     --color-secondary (#1d4ed8), and there is no dark theme for it to drift
+     against.
+
+     The halo is drawn on a wrapper that already has a radius, so it reads as
+     a glow around the icon rather than a rectangle behind it. Touching or
+     hovering stops the loop and holds the lit state: by then it has done its
+     job, and a pulsing target is a worse thing to aim at. */
+  @keyframes nav-glow-breathe {
+    0%, 100% {
+      box-shadow:
+        0 0 6px 0 rgba(29, 78, 216, 0.30),
+        0 0 0 0 rgba(29, 78, 216, 0.22);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow:
+        0 0 14px 2px rgba(29, 78, 216, 0.55),
+        0 0 0 5px rgba(29, 78, 216, 0);
+      transform: scale(1.08);
+    }
+  }
+
+  .nav-glow {
+    border-radius: 9999px;
+    animation: nav-glow-breathe 2.6s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+    will-change: transform;
+  }
+  .nav-glow:hover,
+  .nav-glow:active,
+  .nav-glow:focus-visible {
+    animation: none;
+    transform: scale(1.08);
+    box-shadow: 0 0 14px 2px rgba(29, 78, 216, 0.55);
+    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   /* Frosted layer for sticky headers. backdrop-filter is the one expensive
      property here, so it is opt-in per element rather than applied broadly,
      and it always has an opaque colour behind it as a fallback. */
@@ -890,6 +968,14 @@ html[data-tour-open] [data-install-prompt] {
   .pop-press, .pop-press:hover, .pop-press:active { transform: none; }
   /* A looping attention-getter is exactly what this setting asks us to stop. */
   .pop-press.share-pulse { animation: none; }
+  .bulge, .bulge:hover { animation: none; transform: none; }
+  /* The glow stays, held at its lit state, so the Quest tab is still the
+     emphasised one. Only the breathing stops. */
+  .nav-glow, .nav-glow:hover {
+    animation: none;
+    transform: none;
+    box-shadow: 0 0 10px 1px rgba(29, 78, 216, 0.45);
+  }
   .lift:hover  { transform: none; }
   .lift:active { transform: none; }
   .pressable:active { transform: none; }

@@ -19,6 +19,11 @@ import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAcc
 import type { SuggestedProfile, PersonCard } from "@/lib/data/social";
 import { Facepile } from "@/components/features/people/Facepile";
 import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
+import { HomeRotator } from "@/components/features/home/HomeRotator";
+import { AutoScrollRail } from "@/components/features/home/AutoScrollRail";
+import { BottomNav } from "@/components/ui";
+import { AlertRow, type Notification } from "@/components/features/alerts/AlertRow";
+import { ActiveCard } from "@/components/features/home/ActiveCard";
 
 function task(over: Partial<TodayTask> & { key: string }): TodayTask {
   return {
@@ -124,6 +129,8 @@ const FACES: PersonCard[] = [
    integration is what gets rendered here now. */
 const POST: FeedPost = {
   id: "post-1",
+  challengeId: "00000000-0000-4000-8000-000000000001",
+  challengeTitle: "100 Days of LeetCode",
   authorName: "Adi Chaubey",
   authorAvatarUrl: "/icons/icon-192.png",
   verified: false,
@@ -189,6 +196,89 @@ const QUEST_TASKS: TodayTask[] = [
   }),
 ];
 
+/* Eight items for the Active rail harness, alternating kind so both border
+   colours are on screen at once. Wider than any viewport, which is the
+   condition the loop needs. */
+const RAIL_ITEMS: TodayTask[] = Array.from({ length: 8 }, (_, i) =>
+  task({
+    key: `rail-${i}`,
+    challengeId: `rail-${i}`,
+    challengeTitle: i % 2 === 0 ? `Challenge ${i + 1}` : `Quest ${i + 1}`,
+    kind: i % 2 === 0 ? "challenge" : "quest",
+    dayLabel: i % 2 === 0 ? `Day ${i + 1} of 30` : `${i} of 3 done`,
+    dayNumber: i + 1,
+    durationDays: 30,
+    thumbnailUrl: null,
+    state: "todo",
+  })
+);
+
+/* One notification of every kind the live database actually holds, plus a
+   read one, so every tone, pill and the read/unread split are all on screen
+   at once. Fabricated: nothing here touches the notifications table. */
+function notif(over: Partial<Notification> & { id: string; type: string }): Notification {
+  return {
+    title: "Notification",
+    message: null,
+    is_read: false,
+    related_challenge_id: null,
+    related_quest_id: null,
+    related_user_id: null,
+    created_at: new Date().toISOString(),
+    ...over,
+  } as Notification;
+}
+
+const ALERTS: Notification[] = [
+  notif({
+    id: "n1", type: "challenge_joined",
+    title: "New quest participant",
+    message: 'Adi_Chaubey joined "Moonliscious Foodie Fiesta".',
+    related_quest_id: "00000000-0000-4000-8000-000000000001",
+  }),
+  notif({
+    id: "n2", type: "business_verification_approved",
+    title: "Business Verified!",
+    message: "Your business is now verified. You can publish quests and start engaging with the StrivUp community.",
+  }),
+  notif({
+    id: "n3", type: "proof_rejected",
+    title: "Proof rejected",
+    message: 'Your proof for "Winter Arc" (Day 1) was rejected: This exact image has already been submitted by someone else. Please upload your own photo.',
+    related_challenge_id: "00000000-0000-4000-8000-000000000002",
+  }),
+  notif({
+    id: "n4", type: "proof_approved",
+    title: "Proof approved",
+    message: 'Day 17 of "CDS preparation" is logged.',
+    related_challenge_id: "00000000-0000-4000-8000-000000000003",
+  }),
+  notif({
+    id: "n5", type: "new_follower",
+    title: "New follower",
+    message: "Aru Bansal started following you.",
+    related_user_id: "00000000-0000-4000-8000-000000000004",
+  }),
+  notif({
+    id: "n6", type: "proof_liked",
+    title: "New like",
+    message: "Aditya Chaubey liked your proof.",
+    related_user_id: "00000000-0000-4000-8000-000000000005",
+    is_read: true,
+  }),
+  notif({
+    id: "n7", type: "proof_commented",
+    title: "New comment",
+    message: "Aryan Bansal commented on your proof.",
+    related_user_id: "00000000-0000-4000-8000-000000000006",
+  }),
+  notif({
+    id: "n8", type: "something_new_we_do_not_know",
+    title: "Unknown kind",
+    message: "Falls back to a neutral tone and no destination.",
+  }),
+];
+
 export default function FeedPreviewPage() {
   if (process.env.NODE_ENV === "production") notFound();
 
@@ -204,6 +294,69 @@ export default function FeedPreviewPage() {
             Fabricated data. Not reachable in production.
           </p>
         </header>
+
+        {/* Every alert kind at once: tones, pills, read vs unread. */}
+        <section className="flex flex-col gap-space-sm" data-testid="alerts-section">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">Alert rows: every kind</h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Accent, tint and destination pill per type.
+            </p>
+          </div>
+          <ul className="flex flex-col gap-2" role="list">
+            {ALERTS.map((n) => (
+              <li key={n.id}>
+                <AlertRow notif={n} />
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* The bottom bar. Fixed, md:hidden, so it pins to the viewport on a
+            phone-width window exactly as it does in the app. */}
+        <section className="flex flex-col gap-space-sm" data-testid="bottomnav-section">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">Bottom nav</h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Home, Quest (glowing), plus, Challenges, Search.
+            </p>
+          </div>
+          <BottomNav />
+        </section>
+
+        {/* The self-scrolling Active rail. Eight items, which is more than
+            fits, so the loop and its duplicate copy are both exercised. */}
+        <section className="flex flex-col gap-space-sm" data-testid="active-rail-section">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">
+              Active rail: auto-scroll, loop, borders
+            </h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Quests blue, challenges black. Hover pauses it.
+            </p>
+          </div>
+          <AutoScrollRail label="Active challenges and quests">
+            {RAIL_ITEMS.map((t) => (
+              <ActiveCard key={t.key} task={t} />
+            ))}
+          </AutoScrollRail>
+        </section>
+
+        <section className="flex flex-col gap-space-sm">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">
+              Rotator: banner, quests, challenges
+            </h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Three seconds each, looping. Touching it stops the rotation for
+              the rest of the visit.
+            </p>
+          </div>
+          <HomeRotator
+            summary={summary({ tasks: pickHomeTasks(MANY), total: 3, completed: 0, percent: 0 })}
+            questTasks={QUEST_TASKS}
+          />
+        </section>
 
         <section className="flex flex-col gap-space-sm">
           <div className="border-l-2 border-secondary pl-space-sm">
