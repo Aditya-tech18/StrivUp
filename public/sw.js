@@ -19,6 +19,9 @@
  *                 go straight to the network every time.
  */
 
+// STRIVY push notifications (push, notificationclick, pushsubscriptionchange).
+importScripts("/strivy-sw.js");
+
 const VERSION = "strivup-v1";
 const SHELL = `${VERSION}-shell`;
 const STATIC = `${VERSION}-static`;
