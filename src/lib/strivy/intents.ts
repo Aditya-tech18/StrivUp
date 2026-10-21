@@ -139,11 +139,41 @@ export function isCompanyQuestion(text: string): boolean {
 const COMPANY_FOLLOW_UP =
   /\b(naam|name|names|unka|unke|unki|uska|uske|who|kaun|kon|team|log|people|members?|based|where|kahan|kaha|kab|when|start|started|contact|email|mail|baat|more|aur|and|also|batao|bata|bta|details?|kya|which|city|office|founded)\b|नाम|कौन|कहाँ|कब|और|टीम/;
 /**
- * The message is about the person or STRIVUP ("do I get points", "is there a
- * shop", "strivup store"), not general knowledge ("boiling point").
+ * "Not in STRIVUP" rules fire only when a message is about the app or the
+ * person's own account, never on an everyday word: "boiling point", "sea
+ * level", "what does store mean", "my partner is upset" are general talk.
  */
-const APP_CONTEXT =
-  /\b(i|im|my|mine|we|our|do i|can i|do you have|do u have|you guys|your|ur|earn\w*|redeem\w*|unlock\w*|collect\w*|is there|are there|strivup|strivy|the app|this app|in app|profile|account|mujhe|mera|meri|mere|hamara|milte|milta|milega|hai kya|h kya)\b/;
+/** Names the app itself. */
+const APP_SUBJECT =
+  /\b(strivup|strivy|the app|this app|in app|in-app|on here|here on|profile|account)\b/;
+/** Asks what the person can get or do: "do I get", "can I join", "mujhe milte". */
+const ASKS_FOR_SELF =
+  /\b(do|can|will|did|could|would|how do|how can|where do|where can) (i|we)\b|\b(earn\w*|redeem\w*|unlock\w*|collect\w*)\b|\b(mujhe|mujhko|humko|hume|hamein)\b|\b(milte|milta|milega|milenge|milti)\b/;
+/** Asks whether the app has something: "is there a shop", "do you have premium". */
+const ASKS_IF_EXISTS =
+  /\b(is|are) there\b|\bdo (you|u)( guys)? (have|offer|sell)\b|\b(hai|h|hain) kya\b/;
+/** "my points", "your badges", "mera level". */
+const OWN = "\\b(my|mine|mera|meri|mere|your|ur|our|apna|apne|apni)\\s+(\\w+\\s+)?";
+
+/**
+ * A rule for `nouns` in one of the given contexts, or right after "my"/"your"
+ * (`ownNouns`, defaulting to `nouns`; pass "" to skip).
+ */
+function aboutApp(nouns: string, contexts: RegExp[], ownNouns = nouns): RegExp {
+  const alts = contexts.map((c) => `^(?=.*(?:${c.source})).*\\b(?:${nouns})\\b`);
+  if (ownNouns) alts.push(`${OWN}(?:${ownNouns})\\b`);
+  return new RegExp(alts.join("|"));
+}
+
+/** Something STRIVUP itself has, so "how do I …" is a how-to about the app. */
+const APP_TOPIC = new RegExp(
+  `${APP_SUBJECT.source}|\\b(quests?|challenges?|proofs?|streaks?|rewards?|tasks?|otp|upload\\w*|post\\w*|follow\\w*|followers?|notifications?|alerts?|settings|password|log ?in|log ?out|sign ?(in|up|out)|feed|stakes?|coins?|crews?|points|xp|badges?|level ?up|premium|subscri\\w*|delete|deactivat\\w*|username|photo|avatar|bio|join\\w*|leave|quit|invite\\w*|share|search)\\b`
+);
+
+/** The person or their StrivUp data: "my", "left", "bache", "progress", "deadline". */
+const PERSONAL_OR_APP = new RegExp(
+  `\\b(i|im|me|my|mine|mera|meri|mere|mujhe|hum|humara|left|remaining|bache|bacha|bachi|baki|baaki|deadline|progress|consisten\\w*|this week|last week|kitna hua|kitna ho gaya|kahan tak)\\b|बाकी|बचे|मेरा|मेरी|प्रगति|${APP_TOPIC.source}`
+);
 
 const DATA_WORDS =
   /\b(streaks?|quests?|challenges?|proofs?|rewards?|progress|pending|today|aaj)\b|स्ट्रीक|क्वेस्ट|चैलेंज|प्रूफ/;
@@ -253,7 +283,10 @@ const RULES: Rule[] = [
     name: "how-does-x-work",
     intent: "how_it_works",
     weight: 3,
-    pattern: /\bhow (does|do|is|are) (?!i\b).{0,40}\b(work|calculated|counted|decided|verified)\b/,
+    // "how does photosynthesis work" is science, not a StrivUp explainer.
+    pattern: new RegExp(
+      `^(?=.*(?:${APP_TOPIC.source}|consistency|verification)).*\\bhow (does|do|is|are) (?!i\\b).{0,40}\\b(work|calculated|counted|decided|verified)\\b`
+    ),
   },
   {
     name: "what-is-concept",
@@ -273,7 +306,9 @@ const RULES: Rule[] = [
     name: "explain",
     intent: "how_it_works",
     weight: 1,
-    pattern: /\b(explain|help me understand)\b/,
+    pattern: new RegExp(
+      `^(?=.*(?:${APP_TOPIC.source}|consistency|verification)).*\\b(explain|help me understand)\\b`
+    ),
   },
 
   // How-to questions about using the app
@@ -281,10 +316,26 @@ const RULES: Rule[] = [
     name: "how-do-i",
     intent: "help",
     weight: 3,
-    pattern: /\bhow (do|can|should) i\b|\bhow to\b|\bwhere (do|can) i\b/,
+    // "how do I cook rice" is a general question; only app how-tos are help.
+    pattern: new RegExp(
+      `^(?=.*(?:${APP_TOPIC.source})).*(\\bhow (do|can|should) i\\b|\\bhow to\\b|\\bwhere (do|can) i\\b)`
+    ),
   },
-  { name: "can-i", intent: "help", weight: 2, pattern: /\bcan i\b/ },
-  { name: "help-word", intent: "help", weight: 1, pattern: /\bhelp\b/ },
+  {
+    name: "can-i",
+    intent: "help",
+    weight: 2,
+    pattern: new RegExp(`^(?=.*(?:${APP_TOPIC.source})).*\\bcan i\\b`),
+  },
+  {
+    name: "help-word",
+    intent: "help",
+    weight: 1,
+    // A bare "help" / "I need help", or help with something in the app.
+    pattern: new RegExp(
+      `^((i )?(need )?help( me| pls| please)?[.!? ]*$|(?=.*(?:${APP_TOPIC.source})).*\\bhelp\\b)`
+    ),
+  },
 
   // Creating things
   {
@@ -301,28 +352,39 @@ const RULES: Rule[] = [
     name: "points",
     intent: "not_built",
     weight: 4,
-    pattern: new RegExp(
-      `^(?=.*${APP_CONTEXT.source}).*\\b(points?|xp|coins?|badges?|level ?up|levels?)\\b`
+    // Plural "points" only: "how do I find the boiling point" is science.
+    pattern: aboutApp(
+      "points|xp|coins?|badges?|level ?up|leaderboards?",
+      [APP_SUBJECT, ASKS_FOR_SELF, ASKS_IF_EXISTS],
+      "points?|xp|coins?|badges?|levels?"
     ),
   },
   {
     name: "crews",
     intent: "not_built",
     weight: 4,
-    pattern: /\b(crews?|accountability partners?|partners?|buddy|buddies)\b/,
+    pattern: aboutApp(
+      "crews?|accountability (?:partners?|buddy|buddies)|(?:partners?|buddy|buddies)",
+      [APP_SUBJECT, ASKS_FOR_SELF, ASKS_IF_EXISTS],
+      ""
+    ),
   },
-  { name: "marketplace-word", intent: "not_built", weight: 4, pattern: /\bmarketplace\b/ },
   {
     name: "marketplace",
     intent: "not_built",
     weight: 4,
-    pattern: new RegExp(`^(?=.*${APP_CONTEXT.source}).*\\b(shop|store)\\b`),
+    // "can I store food" is not a shop question, so only the app or "is there".
+    pattern: aboutApp("shop|store|marketplace", [APP_SUBJECT, ASKS_IF_EXISTS], ""),
   },
   {
     name: "subscriptions",
     intent: "not_built",
     weight: 4,
-    pattern: /\b(subscri(be|ption)s?|premium|pro plan|pricing|paid plan)\b/,
+    pattern: aboutApp("subscri(?:be|ption)s?|premium|pro plan|pricing|paid plan", [
+      APP_SUBJECT,
+      ASKS_FOR_SELF,
+      ASKS_IF_EXISTS,
+    ]),
   },
 
   // The person's own data
@@ -562,6 +624,9 @@ function resolveDetail(
     quest && !challenge ? "quest" : challenge && !quest ? "challenge" : undefined;
   const inherited = quest || challenge ? undefined : topicFromHistory(history);
   const topic = named ?? inherited;
+  // With nothing to attach it to, "how far is the moon?" or "how many days in
+  // a leap year?" is general knowledge, not the person's progress.
+  if (!topic && !PERSONAL_OR_APP.test(text)) return null;
 
   const matched = [
     `${topic ?? "general"}-${detail}`,

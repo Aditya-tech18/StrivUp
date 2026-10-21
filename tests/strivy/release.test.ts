@@ -294,6 +294,145 @@ test("each reply logs provider and model, never the message, reply or user", asy
   for (const leak of ["Romeo", "Shakespeare", USER_ID, KEY]) assert.ok(!raw.includes(leak), leak);
 });
 
+/* ── The 2026-10-21 production failure ────────────────────────────────── */
+
+/** A fake OpenRouter that plays back `bodies` (one per request) as HTTP 200s. */
+function scriptedOpenRouter(bodies: unknown[]) {
+  let calls = 0;
+  const fetchImpl = (async () => {
+    const body = bodies[Math.min(calls, bodies.length - 1)];
+    calls++;
+    return new Response(JSON.stringify(body), { status: 200 });
+  }) as unknown as typeof fetch;
+  const provider = createOpenRouterProvider(
+    { apiKey: KEY, model: FREE_ROUTER_MODEL, timeoutMs: 1000, baseUrl: "https://x.test" },
+    { fetch: fetchImpl, log: () => undefined }
+  );
+  return { provider, calls: () => calls };
+}
+const completion = (model: string, content: string | null) => ({
+  model,
+  choices: [{ message: { role: "assistant", content }, finish_reason: "stop" }],
+  usage: { prompt_tokens: 50, completion_tokens: 10, cost: 0 },
+});
+
+async function chatReply(message: string, provider: StrivyModelProvider, history?: unknown[]) {
+  const audits: unknown[] = [];
+  const r = await chat({ message, history }, provider, { id: USER_ID }, audits).res;
+  assert.equal(r.status, 200);
+  const body = (await r.json()) as { reply: { text: string; chips: { label: string }[] } };
+  return { ...body.reply, audit: audits[0] as Record<string, unknown> };
+}
+
+test("prod 2026-10-21: a reply with no text is retried once, and the second model answers", async () => {
+  const { provider, calls } = scriptedOpenRouter([
+    completion("some-lab/thinker:free", null),
+    completion("other-lab/chat:free", "Water boils at 100 °C at sea level."),
+  ]);
+  const r = await chatReply("What is the boiling point of water?", provider);
+  assert.equal(calls(), 2);
+  assert.match(r.text, /^Water boils at 100 °C/);
+  assert.equal(r.audit.modelUsed, true);
+  assert.equal(r.audit.servedBy, "other-lab/chat:free");
+  assert.ok(!r.chips.some((c) => c.label === "Not in STRIVUP"));
+});
+
+test("a safety classifier's verdict is never shown; the retry's answer is", async () => {
+  const { provider, calls } = scriptedOpenRouter([
+    completion("nvidia/nemotron-content-safety:free", "User Safety: safe"),
+    completion("other-lab/chat:free", "A store is a shop."),
+  ]);
+  const r = await chatReply("What does store mean?", provider);
+  assert.equal(calls(), 2);
+  assert.match(r.text, /^A store is a shop\./);
+  assert.doesNotMatch(r.text, /Safety/);
+});
+
+test("two unusable replies in a row: one retry only, then a plain fallback (never 'Not in STRIVUP')", async () => {
+  const { provider, calls } = scriptedOpenRouter([completion("a/thinker:free", null)]);
+  const r = await chatReply("What is the boiling point of water?", provider);
+  assert.equal(calls(), 2);
+  assert.equal(r.audit.modelUsed, false);
+  assert.ok(!r.chips.some((c) => c.label === "Not in STRIVUP"));
+  assert.doesNotMatch(r.text, /points, XP or badges/);
+});
+
+test("general knowledge vs StrivUp: only real app questions are 'Not in STRIVUP'", async () => {
+  const { classifyIntent } = await import("@/lib/strivy/intents");
+  const general = [
+    "What is the boiling point of water?",
+    "What is the boiling point at sea level?",
+    "How do I calculate the boiling point?",
+    "Do you know the boiling point of water?",
+    "What does store mean?",
+    "Can I store food in the fridge?",
+    "store kya hai?",
+    "what is a marketplace?",
+    "what is premium gasoline",
+    "what is sea level",
+    "i got 10 points in my exam",
+    "my partner is upset",
+    "how to cook rice",
+    "how does photosynthesis work",
+    "explain gravity",
+    "How far is the moon?",
+    "How many days in a leap year?",
+    "Who wrote Romeo and Juliet?",
+  ];
+  for (const m of general) assert.notEqual(classifyIntent(m).intent, "not_built", m);
+  for (const m of general) {
+    assert.ok(
+      !["help", "how_it_works", "progress", "challenges"].includes(classifyIntent(m).intent),
+      `${m} → ${classifyIntent(m).intent}`
+    );
+  }
+  for (const m of [
+    "do I have any points?",
+    "can I join a crew",
+    "is there a premium subscription",
+    "is there a shop in the app?",
+    "can I earn xp",
+    "how do I level up",
+    "what are my points",
+    "does strivup have badges",
+    "mujhe points milte hai kya",
+    "is there a leaderboard",
+    "strivup store",
+    "what's my level",
+  ]) {
+    assert.equal(classifyIntent(m).intent, "not_built", m);
+  }
+  for (const [m, want] of [
+    ["how do I upload proof", "help"],
+    ["how can I delete my account", "help"],
+    ["how are streaks calculated", "how_it_works"],
+    ["What is my current streak?", "streak"],
+    ["how many days are left?", "challenges"],
+  ]) {
+    assert.equal(classifyIntent(m).intent, want, m);
+  }
+});
+
+test("a StrivUp answer then a general follow-up, and the reverse, keep their own context", async () => {
+  const { provider, sent } = fakeOpenRouter(() => "That's 212 °F.");
+  const r = await chatReply("And in Fahrenheit?", provider, [
+    { role: "user", text: "What is the boiling point of water?" },
+    { role: "strivy", text: "Water boils at 100 °C.", intent: "general_question" },
+  ]);
+  assert.match(r.text, /^That's 212 °F\./);
+  // General small talk never carries the person's StrivUp data to the model.
+  assert.doesNotMatch(JSON.stringify(sent[0].messages), /30 Days of Running/);
+
+  const { provider: p2 } = fakeOpenRouter(
+    () => "You're on an 11-day streak in '30 Days of Running' 🔥"
+  );
+  const r2 = await chatReply("what about my streak?", p2, [
+    { role: "user", text: "What is the boiling point of water?" },
+    { role: "strivy", text: "Water boils at 100 °C.", intent: "general_question" },
+  ]);
+  assert.match(r2.text, /11/);
+});
+
 /* ── Cron idempotency ─────────────────────────────────────────────────── */
 
 const BUSY: StrivyFacts = {
