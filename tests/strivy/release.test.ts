@@ -79,7 +79,8 @@ const CHALLENGE_ROW = {
 function chat(
   body: unknown,
   provider: StrivyModelProvider,
-  user: { id: string } | null = { id: USER_ID }
+  user: { id: string } | null = { id: USER_ID },
+  audits: unknown[] = []
 ) {
   const fake = fakeSupabase({
     user,
@@ -97,8 +98,11 @@ function chat(
     isEnabled: () => true,
     getSupabase: async () => fake.client,
     getProvider: () => provider,
+    // Each test call is its own user turn; the shared 20/min limiter is tested elsewhere.
+    limiter: { take: () => true },
+    audit: (e) => audits.push(e),
   });
-  return { res, fake };
+  return { res, fake, audits };
 }
 
 async function replyText(res: Promise<Response>) {
@@ -233,6 +237,61 @@ test("a longer message within the limit is answered", async () => {
     );
   const text = await replyText(chat({ message: long }, provider).res);
   assert.ok(text.length > 0);
+});
+
+test("general questions using 'point', 'level' or 'store' reach the model", async () => {
+  for (const [message, answer] of [
+    ["What is the boiling point of water?", "Water boils at 100 °C (212 °F) at sea level."],
+    ["What is the boiling point at sea level?", "At sea level, water boils at 100 °C."],
+    ["What does store mean?", "A store is a shop; as a verb it means to keep something."],
+  ]) {
+    const { provider, sent } = fakeOpenRouter(() => answer);
+    const text = await replyText(chat({ message }, provider).res);
+    assert.equal(sent.length, 1, message);
+    assert.ok(text.startsWith(answer), message);
+  }
+});
+
+test("'and in Fahrenheit?' after the boiling point is answered by the model", async () => {
+  const { provider } = fakeOpenRouter(() => "That's 212 °F.");
+  const text = await replyText(
+    chat(
+      {
+        message: "And in Fahrenheit?",
+        history: [
+          { role: "user", text: "What is the boiling point at sea level?" },
+          {
+            role: "strivy",
+            text: "At sea level, water boils at 100 °C.",
+            intent: "general_question",
+          },
+        ],
+      },
+      provider
+    ).res
+  );
+  assert.ok(text.startsWith("That's 212 °F."));
+});
+
+test("asking about StrivUp points or a shop still says they don't exist", async () => {
+  for (const message of ["do I have any points?", "is there a shop in the app?", "can I earn xp"]) {
+    const { provider } = fakeOpenRouter(() => "You have 500 points!");
+    const text = await replyText(chat({ message }, provider).res);
+    assert.doesNotMatch(text, /500/, message);
+  }
+});
+
+test("each reply logs provider and model, never the message, reply or user", async () => {
+  const { provider } = fakeOpenRouter(() => "William Shakespeare wrote it.");
+  const { res, audits } = chat({ message: "Who wrote Romeo and Juliet?" }, provider);
+  await replyText(res);
+  assert.equal(audits.length, 1);
+  const a = audits[0] as Record<string, unknown>;
+  assert.equal(a.provider, "openrouter");
+  assert.equal(a.servedBy, "some-lab/some-model:free");
+  assert.equal(a.modelUsed, true);
+  const raw = JSON.stringify(a);
+  for (const leak of ["Romeo", "Shakespeare", USER_ID, KEY]) assert.ok(!raw.includes(leak), leak);
 });
 
 /* ── Cron idempotency ─────────────────────────────────────────────────── */

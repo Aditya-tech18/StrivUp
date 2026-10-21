@@ -138,6 +138,13 @@ export function isCompanyQuestion(text: string): boolean {
 /** A short follow-up after a company answer: "unka naam?", "and the CEO?", "contact kaise karu?". */
 const COMPANY_FOLLOW_UP =
   /\b(naam|name|names|unka|unke|unki|uska|uske|who|kaun|kon|team|log|people|members?|based|where|kahan|kaha|kab|when|start|started|contact|email|mail|baat|more|aur|and|also|batao|bata|bta|details?|kya|which|city|office|founded)\b|नाम|कौन|कहाँ|कब|और|टीम/;
+/**
+ * The message is about the person or STRIVUP ("do I get points", "is there a
+ * shop", "strivup store"), not general knowledge ("boiling point").
+ */
+const APP_CONTEXT =
+  /\b(i|im|my|mine|we|our|do i|can i|do you have|do u have|you guys|your|ur|earn\w*|redeem\w*|unlock\w*|collect\w*|is there|are there|strivup|strivy|the app|this app|in app|profile|account|mujhe|mera|meri|mere|hamara|milte|milta|milega|hai kya|h kya)\b/;
+
 const DATA_WORDS =
   /\b(streaks?|quests?|challenges?|proofs?|rewards?|progress|pending|today|aaj)\b|स्ट्रीक|क्वेस्ट|चैलेंज|प्रूफ/;
 
@@ -287,12 +294,16 @@ const RULES: Rule[] = [
     pattern: /\b(create|make|start|set ?up|build|new)\b.*\b(quest|challenge)s?\b/,
   },
 
-  // Things STRIVUP doesn't have
+  // Things STRIVUP doesn't have. "point", "level" and "store" are everyday
+  // words too ("boiling point", "sea level", "what does store mean"), so those
+  // rules only fire when the message is about the person or the app.
   {
     name: "points",
     intent: "not_built",
     weight: 4,
-    pattern: /\b(points?|xp|coins?|badges?|level ?up|levels?)\b/,
+    pattern: new RegExp(
+      `^(?=.*${APP_CONTEXT.source}).*\\b(points?|xp|coins?|badges?|level ?up|levels?)\\b`
+    ),
   },
   {
     name: "crews",
@@ -300,7 +311,13 @@ const RULES: Rule[] = [
     weight: 4,
     pattern: /\b(crews?|accountability partners?|partners?|buddy|buddies)\b/,
   },
-  { name: "marketplace", intent: "not_built", weight: 4, pattern: /\b(marketplace|shop|store)\b/ },
+  { name: "marketplace-word", intent: "not_built", weight: 4, pattern: /\bmarketplace\b/ },
+  {
+    name: "marketplace",
+    intent: "not_built",
+    weight: 4,
+    pattern: new RegExp(`^(?=.*${APP_CONTEXT.source}).*\\b(shop|store)\\b`),
+  },
   {
     name: "subscriptions",
     intent: "not_built",

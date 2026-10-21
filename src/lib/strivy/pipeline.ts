@@ -458,6 +458,26 @@ export interface ChatHandlerDeps {
   debug?: () => boolean;
   /** Where debug lines go; console.info when not given. */
   log?: (line: string) => void;
+  /** Where the per-reply provider line goes; console.info when not given. */
+  audit?: (entry: ReturnType<typeof auditEntry>) => void;
+}
+
+/**
+ * One line per reply, logged in production too, so the server logs show
+ * whether a reply came from the model. Routing facts only: never the message,
+ * the reply, the user id, keys or headers.
+ */
+export function auditEntry(meta: PipelineMeta) {
+  return {
+    intent: meta.intent,
+    mode: meta.mode,
+    provider: meta.provider,
+    servedBy: meta.modelStats?.servedBy ?? null,
+    modelUsed: meta.modelUsed,
+    modelMs: meta.modelMs,
+    fallbackReason: meta.fallbackReason,
+    totalMs: meta.timings.totalMs,
+  };
 }
 
 type Authorized =
@@ -547,6 +567,8 @@ async function handleChat(request: Request, deps: ChatHandlerDeps): Promise<Resp
       error: meta.modelError,
     });
   }
+
+  (deps.audit ?? ((e) => console.info("[strivy] reply", e)))(auditEntry(meta));
 
   // Routing details stay on the server; the person only ever gets the reply.
   // In development with STRIVY_DEBUG=true, the timings also go in a
