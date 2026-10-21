@@ -48,6 +48,7 @@ import {
   uploadProof,
   type SlotData,
 } from "@/lib/data/proofs";
+import { emitStrivyEvent } from "@/components/features/strivy/companion";
 import { InviteSheet } from "@/components/features/InviteSheet";
 import { ShareButton } from "@/components/features/share/ShareButton";
 import { PeopleListSheet } from "@/components/features/people/PeopleList";
@@ -185,6 +186,7 @@ function TaskUploadSlot({
 
       const verdict = await callReviewProof(result.submissionId!);
       setLocalStatus(verdict.status);
+      if (verdict.status === "approved") emitStrivyEvent({ type: "CHALLENGE_COMPLETED" });
       setSlot({
         state: verdict.status,
         preview: result.preview,
@@ -393,6 +395,7 @@ function LegacyUploadCard({
       setSlot({ state: "reviewing", preview: result.preview, error: null, rejectionReason: null });
 
       const verdict = await callReviewProof(result.submissionId!);
+      if (verdict.status === "approved") emitStrivyEvent({ type: "CHALLENGE_COMPLETED" });
       setSlot({
         state: verdict.status,
         preview: result.preview,

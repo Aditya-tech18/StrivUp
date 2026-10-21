@@ -13,6 +13,8 @@
 
 import type { ReactNode } from "react";
 import { AppSidebar, BottomNav, AlertsProvider, AppTour, BrandMark } from "@/components/ui";
+import { StrivyLauncher } from "@/components/features/strivy/StrivyLauncher";
+import { isStrivyEnabled } from "@/lib/strivy/config";
 
 export default function AppShellLayout({ children }: { children: ReactNode }) {
   return (
@@ -53,6 +55,9 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
             between routes as it runs, and a page-level mount would unmount
             itself on the second step. */}
         <AppTour />
+
+        {/* ── STRIVY companion (off unless STRIVY_ENABLED=true) ───────── */}
+        {isStrivyEnabled() && <StrivyLauncher />}
       </div>
     </AlertsProvider>
   );

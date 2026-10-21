@@ -84,7 +84,13 @@ function msUntilMidnight(): number {
 
 export async function getTodaysTasks(
   supabase: SupabaseClient,
-  userId: string
+  userId: string,
+  /**
+   * settle: false skips the settle step below, for background readers (the
+   * STRIVY push scheduler) that must not change data on the user's behalf.
+   * Every existing caller keeps the default.
+   */
+  options: { settle?: boolean } = {}
 ): Promise<TodaySummary> {
   const empty: TodaySummary = {
     tasks: [],
@@ -105,14 +111,16 @@ export async function getTodaysTasks(
   // A failure here must not take the home feed down — worst case a finished
   // challenge settles on the next visit instead.
   let justCompleted = 0;
-  const { data: settled, error: settleError } = await supabase.rpc(
-    "settle_challenge_completions",
-    { p_user_id: userId }
-  );
-  if (settleError) {
-    console.error("[getTodaysTasks] settle", settleError.message);
-  } else {
-    justCompleted = (settled as number | null) ?? 0;
+  if (options.settle !== false) {
+    const { data: settled, error: settleError } = await supabase.rpc(
+      "settle_challenge_completions",
+      { p_user_id: userId }
+    );
+    if (settleError) {
+      console.error("[getTodaysTasks] settle", settleError.message);
+    } else {
+      justCompleted = (settled as number | null) ?? 0;
+    }
   }
 
   // ── 1. Active participations, with the challenge joined in ────────────────
@@ -205,11 +213,7 @@ export async function getTodaysTasks(
     // Approved wins over pending wins over rejected, so a resubmission that
     // was approved is not masked by the earlier rejected row.
     const existing = subIndex.get(k);
-    if (
-      !existing ||
-      status === "approved" ||
-      (status === "pending" && existing === "rejected")
-    ) {
+    if (!existing || status === "approved" || (status === "pending" && existing === "rejected")) {
       subIndex.set(k, status);
     }
   }
