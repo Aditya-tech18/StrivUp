@@ -705,6 +705,11 @@ export function classifyIntent(message: string, history: ChatTurn[] = []): Inten
       if (lastIntent && DATA_INTENTS.has(lastIntent)) {
         return { intent: lastIntent, confidence: "low", matched: ["follow-up"] };
       }
+      // "and in fahrenheit?" after a general answer: the model has the last
+      // exchange, so it can answer the follow-up instead of asking what it means.
+      if (lastIntent === "general_question" && !DATA_WORDS.test(text)) {
+        return { intent: "general_question", confidence: "medium", matched: ["general-follow-up"] };
+      }
       // A follow-up with nothing (useful) to follow: ask, don't guess.
       return { intent: "unknown", confidence: "low", matched: ["follow-up-no-context"] };
     }

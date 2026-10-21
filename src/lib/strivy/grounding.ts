@@ -68,9 +68,24 @@ const DATA_STATEMENT =
 const EXPLICIT =
   /\b(sex|sexy|sexual|nude|nudes|naked|porn|horny|boobs?|dick|penis|vagina|orgasm|condom|fuck\w*|bitch|slut|whore|chutiy[aeo]|chut|lund|lauda|gaand|bhosd\w*|randi|chudai|madarchod|behenchod|bhenchod|mc|bc)\b|सेक्स|चुदाई|चूतिय|लंड|गांड|भोसड|रंडी/i;
 
-/** STRIVUP data words. Small talk that mentions one is held to the data rules. */
+/**
+ * STRIVUP data words. Small talk that mentions one is held to the data rules.
+ * "points" only counts as someone's points ("your points", "earn points"), so
+ * "the boiling point is 100 °C" stays an everyday answer.
+ */
 const DATA_WORD =
-  /\b(streaks?|quests?|proofs?|rewards?|challenges?|tasks?|progress|vouchers?|points?|days? in a row)\b|स्ट्रीक|क्वेस्ट|टास्क|प्रूफ/i;
+  /\b(streaks?|quests?|proofs?|rewards?|challenges?|tasks?|progress|vouchers?|days? in a row)\b|\b(your|ur|my|earn(?:ed|s)?|get|got|win|won)\s+(\d+\s+)?points?\b|स्ट्रीक|क्वेस्ट|टास्क|प्रूफ/i;
+
+/**
+ * In small talk a NOT_BUILT word ("sea level", "a grocery store") is only a
+ * feature claim when its sentence is about STRIVUP or the person's account.
+ */
+const ABOUT_STRIVUP =
+  /\b(strivup|strivy|the app|this app|in-app|in app|app (?:me|mein|par|pe)|your account|earn\w*|unlock\w*|level up|redeem\w*|collect\w*)\b|\b(your|ur|my|tere|tera|tumhare|mere)\s+(\w+\s+)?(points?|xp|coins?|badges?|levels?|crews?|subscriptions?)\b/i;
+
+/** Credentials a model must never print, whoever asked: API keys, JWTs, private keys. */
+const SECRET_LIKE =
+  /\bsk-[a-z0-9]{0,8}-?[A-Za-z0-9_-]{20,}|\bAIza[0-9A-Za-z_-]{30,}|\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.|-----BEGIN [A-Z ]*PRIVATE KEY/;
 
 /** Small talk may run a little longer than its fallback line (a joke has a punchline). */
 const CHAT_MAX_CHARS = 280;
@@ -177,6 +192,7 @@ export function checkGrounding(
   // Belt and braces: the pipeline strips these first, so this only fires if
   // a new label format slips past stripInternalMetadata.
   if (containsInternalMetadata(text)) reasons.push("internal metadata");
+  if (SECRET_LIKE.test(text)) reasons.push("secret-like text");
   if (text.length > MAX_REPLY_CHARS) reasons.push("too long");
 
   const chat = options.mode === "chat";
@@ -260,8 +276,15 @@ export function checkGrounding(
   if (banned.length > 0) reasons.push(`banned words: ${banned.join(", ")}`);
 
   // Features STRIVUP doesn't have (or that aren't live) the draft didn't raise.
+  // Small talk only counts sentences that are about STRIVUP.
   const draftFeatures = new Set(matches(draftText, NOT_BUILT));
-  const newFeatures = matches(text, NOT_BUILT).filter((f) => !draftFeatures.has(f));
+  const featureText = chat
+    ? text
+        .split(/(?<=[.!?…।])\s+|\n+/)
+        .filter((s) => ABOUT_STRIVUP.test(s))
+        .join(" ")
+    : text;
+  const newFeatures = matches(featureText, NOT_BUILT).filter((f) => !draftFeatures.has(f));
   if (newFeatures.length > 0)
     reasons.push(`feature claims: ${[...new Set(newFeatures)].join(", ")}`);
 
