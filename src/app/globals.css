@@ -981,6 +981,69 @@ html[data-tour-open] [data-install-prompt] {
   .pressable:active { transform: none; }
 }
 
+/* ── Sharpened surfaces ──────────────────────────────────────────────────────
+   A second, harder voice for moments that should feel like a commitment: the
+   stake step, a forfeit, a result. Definite edge and a flat offset shadow
+   instead of the soft elevation the rest of the app uses.
+
+   This is an ADDITION, not a replacement. `.elev-*` stays the default
+   everywhere; `.edge` is for the few surfaces that are meant to stop you. Used
+   widely it would turn into a different app, which is not what we are doing.
+   Colours are the existing tokens — nothing new enters the palette. */
+.edge {
+  border: 1.5px solid var(--color-on-surface);
+  box-shadow: 3px 3px 0 0 var(--color-on-surface);
+}
+.edge-brand {
+  border: 1.5px solid var(--color-secondary);
+  box-shadow: 3px 3px 0 0 var(--color-secondary);
+}
+/* Pressing it moves the surface onto its own shadow. */
+.edge-press {
+  transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 120ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.edge-press:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 0 var(--color-on-surface);
+}
+
+/* Machine-ish label for counters and step markers. No webfont: the system
+   mono stack costs nothing to download and is legible at this size. */
+.overline-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Staggered entrance. The delay is set per item with --i so a list arrives in
+   sequence rather than all at once. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.rise {
+  animation: rise-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+/* A value that just changed. Brief, and never on first paint. */
+@keyframes tick-up {
+  0%   { transform: none; }
+  40%  { transform: translateY(-3px) scale(1.06); }
+  100% { transform: none; }
+}
+.tick { animation: tick-up 320ms cubic-bezier(0.22, 1, 0.36, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise { animation: none; }
+  .tick { animation: none; }
+  .edge-press { transition: none; }
+  .edge-press:active { transform: none; }
+}
+
 /* Forced-colors mode strips box-shadow entirely, so depth must fall back to
    something the OS honours, or every card merges into the page. WCAG 1.4.11. */
 @media (forced-colors: active) {

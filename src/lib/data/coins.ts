@@ -87,6 +87,10 @@ export const COIN_REASON_LABEL: Record<string, string> = {
   spend_streak_freeze: "Streak freeze",
   spend_cosmetic: "Profile item",
   spend_challenge_boost: "Challenge boost",
+  /* Not a "spend": nothing was bought and nobody received these. Calling a
+     forfeit a purchase in the coin history would misdescribe what happened. */
+  stake_forfeit: "Missed a staked day",
+  stake_bonus: "Finished a staked challenge",
   adjustment: "Adjustment",
 };
 

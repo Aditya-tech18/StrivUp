@@ -8,7 +8,7 @@
  * If task inserts fail after the challenge row exists, a clear error is shown.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,6 +42,10 @@ import {
   DurationPicker,
   type DurationChoice,
 } from "@/components/features/challenge/DurationPicker";
+import {
+  StakePicker,
+  type StakeChoice,
+} from "@/components/features/challenge/StakePicker";
 import { ProofSummary } from "@/components/features/challenge/ProofSummary";
 import {
   coverToFile,
@@ -358,7 +362,42 @@ export default function CreateChallengePage() {
   // which is a legitimate choice that also means duration_days IS NULL.
   const [duration, setDuration]               = useState<DurationChoice | null>(null);
   const [durationError, setDurationError]     = useState<string | null>(null);
+  const [stake, setStake]                     = useState<StakeChoice>({ perDay: 0 });
+  /* Null while the balance and age are still being read. Staking stays hidden
+     until both are known rather than rendering an eligible-looking control
+     that then changes its mind. */
+  const [stakeCtx, setStakeCtx] = useState<{ balance: number; eligible: boolean } | null>(null);
   const [dailyProof, setDailyProof]           = useState(true);
+
+  /* Balance and age for the stake step. Age lives in profile_private, which
+     is owner-only under RLS, so this read returns a row for the signed-in
+     user and nothing for anybody else. Declared inside the effect and guarded
+     by `cancelled` — the pattern react-hooks/set-state-in-effect wants. */
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        if (!cancelled) setStakeCtx({ balance: 0, eligible: false });
+        return;
+      }
+
+      const [{ data: balance }, { data: priv }] = await Promise.all([
+        supabase.rpc("striv_coin_balance", { p_user_id: user.id }),
+        supabase.from("profile_private").select("age").eq("id", user.id).maybeSingle(),
+      ]);
+
+      if (cancelled) return;
+      const age = (priv?.age as number | null) ?? null;
+      /* Unknown age is treated as ineligible, not as an adult. A loss-framed
+         mechanic is the wrong thing to default anyone into. */
+      setStakeCtx({ balance: (balance as number | null) ?? 0, eligible: age !== null && age >= 18 });
+    })();
+
+    return () => { cancelled = true; };
+  }, []);
   const [locationEnabled, setLocationEnabled] = useState(false);
   // Cover: either a generated preset or an uploaded file, never both.
   const [coverPreset, setCoverPreset]         = useState<CoverPreset | null>(null);
@@ -492,6 +531,10 @@ export default function CreateChallengePage() {
         description: data.description || null,
         category: data.category,
         duration_days: duration.days,
+        /* Belt and braces with challenges_daily_stake_check: an ineligible
+           account cannot send a stake even if the control was somehow
+           rendered, because eligibility is decided here too. */
+        daily_stake: stakeCtx?.eligible ? stake.perDay : 0,
         visibility,
         // The short label stays in proof_methods for the cards; the sentence
         // participants actually read goes in proof_instructions.
@@ -801,6 +844,16 @@ export default function CreateChallengePage() {
                 }}
                 error={durationError}
               />
+
+              {stakeCtx ? (
+                <StakePicker
+                  value={stake}
+                  onChange={setStake}
+                  balance={stakeCtx.balance}
+                  durationDays={duration?.days ?? null}
+                  eligible={stakeCtx.eligible}
+                />
+              ) : null}
 
               {/* Visibility. Was a bare public/private segmented toggle with
                   no indication of what either one does — and "private" has a

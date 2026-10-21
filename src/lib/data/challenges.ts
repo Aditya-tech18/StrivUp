@@ -170,7 +170,7 @@ export async function getChallengeDetail(
     .select(
       `
       id, title, duration_days, thumbnail_url, created_at, description, visibility,
-      proof_instructions, creator_id,
+      proof_instructions, creator_id, daily_stake,
       profiles!creator_id ( full_name )
       `
     )
@@ -208,6 +208,9 @@ export async function getChallengeDetail(
     // this; the composer falls back to generic wording.
     proofInstructions: (data.proof_instructions as string | null) ?? null,
     creatorId: (data.creator_id as string | null) ?? null,
+    /* 0 for every challenge created before stakes existed, which is the
+       correct reading: they stake nothing. */
+    dailyStake: (data.daily_stake as number | null) ?? 0,
   };
 }
 
