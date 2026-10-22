@@ -17,6 +17,7 @@ import { Bell, Check, Loader2, MapPin, X } from "lucide-react";
 import { enablePush } from "@/components/features/strivy/push";
 import { getCurrentPosition, clearCachedFix } from "@/lib/location/geo";
 import {
+  isInstalledApp,
   locationEnabled,
   locationState,
   notificationState,
@@ -38,6 +39,9 @@ export function PermissionControls({
   const [locOn, setLocOn] = useState(true);
   const [busy, setBusy] = useState<Busy>("none");
   const [note, setNote] = useState<string | null>(null);
+  /* Browser tab or installed app. Decides whether the system dialog someone
+     is about to see belongs to StrivUp or to Chrome. */
+  const [installed, setInstalled] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,6 +51,7 @@ export function PermissionControls({
       setNotif(notificationState());
       setLoc(l);
       setLocOn(locationEnabled());
+      setInstalled(isInstalledApp());
     })();
     return () => {
       cancelled = true;
@@ -61,8 +66,12 @@ export function PermissionControls({
     setBusy("none");
     if (result === "denied") {
       setNote("Notifications are blocked for StrivUp. Turn them back on in your browser or Android app settings.");
+    } else if (result === "not-configured") {
+      /* The server has no VAPID key. Nothing the person can do, and nothing
+         about their browser: say so plainly rather than blaming the device. */
+      setNote("Push notifications are not switched on for StrivUp yet. Nothing wrong with your phone \u2014 we are still setting this up.");
     } else if (result === "unsupported") {
-      setNote("This browser cannot do push notifications.");
+      setNote("This browser cannot do push notifications. Install StrivUp from the Play Store, or open it in Chrome.");
     } else if (result === "server-error") {
       setNote("Could not register this device. Try again in a moment.");
     }
@@ -170,6 +179,17 @@ export function PermissionControls({
           </div>
         );
       })}
+
+      {/* Said once, and only when it is true and still actionable: in a
+          browser tab the prompt and any notification belong to Chrome, not to
+          StrivUp. */}
+      {!installed && notif !== "granted" && (
+        <p className="rounded-xl border border-outline-variant bg-surface-container-low px-3.5 py-3 text-body-sm leading-relaxed text-on-surface-variant">
+          You are in a browser tab. Install StrivUp from the Play Store and
+          notifications will come from StrivUp itself, with the normal Android
+          permission prompt.
+        </p>
+      )}
 
       {note && (
         <p className="rounded-xl border border-outline-variant bg-surface-container-low px-3.5 py-3 text-body-sm leading-relaxed text-on-surface-variant">

@@ -54,7 +54,21 @@ export async function currentSubscription(): Promise<PushSubscription | null> {
   return reg ? reg.pushManager.getSubscription() : null;
 }
 
-export type EnableResult = "enabled" | "denied" | "unsupported" | "server-error";
+/**
+ * CHANGED: "not-configured" is its own result now.
+ *
+ * It used to collapse into "unsupported", and the UI reported that as "this
+ * browser cannot do push notifications" — on Chrome for Android, which can.
+ * The actual cause was a missing VAPID public key on the server, and the
+ * message sent people to look at the one place that was not at fault. Two
+ * different failures deserve two different sentences.
+ */
+export type EnableResult =
+  | "enabled"
+  | "denied"
+  | "unsupported"
+  | "not-configured"
+  | "server-error";
 
 /**
  * Turns push on for this device: asks permission (must run from a tap),
@@ -62,8 +76,11 @@ export type EnableResult = "enabled" | "denied" | "unsupported" | "server-error"
  * nudges are sent is a separate setting (setNudges).
  */
 export async function enablePush(): Promise<EnableResult> {
+  const support = pushSupport();
+  if (support === "unsupported") return "unsupported";
+
   const key = vapidPublicKey();
-  if (pushSupport() !== "supported" || !key) return "unsupported";
+  if (support === "not-configured" || !key) return "not-configured";
   const permission = await Notification.requestPermission();
   if (permission !== "granted") return "denied";
 

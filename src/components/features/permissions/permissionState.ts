@@ -89,3 +89,29 @@ export function markPromptSeen(): void {
     /* ignore */
   }
 }
+
+/**
+ * Is StrivUp running as the installed app, or inside a browser tab?
+ *
+ * This decides which permission dialog a person actually sees. Inside the
+ * installed TWA, Notification.requestPermission() is delegated to Android and
+ * they get the system POST_NOTIFICATIONS prompt, the same one every other app
+ * shows. In a browser tab they get Chrome's own prompt, and any notification
+ * that follows is attributed to Chrome rather than to StrivUp.
+ *
+ * A TWA only launches without the browser chrome when Digital Asset Links
+ * verify, which needs /.well-known/assetlinks.json to carry the real package
+ * name and signing fingerprint. While it does not, Android quietly falls back
+ * to a Custom Tab, which looks like the app but is a browser, and that is why
+ * the prompt can look wrong even on a phone with the app installed.
+ */
+export function isInstalledApp(): boolean {
+  if (typeof window === "undefined") return false;
+  const standalone =
+    window.matchMedia?.("(display-mode: standalone)").matches ||
+    window.matchMedia?.("(display-mode: fullscreen)").matches ||
+    window.matchMedia?.("(display-mode: minimal-ui)").matches;
+  // iOS Safari predates display-mode and uses its own flag.
+  const iosStandalone = (window.navigator as { standalone?: boolean }).standalone === true;
+  return Boolean(standalone || iosStandalone);
+}
