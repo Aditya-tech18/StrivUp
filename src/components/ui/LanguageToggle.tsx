@@ -11,10 +11,11 @@
 
 import { useLocale, type Locale } from "@/lib/i18n/LocaleProvider";
 import { Languages } from "lucide-react";
+import type { StringKey } from "@/lib/i18n/businessStrings";
 
-const OPTIONS: { value: Locale; label: string; aria: string }[] = [
-  { value: "en", label: "EN", aria: "English" },
-  { value: "hi", label: "हिं", aria: "Hindi" },
+const OPTIONS: { value: Locale; label: string; aria: StringKey }[] = [
+  { value: "en", label: "EN", aria: "lang.english" },
+  { value: "hi", label: "हिं", aria: "lang.hindi" },
 ];
 
 export function LanguageToggle({ className = "" }: { className?: string }) {
@@ -39,7 +40,7 @@ export function LanguageToggle({ className = "" }: { className?: string }) {
             type="button"
             role="radio"
             aria-checked={active}
-            aria-label={o.aria}
+            aria-label={t(o.aria)}
             onClick={() => setLocale(o.value)}
             className={[
               "h-7 min-w-[34px] rounded-lg px-2 text-label-sm font-bold transition-colors",

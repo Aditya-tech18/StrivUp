@@ -167,7 +167,7 @@ export default function AnalyticsPage() {
                       { label: "Joins",          value: analytics.joins,                  color: "bg-chart-2" },
                       { label: t("an.proofsSubmitted"),value: analytics.approvedProofs + analytics.rejectedProofs + analytics.pendingProofs, color: "bg-chart-3" },
                       { label: t("an.proofsApproved"),value: analytics.approvedProofs,         color: "bg-chart-5" },
-                      { label: "Completions",    value: analytics.completions,            color: "bg-chart-6" },
+                      { label: t("an.completions"),    value: analytics.completions,            color: "bg-chart-6" },
                     ]).map(row => (
                       <FunnelBar key={row.label} label={row.label} value={row.value} max={Math.max(analytics.views, 1)} color={row.color} />
                     ))}

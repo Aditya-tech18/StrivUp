@@ -6,6 +6,7 @@ import { ArrowLeft, ChevronDown, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { StringKey } from "@/lib/i18n/businessStrings";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, type Quest } from "@/lib/data/businessQuests";
 
@@ -73,9 +74,9 @@ export default function ParticipantsPage() {
   });
 
   const statusCfg = {
-    pending:  { label: "Active",    cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
-    approved: { label: "Completed", cls: "text-on-success-container bg-success-container border-success-outline" },
-    rejected: { label: "Dropped",   cls: "text-on-error-container bg-error-container border-error-outline" },
+    pending:  { label: "st.active",    cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
+    approved: { label: "st.completed", cls: "text-on-success-container bg-success-container border-success-outline" },
+    rejected: { label: "st.dropped",   cls: "text-on-error-container bg-error-container border-error-outline" },
   } as const;
 
   if (loading) return (
@@ -111,7 +112,7 @@ export default function ParticipantsPage() {
               className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
                 filter === f ? "bg-secondary text-white border-secondary" : "bg-surface-container-lowest text-on-surface-variant border-outline-variant"
               } tap-target`}>
-              {f === "all" ? "All" : f === "approved" ? "Completed" : f === "rejected" ? "Dropped" : "Active"}
+              {f === "all" ? t("st.all") : f === "approved" ? t("st.completed") : f === "rejected" ? t("st.dropped") : t("st.active")}
             </button>
           ))}
         </div>
@@ -141,7 +142,7 @@ export default function ParticipantsPage() {
                     <p className="text-xs text-on-surface-variant truncate">{p.quest?.title ?? "—"}</p>
                     <p className="text-xs text-on-surface-variant">Joined {timeAgo(p.joined_at)}</p>
                   </div>
-                  <span className={`text-label-sm font-bold px-2.5 py-1 rounded-full border shrink-0 ${sc.cls}`}>{sc.label}</span>
+                  <span className={`text-label-sm font-bold px-2.5 py-1 rounded-full border shrink-0 ${sc.cls}`}>{t(sc.label as StringKey)}</span>
                 </div>
               );
             })}

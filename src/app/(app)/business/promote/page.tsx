@@ -74,9 +74,9 @@ export default function PromotePage() {
           </div>
           <div className="grid grid-cols-3 gap-3">
             {[
-              { Icon: Users,      label: "More Participants" },
-              { Icon: TrendingUp, label: "Higher Visibility" },
-              { Icon: Target,     label: "Targeted Reach" },
+              { Icon: Users,      label: t("pro.how1Label") },
+              { Icon: TrendingUp, label: t("pro.how2Label") },
+              { Icon: Target,     label: t("pro.how3Label") },
             ].map(item => (
               <div key={item.label} className="bg-surface-container-lowest/70 rounded-xl p-2.5 text-center">
                 <item.Icon size={20} className="mx-auto mb-1 text-secondary" aria-hidden="true" />
@@ -153,10 +153,10 @@ export default function PromotePage() {
           <p className="text-sm font-bold text-on-surface mb-4">{t("pro.howTitle")}</p>
           <div className="flex flex-col gap-3">
             {[
-              { num: "1", text: "Your Quest appears in discovery feeds for relevant users" },
-              { num: "2", text: "Targeted users matching your category and location see your Quest" },
+              { num: "1", text: t("pro.how1") },
+              { num: "2", text: t("pro.how2") },
               { num: "3", text: "More participants join → higher engagement → stronger impact" },
-              { num: "4", text: "Budget is consumed only as your Quest receives promoted impressions" },
+              { num: "4", text: t("pro.how3") },
             ].map(step => (
               <div key={step.num} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-secondary-fixed flex items-center justify-center shrink-0 mt-0.5">

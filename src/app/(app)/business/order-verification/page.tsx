@@ -347,7 +347,7 @@ export default function BusinessOrderVerificationPage() {
 
                   <div className="flex-1 min-w-0">
                     <p className="text-body-lg font-bold text-on-surface truncate">
-                      {match.participant_name ?? "Participant"}
+                      {match.participant_name ?? t("ov.participant")}
                     </p>
                     {match.participant_username && (
                       <p className="text-xs text-on-surface-variant">@{match.participant_username}</p>

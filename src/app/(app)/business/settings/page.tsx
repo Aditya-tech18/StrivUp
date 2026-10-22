@@ -78,7 +78,7 @@ export default function BusinessSettingsPage() {
       });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-    } catch(e) { setError(e instanceof Error ? e.message : "Failed to save"); }
+    } catch(e) { setError(e instanceof Error ? e.message : t("set.saveFailed")); }
     finally { setSaving(false); }
   };
 
@@ -121,7 +121,7 @@ export default function BusinessSettingsPage() {
                   const url = await uploadBusinessLogo(supabase, file);
                   setLogoUrl(url);
                   await upsertBusinessProfile(supabase, { logo_url: url });
-                } catch(err) { setError(err instanceof Error ? err.message : "Upload failed"); }
+                } catch(err) { setError(err instanceof Error ? err.message : t("set.uploadFailed")); }
                 finally { setLogoUploading(false); }
               }} />
           </label>
@@ -135,7 +135,7 @@ export default function BusinessSettingsPage() {
           <Input label="Username" value={businessUsername} onChange={e => setBusinessUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g,""))} maxLength={30} hint="Optional · lowercase only" />
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold text-on-surface-variant">{t("set.description")}</label>
-            <textarea aria-label="Description" value={description} onChange={e => setDescription(e.target.value)} maxLength={300} rows={3}
+            <textarea aria-label={t("set.description")} value={description} onChange={e => setDescription(e.target.value)} maxLength={300} rows={3}
               className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30 resize-none" />
           </div>
           <div className="flex flex-col gap-1">
@@ -159,7 +159,7 @@ export default function BusinessSettingsPage() {
         {/* Location */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4 elev-1 surface-raised">
           <p className="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">{t("set.location")}</p>
-          <Input label="Street Address" value={address} onChange={e => setAddress(e.target.value)} />
+          <Input label={t("set.streetAddress")} value={address} onChange={e => setAddress(e.target.value)} />
           <div className="grid grid-cols-2 gap-3">
             <Input label="City" value={city} onChange={e => setCity(e.target.value)} />
             <Input label="State" value={stateName} onChange={e => setStateName(e.target.value)} />
@@ -180,7 +180,7 @@ export default function BusinessSettingsPage() {
       <div className="fixed above-bottom-nav z-40 bg-surface-container-lowest border-t border-outline-variant px-5 py-4">
         <button onClick={handleSave} disabled={saving}
           className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-body-lg transition-all">
-          {saving ? "Saving…" : "Save Changes"}
+          {saving ? "Saving…" : t("set.save")}
         </button>
       </div>
     </div>

@@ -6,27 +6,28 @@ import { ArrowLeft, ChevronRight, Clock, Eye, Plus, Trophy, Users } from "lucide
 import { createClient } from "@/lib/supabase/client";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { StringKey } from "@/lib/i18n/businessStrings";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, type Quest, type QuestStatus } from "@/lib/data/businessQuests";
 
 const TABS: { label: string; value: QuestStatus | "all" }[] = [
   { label: "All", value: "all" },
   { label: "Drafts", value: "draft" },
-  { label: "Active", value: "active" },
-  { label: "Paused", value: "paused" },
-  { label: "Completed", value: "completed" },
-  { label: "Rejected", value: "rejected" },
+  { label: "st.active", value: "active" },
+  { label: "st.paused", value: "paused" },
+  { label: "st.completed", value: "completed" },
+  { label: "st.rejected", value: "rejected" },
 ];
 
 const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
-  draft:          { label: "Draft",          cls: "bg-surface-container text-on-surface-variant" },
-  pending_review: { label: "Under Review",   cls: "bg-warning-container text-on-warning-container" },
-  published:      { label: "Published",      cls: "bg-secondary-fixed text-secondary" },
-  active:         { label: "Active",         cls: "bg-success-container text-on-success-container" },
-  paused:         { label: "Paused",         cls: "bg-warning-container text-on-warning-container" },
-  completed:      { label: "Completed",      cls: "bg-chart-3/10 text-chart-3" },
-  expired:        { label: "Expired",        cls: "bg-surface-container text-on-surface-variant" },
-  rejected:       { label: "Rejected",       cls: "bg-error-container text-on-error-container" },
+  draft:          { label: "st.draft",          cls: "bg-surface-container text-on-surface-variant" },
+  pending_review: { label: "quests.underReview",   cls: "bg-warning-container text-on-warning-container" },
+  published:      { label: "quests.published",      cls: "bg-secondary-fixed text-secondary" },
+  active:         { label: "st.active",         cls: "bg-success-container text-on-success-container" },
+  paused:         { label: "st.paused",         cls: "bg-warning-container text-on-warning-container" },
+  completed:      { label: "st.completed",      cls: "bg-chart-3/10 text-chart-3" },
+  expired:        { label: "st.expired",        cls: "bg-surface-container text-on-surface-variant" },
+  rejected:       { label: "st.rejected",       cls: "bg-error-container text-on-error-container" },
   archived:       { label: "Archived",       cls: "bg-surface-container text-on-surface-variant" },
 };
 
@@ -87,14 +88,14 @@ export default function BusinessQuestsPage() {
 
       {/* Tabs */}
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 flex gap-1 overflow-x-auto scrollbar-none">
-        {TABS.map(t => (
-          <button key={t.value} onClick={() => setTab(t.value)}
+        {TABS.map(opt => (
+          <button key={opt.value} onClick={() => setTab(opt.value)}
             className={`shrink-0 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
-              tab === t.value ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant hover:text-on-surface-variant"
+              tab === opt.value ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant hover:text-on-surface-variant"
             }`}>
-            {t.label}
-            <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${tab === t.value ? "bg-secondary-fixed text-secondary" : "bg-surface-container text-on-surface-variant"}`}>
-              {t.value === "all" ? quests.length : quests.filter(q => q.quest_status === t.value).length}
+            {t(opt.label as StringKey)}
+            <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${tab === opt.value ? "bg-secondary-fixed text-secondary" : "bg-surface-container text-on-surface-variant"}`}>
+              {opt.value === "all" ? quests.length : quests.filter(q => q.quest_status === opt.value).length}
             </span>
           </button>
         ))}
@@ -133,7 +134,7 @@ export default function BusinessQuestsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h3 className="text-body-lg font-bold text-on-surface leading-tight line-clamp-2">{quest.title}</h3>
-                      <span className={`shrink-0 text-label-sm font-bold px-2 py-0.5 rounded-full ${sc.cls}`}>{sc.label}</span>
+                      <span className={`shrink-0 text-label-sm font-bold px-2 py-0.5 rounded-full ${sc.cls}`}>{t(sc.label as StringKey)}</span>
                     </div>
                     {quest.category && <p className="text-xs text-on-surface-variant mb-2">{quest.category}</p>}
                     <div className="flex items-center gap-4 text-xs text-on-surface-variant">

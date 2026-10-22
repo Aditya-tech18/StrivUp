@@ -6,6 +6,7 @@ import { ArrowLeft, Gift, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { StringKey } from "@/lib/i18n/businessStrings";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, type Quest } from "@/lib/data/businessQuests";
 
@@ -26,20 +27,20 @@ interface RewardClaim {
 
 const STATUS_TABS = [
   { value: "all",        label: "All" },
-  { value: "eligible",   label: "Eligible" },
-  { value: "pending",    label: "Pending" },
-  { value: "processing", label: "Processing" },
-  { value: "fulfilled",  label: "Fulfilled" },
-  { value: "failed",     label: "Failed" },
+  { value: "eligible",   label: "st.eligible" },
+  { value: "pending",    label: "st.pending" },
+  { value: "processing", label: "st.processing" },
+  { value: "fulfilled",  label: "st.fulfilled" },
+  { value: "failed",     label: "st.failed" },
 ] as const;
 type StatusFilter = typeof STATUS_TABS[number]["value"];
 
 const STATUS_CFG = {
-  pending:    { label: "Pending",    cls: "text-on-surface-variant bg-surface-container border-outline-variant" },
-  eligible:   { label: "Eligible",   cls: "text-on-success-container bg-success-container border-success-outline" },
-  processing: { label: "Processing", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
-  fulfilled:  { label: "Fulfilled",  cls: "text-chart-3 bg-chart-3/10 border-chart-3/25" },
-  failed:     { label: "Failed",     cls: "text-on-error-container bg-error-container border-error-outline" },
+  pending:    { label: "st.pending",    cls: "text-on-surface-variant bg-surface-container border-outline-variant" },
+  eligible:   { label: "st.eligible",   cls: "text-on-success-container bg-success-container border-success-outline" },
+  processing: { label: "st.processing", cls: "text-secondary bg-secondary-fixed border-secondary-fixed-dim" },
+  fulfilled:  { label: "st.fulfilled",  cls: "text-chart-3 bg-chart-3/10 border-chart-3/25" },
+  failed:     { label: "st.failed",     cls: "text-on-error-container bg-error-container border-error-outline" },
   disputed:   { label: "Disputed",   cls: "text-on-warning-container bg-warning-container border-warning-outline" },
 } as const;
 
@@ -115,25 +116,25 @@ export default function RewardsPage() {
       <div className="px-5 py-4 mx-auto measure-page">
         <div className="grid grid-cols-3 gap-3 mb-4">
           {[
-            { label: "Eligible", value: claims.filter(c => c.status === "eligible").length, color: "text-on-success-container" },
-            { label: "Pending",  value: claims.filter(c => c.status === "pending").length,  color: "text-on-warning-container" },
-            { label: "Fulfilled",value: claims.filter(c => c.status === "fulfilled").length, color: "text-chart-3" },
+            { label: "st.eligible", value: claims.filter(c => c.status === "eligible").length, color: "text-on-success-container" },
+            { label: "st.pending",  value: claims.filter(c => c.status === "pending").length,  color: "text-on-warning-container" },
+            { label: "st.fulfilled",value: claims.filter(c => c.status === "fulfilled").length, color: "text-chart-3" },
           ].map(s => (
             <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex flex-col items-center elev-1 surface-raised">
               <span className={`text-2xl font-black ${s.color}`}>{s.value}</span>
-              <span className="text-xs text-on-surface-variant mt-0.5">{s.label}</span>
+              <span className="text-xs text-on-surface-variant mt-0.5">{t(s.label as StringKey)}</span>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
         <div className="flex gap-2 overflow-x-auto scrollbar-none pb-2 mb-4">
-          {STATUS_TABS.map(t => (
-            <button key={t.value} onClick={() => setFilter(t.value)}
+          {STATUS_TABS.map(opt => (
+            <button key={opt.value} onClick={() => setFilter(opt.value)}
               className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
-                filter === t.value ? "bg-secondary text-white border-secondary" : "bg-surface-container-lowest text-on-surface-variant border-outline-variant"
+                filter === opt.value ? "bg-secondary text-white border-secondary" : "bg-surface-container-lowest text-on-surface-variant border-outline-variant"
               } tap-target`}>
-              {t.label}
+              {t(opt.label as StringKey)}
             </button>
           ))}
         </div>
@@ -165,7 +166,7 @@ export default function RewardsPage() {
                         </div>
                       )}
                     </div>
-                    <span className={`text-label-sm font-bold px-2.5 py-1 rounded-full border shrink-0 ${sc.cls}`}>{sc.label}</span>
+                    <span className={`text-label-sm font-bold px-2.5 py-1 rounded-full border shrink-0 ${sc.cls}`}>{t(sc.label as StringKey)}</span>
                   </div>
 
                   {reward && (

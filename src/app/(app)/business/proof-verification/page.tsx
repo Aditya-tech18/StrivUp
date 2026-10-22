@@ -6,14 +6,15 @@ import { ArrowLeft, CheckCircle2, ChevronDown, ExternalLink, XCircle } from "luc
 import { createClient } from "@/lib/supabase/client";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { StringKey } from "@/lib/i18n/businessStrings";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, getQuestSubmissions, reviewSubmission, type QuestTaskSubmission, type Quest } from "@/lib/data/businessQuests";
 
 const TABS = [
-  { value: "pending",                label: "Pending",       cls: "text-on-warning-container bg-warning-container border-warning-outline" },
+  { value: "pending",                label: "st.pending",       cls: "text-on-warning-container bg-warning-container border-warning-outline" },
   { value: "approved",               label: "Approved",      cls: "text-on-success-container bg-success-container border-success-outline" },
-  { value: "rejected",               label: "Rejected",      cls: "text-on-error-container bg-error-container border-error-outline" },
-  { value: "resubmission_required",  label: "Resubmission",  cls: "text-chart-3 bg-chart-3/10 border-chart-3/25" },
+  { value: "rejected",               label: "st.rejected",      cls: "text-on-error-container bg-error-container border-error-outline" },
+  { value: "resubmission_required",  label: "st.resubmission",  cls: "text-chart-3 bg-chart-3/10 border-chart-3/25" },
 ] as const;
 type TabValue = typeof TABS[number]["value"];
 
@@ -127,15 +128,15 @@ export default function ProofVerificationPage() {
 
       {/* Tab row */}
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 flex gap-1 overflow-x-auto scrollbar-none">
-        {TABS.map(t => (
-          <button key={t.value} onClick={() => setTab(t.value)}
+        {TABS.map(opt => (
+          <button key={opt.value} onClick={() => setTab(opt.value)}
             className={`shrink-0 flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
-              tab === t.value ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"
+              tab === opt.value ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"
             }`}>
-            {t.label}
-            {tabCounts[t.value] > 0 && (
-              <span className={`text-label-sm font-bold px-1.5 py-0.5 rounded-full border ${tab === t.value ? "bg-secondary-fixed text-secondary border-secondary-fixed-dim" : "bg-surface-container text-on-surface-variant border-outline-variant"}`}>
-                {tabCounts[t.value]}
+            {t(opt.label as StringKey)}
+            {tabCounts[opt.value] > 0 && (
+              <span className={`text-label-sm font-bold px-1.5 py-0.5 rounded-full border ${tab === opt.value ? "bg-secondary-fixed text-secondary border-secondary-fixed-dim" : "bg-surface-container text-on-surface-variant border-outline-variant"}`}>
+                {tabCounts[opt.value]}
               </span>
             )}
           </button>
@@ -171,7 +172,7 @@ export default function ProofVerificationPage() {
                         sub.verification_status === "rejected" ? "text-on-error-container bg-error-container border-error-outline" :
                         "text-chart-3 bg-chart-3/10 border-chart-3/25"
                       }`}>
-                        {sub.verification_status === "approved" ? "Approved" : sub.verification_status === "rejected" ? "Rejected" : "Resubmission"}
+                        {sub.verification_status === "approved" ? t("st.approved") : sub.verification_status === "rejected" ? t("st.rejected") : t("st.resubmission")}
                       </span>
                     )}
                   </div>
@@ -225,7 +226,7 @@ export default function ProofVerificationPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center px-4">
           <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl p-5 elev-5">
             <h3 className="text-body-lg font-black text-on-surface mb-1">
-              {showRejectModal.startsWith("resubmit-") ? "Request Resubmission" : "Reject Submission"}
+              {showRejectModal.startsWith("resubmit-") ? t("st.requestResubmission") : t("st.rejectSubmission")}
             </h3>
             <p className="text-sm text-on-surface-variant mb-4">{t("proof.reasonHint")}</p>
             <textarea aria-label="Rejection reason (optional)" value={rejectReason} onChange={e => setRejectReason(e.target.value)}
@@ -244,7 +245,7 @@ export default function ProofVerificationPage() {
                 }}
                 disabled={!!reviewing}
                 className={`flex-1 h-11 rounded-xl text-white font-bold text-sm disabled:opacity-40 ${showRejectModal.startsWith("resubmit-") ? "bg-chart-3" : "bg-error"}`}>
-                {reviewing ? "…" : showRejectModal.startsWith("resubmit-") ? "Request Resubmission" : "Reject"}
+                {reviewing ? "…" : showRejectModal.startsWith("resubmit-") ? t("st.requestResubmission") : t("ov.reject")}
               </button>
             </div>
           </div>

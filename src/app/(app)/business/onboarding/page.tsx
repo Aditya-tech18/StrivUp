@@ -7,17 +7,27 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check, ChevronLeft, ChevronRight, Globe, MapPin, Phone, Store, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { StringKey } from "@/lib/i18n/businessStrings";
 import { Button, Input } from "@/components/ui";
 import { getMyBusinessProfile, upsertBusinessProfile, uploadBusinessLogo, BUSINESS_CATEGORIES } from "@/lib/data/business";
 
 const TOTAL = 7;
-const LABELS = ["Basics","Category","Contact","Location","Logo","Social Links","Review"];
+/* Keys, not sentences: this is module scope, where there is no t(). The
+   array is translated where it renders. */
+const LABEL_KEYS: StringKey[] = [
+  "ob.stepBasics", "set.category", "ob.contactDetails", "ob.stepLocation",
+  "ob.stepLogo", "ob.socialLinks", "qw.stepReview",
+];
 
 /* ── Step shell ──────────────────────────────────────────────────────────── */
-function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel = "Continue", nextDisabled = false, saving = false }: {
+function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel, nextDisabled = false, saving = false }: {
   step: number; title: string; subtitle?: string; children: React.ReactNode;
   onBack?: () => void; onNext: () => void; nextLabel?: string; nextDisabled?: boolean; saving?: boolean;
 }) {
+  const { t } = useLocale();
+  const next = nextLabel ?? t("qw.continue");
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       {/* Progress bar */}
@@ -27,15 +37,17 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant">
         {onBack && (
-          <button onClick={onBack} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center tap-target" aria-label="Back">
+          <button onClick={onBack} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center tap-target" aria-label={t("mych.back")}>
             <ChevronLeft size={20} className="text-on-surface-variant" />
           </button>
         )}
         <div className="flex-1">
-          <p className="text-label-sm text-on-surface-variant font-semibold uppercase tracking-wider">Step {step} of {TOTAL} · {LABELS[step-1]}</p>
+          <p className="text-label-sm text-on-surface-variant font-semibold uppercase tracking-wider">{t("qw.step")} {step} {t("qw.of")} {TOTAL} · {t(LABEL_KEYS[step-1])}</p>
           <h1 className="text-headline-md font-black text-on-surface leading-tight">{title}</h1>
           {subtitle && <p className="text-sm text-on-surface-variant mt-0.5">{subtitle}</p>}
         </div>
+        {/* Visible on every step, not just the first. */}
+        <div className="shrink-0 self-start"><LanguageToggle /></div>
       </div>
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-5 py-6 pb-32 mx-auto measure-form w-full">{children}</div>
@@ -46,7 +58,7 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
           disabled={nextDisabled || saving}
           className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-body-lg flex items-center justify-center gap-2 transition-all"
         >
-          {saving ? "Saving…" : <>{nextLabel}{!saving && <ChevronRight size={18} />}</>}
+          {saving ? t("qw.saving") : <>{next}{!saving && <ChevronRight size={18} />}</>}
         </button>
       </div>
     </div>
@@ -55,6 +67,7 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
 
 /* ── Main ────────────────────────────────────────────────────────────────── */
 export default function BusinessOnboardingPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -114,9 +127,9 @@ export default function BusinessOnboardingPage() {
     try {
       await upsertBusinessProfile(supabase, { ...fields, onboarding_step: nextStep, verification_status: "incomplete" } as Parameters<typeof upsertBusinessProfile>[1]);
       setStep(nextStep);
-    } catch(e) { setError(e instanceof Error ? e.message : "Failed to save"); }
+    } catch(e) { setError(e instanceof Error ? e.message : t("set.saveFailed")); }
     finally { setSaving(false); }
-  }, [supabase]);
+  }, [supabase, t]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-surface">
@@ -126,8 +139,8 @@ export default function BusinessOnboardingPage() {
 
   /* ── STEP 1: Basics ───────────────────────────────────────────────────── */
   if (step === 1) return (
-    <StepShell step={1} title="Tell us about your business" subtitle="Start with the basics — you can edit these anytime."
-      onNext={() => { if (!businessName.trim()) { setError("Business name is required."); return; } save({ business_name: businessName.trim(), business_username: businessUsername.trim() || null, description: description.trim() || null }, 2); }}
+    <StepShell step={1} title={t("ob.tellUs")} subtitle="Start with the basics — you can edit these anytime."
+      onNext={() => { if (!businessName.trim()) { setError(t("set.nameRequired")); return; } save({ business_name: businessName.trim(), business_username: businessUsername.trim() || null, description: description.trim() || null }, 2); }}
       nextDisabled={!businessName.trim()} saving={saving}>
       {error && <p role="alert" className="text-on-error-container text-sm mb-4">{error}</p>}
       <div className="flex flex-col gap-4">
@@ -137,11 +150,11 @@ export default function BusinessOnboardingPage() {
           </div>
         </div>
         <Input label="Business Name *" value={businessName} onChange={e => setBusinessName(e.target.value)} placeholder="e.g. The Brew House" maxLength={80} />
-        <Input label="Business Handle" value={businessUsername} onChange={e => setBusinessUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g,""))} placeholder="@thebrewhouse" maxLength={30} hint="Optional · lowercase only" />
+        <Input label={t("ob.handle")} value={businessUsername} onChange={e => setBusinessUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g,""))} placeholder="@thebrewhouse" maxLength={30} hint="Optional · lowercase only" />
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-semibold text-on-surface-variant">Description</label>
-          <textarea aria-label="Description" value={description} onChange={e => setDescription(e.target.value)} maxLength={300} rows={3}
-            placeholder="What does your business do? What makes it special?"
+          <label className="text-sm font-semibold text-on-surface-variant">{t("set.description")}</label>
+          <textarea aria-label={t("set.description")} value={description} onChange={e => setDescription(e.target.value)} maxLength={300} rows={3}
+            placeholder={t("ob.descPlaceholder")}
             className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30 resize-none" />
           <p className="text-xs text-on-surface-variant text-right">{description.length}/300</p>
         </div>
@@ -151,8 +164,8 @@ export default function BusinessOnboardingPage() {
 
   /* ── STEP 2: Category ─────────────────────────────────────────────────── */
   if (step === 2) return (
-    <StepShell step={2} title="What type of business?" subtitle="Choose the category that best describes you."
-      onBack={() => setStep(1)} onNext={() => { if (!category) { setError("Please select a category."); return; } save({ category }, 3); }}
+    <StepShell step={2} title={t("ob.whatType")} subtitle={t("ob.whatTypeSub")}
+      onBack={() => setStep(1)} onNext={() => { if (!category) { setError(t("ob.pickCategory")); return; } save({ category }, 3); }}
       nextDisabled={!category} saving={saving}>
       {error && <p role="alert" className="text-on-error-container text-sm mb-4">{error}</p>}
       <div className="grid grid-cols-2 gap-2">
@@ -170,12 +183,12 @@ export default function BusinessOnboardingPage() {
 
   /* ── STEP 3: Contact ──────────────────────────────────────────────────── */
   if (step === 3) return (
-    <StepShell step={3} title="Contact details" subtitle="How can customers reach you?"
+    <StepShell step={3} title={t("ob.contactDetails")} subtitle={t("ob.contactSub")}
       onBack={() => setStep(2)} onNext={() => save({ business_phone: businessPhone.trim()||null, business_email: businessEmail.trim()||null, website: website.trim()||null }, 4)} saving={saving}>
       {error && <p role="alert" className="text-on-error-container text-sm mb-4">{error}</p>}
       <div className="flex flex-col gap-4">
-        <Input label="Business Phone" type="tel" value={businessPhone} onChange={e => setBusinessPhone(e.target.value)} placeholder="+91 98765 43210" hint="Optional" leadingIcon={<Phone size={16} />} />
-        <Input label="Business Email" type="email" value={businessEmail} onChange={e => setBusinessEmail(e.target.value)} placeholder="hello@yourbusiness.com" hint="Optional" />
+        <Input label={t("ob.phone")} type="tel" value={businessPhone} onChange={e => setBusinessPhone(e.target.value)} placeholder="+91 98765 43210" hint="Optional" leadingIcon={<Phone size={16} />} />
+        <Input label={t("ob.email")} type="email" value={businessEmail} onChange={e => setBusinessEmail(e.target.value)} placeholder="hello@yourbusiness.com" hint="Optional" />
         <Input label="Website" type="url" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://yourbusiness.com" hint="Optional" leadingIcon={<Globe size={16} />} />
       </div>
     </StepShell>
@@ -183,16 +196,16 @@ export default function BusinessOnboardingPage() {
 
   /* ── STEP 4: Location ─────────────────────────────────────────────────── */
   if (step === 4) return (
-    <StepShell step={4} title="Where are you located?" subtitle="Help customers find you on STRIVUP."
+    <StepShell step={4} title={t("ob.whereLocated")} subtitle={t("ob.whereSub")}
       onBack={() => setStep(3)} onNext={() => save({ address: address.trim()||null, city: city.trim()||null, state: stateName.trim()||null, pincode: pincode.trim()||null, country: country||"India" }, 5)} saving={saving}>
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2 text-secondary mb-1">
-          <MapPin size={18} /> <span className="text-sm font-semibold">Business Address</span>
+          <MapPin size={18} /> <span className="text-sm font-semibold">{t("ob.address")}</span>
         </div>
-        <Input label="Street Address" value={address} onChange={e => setAddress(e.target.value)} placeholder="123, MG Road" />
+        <Input label={t("set.streetAddress")} value={address} onChange={e => setAddress(e.target.value)} placeholder="123, MG Road" />
         <div className="grid grid-cols-2 gap-3">
           <Input label="City" value={city} onChange={e => setCity(e.target.value)} placeholder="Mumbai" />
-          <Input label="State" value={stateName} onChange={e => setStateName(e.target.value)} placeholder="Maharashtra" />
+          <Input label={t("set.state")} value={stateName} onChange={e => setStateName(e.target.value)} placeholder="Maharashtra" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Input label="Pincode" value={pincode} onChange={e => setPincode(e.target.value)} placeholder="400001" maxLength={10} />
@@ -204,8 +217,8 @@ export default function BusinessOnboardingPage() {
 
   /* ── STEP 5: Logo ─────────────────────────────────────────────────────── */
   if (step === 5) return (
-    <StepShell step={5} title="Add your business logo" subtitle="A logo makes your profile stand out."
-      onBack={() => setStep(4)} onNext={() => save({ logo_url: logoUrl }, 6)} nextLabel={logoUrl ? "Continue" : "Skip for now"} saving={saving}>
+    <StepShell step={5} title={t("ob.addLogo")} subtitle={t("ob.addLogoSub")}
+      onBack={() => setStep(4)} onNext={() => save({ logo_url: logoUrl }, 6)} nextLabel={logoUrl ? t("qw.continue") : t("ob.skipForNow")} saving={saving}>
       {error && <p role="alert" className="text-on-error-container text-sm mb-4">{error}</p>}
       <div className="flex flex-col items-center gap-6 py-4">
         <label className="relative cursor-pointer group">
@@ -218,7 +231,7 @@ export default function BusinessOnboardingPage() {
             ) : (
               <div className="flex flex-col items-center gap-2 text-on-surface-variant">
                 <Camera size={32} />
-                <span className="text-sm">Upload Logo</span>
+                <span className="text-sm">{t("ob.uploadLogo")}</span>
               </div>
             )}
           </div>
@@ -230,11 +243,11 @@ export default function BusinessOnboardingPage() {
                 const url = await uploadBusinessLogo(supabase, file);
                 setLogoUrl(url);
                 await upsertBusinessProfile(supabase, { logo_url: url });
-              } catch(err) { setError(err instanceof Error ? err.message : "Upload failed"); }
+              } catch(err) { setError(err instanceof Error ? err.message : t("set.uploadFailed")); }
               finally { setLogoUploading(false); }
             }} />
         </label>
-        {logoUrl && <button type="button" onClick={() => setLogoUrl(null)} className="text-sm text-error">Remove logo</button>}
+        {logoUrl && <button type="button" onClick={() => setLogoUrl(null)} className="text-sm text-error">{t("set.removeLogo")}</button>}
         <p className="text-sm text-on-surface-variant text-center max-w-xs">Square image recommended, min 200×200px. JPG, PNG, or WebP.</p>
       </div>
     </StepShell>
@@ -242,7 +255,7 @@ export default function BusinessOnboardingPage() {
 
   /* ── STEP 6: Social Links ─────────────────────────────────────────────── */
   if (step === 6) return (
-    <StepShell step={6} title="Social links" subtitle="Add your social profiles (optional, max 4)."
+    <StepShell step={6} title={t("ob.socialStep")} subtitle="Add your social profiles (optional, max 4)."
       onBack={() => setStep(5)} onNext={() => save({}, 7)} saving={saving}>
       <div className="flex flex-col gap-3">
         {socialLinks.map((link, i) => (
@@ -251,14 +264,14 @@ export default function BusinessOnboardingPage() {
               <p className="text-sm font-semibold text-on-surface-variant capitalize">{link.platform}</p>
               <p className="text-xs text-on-surface-variant truncate">{link.url}</p>
             </div>
-            <button aria-label="Remove link" type="button" onClick={() => setSocialLinks(p => p.filter((_,j) => j !== i))} className="text-error shrink-0">
+            <button aria-label={t("ob.removeLink")} type="button" onClick={() => setSocialLinks(p => p.filter((_,j) => j !== i))} className="text-error shrink-0">
               <X size={16} />
             </button>
           </div>
         ))}
         {socialLinks.length < 4 && (
           <div className="flex flex-col gap-2 mt-1">
-            <select aria-label="Social platform" value={newPlatform} onChange={e => setNewPlatform(e.target.value)}
+            <select aria-label={t("ob.platform")} value={newPlatform} onChange={e => setNewPlatform(e.target.value)}
               className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant tap-target">
               {["instagram","linkedin","twitter","youtube","portfolio","other"].map(p => (
                 <option key={p} value={p}>{p.charAt(0).toUpperCase()+p.slice(1)}</option>
@@ -274,7 +287,7 @@ export default function BusinessOnboardingPage() {
             </div>
           </div>
         )}
-        {socialLinks.length >= 4 && <p className="text-sm text-on-surface-variant">Maximum 4 social links.</p>}
+        {socialLinks.length >= 4 && <p className="text-sm text-on-surface-variant">{t("ob.maxLinks")}</p>}
       </div>
     </StepShell>
   );
@@ -289,7 +302,7 @@ export default function BusinessOnboardingPage() {
         </button>
         <div>
           <p className="text-label-sm text-on-surface-variant font-semibold uppercase tracking-wider">Step 7 of 7 · Review</p>
-          <h1 className="text-headline-md font-black text-on-surface">Review & Submit</h1>
+          <h1 className="text-headline-md font-black text-on-surface">{t("ob.reviewSubmit")}</h1>
         </div>
       </div>
 
@@ -318,7 +331,7 @@ export default function BusinessOnboardingPage() {
         {/* Detail rows */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-outline-variant elev-1 surface-raised">
           {[
-            { label: "Description", value: description },
+            { label: t("set.description"), value: description },
             { label: "Phone", value: businessPhone },
             { label: "Email", value: businessEmail },
             { label: "Website", value: website },
@@ -346,7 +359,7 @@ export default function BusinessOnboardingPage() {
           } catch(e) { setError(e instanceof Error ? e.message : "Failed"); setSaving(false); }
         }} disabled={saving}
           className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-body-lg transition-all">
-          {saving ? "Submitting…" : "Submit Business Profile"}
+          {saving ? "Submitting…" : t("ob.submitProfile")}
         </button>
         <button onClick={() => setStep(1)} className="w-full h-10 rounded-xl border border-outline-variant text-on-surface-variant text-sm font-medium tap-target">
           Edit Details

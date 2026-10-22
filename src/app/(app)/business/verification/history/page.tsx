@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { getMyBusinessProfile, getBusinessVerifications, getVerificationInsights, type VerificationRequest } from "@/lib/data/business";
 
 const FILTERS = ["all","approved","pending","rejected","expired"] as const;
@@ -17,6 +19,7 @@ function timeAgo(d: string) {
 }
 
 export default function VerificationHistoryPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -54,7 +57,8 @@ export default function VerificationHistoryPage() {
     <div className="min-h-screen bg-surface pb-28">
       <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
         <Link aria-label="Back" href="/business/verification"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-body-lg font-black text-on-surface flex-1">Verification History</h1>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">{t("vh.title")}</h1>
+        <LanguageToggle className="shrink-0" />
       </div>
 
       <div className="px-5 py-5 mx-auto measure-form flex flex-col gap-5">

@@ -129,9 +129,9 @@ export default function BusinessProfilePage() {
             <div className="w-px h-8 bg-surface-container" />
             <StatBadge label="Active" value={activeQuests.length} />
             <div className="w-px h-8 bg-surface-container" />
-            <StatBadge label="Participants" value={totalParticipants.toLocaleString()} />
+            <StatBadge label={t("stat.participants")} value={totalParticipants.toLocaleString()} />
             <div className="w-px h-8 bg-surface-container" />
-            <StatBadge label="Completed" value={completedQuests} />
+            <StatBadge label={t("st.completed")} value={completedQuests} />
           </div>
 
           {/* Verification status */}
@@ -184,7 +184,7 @@ export default function BusinessProfilePage() {
         <div className="px-5 py-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-body-lg font-black text-on-surface">
-              {activeQuests.length > 0 ? "Active Quests" : "Your Quests"}
+              {activeQuests.length > 0 ? t("bprof.activeQuestsCount") : t("bprof.yourQuests")}
             </h2>
             <button onClick={() => router.push("/business/quests")}
               className="text-sm text-secondary font-semibold">{t("bprof.viewAll")}</button>
