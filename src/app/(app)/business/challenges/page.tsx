@@ -2,22 +2,42 @@
 /**
  * /business/challenges — the challenges this business runs.
  *
- * Scoped by (creator_id = business id, creator_type = 'business'). A business
- * profile's id IS its owner's profile id, so that pair identifies ownership
- * without a business_id column on challenges.
+ * Deliberately the same screen as /business/quests: same header with the
+ * language toggle and a New button, same filter tabs with live counts, same
+ * card with cover, status pill, stat row and an actions strip. A business
+ * owner should not have to learn a second layout because the thing in the
+ * list is a challenge rather than a quest.
  *
- * Join counts come from a single grouped read rather than one query per
- * challenge, so the list costs two round trips whatever its length.
+ * Where the two differ is the data underneath, and that difference is real
+ * rather than cosmetic: quests carry a quest_status column, challenges carry
+ * no status at all. So the pill and the tabs here are DERIVED from what
+ * challenges actually have — created_at plus duration_days decides whether
+ * one is still running, and visibility decides whether it is public. Nothing
+ * is invented to pad the screen out to match.
+ *
+ * Ownership is the pair (creator_id = business id, creator_type =
+ * 'business'): a business profile's id IS its owner's profile id, so no
+ * business_id column on challenges is needed.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Plus, Target, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, Lock, Plus, Target, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { StringKey } from "@/lib/i18n/businessStrings";
+
+type Tab = "all" | "ongoing" | "ended" | "private";
+
+const TABS: { label: StringKey; value: Tab }[] = [
+  { label: "st.all", value: "all" },
+  { label: "mych.ongoing", value: "ongoing" },
+  { label: "mych.ended", value: "ended" },
+  { label: "mych.private", value: "private" },
+];
 
 interface Row {
   id: string;
@@ -26,8 +46,31 @@ interface Row {
   category: string | null;
   thumbnail_url: string | null;
   duration_days: number | null;
+  visibility: string | null;
   created_at: string;
   joined: number;
+}
+
+const DAY_MS = 86_400_000;
+
+/**
+ * A challenge runs for duration_days from the day it was created, so it has
+ * ended once that many days have passed. With no duration it never ends.
+ */
+function hasEnded(c: Row): boolean {
+  if (!c.duration_days || c.duration_days <= 0) return false;
+  return Date.now() > new Date(c.created_at).getTime() + c.duration_days * DAY_MS;
+}
+
+function matchesTab(c: Row, tab: Tab): boolean {
+  if (tab === "all") return true;
+  if (tab === "private") return c.visibility === "private";
+  if (tab === "ended") return hasEnded(c);
+  return !hasEnded(c);
+}
+
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
 export default function BusinessChallengesPage() {
@@ -37,6 +80,7 @@ export default function BusinessChallengesPage() {
 
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Row[]>([]);
+  const [tab, setTab] = useState<Tab>("all");
 
   useEffect(() => {
     (async () => {
@@ -48,7 +92,7 @@ export default function BusinessChallengesPage() {
 
       const { data, error } = await supabase
         .from("challenges")
-        .select("id,title,description,category,thumbnail_url,duration_days,created_at")
+        .select("id,title,description,category,thumbnail_url,duration_days,visibility,created_at")
         .eq("creator_id", bp.id)
         .eq("creator_type", "business")
         .order("created_at", { ascending: false });
@@ -58,9 +102,9 @@ export default function BusinessChallengesPage() {
       const list = (data ?? []) as Omit<Row, "joined">[];
       const ids = list.map((c) => c.id);
 
-      /* One read for every join across every challenge, tallied here. Asking
-         for a count per challenge would be N round trips for a number one
-         query already contains. */
+      /* One read for every join across every challenge, tallied here. A count
+         per challenge would be N round trips for a number one query already
+         contains. */
       const counts = new Map<string, number>();
       if (ids.length > 0) {
         const { data: parts, error: pErr } = await supabase
@@ -79,81 +123,126 @@ export default function BusinessChallengesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const filtered = useMemo(() => rows.filter((c) => matchesTab(c, tab)), [rows, tab]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
+        <div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-surface pb-28">
-      <header className="sticky top-0 z-30 border-b border-outline-variant bg-surface-container-lowest pt-safe">
-        <div className="mx-auto flex measure-wide items-center gap-3 px-5 py-4 lg:px-8">
-          <button
-            onClick={() => router.back()}
-            aria-label={t("mych.back")}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl hover:bg-surface-container tap-target"
-          >
-            <ArrowLeft size={18} className="text-on-surface" />
-          </button>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-body-lg font-bold text-on-surface">{t("mych.title")}</h1>
-            <p className="truncate text-sm text-on-surface-variant">{t("mych.sub")}</p>
-          </div>
-          <LanguageToggle className="shrink-0" />
-        </div>
-      </header>
-
-      <div className="mx-auto measure-wide px-5 py-6 lg:px-8">
-        <Link
-          href="/business/challenges/new"
-          className="mb-5 flex h-12 items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-bold text-white elev-brand transition-opacity hover:opacity-90"
-        >
-          <Plus size={18} aria-hidden="true" /> {t("action.createChallenge")}
+      {/* Header — same shape as My Quests */}
+      <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30 pt-safe">
+        <Link aria-label={t("mych.back")} href="/business/dashboard">
+          <ArrowLeft size={22} className="text-on-surface-variant" />
         </Link>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">{t("mych.title")}</h1>
+        <LanguageToggle className="shrink-0" />
+        <button onClick={() => router.push("/business/challenges/new")}
+          className="flex items-center gap-1.5 h-9 px-4 rounded-xl bg-secondary text-white text-sm font-bold tap-target">
+          <Plus size={16} aria-hidden="true" /> {t("mych.newChallenge")}
+        </button>
+      </div>
 
-        {rows.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-outline-variant py-14 text-center">
-            <Target size={32} className="text-on-surface-variant" aria-hidden="true" />
-            <p className="text-sm font-semibold text-on-surface-variant">{t("mych.emptyTitle")}</p>
-            <p className="max-w-xs px-6 text-xs text-on-surface-variant">{t("mych.emptyBody")}</p>
+      {/* Tabs with live counts */}
+      <div className="bg-surface-container-lowest border-b border-outline-variant px-5 flex gap-1 overflow-x-auto scrollbar-none">
+        {TABS.map((opt) => (
+          <button key={opt.value} onClick={() => setTab(opt.value)}
+            className={`shrink-0 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
+              tab === opt.value ? "border-secondary text-secondary" : "border-transparent text-on-surface-variant"
+            }`}>
+            {t(opt.label)}
+            <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
+              tab === opt.value ? "bg-secondary-fixed text-secondary" : "bg-surface-container text-on-surface-variant"
+            }`}>
+              {rows.filter((c) => matchesTab(c, opt.value)).length}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="px-5 py-5 mx-auto measure-page flex flex-col gap-3">
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center gap-4 py-20 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
+            <div className="w-16 h-16 rounded-2xl bg-secondary-fixed flex items-center justify-center">
+              <Plus size={28} className="text-secondary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-body-lg font-black text-on-surface">{t("mych.emptyTitle")}</p>
+              <p className="text-sm text-on-surface-variant mt-1 max-w-xs">{t("mych.emptyBody")}</p>
+            </div>
+            <button onClick={() => router.push("/business/challenges/new")}
+              className="h-11 px-6 rounded-xl bg-secondary text-white font-bold text-sm">
+              {t("mych.createFirst")}
+            </button>
           </div>
         ) : (
-          <ul className="flex flex-col gap-3">
-            {rows.map((c) => (
-              <li key={c.id}>
-                <Link
-                  href={`/challenges/${c.id}`}
-                  className="flex items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-3 elev-1 surface-raised transition-colors hover:bg-surface-container-low"
-                >
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-surface-container">
-                    {c.thumbnail_url ? (
+          filtered.map((c) => {
+            const ended = hasEnded(c);
+            const isPrivate = c.visibility === "private";
+            return (
+              <div key={c.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden elev-1 surface-raised">
+                <div className="flex gap-4 p-4">
+                  <div className="w-20 h-20 rounded-xl bg-surface-container overflow-hidden shrink-0">
+                    {c.thumbnail_url
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={c.thumbnail_url} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-surface-container-high">
-                        <Target size={20} className="text-on-surface-variant opacity-50" aria-hidden="true" />
-                      </div>
-                    )}
+                      ? <img src={c.thumbnail_url} alt={c.title} className="w-full h-full object-cover" />
+                      : <div className="flex h-full w-full items-center justify-center bg-surface-container-high">
+                          <Target size={22} className="text-on-surface-variant opacity-50" aria-hidden="true" />
+                        </div>
+                    }
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-on-surface">{c.title}</p>
-                    {c.description && (
-                      <p className="mt-0.5 truncate text-xs text-on-surface-variant">{c.description}</p>
-                    )}
-                    <span className="mt-1 inline-flex items-center gap-1 text-label-sm font-semibold text-on-surface-variant">
-                      <Users size={11} aria-hidden="true" /> {c.joined} {t("mych.joined")}
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <h3 className="text-body-lg font-bold text-on-surface leading-tight line-clamp-2">{c.title}</h3>
+                      <span className={`shrink-0 text-label-sm font-bold px-2 py-0.5 rounded-full ${
+                        ended ? "bg-surface-container text-on-surface-variant"
+                              : "bg-success-container text-on-success-container"
+                      }`}>
+                        {t(ended ? "mych.ended" : "mych.ongoing")}
+                      </span>
+                    </div>
+                    {c.category && <p className="text-xs text-on-surface-variant mb-2">{c.category}</p>}
+                    <div className="flex items-center gap-4 text-xs text-on-surface-variant flex-wrap">
+                      <span className="flex items-center gap-1"><Users size={12} aria-hidden="true" />{c.joined}</span>
+                      {c.duration_days ? (
+                        <span className="flex items-center gap-1">
+                          <Clock size={12} aria-hidden="true" />{c.duration_days} {t("mych.days")}
+                        </span>
+                      ) : null}
+                      <span className="flex items-center gap-1">
+                        <CalendarDays size={12} aria-hidden="true" />{t("mych.created")} {formatDate(c.created_at)}
+                      </span>
+                      {isPrivate && (
+                        <span className="flex items-center gap-1">
+                          <Lock size={12} aria-hidden="true" />{t("mych.private")}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <span className="shrink-0 rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-semibold text-on-surface-variant">
-                    {t("mych.manage")}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                </div>
+
+                <div className="border-t border-outline-variant px-4 py-2.5 flex items-center gap-2">
+                  <Link href={`/challenges/${c.id}`}
+                    className="flex-1 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low tap-target">
+                    {t("mych.view")}
+                  </Link>
+                  <Link href={`/challenges/${c.id}/edit`}
+                    className="flex-1 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low tap-target">
+                    {t("mych.edit")}
+                  </Link>
+                  <Link href={`/challenges/${c.id}/leaderboard`}
+                    className="flex-1 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low tap-target">
+                    {t("mych.participants")}
+                  </Link>
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
     </div>

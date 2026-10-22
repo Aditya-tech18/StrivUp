@@ -398,6 +398,17 @@ export const EN = {
   "st.approved": "Approved",
   "vh.title": "Verification History",
   "set.state": "State",
+  "mych.newChallenge": "New Challenge",
+  "mych.createFirst": "Create Your First Challenge",
+  "mych.view": "View",
+  "mych.edit": "Edit",
+  "mych.participants": "Participants",
+  "mych.ended": "Ended",
+  "mych.ongoing": "Ongoing",
+  "mych.private": "Private",
+  "mych.public": "Public",
+  "mych.days": "days",
+  "mych.created": "Created",
 } as const;
 
 export type StringKey = keyof typeof EN;
@@ -756,4 +767,15 @@ export const HI: Partial<Record<StringKey, string>> = {
   "st.approved": "मंज़ूर",
   "vh.title": "सत्यापन इतिहास",
   "set.state": "राज्य",
+  "mych.newChallenge": "नया चैलेंज",
+  "mych.createFirst": "अपना पहला चैलेंज बनाएँ",
+  "mych.view": "देखें",
+  "mych.edit": "बदलें",
+  "mych.participants": "प्रतिभागी",
+  "mych.ended": "समाप्त",
+  "mych.ongoing": "चल रहा है",
+  "mych.private": "निजी",
+  "mych.public": "सार्वजनिक",
+  "mych.days": "दिन",
+  "mych.created": "बनाया",
 };
