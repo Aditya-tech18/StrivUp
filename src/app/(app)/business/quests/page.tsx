@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ChevronRight, Clock, Eye, Plus, Trophy, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, type Quest, type QuestStatus } from "@/lib/data/businessQuests";
 
@@ -34,6 +36,7 @@ function formatDate(d: string | null) {
 }
 
 export default function BusinessQuestsPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -73,8 +76,9 @@ export default function BusinessQuestsPage() {
     <div className="min-h-screen bg-surface pb-28">
       {/* Header */}
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-body-lg font-black text-on-surface flex-1">My Quests</h1>
+        <Link aria-label={t("mych.back")} href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">{t("quests.title")}</h1>
+        <LanguageToggle className="shrink-0" />
         <button onClick={() => router.push("/business/quests/new")}
           className="flex items-center gap-1.5 h-9 px-4 rounded-xl bg-secondary text-white text-sm font-bold tap-target">
           <Plus size={16} /> New Quest
@@ -103,8 +107,8 @@ export default function BusinessQuestsPage() {
               <Plus size={28} className="text-secondary" />
             </div>
             <div>
-              <p className="text-body-lg font-black text-on-surface">Your first Quest starts here</p>
-              <p className="text-sm text-on-surface-variant mt-1 max-w-xs">Create a real-world mission, reward participation and grow your community.</p>
+              <p className="text-body-lg font-black text-on-surface">{t("quests.firstTitle")}</p>
+              <p className="text-sm text-on-surface-variant mt-1 max-w-xs">{t("quests.firstBody")}</p>
             </div>
             <button onClick={() => router.push("/business/quests/new")}
               className="h-11 px-6 rounded-xl bg-secondary text-white font-bold text-sm">

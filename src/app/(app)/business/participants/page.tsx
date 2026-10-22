@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ChevronDown, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, type Quest } from "@/lib/data/businessQuests";
 
@@ -30,6 +32,7 @@ function timeAgo(d: string) {
 }
 
 export default function ParticipantsPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -84,17 +87,18 @@ export default function ParticipantsPage() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-body-lg font-black text-on-surface flex-1">Participants</h1>
+        <Link aria-label={t("mych.back")} href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">{t("part.title")}</h1>
+        <LanguageToggle className="shrink-0" />
         <span className="text-sm font-bold text-secondary">{filtered.length}</span>
       </div>
 
       <div className="px-5 py-4 mx-auto measure-page flex flex-col gap-3">
         {/* Quest filter */}
         <div className="relative">
-          <select aria-label="Filter by quest" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
+          <select aria-label={t("part.filterByQuest")} value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
             className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none tap-target">
-            <option value="all">All Quests</option>
+            <option value="all">{t("part.allQuests")}</option>
             {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
           </select>
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
@@ -115,7 +119,7 @@ export default function ParticipantsPage() {
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-20 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
             <Users size={32} className="text-on-surface-variant" />
-            <p className="text-sm text-on-surface-variant">No participants yet.</p>
+            <p className="text-sm text-on-surface-variant">{t("part.empty")}</p>
           </div>
         ) : (
           <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant divide-y divide-outline-variant elev-1 surface-raised">

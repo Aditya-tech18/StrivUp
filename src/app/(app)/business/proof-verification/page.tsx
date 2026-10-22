@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, ChevronDown, ExternalLink, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, getQuestSubmissions, reviewSubmission, type QuestTaskSubmission, type Quest } from "@/lib/data/businessQuests";
 
@@ -23,6 +25,7 @@ function timeAgo(d: string) {
 }
 
 export default function ProofVerificationPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -102,8 +105,9 @@ export default function ProofVerificationPage() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-body-lg font-black text-on-surface flex-1">Proof Verification</h1>
+        <Link aria-label={t("mych.back")} href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">{t("proof.title")}</h1>
+        <LanguageToggle className="shrink-0" />
         {tabCounts.pending > 0 && (
           <span className="bg-error text-white text-xs font-bold px-2 py-0.5 rounded-full">{tabCounts.pending}</span>
         )}
@@ -112,9 +116,9 @@ export default function ProofVerificationPage() {
       {/* Quest selector */}
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-3">
         <div className="relative mx-auto measure-page">
-          <select aria-label="Filter by quest" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
+          <select aria-label={t("part.filterByQuest")} value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
             className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none tap-target">
-            <option value="all">All Quests</option>
+            <option value="all">{t("part.allQuests")}</option>
             {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
           </select>
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
@@ -223,7 +227,7 @@ export default function ProofVerificationPage() {
             <h3 className="text-body-lg font-black text-on-surface mb-1">
               {showRejectModal.startsWith("resubmit-") ? "Request Resubmission" : "Reject Submission"}
             </h3>
-            <p className="text-sm text-on-surface-variant mb-4">Optionally provide a reason for the participant.</p>
+            <p className="text-sm text-on-surface-variant mb-4">{t("proof.reasonHint")}</p>
             <textarea aria-label="Rejection reason (optional)" value={rejectReason} onChange={e => setRejectReason(e.target.value)}
               placeholder="Reason (optional)..." rows={3}
               className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-3 text-sm focus:outline-none focus:border-secondary resize-none mb-4" />

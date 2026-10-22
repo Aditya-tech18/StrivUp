@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, ArrowLeft, Clock, Edit2, Globe, MapPin, ShieldCheck, Store, Trophy, Users, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { getMyBusinessProfile, type BusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, type Quest } from "@/lib/data/businessQuests";
 
@@ -21,6 +23,7 @@ function StatBadge({ label, value }: { label: string; value: string | number }) 
 }
 
 export default function BusinessProfilePage() {
+  const { t } = useLocale();
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -54,7 +57,7 @@ export default function BusinessProfilePage() {
   );
   if (!bp) return null;
 
-  const name = bp.business_name || "Your Business";
+  const name = bp.business_name || t("biz.yourBusiness");
   const city = [bp.city, bp.state].filter(Boolean).join(", ");
   const activeQuests = quests.filter(q => q.quest_status === "active");
 
@@ -62,8 +65,9 @@ export default function BusinessProfilePage() {
     <div className="min-h-screen bg-surface pb-28">
       {/* Header */}
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-body-lg font-black text-on-surface flex-1">Business Profile</h1>
+        <Link aria-label={t("mych.back")} href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">{t("bprof.title")}</h1>
+        <LanguageToggle className="shrink-0" />
         <button onClick={() => router.push("/business/settings")}
           className="flex items-center gap-1.5 h-9 px-4 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant bg-surface-container-lowest hover:bg-surface-container-low elev-1 surface-raised tap-target">
           <Edit2 size={14} /> Edit
@@ -153,17 +157,17 @@ export default function BusinessProfilePage() {
                   : "text-on-warning-container"
                 }`}>
                   {bp.verification_status === "submitted" || bp.verification_status === "under_review"
-                    ? "Verification Under Review"
+                    ? t("bprof.underReview")
                     : bp.verification_status === "rejected"
-                    ? "Verification Rejected"
-                    : "Verification Incomplete"}
+                    ? t("bprof.rejected")
+                    : t("bprof.incomplete")}
                 </p>
                 <p className="text-xs text-on-surface-variant mt-0.5">
                   {bp.verification_status === "submitted" || bp.verification_status === "under_review"
                     ? "Your business will be verified within 24–48 hours."
                     : bp.verification_status === "rejected"
-                    ? bp.rejection_reason ?? "Please check your details and resubmit."
-                    : "Complete verification to publish Quests."}
+                    ? bp.rejection_reason ?? t("bprof.checkDetails")
+                    : t("bprof.completeToPublish")}
                 </p>
               </div>
               {(bp.verification_status === "rejected" || bp.verification_status === "draft" || bp.verification_status === "incomplete") && (
@@ -183,7 +187,7 @@ export default function BusinessProfilePage() {
               {activeQuests.length > 0 ? "Active Quests" : "Your Quests"}
             </h2>
             <button onClick={() => router.push("/business/quests")}
-              className="text-sm text-secondary font-semibold">View all</button>
+              className="text-sm text-secondary font-semibold">{t("bprof.viewAll")}</button>
           </div>
 
           {quests.length === 0 ? (
@@ -191,8 +195,8 @@ export default function BusinessProfilePage() {
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary-fixed">
                 <Trophy size={24} className="text-secondary" aria-hidden="true" />
               </div>
-              <p className="text-sm font-semibold text-on-surface-variant">No Quests yet</p>
-              <p className="text-xs text-on-surface-variant max-w-xs">Create your first Quest to start attracting participants.</p>
+              <p className="text-sm font-semibold text-on-surface-variant">{t("bprof.noQuests")}</p>
+              <p className="text-xs text-on-surface-variant max-w-xs">{t("bprof.noQuestsBody")}</p>
               <button onClick={() => router.push("/business/quests/new")}
                 className="h-9 px-5 rounded-xl bg-secondary text-white text-sm font-bold tap-target">
                 Create Quest

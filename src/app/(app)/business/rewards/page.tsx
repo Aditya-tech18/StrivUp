@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Gift, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, type Quest } from "@/lib/data/businessQuests";
 
@@ -49,6 +51,7 @@ function timeAgo(d: string) {
 }
 
 export default function RewardsPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -103,8 +106,9 @@ export default function RewardsPage() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-body-lg font-black text-on-surface flex-1">Rewards</h1>
+        <Link aria-label={t("mych.back")} href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">{t("rew.title")}</h1>
+        <LanguageToggle className="shrink-0" />
       </div>
 
       {/* Summary cards */}
@@ -137,7 +141,7 @@ export default function RewardsPage() {
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-16 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
             <Gift size={32} className="text-on-surface-variant" />
-            <p className="text-sm text-on-surface-variant">No reward claims yet.</p>
+            <p className="text-sm text-on-surface-variant">{t("rew.empty")}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">

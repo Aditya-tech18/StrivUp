@@ -212,7 +212,7 @@ export default function BusinessOrderVerificationPage() {
         <div className="mx-auto measure-wide px-5 lg:px-8 h-14 flex items-center gap-3">
           <Link
             href="/business/dashboard"
-            aria-label="Back to dashboard"
+            aria-label={t("ov.backToDashboard")}
             className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 transition-colors tap-target"
           >
             <ArrowLeft size={18} className="text-on-surface-variant" />
@@ -244,7 +244,7 @@ export default function BusinessOrderVerificationPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2.5 mt-4">
-            <label htmlFor="order-code" className="sr-only">STRIVUP order code</label>
+            <label htmlFor="order-code" className="sr-only">{t("ov.orderCodeLabel")}</label>
             <div className="w-full sm:flex-1 flex items-center gap-2 rounded-xl border-2 border-outline-variant focus-within:border-secondary bg-surface-container-lowest px-4 h-12 transition-colors elev-1 surface-raised">
               <Search size={17} className="text-on-surface-variant shrink-0" />
               <input
@@ -366,17 +366,17 @@ export default function BusinessOrderVerificationPage() {
                   <ProfileStat
                     icon={Trophy}
                     value={`${match.tasks_completed_here}/${match.tasks_total_here}`}
-                    label="Tasks done"
+                    label={t("ov.tasksDone")}
                   />
                   <ProfileStat
                     icon={CheckCircle2}
                     value={String(match.verified_orders_here)}
-                    label="Verified orders"
+                    label={t("ov.verifiedOrders")}
                   />
                   <ProfileStat
                     icon={CalendarDays}
-                    value={match.joined_quest_at ? timeAgo(match.joined_quest_at) : "Not joined"}
-                    label="Joined quest"
+                    value={match.joined_quest_at ? timeAgo(match.joined_quest_at) : t("ov.notJoined")}
+                    label={t("ov.joinedQuest")}
                   />
                 </div>
 
@@ -393,7 +393,7 @@ export default function BusinessOrderVerificationPage() {
                   <>
                     <div className="flex items-center gap-2.5 rounded-xl bg-success-container border border-success-outline px-4 py-3">
                       <CheckCircle2 size={18} className="text-on-success-container shrink-0" />
-                      <p className="text-sm font-bold text-on-success-container">Order verified</p>
+                      <p className="text-sm font-bold text-on-success-container">{t("ov.orderVerified")}</p>
                     </div>
 
                     <p className="text-sm text-on-surface-variant leading-relaxed mt-4">
@@ -436,12 +436,12 @@ export default function BusinessOrderVerificationPage() {
                         <XCircle size={18} className="text-error shrink-0" />
                         <div className="min-w-0">
                           <p className="text-sm font-bold text-on-error-container">
-                            {match.status === "expired" ? "Code no longer valid" : "Order rejected"}
+                            {match.status === "expired" ? t("ov.codeNoLongerValid") : t("ov.orderRejected")}
                           </p>
                           <p className="text-xs text-on-error-container">
                             {match.status === "expired"
-                              ? "This Quest has ended, so the code can no longer be verified."
-                              : "The participant can request a new code for this task."}
+                              ? t("ov.questEnded")
+                              : t("ov.canRequestNew")}
                           </p>
                         </div>
                       </div>
@@ -477,7 +477,7 @@ export default function BusinessOrderVerificationPage() {
                             {rejecting
                               ? <Loader2 size={16} className="animate-spin" />
                               : <XCircle size={16} />}
-                            {showReject ? "Confirm reject" : "Reject"}
+                            {showReject ? t("ov.confirmReject") : t("ov.reject")}
                           </button>
                           <button
                             onClick={handleVerify}
