@@ -6,24 +6,43 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react";
+import { ArrowRight, Loader2, Mail, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { safeRedirect } from "@/lib/safeRedirect";
 import { friendlyAuthError, isExistingUserSignup } from "@/lib/auth/authErrors";
 import { AuthCard, AuthField, authSocialBtnCls, authSubmitBtnCls } from "../AuthCard";
 import { GoogleIcon } from "../GoogleIcon";
 import { OtpStep } from "../OtpStep";
-import { PasswordStrength } from "@/components/ui/PasswordStrength";
 
+/**
+ * CHANGED: signup no longer asks for a password.
+ *
+ * The password is chosen on /set-password, after the emailed link or code has
+ * proved the address belongs to the person signing up. Asking for it here
+ * meant an address could be registered with a password by someone who did not
+ * own it, and it was also the source of a confusing failure: an account
+ * created with Google and then "signed up" again by email ends up with a
+ * password nobody remembers setting, and the login screen can only say the
+ * details do not match.
+ */
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().min(1, "Email is required.").email("Please enter a valid email address."),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters.")
-    .regex(/[a-zA-Z]/, "Password must contain at least one letter.")
-    .regex(/[0-9]/, "Password must contain at least one number."),
 });
+
+/**
+ * A placeholder password for the account record.
+ *
+ * supabase.auth.signUp requires one, but nobody is ever told this value and
+ * it is replaced on /set-password before the account can be used. It is
+ * generated with the platform CSPRNG rather than Math.random so that an
+ * abandoned signup cannot be guessed into.
+ */
+function throwawayPassword(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return `Aa1!${Array.from(bytes, (b) => b.toString(36)).join("")}`;
+}
 
 type SignupValues = z.infer<typeof signupSchema>;
 
@@ -32,7 +51,6 @@ export function SignupForm() {
   // Where to land after auth. Comes from ?redirectTo (set by proxy.ts when it
   // bounces a signed-out visitor) and is validated to a same-origin path.
   const destination = safeRedirect(useSearchParams().get("redirectTo"));
-  const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
   // Set once signUp succeeds and a code is in flight. Holds the address so the
@@ -46,24 +64,19 @@ export function SignupForm() {
     formState: { errors, isSubmitting },
   } = useForm<SignupValues>({ resolver: zodResolver(signupSchema) });
 
-  // Tracked with a local value fed from the field's own onChange rather than
-  // react-hook-form's watch(): watch() returns a non-memoizable subscription,
-  // which makes React Compiler skip optimising the whole form. This keeps the
-  // form's own registration intact and just tees the value off alongside it.
-  const [passwordValue, setPasswordValue] = useState("");
-  const passwordField = register("password");
-
   const onSubmit = async (data: SignupValues) => {
     setAuthError(null);
     const supabase = createClient();
     const { data: signUpData, error } = await supabase.auth.signUp({
       email: data.email,
-      password: data.password,
+      password: throwawayPassword(),
       options: {
         data: { full_name: data.name },
-        // Kept for the link in the same email, which still works as a fallback
-        // for anyone who taps it instead of copying the code.
-        emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(destination)}`,
+        // CHANGED: the link now lands on /set-password rather than going
+        // straight into the app, because the account has no real password
+        // until that screen runs. The emailed 6-digit code reaches the same
+        // screen, so both halves of the email end in the same place.
+        emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent("/set-password")}`,
       },
     });
 
@@ -92,8 +105,10 @@ export function SignupForm() {
       return;
     }
 
-    // Confirmation off: signUp returned a live session, so go.
-    router.push(destination);
+    // Confirmation off: signUp returned a live session. Still send them to
+    // /set-password, because the only password on the account right now is
+    // the throwaway one above.
+    router.push("/set-password");
     router.refresh();
   };
 
@@ -122,10 +137,9 @@ export function SignupForm() {
       return;
     }
 
-    // Straight into account setup rather than the feed: the account exists but
-    // has nothing in it yet, and this is the one moment someone is willing to
-    // fill a form.
-    router.push("/profile/setup");
+    // CHANGED: the code proves the address, the password is still unset, so
+    // the next screen is /set-password. Profile setup follows from there.
+    router.push("/set-password");
     router.refresh();
   };
 
@@ -178,7 +192,7 @@ export function SignupForm() {
   return (
     <AuthCard
       title="Create account"
-      subtitle="Build better. Every day."
+      subtitle="We'll email you a link to set your password."
       error={authError}
       footer={
         <>
@@ -215,37 +229,10 @@ export function SignupForm() {
           {...register("email")}
         />
 
-        <AuthField
-          id="signup-password"
-          label="Password"
-          icon={<Lock size={14} aria-hidden="true" />}
-          type={showPassword ? "text" : "password"}
-          autoComplete="new-password"
-          error={errors.password?.message}
-          disabled={busy}
-          trailing={
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-              className="flex h-11 w-11 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:text-on-surface"
-            >
-              {showPassword ? (
-                <EyeOff size={16} aria-hidden="true" />
-              ) : (
-                <Eye size={16} aria-hidden="true" />
-              )}
-            </button>
-          }
-          {...passwordField}
-          onChange={(event) => {
-            passwordField.onChange(event);
-            setPasswordValue(event.target.value);
-          }}
-        />
-
-        {/* Advisory only — the zod schema is still the one gate on submit. */}
-        <PasswordStrength value={passwordValue} />
+        {/* CHANGED: the password field and its strength meter moved to
+            /set-password. Nothing is lost: the same component, the same rules
+            and the same confirm field now run there, after the email is
+            proved. */}
 
         <button id="signup-submit-btn" type="submit" disabled={busy} className={authSubmitBtnCls}>
           {isSubmitting ? (

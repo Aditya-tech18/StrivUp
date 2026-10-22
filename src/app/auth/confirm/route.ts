@@ -39,7 +39,29 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type");
   const nextParam = searchParams.get("next");
 
-  if (!tokenHash || !type || !ALLOWED_TYPES.has(type)) {
+  /* CHANGED: a missing token_hash is no longer treated as a broken link.
+     With the default {{ .ConfirmationURL }} email template Supabase verifies
+     the token on its own endpoint and hands the session back in the URL
+     *fragment*, which is never sent to a server. This route therefore saw
+     ?type=recovery with no token_hash and sent people to
+     /login?error=invalid_link — refusing a link that was perfectly valid.
+
+     Forward to the destination instead and let the page resolve it on the
+     client, where the fragment is readable. Browsers re-attach the original
+     fragment to a redirect target that has none, so #access_token survives
+     this hop. If there really is nothing to work with, the destination says
+     the link expired, which is the honest answer and a dead end either way. */
+  if (!tokenHash) {
+    const fallback =
+      type === "recovery"
+        ? "/reset-password"
+        : nextParam
+          ? safeRedirect(nextParam)
+          : "/set-password";
+    return NextResponse.redirect(`${origin}${fallback}`);
+  }
+
+  if (!type || !ALLOWED_TYPES.has(type)) {
     return NextResponse.redirect(`${origin}/login?error=invalid_link`);
   }
 
