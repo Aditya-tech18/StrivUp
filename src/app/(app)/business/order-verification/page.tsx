@@ -148,7 +148,7 @@ export default function BusinessOrderVerificationPage() {
     if (found.status === "order_verified" && found.bill_code) {
       setBillCode(found.bill_code);
     }
-  }, [code, supabase]);
+  }, [code, supabase, t]);
 
   const handleVerify = useCallback(async () => {
     if (!match) return;
