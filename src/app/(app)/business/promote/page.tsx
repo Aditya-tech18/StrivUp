@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ChevronDown, Target, TrendingUp, Trophy, Users, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, type Quest } from "@/lib/data/businessQuests";
 
@@ -19,6 +21,7 @@ const BUDGETS = [
 ];
 
 export default function PromotePage() {
+  const { t } = useLocale();
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -52,8 +55,9 @@ export default function PromotePage() {
   return (
     <div className="min-h-screen bg-surface pb-28">
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
-        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-body-lg font-black text-on-surface flex-1">Promote Quest</h1>
+        <Link aria-label={t("mych.back")} href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">{t("pro.title")}</h1>
+        <LanguageToggle className="shrink-0" />
       </div>
 
       <div className="px-5 py-5 mx-auto measure-form flex flex-col gap-5">
@@ -64,15 +68,15 @@ export default function PromotePage() {
               <Zap size={20} className="text-white" />
             </div>
             <div>
-              <h2 className="text-body-lg font-black text-on-secondary-fixed">Boost Your Quest Reach</h2>
-              <p className="text-xs text-secondary">Reach more STRIVUP users who match your audience</p>
+              <h2 className="text-body-lg font-black text-on-secondary-fixed">{t("pro.boostTitle")}</h2>
+              <p className="text-xs text-secondary">{t("pro.boostBody")}</p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {[
-              { Icon: Users,      label: "More Participants" },
-              { Icon: TrendingUp, label: "Higher Visibility" },
-              { Icon: Target,     label: "Targeted Reach" },
+              { Icon: Users,      label: t("pro.how1Label") },
+              { Icon: TrendingUp, label: t("pro.how2Label") },
+              { Icon: Target,     label: t("pro.how3Label") },
             ].map(item => (
               <div key={item.label} className="bg-surface-container-lowest/70 rounded-xl p-2.5 text-center">
                 <item.Icon size={20} className="mx-auto mb-1 text-secondary" aria-hidden="true" />
@@ -84,10 +88,10 @@ export default function PromotePage() {
 
         {/* Quest selector */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
-          <p className="text-sm font-bold text-on-surface mb-3">Select Quest to Promote</p>
+          <p className="text-sm font-bold text-on-surface mb-3">{t("pro.selectQuest")}</p>
           {quests.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-sm text-on-surface-variant mb-3">No active Quests to promote.</p>
+              <p className="text-sm text-on-surface-variant mb-3">{t("pro.noActive")}</p>
               <button onClick={() => router.push("/business/quests/new")}
                 className="h-9 px-5 rounded-xl bg-secondary text-white text-sm font-bold tap-target">
                 Create a Quest First
@@ -95,7 +99,7 @@ export default function PromotePage() {
             </div>
           ) : (
             <div className="relative">
-              <select aria-label="Quest to promote" value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
+              <select aria-label={t("pro.questToPromote")} value={selectedQuest} onChange={e => setSelectedQuest(e.target.value)}
                 className="w-full h-11 rounded-xl border border-outline-variant bg-surface-container-low px-4 pr-10 text-sm font-medium text-on-surface-variant focus:outline-none focus:border-secondary appearance-none">
                 {quests.map(q => <option key={q.id} value={q.id}>{q.title}</option>)}
               </select>
@@ -123,8 +127,8 @@ export default function PromotePage() {
         {/* Budget selection */}
         {quests.length > 0 && (
           <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
-            <p className="text-sm font-bold text-on-surface mb-1">Select Budget & Duration</p>
-            <p className="text-xs text-on-surface-variant mb-4">Estimated reach is based on historical data and may vary.</p>
+            <p className="text-sm font-bold text-on-surface mb-1">{t("pro.selectBudget")}</p>
+            <p className="text-xs text-on-surface-variant mb-4">{t("pro.estimateNote")}</p>
             <div className="grid grid-cols-2 gap-3">
               {BUDGETS.map(b => (
                 <button key={b.value} type="button" onClick={() => setSelectedBudget(b)}
@@ -146,13 +150,13 @@ export default function PromotePage() {
 
         {/* How it works */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
-          <p className="text-sm font-bold text-on-surface mb-4">How Promotion Works</p>
+          <p className="text-sm font-bold text-on-surface mb-4">{t("pro.howTitle")}</p>
           <div className="flex flex-col gap-3">
             {[
-              { num: "1", text: "Your Quest appears in discovery feeds for relevant users" },
-              { num: "2", text: "Targeted users matching your category and location see your Quest" },
+              { num: "1", text: t("pro.how1") },
+              { num: "2", text: t("pro.how2") },
               { num: "3", text: "More participants join → higher engagement → stronger impact" },
-              { num: "4", text: "Budget is consumed only as your Quest receives promoted impressions" },
+              { num: "4", text: t("pro.how3") },
             ].map(step => (
               <div key={step.num} className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-secondary-fixed flex items-center justify-center shrink-0 mt-0.5">
@@ -183,7 +187,7 @@ export default function PromotePage() {
               <span className="font-black text-on-surface">{selectedBudget.label} · {selectedBudget.duration}</span>
             </div>
             <button
-              onClick={() => alert("Payment integration coming soon. Your promotion setup has been saved.")}
+              onClick={() => alert(t("pro.paymentSoon"))}
               className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-body-lg flex items-center justify-center gap-2 transition-all">
               <Zap size={18} /> Boost Quest — {selectedBudget.label}
             </button>

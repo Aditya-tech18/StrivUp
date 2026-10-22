@@ -8,6 +8,9 @@ import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, ChevronLeft, ChevronRight, Globe, GripVertical, ImageIcon, Link as LinkIcon, Plus, Rocket, Trash2, Trophy, Upload, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { StringKey } from "@/lib/i18n/businessStrings";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import {
   upsertQuest, getQuestById, upsertQuestTask, deleteQuestTask,
@@ -24,13 +27,18 @@ import {
 import { upsertTaskActivityConfig } from "@/lib/data/activity";
 
 const TOTAL_STEPS = 6;
-const STEP_LABELS = ["Basic Info","Tasks","Rewards","Rules","Audience","Review"];
+const STEP_LABEL_KEYS: StringKey[] = [
+  "qw.basicInfo", "qw.stepTasks", "qw.stepRewards", "qw.stepRules",
+  "qw.stepAudience", "qw.stepReview",
+];
 
 /* ── Step Shell ─────────────────────────────────────────────────────── */
-function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel = "Continue", nextDisabled = false, saving = false }: {
+function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel, nextDisabled = false, saving = false }: {
   step: number; title: string; subtitle?: string; children: React.ReactNode;
   onBack?: () => void; onNext: () => void; nextLabel?: string; nextDisabled?: boolean; saving?: boolean;
 }) {
+  const { t } = useLocale();
+  const next = nextLabel ?? t("qw.continue");
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       <div className="h-1 bg-surface-container-highest"><div className="h-1 bg-secondary transition-all duration-500" style={{ width: `${(step/TOTAL_STEPS)*100}%` }} /></div>
@@ -43,16 +51,21 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
           {onBack && (
             <button
               onClick={onBack}
-              aria-label="Back"
+              aria-label={t("mych.back")}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-container pressable focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary tap-target"
             >
               <ChevronLeft size={20} className="text-on-surface-variant" aria-hidden="true" />
             </button>
           )}
           <div className="flex-1">
-            <p className="text-overline text-on-surface-variant">Step {step} of {TOTAL_STEPS} · {STEP_LABELS[step-1]}</p>
+            <p className="text-overline text-on-surface-variant">{t("qw.step")} {step} {t("qw.of")} {TOTAL_STEPS} · {t(STEP_LABEL_KEYS[step-1])}</p>
             <h1 className="text-headline-md font-black leading-tight text-on-surface">{title}</h1>
             {subtitle && <p className="mt-0.5 text-body-md text-on-surface-variant">{subtitle}</p>}
+          </div>
+          {/* Beside the step title, so the language choice is reachable on
+              every step of the wizard rather than only before it starts. */}
+          <div className="shrink-0 self-start">
+            <LanguageToggle />
           </div>
         </div>
       </div>
@@ -61,7 +74,7 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
         <div className="mx-auto measure-form px-5 py-4">
           <button onClick={onNext} disabled={nextDisabled || saving}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary font-bold text-white transition-all elev-brand hover:opacity-90 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary">
-            {saving ? "Saving…" : <>{nextLabel} <ChevronRight size={18} aria-hidden="true" /></>}
+            {saving ? t("qw.saving") : <>{next} <ChevronRight size={18} aria-hidden="true" /></>}
           </button>
         </div>
       </div>
@@ -71,6 +84,7 @@ function StepShell({ step, title, subtitle, children, onBack, onNext, nextLabel 
 
 /* ── Main ───────────────────────────────────────────────────────────── */
 function CreateQuestContent() {
+  const { t } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
@@ -173,9 +187,9 @@ function CreateQuestContent() {
       }, businessId);
       setQuestId(q.id);
       setStep(2);
-    } catch(e) { setError(e instanceof Error ? e.message : "Failed to save"); }
+    } catch(e) { setError(e instanceof Error ? e.message : t("qw.saveFailed")); }
     finally { setSaving(false); }
-  }, [businessId, questId, title, description, category, coverUrl, destinationLink, locationName, startDate, endDate, supabase]);
+  }, [businessId, questId, title, description, category, coverUrl, destinationLink, locationName, startDate, endDate, supabase, t]);
 
   const saveTasks = useCallback(async () => {
     if (!questId) return;
@@ -206,9 +220,9 @@ function CreateQuestContent() {
         }
       }
       setStep(3);
-    } catch(e) { setError(e instanceof Error ? e.message : "Failed to save tasks"); }
+    } catch(e) { setError(e instanceof Error ? e.message : t("qw.saveTasksFailed")); }
     finally { setSaving(false); }
-  }, [questId, tasks, physicalConfigs, supabase]);
+  }, [questId, tasks, physicalConfigs, supabase, t]);
 
   const saveRewards = useCallback(async () => {
     if (!questId) return;
@@ -219,9 +233,9 @@ function CreateQuestContent() {
         await upsertQuestReward(supabase, { ...r, quest_id: questId, is_leaderboard: isLeaderboard } as Partial<QuestReward> & { quest_id: string });
       }
       setStep(4);
-    } catch(e) { setError(e instanceof Error ? e.message : "Failed to save rewards"); }
+    } catch(e) { setError(e instanceof Error ? e.message : t("qw.saveRewardsFailed")); }
     finally { setSaving(false); }
-  }, [questId, rewards, isLeaderboard, supabase]);
+  }, [questId, rewards, isLeaderboard, supabase, t]);
 
   const saveRules = useCallback(async () => {
     if (!questId || !businessId) return;
@@ -229,9 +243,9 @@ function CreateQuestContent() {
     try {
       await upsertQuest(supabase, { id: questId, rules: rules.trim() || null, eligibility: eligibility.trim() || null }, businessId);
       setStep(5);
-    } catch(e) { setError(e instanceof Error ? e.message : "Failed to save rules"); }
+    } catch(e) { setError(e instanceof Error ? e.message : t("qw.saveRulesFailed")); }
     finally { setSaving(false); }
-  }, [questId, businessId, rules, eligibility, supabase]);
+  }, [questId, businessId, rules, eligibility, supabase, t]);
 
   const saveAudience = useCallback(async () => {
     if (!questId || !businessId) return;
@@ -239,9 +253,9 @@ function CreateQuestContent() {
     try {
       await upsertQuest(supabase, { id: questId, visibility }, businessId);
       setStep(6);
-    } catch(e) { setError(e instanceof Error ? e.message : "Failed to save audience"); }
+    } catch(e) { setError(e instanceof Error ? e.message : t("qw.saveAudienceFailed")); }
     finally { setSaving(false); }
-  }, [questId, businessId, visibility, supabase]);
+  }, [questId, businessId, visibility, supabase, t]);
 
   const handlePublish = async () => {
     if (!questId || !businessId) return;
@@ -249,7 +263,7 @@ function CreateQuestContent() {
     try {
       await publishQuest(supabase, questId, businessId);
       router.push("/business/quests");
-    } catch(e) { setError(e instanceof Error ? e.message : "Failed to publish"); setSaving(false); }
+    } catch(e) { setError(e instanceof Error ? e.message : t("qw.publishFailed")); setSaving(false); }
   };
 
   const handleSaveDraft = async () => {
@@ -277,7 +291,7 @@ function CreateQuestContent() {
       if (error) throw error;
       const { data } = supabase.storage.from("proof-media").getPublicUrl(path);
       setTasks(prev => prev.map((t, j) => j === index ? { ...t, image_url: data.publicUrl } : t));
-    } catch (err) { setError(err instanceof Error ? err.message : "Upload failed"); }
+    } catch (err) { setError(err instanceof Error ? err.message : t("qw.uploadFailed")); }
     finally { setTaskImageUploading(null); }
   };
 
@@ -293,7 +307,7 @@ function CreateQuestContent() {
       if (error) throw error;
       const { data } = supabase.storage.from("proof-media").getPublicUrl(path);
       setCoverUrl(data.publicUrl);
-    } catch(err) { setError(err instanceof Error ? err.message : "Upload failed"); }
+    } catch(err) { setError(err instanceof Error ? err.message : t("qw.uploadFailed")); }
     finally { setCoverUploading(false); }
   };
 
@@ -305,14 +319,14 @@ function CreateQuestContent() {
 
   /* ── STEP 1: Basic Info ──────────────────────────────────────────── */
   if (step === 1) return (
-    <StepShell step={1} title="Quest Details" subtitle="Tell participants what this Quest is about."
+    <StepShell step={1} title={t("qw.details")} subtitle={t("qw.detailsSub")}
       onBack={() => router.push("/business/quests")}
       onNext={saveBasicInfo} nextDisabled={!title.trim()} saving={saving}>
       {error && <p className="text-on-error-container text-sm mb-4 bg-error-container rounded-xl px-4 py-3">{error}</p>}
       <div className="flex flex-col gap-4">
         {/* Cover upload */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-on-surface-variant">Cover Image</label>
+          <label className="text-sm font-semibold text-on-surface-variant">{t("qw.coverImage")}</label>
           <label className="relative cursor-pointer group">
             <div className="w-full h-40 rounded-2xl bg-surface-container border-2 border-dashed border-outline group-hover:border-secondary overflow-hidden flex items-center justify-center transition-colors">
               {coverUploading ? (
@@ -322,34 +336,34 @@ function CreateQuestContent() {
                 <img src={coverUrl} alt="cover" className="w-full h-full object-cover" />
               ) : (
                 <div className="flex flex-col items-center gap-2 text-on-surface-variant">
-                  <Upload size={28} /><span className="text-sm">Upload Cover Image</span>
+                  <Upload size={28} /><span className="text-sm">{t("qw.uploadCover")}</span>
                 </div>
               )}
             </div>
             <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleCoverUpload} />
           </label>
-          {coverUrl && <button type="button" onClick={() => setCoverUrl(null)} className="text-xs text-error self-start">Remove image</button>}
+          {coverUrl && <button type="button" onClick={() => setCoverUrl(null)} className="text-xs text-error self-start">{t("qw.removeImage")}</button>}
         </div>
         <Input label="Quest Title *" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. 30-Day Morning Run Challenge" maxLength={100} />
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-on-surface-variant">Description *</label>
           <textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={1000} rows={4}
-            placeholder="Describe the quest, what participants need to do, and why they should join..."
+            placeholder={t("qw.descPlaceholder")}
             className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30 resize-none" />
           <p className="text-xs text-on-surface-variant text-right">{description.length}/1000</p>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-semibold text-on-surface-variant">Category</label>
+          <label className="text-sm font-semibold text-on-surface-variant">{t("set.category")}</label>
           <select value={category} onChange={e => setCategory(e.target.value)}
             className="h-10 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface-variant focus:outline-none focus:border-secondary tap-target">
             <option value="">Select category…</option>
             {QUEST_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <Input label="Destination Link" type="url" value={destinationLink} onChange={e => setDestinationLink(e.target.value)} placeholder="https://…" hint="Optional — where users can learn more" />
+        <Input label={t("qw.destinationLink")} type="url" value={destinationLink} onChange={e => setDestinationLink(e.target.value)} placeholder="https://…" hint="Optional — where users can learn more" />
         <Input label="Location" value={locationName} onChange={e => setLocationName(e.target.value)} placeholder="e.g. Mumbai, Maharashtra" hint="Optional" />
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Start Date" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          <Input label={t("qw.startDate")} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
           <Input label="End Date" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
         </div>
       </div>
@@ -358,7 +372,7 @@ function CreateQuestContent() {
 
   /* ── STEP 2: Tasks ───────────────────────────────────────────────── */
   if (step === 2) return (
-    <StepShell step={2} title="Quest Tasks" subtitle="Define what participants need to complete."
+    <StepShell step={2} title={t("qw.tasks")} subtitle={t("qw.tasksSub")}
       onBack={() => setStep(1)} onNext={saveTasks}
       nextDisabled={tasks.filter(t => t.title?.trim()).length === 0} saving={saving}>
       {error && <p className="text-on-error-container text-sm mb-4 bg-error-container rounded-xl px-4 py-3">{error}</p>}
@@ -382,11 +396,11 @@ function CreateQuestContent() {
             <input value={task.title ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, title: e.target.value } : t))}
               placeholder="Task title *" className="w-full h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest tap-target" />
             <textarea value={task.description ?? ""} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, description: e.target.value } : t))}
-              placeholder="Task description..." rows={2}
+              placeholder={t("qw.taskDescPlaceholder")} rows={2}
               className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary focus:bg-surface-container-lowest resize-none" />
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">Proof Type</label>
+                <label className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">{t("qw.proofType")}</label>
                 <select value={task.proof_type ?? "photo"} onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, proof_type: e.target.value as ProofType } : t))}
                   className="w-full h-9 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-xs text-on-surface-variant focus:outline-none focus:border-secondary tap-target">
                   {PROOF_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
@@ -397,7 +411,7 @@ function CreateQuestContent() {
                   <input type="checkbox" checked={task.is_required ?? true}
                     onChange={e => setTasks(prev => prev.map((t, j) => j === i ? { ...t, is_required: e.target.checked } : t))}
                     className="w-4 h-4 rounded-xl border-outline accent-blue-600" />
-                  <span className="text-xs font-medium text-on-surface-variant">Required</span>
+                  <span className="text-xs font-medium text-on-surface-variant">{t("qw.required")}</span>
                 </label>
               </div>
             </div>
@@ -434,11 +448,11 @@ function CreateQuestContent() {
             {/* What an order-verification task actually does, stated where it is chosen */}
             {task.proof_type === "order_verification" && (
               <div className="rounded-xl bg-secondary-fixed border border-secondary-fixed-dim px-3.5 py-3">
-                <p className="text-xs font-bold text-on-secondary-fixed">STRIVUP order verification</p>
+                <p className="text-xs font-bold text-on-secondary-fixed">{t("qw.orderVerificationShort")}</p>
                 <p className="text-xs text-secondary leading-relaxed mt-1">
                   Participants get a code to put in their Zomato / Swiggy order
                   description. You confirm it at{" "}
-                  <span className="font-semibold">Order Verification</span>, then write
+                  <span className="font-semibold">{t("qw.orderVerification")}</span>, then write
                   the bill code STRIVUP gives you on their bill to complete the task.
                 </p>
               </div>
@@ -466,16 +480,16 @@ function CreateQuestContent() {
 
   /* ── STEP 3: Rewards ─────────────────────────────────────────────── */
   if (step === 3) return (
-    <StepShell step={3} title="Rewards" subtitle="Define what participants can win."
-      onBack={() => setStep(2)} onNext={saveRewards} nextLabel="Continue" saving={saving}>
+    <StepShell step={3} title="Rewards" subtitle={t("qw.rewardsSub")}
+      onBack={() => setStep(2)} onNext={saveRewards} saving={saving}>
       {error && <p className="text-on-error-container text-sm mb-4 bg-error-container rounded-xl px-4 py-3">{error}</p>}
       <div className="flex flex-col gap-4">
         <label className="flex items-center gap-3 bg-surface-container-lowest rounded-xl border border-outline-variant px-4 py-3 cursor-pointer elev-1 surface-raised">
           <input type="checkbox" checked={isLeaderboard} onChange={e => setIsLeaderboard(e.target.checked)}
             className="w-4 h-4 rounded-xl border-outline accent-blue-600" />
           <div>
-            <p className="text-sm font-semibold text-on-surface">Enable Leaderboard Ranking</p>
-            <p className="text-xs text-on-surface-variant">Rank participants and assign tiered rewards</p>
+            <p className="text-sm font-semibold text-on-surface">{t("qw.enableLeaderboard")}</p>
+            <p className="text-xs text-on-surface-variant">{t("qw.enableLeaderboardSub")}</p>
           </div>
         </label>
         {rewards.map((reward, i) => (
@@ -489,7 +503,7 @@ function CreateQuestContent() {
             </div>
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">Reward Type</label>
+                <label className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-1 block">{t("qw.rewardType")}</label>
                 <select value={reward.reward_type ?? "other"} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, reward_type: e.target.value as RewardType } : r))}
                   className="w-full h-9 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-xs text-on-surface-variant focus:outline-none focus:border-secondary tap-target">
                   {REWARD_TYPES.map(rt => <option key={rt.value} value={rt.value}>{rt.label}</option>)}
@@ -503,13 +517,13 @@ function CreateQuestContent() {
             {isLeaderboard && (
               <div className="grid grid-cols-2 gap-3">
                 <input type="number" value={reward.rank_from ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, rank_from: parseInt(e.target.value) || null } : r))}
-                  placeholder="Rank from" className="h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary tap-target" />
+                  placeholder={t("qw.rankFrom")} className="h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary tap-target" />
                 <input type="number" value={reward.rank_to ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, rank_to: parseInt(e.target.value) || null } : r))}
                   placeholder="Rank to" className="h-10 rounded-xl border border-outline-variant bg-surface-container-low px-3 text-sm focus:outline-none focus:border-secondary tap-target" />
               </div>
             )}
             <textarea value={reward.description ?? ""} onChange={e => setRewards(prev => prev.map((r, j) => j === i ? { ...r, description: e.target.value } : r))}
-              placeholder="Additional details about this reward..." rows={2}
+              placeholder={t("qw.rewardDetailsPlaceholder")} rows={2}
               className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm focus:outline-none focus:border-secondary resize-none" />
           </div>
         ))}
@@ -518,7 +532,7 @@ function CreateQuestContent() {
           <Plus size={18} /> Add Reward
         </button>
         {rewards.length === 0 && (
-          <p className="text-xs text-on-surface-variant text-center">You can skip this step if there are no rewards.</p>
+          <p className="text-xs text-on-surface-variant text-center">{t("qw.skipRewards")}</p>
         )}
       </div>
     </StepShell>
@@ -526,23 +540,23 @@ function CreateQuestContent() {
 
   /* ── STEP 4: Rules ───────────────────────────────────────────────── */
   if (step === 4) return (
-    <StepShell step={4} title="Rules & Eligibility" subtitle="Set the terms for participation and rewards."
+    <StepShell step={4} title={t("qw.rules")} subtitle={t("qw.rulesSub")}
       onBack={() => setStep(3)} onNext={saveRules} saving={saving}>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-semibold text-on-surface-variant">Eligibility</label>
+          <label className="text-sm font-semibold text-on-surface-variant">{t("qw.eligibility")}</label>
           <textarea value={eligibility} onChange={e => setEligibility(e.target.value)} rows={3}
             placeholder="Who can participate? (e.g. Open to all, 18+ only, Indian residents only...)"
             className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30 resize-none" />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-semibold text-on-surface-variant">Participation Rules</label>
+          <label className="text-sm font-semibold text-on-surface-variant">{t("qw.participationRules")}</label>
           <textarea value={rules} onChange={e => setRules(e.target.value)} rows={6}
-            placeholder="List the rules, proof requirements, reward criteria, disqualification rules..."
+            placeholder={t("qw.rulesPlaceholder")}
             className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30 resize-none" />
         </div>
         <div className="bg-secondary-fixed border border-secondary-fixed-dim rounded-xl px-4 py-3">
-          <p className="text-xs text-secondary font-medium">By submitting, you confirm that all reward information provided is accurate and you are legally permitted to offer these rewards.</p>
+          <p className="text-xs text-secondary font-medium">{t("qw.accuracyConfirm")}</p>
         </div>
       </div>
     </StepShell>
@@ -550,13 +564,13 @@ function CreateQuestContent() {
 
   /* ── STEP 5: Audience ────────────────────────────────────────────── */
   if (step === 5) return (
-    <StepShell step={5} title="Visibility & Audience" subtitle="Who can see and join this Quest?"
+    <StepShell step={5} title={t("qw.audience")} subtitle={t("qw.audienceSub")}
       onBack={() => setStep(4)} onNext={saveAudience} saving={saving}>
       <div className="flex flex-col gap-3">
         {([
-          { value: "public", title: "Public", desc: "Anyone on STRIVUP can discover and join", Icon: Globe },
-          { value: "community_only", title: "Community Only", desc: "Only members of your community can join", Icon: Users },
-          { value: "invite_only", title: "Invite Only", desc: "Only people with an invite link can join", Icon: LinkIcon },
+          { value: "public", title: "Public", desc: t("qw.publicDesc"), Icon: Globe },
+          { value: "community_only", title: t("qw.communityOnly"), desc: t("qw.communityOnlyDesc"), Icon: Users },
+          { value: "invite_only", title: t("qw.inviteOnly"), desc: t("qw.inviteOnlyDesc"), Icon: LinkIcon },
         ] as const).map(opt => (
           <button key={opt.value} type="button" onClick={() => setVisibility(opt.value)}
             className={`flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all ${
@@ -581,7 +595,7 @@ function CreateQuestContent() {
         <div className="mx-auto flex measure-form items-center gap-3 px-5 py-4">
           <button
             onClick={() => setStep(5)}
-            aria-label="Back to visibility"
+            aria-label={t("qw.backToVisibility")}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-container pressable focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary tap-target"
           >
             <ChevronLeft size={20} className="text-on-surface-variant" aria-hidden="true" />
@@ -648,7 +662,7 @@ function CreateQuestContent() {
             <p className="flex items-center gap-1.5 text-body-md font-bold text-on-warning-container">
               <AlertTriangle size={15} aria-hidden="true" /> Business Verification Required
             </p>
-            <p className="text-xs text-on-warning-container mt-1">Your business must be verified before publishing a Quest. You can save as draft and publish once verified.</p>
+            <p className="text-xs text-on-warning-container mt-1">{t("qw.mustBeVerified")}</p>
           </div>
         )}
       </div>

@@ -131,7 +131,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <head>
+        {/*
+          Sets the theme before anything paints.
+
+          This has to be a blocking inline script in <head>: React has not run
+          yet at this point, and anything that waits for it means a dark-mode
+          user gets a full white screen on every single navigation before the
+          theme is reapplied. That flash is the reason this pattern exists.
+
+          Reads the saved choice, falls back to the system preference only for
+          someone who has never chosen, and defaults to light. Wrapped in
+          try/catch because localStorage throws outright in some private
+          modes, and a theme is not worth a blank page.
+        */}
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("strivup:theme");if(!t){t=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}document.documentElement.setAttribute("data-theme",t);}catch(e){document.documentElement.setAttribute("data-theme","light");}})();`,
+          }}
+        />
+      </head>
       <body className="antialiased">
         {children}
         <ServiceWorkerRegistrar />

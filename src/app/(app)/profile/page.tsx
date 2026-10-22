@@ -4,14 +4,17 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Camera, Check, ChevronRight, Coins, Edit2, Flame, Gift,
-  Loader2, Plus, Settings, ShieldCheck, Trash2, X,
+  Camera, Check, ChevronRight, Coins, Compass, Edit2, Flame, Gift,
+  Loader2, Plus, Settings, ShieldCheck, Trash2, Trophy, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { SocialIcon, PLATFORM_NAME } from "@/components/ui/SocialIcon";
 import { ActivityHeatmap } from "@/components/ui/ActivityHeatmap";
 import { MobileMenu } from "@/components/ui";
 import { MyPosts } from "@/components/features/profile/MyPosts";
+import { AutoScrollRail } from "@/components/features/home/AutoScrollRail";
+import { ActiveCard } from "@/components/features/home/ActiveCard";
+import { getTodaysTasks, getTodaysQuestTasks, type TodayTask } from "@/lib/data/today";
 import { getMyPosts, type MyPostRow } from "@/lib/data/social";
 import {
   getMyProfile, upsertMyProfile,
@@ -66,37 +69,6 @@ function Sk({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-xl bg-surface-container-highest ${className}`} />;
 }
 
-
-// ── Challenge Card ─────────────────────────────────────────────────────────
-function ChallengeCard({ stats }: { stats: ChallengeStats }) {
-  return (
-    <div className="flex flex-col rounded-xl overflow-hidden border border-outline-variant bg-surface-container-lowest shadow-[0_1px_4px_rgba(0,0,0,0.06)] elev-1 surface-raised">
-      <div className="relative w-full aspect-[4/3] bg-surface-container overflow-hidden">
-        {stats.thumbnail_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={stats.thumbnail_url} alt={stats.title} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-secondary/10 to-secondary/5 flex items-center justify-center">
-            <span className="text-headline-lg font-black text-secondary/30">
-              {stats.title.charAt(0)}
-            </span>
-          </div>
-        )}
-        <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-success flex items-center justify-center shadow">
-          <Check size={11} className="text-white" strokeWidth={3} />
-        </div>
-      </div>
-      <div className="p-2 flex flex-col gap-0.5">
-        <p className="text-label-sm font-bold text-on-surface leading-tight line-clamp-2">{stats.title}</p>
-        <p className="text-label-sm text-on-surface-variant">
-          Day {stats.current_day}{stats.duration_days ? `/${stats.duration_days}` : ""}
-          {stats.consistency_pct >= 90 ? " · On fire" : ""}
-        </p>
-        <p className="text-label-sm font-bold text-secondary">{stats.consistency_pct}% Consistency</p>
-      </div>
-    </div>
-  );
-}
 
 // ── Follow List Modal ──────────────────────────────────────────────────────
 function FollowModal({
@@ -291,11 +263,30 @@ export default function ProfilePage() {
 
   const [allStats,    setAllStats]    = useState<ChallengeStats[]>([]);
   const [myPosts,     setMyPosts]     = useState<MyPostRow[]>([]);
-  const [activeStats, setActiveStats] = useState<ChallengeStats[]>([]);
   const [pinnedIds,   setPinnedIds]   = useState<string[]>([]);
   const [achievements,setAchievements]= useState<ChallengeStats[]>([]);
 
   const [coinBalance, setCoinBalance] = useState<number | null>(null);
+
+  /* The two rails. One card per challenge or quest rather than per task, the
+     same shape the home page builds, so ActiveCard can be reused rather than
+     a second card style maintained alongside it. */
+  const [challengeCards, setChallengeCards] = useState<TodayTask[]>([]);
+  const [questCards, setQuestCards] = useState<TodayTask[]>([]);
+
+  /* Pinning used to decide WHICH three challenges the old 3-up grid showed.
+     The rail shows all of them, so pinning now decides the ORDER instead:
+     pinned ones lead, in the order they were pinned, and the rest follow.
+     Keeping it wired to something visible is the point — a Manage modal that
+     changed nothing on screen would be worse than no modal. */
+  const orderedChallengeCards = pinnedIds.length === 0
+    ? challengeCards
+    : [
+        ...pinnedIds
+          .map((id) => challengeCards.find((c) => c.challengeId === id))
+          .filter((c): c is TodayTask => Boolean(c)),
+        ...challengeCards.filter((c) => !pinnedIds.includes(c.challengeId)),
+      ];
 
   const [heatId,      setHeatId]      = useState<string>(ALL_ACTIVITY);
   const [heatEntries, setHeatEntries] = useState<HeatmapEntry[]>([]);
@@ -325,12 +316,25 @@ export default function ProfilePage() {
     if (!user) { router.replace("/login"); return; }
     setUserId(user.id);
 
-    const [p, sl, fC, fgC] = await Promise.all([
+    const [p, sl, fC, fgC, today, questTasks] = await Promise.all([
       getMyProfile(),
       getMySocialLinks(),
       getFollowerCount(user.id),
       getFollowingCount(user.id),
+      /* Both are documented server-safe and take a client, so the browser
+         client works here as well as the server one does on the feed. */
+      getTodaysTasks(supabase, user.id),
+      getTodaysQuestTasks(supabase, user.id),
     ]);
+
+    /* Collapse tasks to one card per challenge or quest. A challenge with
+       four tasks is one thing the person is doing, not four. */
+    setChallengeCards(Array.from(
+      new Map(today.tasks.map((t) => [t.challengeId, t])).values()
+    ));
+    setQuestCards(Array.from(
+      new Map(questTasks.map((t) => [t.challengeId, t])).values()
+    ));
 
     setProfile(p);
     setLinks(sl);
@@ -357,11 +361,6 @@ export default function ProfilePage() {
 
       const pinned: string[] = p?.pinned_challenge_ids ?? [];
       setPinnedIds(pinned);
-
-      const active = pinned.length > 0
-        ? pinned.map(id => stats.find(s => s.challenge_id === id)).filter(Boolean) as ChallengeStats[]
-        : stats.filter(s => s.status === "active").slice(0, 3);
-      setActiveStats(active);
 
       // Default to every kind of proof. Scoping to the first active challenge
       // meant someone whose activity is all quests saw an empty grid, and
@@ -455,10 +454,6 @@ export default function ProfilePage() {
         .update({ pinned_challenge_ids: next })
         .eq("id", user.id);
     } catch { /* column not yet ready */ }
-    const active = next.length > 0
-      ? next.map(pid => allStats.find(s => s.challenge_id === pid)).filter(Boolean) as ChallengeStats[]
-      : allStats.filter(s => s.status === "active").slice(0, 3);
-    setActiveStats(active);
   };
 
   const handleAddLink = async () => {
@@ -808,44 +803,111 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* ── My Active Challenges ─────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
-          <div className="flex items-center justify-between mb-3">
+        {/* ── My Active Challenges, then My Quests ─────────────────────── */}
+        {/* CHANGED: these were one card holding a 3-up grid of small tiles,
+            which showed at most three challenges, no quests at all, and in a
+            card style used nowhere else in the app.
+
+            Now they are two sections one after the other, each a rail of the
+            same ActiveCard the home page uses. Reusing that card rather than
+            copying it means the cover art, the progress bar, the blue edge on
+            quests and the black edge on challenges all stay in step with home
+            automatically. The pinned-challenge grid and its Manage modal are
+            kept below, because pinning is a separate thing from browsing what
+            you are doing. */}
+        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
+          <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">
               My Active Challenges
-              {activeStats.length > 0 && (
-                <span className="text-on-surface-variant font-normal ml-1">({activeStats.length})</span>
+              {challengeCards.length > 0 && (
+                <span className="ml-1 font-normal text-on-surface-variant">({challengeCards.length})</span>
               )}
             </h3>
             {allStats.filter(s => s.status === "active").length > 0 && (
-              <button onClick={() => setManageOpen(true)} className="text-body-md text-secondary font-bold hover:opacity-75 transition-opacity">
+              <button
+                onClick={() => setManageOpen(true)}
+                className="shrink-0 text-body-md font-bold text-secondary transition-opacity hover:opacity-75"
+              >
                 Manage
               </button>
             )}
           </div>
 
-          {activeStats.length > 0 ? (
-            <div className="grid grid-cols-3 gap-2">
-              {activeStats.map(s => <ChallengeCard key={s.challenge_id} stats={s} />)}
+          {challengeCards.length > 0 ? (
+            /* Negative margins let the rail bleed to the card edges so a card
+               scrolling out looks cut off by the screen rather than stopping
+               short of a padded wall. */
+            <div className="-mx-4 px-4">
+              <AutoScrollRail label="My active challenges">
+                {orderedChallengeCards.map((task) => (
+                  <ActiveCard key={task.challengeId} task={task} />
+                ))}
+              </AutoScrollRail>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2.5 py-8 text-center">
-              <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-                <Flame size={22} className="text-on-surface-variant" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-container">
+                <Flame size={22} className="text-on-surface-variant" aria-hidden="true" />
               </div>
               <p className="text-body-md font-semibold text-on-surface">No active challenges yet.</p>
-              <p className="text-body-sm text-on-surface-variant max-w-[200px]">
+              <p className="max-w-[200px] text-body-sm text-on-surface-variant">
                 Join a challenge to start tracking your progress here.
               </p>
               <button
                 onClick={() => router.push("/explore")}
-                className="mt-1 px-5 py-2 rounded-xl bg-secondary text-white text-body-md font-bold elev-2 tap-target"
+                className="mt-1 rounded-xl bg-secondary px-5 py-2 text-body-md font-bold text-white elev-2 tap-target"
               >
                 Explore Challenges
               </button>
             </div>
           )}
-        </div>
+        </section>
+
+        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="flex items-center gap-1.5 text-body-lg font-bold text-on-surface tracking-[-0.01em]">
+              <Trophy size={16} className="text-secondary" aria-hidden="true" />
+              My Quests
+              {questCards.length > 0 && (
+                <span className="ml-1 font-normal text-on-surface-variant">({questCards.length})</span>
+              )}
+            </h3>
+            {questCards.length > 0 && (
+              <Link
+                href="/quests"
+                className="shrink-0 text-body-md font-bold text-secondary transition-opacity hover:opacity-75"
+              >
+                View all
+              </Link>
+            )}
+          </div>
+
+          {questCards.length > 0 ? (
+            <div className="-mx-4 px-4">
+              <AutoScrollRail label="My quests">
+                {questCards.map((task) => (
+                  <ActiveCard key={task.challengeId} task={task} />
+                ))}
+              </AutoScrollRail>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2.5 py-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-container">
+                <Compass size={22} className="text-on-surface-variant" aria-hidden="true" />
+              </div>
+              <p className="text-body-md font-semibold text-on-surface">No quests joined yet.</p>
+              <p className="max-w-[210px] text-body-sm text-on-surface-variant">
+                Quests are brand challenges with real rewards behind them.
+              </p>
+              <button
+                onClick={() => router.push("/quests")}
+                className="mt-1 rounded-xl bg-secondary px-5 py-2 text-body-md font-bold text-white elev-2 tap-target"
+              >
+                Browse Quests
+              </button>
+            </div>
+          )}
+        </section>
 
         {/* ── My Rewards ───────────────────────────────────────────────── */}
         {/* An entry point, not a summary. Amounts, statuses and what is

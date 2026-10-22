@@ -8,7 +8,7 @@
  *
  * The status is read from the database on every load rather than tracked
  * locally: an admin can change it at any moment, and a business staring at a
- * stale "Under review" while it has actually been approved is worse than a
+ * stale t("vb.underReview") while it has actually been approved is worse than a
  * short spinner.
  */
 
@@ -20,6 +20,9 @@ import {
   FileText, Loader2, ShieldCheck, Trash2, Upload, User,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { StringKey } from "@/lib/i18n/businessStrings";
 import { getMyBusinessProfile, upsertBusinessProfile, type BusinessProfile } from "@/lib/data/business";
 import {
   DOC_TYPES, STATUS_UI, deleteDocument, getMyDocuments, getVerificationHistory,
@@ -28,7 +31,10 @@ import {
   type VerificationStatus,
 } from "@/lib/data/businessVerification";
 
-const STEPS = ["Business", "Representative", "Documents", "Presence", "Declaration"];
+const STEP_KEYS: StringKey[] = [
+  "vb.stepBusiness", "vb.representative", "vb.documents",
+  "vb.stepPresence", "vb.declaration",
+];
 
 type FetchResult =
   | { redirect: string }
@@ -38,6 +44,7 @@ type FetchResult =
 const LOCKED: VerificationStatus[] = ["submitted", "under_review", "verified", "suspended"];
 
 export default function VerifyBusinessPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const [supabase] = useState(() => createClient());
 
@@ -132,10 +139,10 @@ export default function VerifyBusinessPage() {
       await upsertBusinessProfile(supabase, { id: biz.id, ...f } as Partial<BusinessProfile>);
       return true;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not save your changes.");
+      setError(e instanceof Error ? e.message : t("vb.saveFailed"));
       return false;
     } finally { setSaving(false); }
-  }, [supabase, biz, f]);
+  }, [supabase, biz, f, t]);
 
   const handleUpload = async (docType: DocType, file: File) => {
     if (!biz) return;
@@ -156,12 +163,12 @@ export default function VerifyBusinessPage() {
   const openDoc = async (doc: VerificationDocument) => {
     const url = await signedDocumentUrl(supabase, doc.storage_path);
     if (url) window.open(url, "_blank", "noopener,noreferrer");
-    else setError("Could not open that document.");
+    else setError(t("vb.openDocFailed"));
   };
 
   const handleSubmit = async () => {
     if (!biz) return;
-    if (!declared) { setError("Confirm the declaration before submitting."); return; }
+    if (!declared) { setError(t("vb.confirmDeclaration")); return; }
     setSaving(true);
     setError(null);
 
@@ -195,14 +202,15 @@ export default function VerifyBusinessPage() {
     <div className="min-h-screen bg-surface pb-24">
       <header className="sticky top-0 z-30 bg-surface-container-lowest border-b border-outline-variant">
         <div className="mx-auto measure-page px-5 lg:px-8 h-14 flex items-center gap-3">
-          <Link href="/business/dashboard" aria-label="Back to dashboard"
+          <Link href="/business/dashboard" aria-label={t("ov.backToDashboard")}
             className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 tap-target">
             <ArrowLeft size={18} className="text-on-surface-variant" />
           </Link>
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-bold text-on-surface">Business Verification</h1>
-            <p className="text-label-sm text-on-surface-variant truncate">{f.business_name || "Your business"}</p>
+            <h1 className="text-sm font-bold text-on-surface">{t("biz.businessVerification")}</h1>
+            <p className="text-label-sm text-on-surface-variant truncate">{f.business_name || t("vb.yourBusiness")}</p>
           </div>
+          <LanguageToggle className="shrink-0" />
           <span className={`text-label-sm font-bold px-2.5 py-1 rounded-full border shrink-0 ${ui.cls}`}>
             {ui.label}
           </span>
@@ -252,7 +260,7 @@ export default function VerifyBusinessPage() {
           </section>
         ) : locked ? (
           <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
-            <h2 className="text-body-lg font-bold text-on-surface">What happens next</h2>
+            <h2 className="text-body-lg font-bold text-on-surface">{t("vb.whatNext")}</h2>
             <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">
               A STRIVUP reviewer checks your business information and documents.
               You&apos;ll be notified as soon as there is a decision. You can&apos;t
@@ -263,15 +271,15 @@ export default function VerifyBusinessPage() {
         ) : (
           <>
             {/* Step rail */}
-            <nav aria-label="Application steps"
+            <nav aria-label={t("vb.appSteps")}
               className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-2 flex gap-1 overflow-x-auto elev-1 surface-raised">
-              {STEPS.map((label, i) => (
-                <button key={label} onClick={() => setStep(i)}
+              {STEP_KEYS.map((labelKey, i) => (
+                <button key={labelKey} onClick={() => setStep(i)}
                   aria-current={step === i ? "step" : undefined}
                   className={`shrink-0 px-4 py-3.5 text-sm font-semibold border-b-2 transition-colors ${
                     step === i ? "border-secondary text-secondary"
                                : "border-transparent text-on-surface-variant hover:text-on-surface"}`}>
-                  {i + 1}. {label}
+                  {i + 1}. {t(labelKey)}
                 </button>
               ))}
             </nav>
@@ -285,26 +293,26 @@ export default function VerifyBusinessPage() {
 
             <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
               {step === 0 && (
-                <Fields title="Business information" icon={Building2}>
+                <Fields title={t("vb.bizInfo")} icon={Building2}>
                   <Field label="Business name *" value={f.business_name} onChange={set("business_name")} />
                   <Field label="Legal name (if different)" value={f.legal_name} onChange={set("legal_name")} />
                   <Field label="Category *" value={f.category} onChange={set("category")} />
-                  <Field label="Business type" value={f.business_type} onChange={set("business_type")} placeholder="Sole proprietorship, Pvt Ltd…" />
-                  <Field label="Business email" value={f.business_email} onChange={set("business_email")} type="email" />
-                  <Field label="Business phone" value={f.business_phone} onChange={set("business_phone")} />
+                  <Field label={t("vb.bizType")} value={f.business_type} onChange={set("business_type")} placeholder="Sole proprietorship, Pvt Ltd…" />
+                  <Field label={t("vb.bizEmail")} value={f.business_email} onChange={set("business_email")} type="email" />
+                  <Field label={t("vb.bizPhone")} value={f.business_phone} onChange={set("business_phone")} />
                   <Field label="Address *" value={f.address} onChange={set("address")} wide />
                   <Field label="City" value={f.city} onChange={set("city")} />
                   <Field label="State" value={f.state} onChange={set("state")} />
                   <Field label="PIN code" value={f.pincode} onChange={set("pincode")} />
                   <Field label="Country" value={f.country} onChange={set("country")} />
-                  <Field label="Operating hours" value={f.operating_hours} onChange={set("operating_hours")} placeholder="Mon–Sun, 11am–11pm" wide />
-                  <Field label="Description" value={f.description} onChange={set("description")} textarea wide />
+                  <Field label={t("vb.hours")} value={f.operating_hours} onChange={set("operating_hours")} placeholder="Mon–Sun, 11am–11pm" wide />
+                  <Field label={t("set.description")} value={f.description} onChange={set("description")} textarea wide />
                 </Fields>
               )}
 
               {step === 1 && (
-                <Fields title="Authorised representative" icon={User}
-                  note="The person who can act for this business. We don't ask for personal documents beyond confirming authority.">
+                <Fields title={t("vb.authRep")} icon={User}
+                  note={t("vb.authRepSub")}>
                   <Field label="Full name *" value={f.rep_name} onChange={set("rep_name")} />
                   <Field label="Role / designation *" value={f.rep_role} onChange={set("rep_role")} placeholder="Owner, Director, Manager…" />
                   <Field label="Email" value={f.rep_email} onChange={set("rep_email")} type="email" />
@@ -365,15 +373,15 @@ export default function VerifyBusinessPage() {
               )}
 
               {step === 3 && (
-                <Fields title="Public presence" icon={ExternalLink}
-                  note="Optional, but a reviewer can usually confirm a real business much faster with these.">
+                <Fields title={t("vb.publicPresence")} icon={ExternalLink}
+                  note={t("vb.publicPresenceSub")}>
                   <Field label="Website" value={f.website} onChange={set("website")} wide />
                 </Fields>
               )}
 
               {step === 4 && (
                 <>
-                  <h2 className="text-body-lg font-bold text-on-surface">Declaration</h2>
+                  <h2 className="text-body-lg font-bold text-on-surface">{t("vb.declaration")}</h2>
                   <label className="flex items-start gap-3 mt-4 cursor-pointer">
                     <input type="checkbox" checked={declared}
                       onChange={(e) => setDeclared(e.target.checked)}
@@ -385,13 +393,13 @@ export default function VerifyBusinessPage() {
                   </label>
 
                   <div className="mt-5 rounded-xl bg-surface-container-low border border-outline-variant p-4">
-                    <p className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">Summary</p>
+                    <p className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">{t("vb.summary")}</p>
                     <dl className="grid grid-cols-2 gap-x-6 gap-y-2 mt-2">
                       <Summary k="Business" v={f.business_name} />
                       <Summary k="Category" v={f.category} />
-                      <Summary k="Representative" v={f.rep_name} />
+                      <Summary k={t("vb.representative")} v={f.rep_name} />
                       <Summary k="Address" v={[f.address, f.city].filter(Boolean).join(", ")} />
-                      <Summary k="Documents" v={`${docs.length} uploaded`} />
+                      <Summary k={t("vb.documents")} v={`${docs.length} uploaded`} />
                     </dl>
                   </div>
 
@@ -416,7 +424,7 @@ export default function VerifyBusinessPage() {
                     onClick={async () => { if (await saveFields()) setStep((s) => s + 1); }}
                     disabled={saving}
                     className="flex-1 h-11 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-50 text-white text-sm font-bold transition-colors">
-                    {saving ? "Saving…" : "Save & continue"}
+                    {saving ? "Saving…" : t("vb.saveContinue")}
                   </button>
                 </div>
               )}
@@ -427,7 +435,7 @@ export default function VerifyBusinessPage() {
         {/* History — what a reviewer has already said */}
         {history.length > 0 && (
           <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
-            <h2 className="text-body-lg font-bold text-on-surface">Verification history</h2>
+            <h2 className="text-body-lg font-bold text-on-surface">{t("vb.history")}</h2>
             <ol className="mt-3 divide-y divide-outline-variant">
               {history.map((h) => (
                 <li key={h.id} className="py-3">
@@ -516,6 +524,7 @@ function DocumentList({
   onDelete?: (d: VerificationDocument) => void;
   readOnly?: boolean;
 }) {
+  const { t } = useLocale();
   if (docs.length === 0) {
     return (
       <p className="text-sm text-on-surface-variant mt-4 text-center py-8 border border-dashed border-outline-variant rounded-xl">
@@ -548,7 +557,7 @@ function DocumentList({
             View
           </button>
           {!readOnly && onDelete && d.status === "submitted" && (
-            <button onClick={() => onDelete(d)} aria-label="Remove document"
+            <button onClick={() => onDelete(d)} aria-label={t("vb.removeDoc")}
               className="text-on-surface-variant hover:text-error shrink-0 transition-colors">
               <Trash2 size={15} />
             </button>

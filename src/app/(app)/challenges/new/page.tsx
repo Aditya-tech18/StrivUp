@@ -8,11 +8,11 @@
  * If task inserts fail after the challenge row exists, a clear error is shown.
  */
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   BadgeCheck,
@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { Badge, Button, Card, Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { getMyBusinessProfile } from "@/lib/data/business";
 import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { ensureInviteCode, inviteUrl } from "@/lib/data/invites";
 import { CoverPicker } from "@/components/features/challenge/CoverPicker";
@@ -351,8 +352,25 @@ function BusinessPanel() {
 }
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
+/* useSearchParams needs a Suspense boundary above it, or this route cannot be
+   prerendered at all. The form itself is unchanged. */
 export default function CreateChallengePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-surface" />}>
+      <CreateChallengeForm />
+    </Suspense>
+  );
+}
+
+function CreateChallengeForm() {
   const router = useRouter();
+  /* ?as=business is the ROUTE's intent, arriving from
+     /business/challenges/new. It is a hint, not an authorisation: the stamp
+     below is only applied after the signed-in account is confirmed to own a
+     finished business profile, which RLS decides, not this parameter. A
+     business owner creating a personal challenge still lands here without the
+     parameter and gets creator_type 'user'. */
+  const asBusiness = useSearchParams().get("as") === "business";
 
   /* ── Local state ─────────────────────────────────────────────────────── */
   const [thumbnail, setThumbnail]             = useState<string | null>(null);
@@ -523,6 +541,15 @@ export default function CreateChallengePage() {
       thumbnailUrl = publicUrl;
     }
 
+    /* Only a confirmed business profile earns creator_type 'business'. The
+       read goes through RLS as this user, so it can only ever return their
+       own business. */
+    let creatorType = "user";
+    if (asBusiness) {
+      const biz = await getMyBusinessProfile(supabase);
+      if (biz?.onboarding_done && biz.id === user.id) creatorType = "business";
+    }
+
     // 3. Insert challenge row
     const { data: challenge, error: insertError } = await supabase
       .from("challenges")
@@ -543,6 +570,7 @@ export default function CreateChallengePage() {
         proof_type: dailyProof ? effectiveProof.proofType : "none",
         thumbnail_url: thumbnailUrl,
         creator_id: user.id,
+        creator_type: creatorType,
       })
       .select("id")
       .single();

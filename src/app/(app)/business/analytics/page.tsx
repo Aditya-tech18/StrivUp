@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, BarChart2, ChevronDown, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests, getQuestAnalytics, type Quest } from "@/lib/data/businessQuests";
 import { getPhysicalQuestAnalytics } from "@/lib/data/activity";
@@ -54,6 +56,7 @@ function FunnelBar({ label, value, max, color }: { label: string; value: number;
 }
 
 export default function AnalyticsPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -107,7 +110,8 @@ export default function AnalyticsPage() {
     <div className="min-h-screen bg-surface pb-28">
       <div className="bg-surface-container-lowest border-b border-outline-variant px-5 py-4 flex items-center gap-3 sticky top-0 z-30">
         <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-body-lg font-black text-on-surface flex-1">Analytics</h1>
+        <h1 className="text-body-lg font-black text-on-surface flex-1">{t("an.title")}</h1>
+        <LanguageToggle className="shrink-0" />
       </div>
 
       <div className="px-5 py-5 mx-auto measure-page flex flex-col gap-5">
@@ -130,12 +134,12 @@ export default function AnalyticsPage() {
               <>
                 {/* Key metrics grid */}
                 <div className="grid grid-cols-2 gap-3">
-                  <MetricCard label="Total Views"       value={analytics.views.toLocaleString()}       color="text-secondary" />
-                  <MetricCard label="Participants"       value={analytics.joins.toLocaleString()}       color="text-on-success-container" />
-                  <MetricCard label="Completions"        value={analytics.completions.toLocaleString()} color="text-chart-3" />
-                  <MetricCard label="Completion Rate"    value={`${analytics.completionRate}%`}         color="text-on-warning-container" />
-                  <MetricCard label="Pending Proofs"     value={analytics.pendingProofs}                color="text-warning" />
-                  <MetricCard label="Approval Rate"      value={`${analytics.approvalRate}%`}           color="text-chart-2" />
+                  <MetricCard label={t("an.totalViews")}       value={analytics.views.toLocaleString()}       color="text-secondary" />
+                  <MetricCard label={t("stat.participants")}       value={analytics.joins.toLocaleString()}       color="text-on-success-container" />
+                  <MetricCard label={t("an.completions")}        value={analytics.completions.toLocaleString()} color="text-chart-3" />
+                  <MetricCard label={t("an.completionRate")}    value={`${analytics.completionRate}%`}         color="text-on-warning-container" />
+                  <MetricCard label={t("an.pendingProofs")}     value={analytics.pendingProofs}                color="text-warning" />
+                  <MetricCard label={t("an.approvalRate")}      value={`${analytics.approvalRate}%`}           color="text-chart-2" />
                 </div>
 
                 {/* Physical quest performance — only for quests that have a
@@ -148,22 +152,22 @@ export default function AnalyticsPage() {
                 <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
                   <div className="flex items-center gap-2 mb-4">
                     <TrendingUp size={18} className="text-secondary" />
-                    <h3 className="text-body-lg font-black text-on-surface">Quest Funnel</h3>
+                    <h3 className="text-body-lg font-black text-on-surface">{t("an.funnel")}</h3>
                   </div>
                   <div className="flex flex-col gap-3">
                     {(analytics.orderCodesGenerated > 0 ? [
                       { label: "Views",                 value: analytics.views,               color: "bg-chart-1" },
                       { label: "Joins",                 value: analytics.joins,               color: "bg-chart-2" },
-                      { label: "Proof codes generated", value: analytics.orderCodesGenerated, color: "bg-chart-3" },
-                      { label: "Orders verified",       value: analytics.ordersVerified,      color: "bg-chart-4" },
-                      { label: "Bill codes entered",    value: analytics.billCodesEntered,    color: "bg-chart-5" },
-                      { label: "Quest completions",     value: analytics.completions,         color: "bg-chart-6" },
+                      { label: t("an.codesGenerated"), value: analytics.orderCodesGenerated, color: "bg-chart-3" },
+                      { label: t("an.ordersVerified"),       value: analytics.ordersVerified,      color: "bg-chart-4" },
+                      { label: t("an.billCodesEntered"),    value: analytics.billCodesEntered,    color: "bg-chart-5" },
+                      { label: t("an.questCompletions"),     value: analytics.completions,         color: "bg-chart-6" },
                     ] : [
                       { label: "Views",          value: analytics.views,                  color: "bg-chart-1" },
                       { label: "Joins",          value: analytics.joins,                  color: "bg-chart-2" },
-                      { label: "Proofs Submitted",value: analytics.approvedProofs + analytics.rejectedProofs + analytics.pendingProofs, color: "bg-chart-3" },
-                      { label: "Proofs Approved",value: analytics.approvedProofs,         color: "bg-chart-5" },
-                      { label: "Completions",    value: analytics.completions,            color: "bg-chart-6" },
+                      { label: t("an.proofsSubmitted"),value: analytics.approvedProofs + analytics.rejectedProofs + analytics.pendingProofs, color: "bg-chart-3" },
+                      { label: t("an.proofsApproved"),value: analytics.approvedProofs,         color: "bg-chart-5" },
+                      { label: t("an.completions"),    value: analytics.completions,            color: "bg-chart-6" },
                     ]).map(row => (
                       <FunnelBar key={row.label} label={row.label} value={row.value} max={Math.max(analytics.views, 1)} color={row.color} />
                     ))}
@@ -172,19 +176,19 @@ export default function AnalyticsPage() {
 
                 {/* Proof breakdown */}
                 <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
-                  <h3 className="text-body-lg font-black text-on-surface mb-4">Proof Submissions</h3>
+                  <h3 className="text-body-lg font-black text-on-surface mb-4">{t("an.proofSubmissions")}</h3>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="flex flex-col items-center p-3 bg-warning-container rounded-xl">
                       <span className="text-2xl font-black text-on-warning-container">{analytics.pendingProofs}</span>
-                      <span className="text-xs text-on-warning-container font-medium mt-0.5">Pending</span>
+                      <span className="text-xs text-on-warning-container font-medium mt-0.5">{t("an.pending")}</span>
                     </div>
                     <div className="flex flex-col items-center p-3 bg-success-container rounded-xl">
                       <span className="text-2xl font-black text-on-success-container">{analytics.approvedProofs}</span>
-                      <span className="text-xs text-on-success-container font-medium mt-0.5">Approved</span>
+                      <span className="text-xs text-on-success-container font-medium mt-0.5">{t("an.approved")}</span>
                     </div>
                     <div className="flex flex-col items-center p-3 bg-error-container rounded-xl">
                       <span className="text-2xl font-black text-error">{analytics.rejectedProofs}</span>
-                      <span className="text-xs text-error font-medium mt-0.5">Rejected</span>
+                      <span className="text-xs text-error font-medium mt-0.5">{t("an.rejected")}</span>
                     </div>
                   </div>
                 </div>
@@ -192,12 +196,12 @@ export default function AnalyticsPage() {
                 {/* Quest details */}
                 {selectedQuest && (
                   <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
-                    <h3 className="text-body-lg font-black text-on-surface mb-3">Quest Info</h3>
+                    <h3 className="text-body-lg font-black text-on-surface mb-3">{t("an.questInfo")}</h3>
                     <div className="flex flex-col gap-2">
                       {[
                         { label: "Status",    value: selectedQuest.quest_status.replace("_"," ").toUpperCase() },
                         { label: "Category",  value: selectedQuest.category ?? "—" },
-                        { label: "Visibility",value: selectedQuest.visibility.replace("_"," ") },
+                        { label: t("an.visibility"),value: selectedQuest.visibility.replace("_"," ") },
                         { label: "Created",   value: new Date(selectedQuest.created_at).toLocaleDateString("en-IN") },
                         ...(selectedQuest.end_date ? [{ label: "Ends", value: new Date(selectedQuest.end_date).toLocaleDateString("en-IN") }] : []),
                       ].map(row => (
@@ -215,8 +219,8 @@ export default function AnalyticsPage() {
         ) : (
           <div className="flex flex-col items-center gap-4 py-20 text-center bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised">
             <BarChart2 size={36} className="text-on-surface-variant" />
-            <p className="text-body-lg font-black text-on-surface">No Analytics Yet</p>
-            <p className="text-sm text-on-surface-variant max-w-xs">Analytics will appear once people start interacting with your Quest.</p>
+            <p className="text-body-lg font-black text-on-surface">{t("an.emptyTitle")}</p>
+            <p className="text-sm text-on-surface-variant max-w-xs">{t("an.emptyBody")}</p>
             <button onClick={() => router.push("/business/quests/new")}
               className="h-10 px-5 rounded-xl bg-secondary text-white text-sm font-bold tap-target">
               Create a Quest

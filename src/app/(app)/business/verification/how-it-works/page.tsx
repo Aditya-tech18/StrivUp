@@ -2,11 +2,14 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { X } from "lucide-react";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { StringKey } from "@/lib/i18n/businessStrings";
 
 const STEPS = [
   {
-    title: "Spot the STRIVUP code on the order",
-    body: "Quest orders from Zomato or Swiggy carry a STRIVUP order code in the order description or cooking instructions.",
+    titleKey: "hw.s1" as StringKey,
+    bodyKey: "hw.s1body" as StringKey,
     visual: (
       <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 text-xs text-on-surface-variant elev-1 surface-raised">
         <div className="font-black text-on-surface uppercase mb-2">New order · #4821</div>
@@ -16,16 +19,16 @@ const STEPS = [
     ),
   },
   {
-    title: "Search it in Verify Order",
-    body: "Enter the code on the Verify screen. STRIVUP shows the Quest, the task and the customer's display name.",
+    titleKey: "hw.s2" as StringKey,
+    bodyKey: "hw.s2body" as StringKey,
   },
   {
-    title: "Verify or reject",
+    titleKey: "hw.s3" as StringKey,
     body: "If it's a real order for an eligible item, tap Verify Order. Otherwise Reject and give a short reason — the customer sees it.",
   },
   {
-    title: "Write the bill code on the bill",
-    body: "After you verify, STRIVUP gives you a new bill code. Write or print it on the bill that goes with the order. It's valid for 24 hours and works only for that customer.",
+    titleKey: "hw.s4" as StringKey,
+    bodyKey: "hw.s4body" as StringKey,
     visual: (
       <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 elev-1 surface-raised">
         <div className="text-xs font-black text-on-surface uppercase mb-2">Veer Ji Malai Chaap Wale</div>
@@ -38,18 +41,20 @@ const STEPS = [
     ),
   },
   {
-    title: "The customer finishes the task",
+    titleKey: "hw.s5" as StringKey,
     body: "When the order arrives, the customer enters the bill code in STRIVUP. Only then does their task count — your verification alone doesn't complete it.",
   },
 ];
 
 export default function HowItWorksPage() {
+  const { t } = useLocale();
   const router = useRouter();
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
         <div className="flex-1">
-          <h1 className="text-body-lg font-black text-on-surface">How Order Verification Works</h1>
+          <h1 className="text-body-lg font-black text-on-surface">{t("hw.title")}</h1>
+          <LanguageToggle className="shrink-0" />
         </div>
         <button aria-label="Close" onClick={() => router.back()} className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center tap-target">
           <X size={18} className="text-on-surface-variant" />
@@ -66,14 +71,16 @@ export default function HowItWorksPage() {
               {i < STEPS.length-1 && <div className="w-0.5 flex-1 bg-surface-container-highest mt-2" />}
             </div>
             <div className="flex-1 pb-5">
-              <p className="text-body-lg font-bold text-on-surface mb-1">{step.title}</p>
-              <p className="text-sm text-on-surface-variant mb-3 leading-relaxed">{step.body}</p>
+              <p className="text-body-lg font-bold text-on-surface mb-1">{t(step.titleKey)}</p>
+              {"bodyKey" in step && (
+                <p className="text-sm text-on-surface-variant mb-3 leading-relaxed">{t(step.bodyKey as StringKey)}</p>
+              )}
               {step.visual}
             </div>
           </div>
         ))}
         <Link href="/how-quests-work" className="text-center text-sm font-semibold text-secondary underline">
-          Read the full Quest guide
+          {t("hw.fullGuide")}
         </Link>
       </div>
 
