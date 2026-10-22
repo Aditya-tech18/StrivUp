@@ -59,8 +59,25 @@ export function ActiveCard({ task, pile }: { task: TodayTask; pile?: FacepileDat
             className="object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-surface-container-high">
-            <Trophy size={24} className="text-on-surface-variant opacity-40" aria-hidden="true" />
+          /* CHANGED: a designed cover rather than an empty grey box.
+             A challenge with no thumbnail is not an error, it is a creator
+             who did not upload one, and there is no image to conjure. What
+             was wrong was the fallback: a flat grey panel with a faint
+             trophy read as a picture that had failed to load. A branded
+             gradient carrying the challenge's own name reads as a cover,
+             which is what it is. */
+          <div
+            className={[
+              "flex h-full w-full flex-col items-center justify-center gap-1.5 px-4 text-center",
+              isQuest
+                ? "bg-gradient-to-br from-[#0C4349] to-[#062A2E]"
+                : "bg-gradient-to-br from-secondary to-primary",
+            ].join(" ")}
+          >
+            <Trophy size={20} className="text-white/70" aria-hidden="true" />
+            <span className="line-clamp-2 text-label-md font-bold leading-tight text-white/90">
+              {task.challengeTitle}
+            </span>
           </div>
         )}
         <span className="absolute left-2 top-2 flex w-fit items-center gap-1 rounded-full bg-surface-container-lowest/90 px-2 py-0.5 text-label-sm font-medium text-on-surface backdrop-blur-sm">

@@ -25,7 +25,7 @@ import type { TourStep } from "@/components/ui/Tour";
 
 export const TOUR_STORAGE_KEY = "strivup:tour:v1";
 
-export const TOUR_STEPS: TourStep[] = [
+const ALL_TOUR_STEPS: TourStep[] = [
   {
     id: "welcome",
     chapter: "Day 0",
@@ -336,3 +336,39 @@ export const TOUR_STEPS: TourStep[] = [
     route: "/explore",
   },
 ];
+
+/**
+ * The six stops the tour actually runs.
+ *
+ * CHANGED: the tour was 21 stops. A guided lap that long stops being a lap:
+ * it arrives before anyone has a reason to care, and "Stop 1 of 21" reads as
+ * a chore rather than a minute. Six covers the loop the product is built on,
+ * which is the only thing a first run needs to land:
+ *
+ *   welcome        what StrivUp is for
+ *   explore        find something and join it
+ *   proof          post evidence, which is the whole mechanic
+ *   my-challenges  where your streak lives
+ *   rewards        what the streak gets you
+ *   done           finish
+ *
+ * The other fifteen are kept above rather than deleted. They are written, they
+ * are accurate, and the moment anyone wants a longer or a themed tour the
+ * selection below is the only thing that has to change. Nothing else in the
+ * app indexes into this array.
+ */
+const TOUR_STEP_IDS = [
+  "welcome",
+  "explore",
+  "proof",
+  "my-challenges",
+  "rewards",
+  "done",
+] as const;
+
+export const TOUR_STEPS: TourStep[] = TOUR_STEP_IDS.map((id) => {
+  const step = ALL_TOUR_STEPS.find((s) => s.id === id);
+  if (!step) throw new Error(`[tour] no step with id "${id}"`);
+  return step;
+});
+

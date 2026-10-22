@@ -41,7 +41,16 @@ export function MobileMenu() {
      the pathname: navigation here is always user-initiated, and setState
      straight from an effect body is the cascading-render pattern
      react-hooks/set-state-in-effect rejects. */
-  const items = pathname.startsWith("/business") ? BUSINESS_NAV_ITEMS : NAV_ITEMS;
+  /* CHANGED: My Challenges is dropped from the drawer, and only from the
+     drawer. It is now a tab on the Challenges page, which the bottom bar
+     already carries, so listing it here was a third route to the same place.
+     The desktop sidebar keeps it, because there is no bottom bar on desktop
+     and the rail is the only way in. */
+  const HIDDEN_IN_DRAWER = new Set(["/creator/challenges"]);
+
+  const items = (pathname.startsWith("/business") ? BUSINESS_NAV_ITEMS : NAV_ITEMS).filter(
+    (i) => !HIDDEN_IN_DRAWER.has(i.href)
+  );
   // Longest matching href wins, so /business/quests/new does not also light up
   // "My Quests".
   const activeHref = items

@@ -22,6 +22,7 @@ import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
 import { HomeRotator } from "@/components/features/home/HomeRotator";
 import { AutoScrollRail } from "@/components/features/home/AutoScrollRail";
 import { BottomNav } from "@/components/ui";
+import { PermissionControls } from "@/components/features/permissions/PermissionControls";
 import { AlertRow, type Notification } from "@/components/features/alerts/AlertRow";
 import { ActiveCard } from "@/components/features/home/ActiveCard";
 
@@ -294,6 +295,17 @@ export default function FeedPreviewPage() {
             Fabricated data. Not reachable in production.
           </p>
         </header>
+
+        {/* The permission rows, which otherwise only exist behind auth. */}
+        <section className="flex flex-col gap-space-sm" data-testid="permissions-section">
+          <div className="border-l-2 border-secondary pl-space-sm">
+            <h2 className="text-label-lg text-on-surface">Permission controls</h2>
+            <p className="text-body-sm text-on-surface-variant">
+              Same rows the launch sheet and Settings use.
+            </p>
+          </div>
+          <PermissionControls variant="settings" />
+        </section>
 
         {/* Every alert kind at once: tones, pills, read vs unread. */}
         <section className="flex flex-col gap-space-sm" data-testid="alerts-section">

@@ -31,7 +31,7 @@ export default async function ChallengesPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { featured, trending, quests } = await getDiscoveryData(
+  const { featured, trending, quests, mine } = await getDiscoveryData(
     supabase,
     user?.id ?? null
   );
@@ -42,6 +42,7 @@ export default async function ChallengesPage() {
         featured={featured}
         trending={trending}
         quests={quests}
+        mine={mine}
         initialView="challenges"
       />
     </div>

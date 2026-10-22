@@ -41,7 +41,12 @@ import { createClient } from "@/lib/supabase/client";
 import { ShareButton } from "@/components/features/share/ShareButton";
 import type { FeaturedChallenge, FeaturedQuest, TrendingChallenge } from "./page";
 
-type View = "quests" | "challenges";
+/* "quests" is retained so the type still describes every panel this file can
+   render, even though the tab that selected it is gone: /quests is the
+   destination for quests now. Keeping it costs nothing and means the quest
+   panel below is still reachable by passing initialView, rather than being
+   deleted and rewritten the next time it is wanted. */
+type View = "quests" | "challenges" | "mine";
 
 /* ── Join helper ─────────────────────────────────────────────────────────── */
 /**
@@ -88,14 +93,30 @@ function QuestCard({ quest }: { quest: FeaturedQuest }) {
      that also swallows the tap into a navigation. The link covers the art and
      the text, which is everything someone would aim at to open the quest. */
   return (
-    <Card bordered padding="none" elevation={2} className="flex h-full flex-col overflow-hidden">
+    /* CHANGED: a defined edge on the quest card, and a framed image inside
+       it. Quest art is supplied by the business, so it arrives in every
+       colour and often with a white or black background that bled into the
+       page and left the card with no visible boundary at all. The border is
+       the StrivUp blue, matching the edge the challenge cards carry, so both
+       surfaces read as the same family. */
+    <Card
+      bordered
+      padding="none"
+      elevation={2}
+      className="flex h-full flex-col overflow-hidden border border-secondary/30 ring-1 ring-inset ring-secondary/10"
+    >
       <Link href={`/quests/${quest.id}`} className={`block rounded-xl ${FOCUS_RING}`}>
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-surface-variant">
+        <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-outline-variant bg-surface-variant">
           {art ? (
             <Image src={art} alt="" fill sizes="(min-width: 1024px) 480px, 100vw" className="object-cover" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-surface-container-high">
-              <Target size={28} className="text-on-surface-variant opacity-50" aria-hidden="true" />
+            /* Same reasoning as the home rail: a quest with no art gets a
+               designed cover carrying its own name, not an empty panel. */
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-[#0C4349] to-[#062A2E] px-5 text-center">
+              <Target size={24} className="text-white/70" aria-hidden="true" />
+              <span className="line-clamp-2 text-label-lg font-bold leading-tight text-white/90">
+                {quest.title}
+              </span>
             </div>
           )}
           {quest.rewards && quest.rewards.length > 0 && (
@@ -328,6 +349,8 @@ export interface ExploreClientProps {
   featured: FeaturedChallenge[];
   trending: TrendingChallenge[];
   quests?: FeaturedQuest[];
+  /** The viewer's own challenges, for the My Challenges tab. */
+  mine?: TrendingChallenge[];
   /** CHANGED: which tab opens first. /explore keeps "quests", /challenges
    *  passes "challenges". A prop rather than a query param so the two routes
    *  each have their own URL and the back button behaves. */
@@ -338,7 +361,8 @@ export function ExploreClient({
   featured,
   trending,
   quests = [],
-  initialView = "quests",
+  mine = [],
+  initialView = "challenges",
 }: ExploreClientProps) {
   const [view, setView] = useState<View>(initialView);
   const [query, setQuery] = useState("");
@@ -372,7 +396,13 @@ export function ExploreClient({
   const shownFeatured = featured.filter((c) => matches(c.title, c.creatorName));
   const shownTrending = trending.filter((c) => matches(c.title, c.creatorName));
 
+    const shownMine = mine.filter((c) => matches(c.title, c.creatorName));
+
   const onQuests = view === "quests";
+  const onMine = view === "mine";
+  /* Read only inside the challenges panel. The My Challenges panel carries
+     its own empty copy, because "you have not joined anything" and "nothing
+     matches your search" are different things to say. */
   const empty = onQuests
     ? shownQuests.length === 0
     : shownFeatured.length === 0 && shownTrending.length === 0;
@@ -449,14 +479,19 @@ export function ExploreClient({
             </div>
           </div>
 
-          {/* Segmented toggle. Quests first and selected by default. */}
+          {/* CHANGED: the tabs are Challenges and My Challenges now.
+              The old Quests / Challenges pair was a second route to what the
+              bottom bar already offers: Quest and Challenges are their own
+              destinations down there, so this toggle duplicated navigation
+              that existed one thumb away. Quests live on /quests, which has
+              its own Quest / My Quest pair. */}
           <div
             role="tablist"
-            aria-label="Explore quests or challenges"
+            aria-label="All challenges or your own"
             className="mb-3 flex h-12 items-center gap-1 rounded-xl bg-surface-container p-1"
           >
-            {tab("quests", "Quests", shownQuests.length)}
             {tab("challenges", "Challenges", shownFeatured.length + shownTrending.length)}
+            {tab("mine", "My Challenges", shownMine.length)}
           </div>
         </div>
       </header>
@@ -501,6 +536,28 @@ export function ExploreClient({
           />
         </div>
 
+        {/* ── My Challenges ─────────────────────────────────────────────
+            Everything the viewer joined or created. Unlike the discovery
+            lists above this one is uncapped: a complete list of someone's own
+            work is the whole point, and a limit would silently hide it. */}
+        {onMine && (
+          <section id="mine-panel" role="tabpanel" aria-labelledby="mine-tab" tabIndex={-1}>
+            {shownMine.length > 0 ? (
+              <div className="space-y-3">
+                {shownMine.map((c) => (
+                  <TrendingRow key={c.id} challenge={c} onPrivateClick={showPrivateToast} />
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl border border-dashed border-outline bg-surface-container-lowest p-6 text-center text-body-sm text-on-surface-variant">
+                {q
+                  ? "No challenges of yours match that search."
+                  : "You have not joined or created a challenge yet."}
+              </p>
+            )}
+          </section>
+        )}
+
         {/* ── Quests ────────────────────────────────────────────────────── */}
         {onQuests && (
           <section id="quests-panel" role="tabpanel" aria-labelledby="quests-tab" tabIndex={-1}>
@@ -527,7 +584,7 @@ export function ExploreClient({
         )}
 
         {/* ── Challenges ────────────────────────────────────────────────── */}
-        {!onQuests && (
+        {!onQuests && !onMine && (
           <section
             id="challenges-panel"
             role="tabpanel"

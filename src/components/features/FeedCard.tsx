@@ -137,7 +137,16 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5",
       ].join(" ")}
     >
-      <Card bordered padding="none" className="overflow-hidden">
+      {/* CHANGED: a thin StrivUp-blue edge on every proof card, so a post
+          reads as one object against the feed background instead of merging
+          into it. Kept to 1px and the brand secondary at low opacity: at full
+          strength a border this long competes with the proof photo, which is
+          the thing people are meant to look at. */}
+      <Card
+        bordered
+        padding="none"
+        className="overflow-hidden border border-secondary/30 ring-1 ring-inset ring-secondary/10"
+      >
         {/* ── Header: avatar + meta + streak badge ── */}
         <div className="flex items-start justify-between gap-3 p-4 pb-3">
           {/* The avatar and name are the obvious way to reach someone's

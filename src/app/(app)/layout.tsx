@@ -14,6 +14,7 @@
 import type { ReactNode } from "react";
 import { AppSidebar, BottomNav, AlertsProvider, AppTour, BrandMark } from "@/components/ui";
 import { StrivyLauncher } from "@/components/features/strivy/StrivyLauncher";
+import { PermissionPrompt } from "@/components/features/permissions/PermissionPrompt";
 import { isStrivyEnabled } from "@/lib/strivy/config";
 
 export default function AppShellLayout({ children }: { children: ReactNode }) {
@@ -50,6 +51,12 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
 
         {/* ── Mobile bottom nav (client component, self-contained) ────── */}
         <BottomNav />
+
+        {/* Asks for notifications and location once per device, a couple of
+            seconds after the first app screen paints. It explains first; the
+            buttons inside it are what open the real system dialogs, because a
+            browser will not open those without a tap. */}
+        <PermissionPrompt />
 
         {/* The product tour lives in the shell, not on a page: it navigates
             between routes as it runs, and a page-level mount would unmount

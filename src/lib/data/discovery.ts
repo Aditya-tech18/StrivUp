@@ -11,7 +11,11 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getFeaturedChallenges, getTrendingChallenges } from "@/lib/data/challenges";
+import {
+  getFeaturedChallenges,
+  getMyChallenges,
+  getTrendingChallenges,
+} from "@/lib/data/challenges";
 import type {
   FeaturedChallenge,
   TrendingChallenge,
@@ -22,15 +26,18 @@ export interface DiscoveryData {
   featured: FeaturedChallenge[];
   trending: TrendingChallenge[];
   quests: FeaturedQuest[];
+  /** Everything the viewer joined or created, for the My Challenges tab. */
+  mine: TrendingChallenge[];
 }
 
 export async function getDiscoveryData(
   supabase: SupabaseClient,
   viewerId: string | null
 ): Promise<DiscoveryData> {
-  const [featured, trending, questRes] = await Promise.all([
+  const [featured, trending, mine, questRes] = await Promise.all([
     getFeaturedChallenges(supabase),
     getTrendingChallenges(supabase, viewerId),
+    getMyChallenges(supabase, viewerId),
     supabase
       .from("quests")
       .select(
@@ -59,5 +66,5 @@ export async function getDiscoveryData(
     rewards: (q.quest_rewards as { id: string }[] | null) ?? null,
   }));
 
-  return { featured, trending, quests };
+  return { featured, trending, quests, mine };
 }

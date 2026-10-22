@@ -153,6 +153,83 @@ export async function getTrendingChallenges(
  * Fetch a challenge row joined with its creator's profile.
  * Returns null if the challenge doesn't exist.
  */
+/**
+ * Every challenge the viewer has a stake in: ones they joined and ones they
+ * created.
+ *
+ * Separate from getTrendingChallenges, which caps at 10 because it is a
+ * discovery rail. "My Challenges" is a complete list by definition, so a cap
+ * there would quietly hide someone's own work from them.
+ *
+ * Returns the TrendingChallenge shape so the same card renders both tabs.
+ */
+export async function getMyChallenges(
+  supabase: SupabaseClient,
+  userId: string | null
+): Promise<TrendingChallenge[]> {
+  if (!userId) return [];
+
+  const { data: joined, error: joinedError } = await supabase
+    .from("challenge_participants")
+    .select("challenge_id")
+    .eq("user_id", userId);
+
+  if (joinedError) console.error("[getMyChallenges] participants", joinedError.message);
+
+  const joinedIds = (joined ?? [])
+    .map((r) => r.challenge_id as string)
+    .filter(Boolean);
+
+  let query = supabase
+    .from("challenges")
+    .select(
+      `
+      id, title, thumbnail_url, duration_days, created_at, creator_id, visibility,
+      profiles!creator_id ( full_name ),
+      challenge_participants!challenge_id ( user_id )
+      `
+    )
+    .order("created_at", { ascending: false });
+
+  query = joinedIds.length
+    ? query.or(`creator_id.eq.${userId},id.in.(${joinedIds.join(",")})`)
+    : query.eq("creator_id", userId);
+
+  const { data, error } = await query;
+  if (error || !data) {
+    if (error) console.error("[getMyChallenges]", error.message);
+    return [];
+  }
+
+  return data.map((row) => {
+    const profile = row.profiles as unknown as { full_name: string | null } | null;
+    const participants = Array.isArray(row.challenge_participants)
+      ? (row.challenge_participants as { user_id: string }[])
+      : [];
+    const durationDays = (row.duration_days as number | null) ?? 0;
+    const started = new Date(row.created_at as string).getTime();
+    const dayNumber = Math.max(
+      1,
+      Math.floor((Date.now() - started) / 86_400_000) + 1
+    );
+    const currentDay = durationDays > 0 ? Math.min(dayNumber, durationDays) : dayNumber;
+
+    return {
+      id: row.id as string,
+      title: row.title as string,
+      creatorName: profile?.full_name ?? "StrivUp",
+      thumbnailUrl: (row.thumbnail_url as string | null) ?? "",
+      currentDay,
+      totalDays: durationDays,
+      memberCount: participants.length,
+      progressPercent:
+        durationDays > 0 ? Math.min(100, Math.round((currentDay / durationDays) * 100)) : 0,
+      visibility: (row.visibility as "public" | "private") ?? "public",
+      isParticipant: participants.some((p) => p.user_id === userId),
+    };
+  });
+}
+
 export async function getChallengeDetail(
   supabase: SupabaseClient,
   id: string

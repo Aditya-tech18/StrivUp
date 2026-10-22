@@ -59,7 +59,7 @@ export default async function ExplorePage() {
 
   // CHANGED: the fetch moved to lib/data/discovery.ts so /challenges can run
   // the same one. Behaviour here is identical.
-  const { featured, trending, quests } = await getDiscoveryData(
+  const { featured, trending, quests, mine } = await getDiscoveryData(
     supabase,
     user?.id ?? null
   );
@@ -71,7 +71,7 @@ export default async function ExplorePage() {
           element is what makes the whole bar stick as a single block under
           the notch, rather than two stacked sticky bars whose offsets have to
           be kept in sync by hand. */}
-      <ExploreClient featured={featured} trending={trending} quests={quests} />
+      <ExploreClient featured={featured} trending={trending} quests={quests} mine={mine} />
     </div>
   );
 }

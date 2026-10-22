@@ -33,7 +33,12 @@ interface QuestsClientProps {
   initialHotQuests: Quest[];
   initialTrendingQuests: Quest[];
   availableCategories: string[];
+  /** Quests the viewer has joined, for the My Quest tab. */
+  myQuests?: Quest[];
 }
+
+/** The two halves of this screen: everything, and yours. */
+type QuestTab = "all" | "mine";
 
 type FilterType = "trending" | "near_me" | "premium" | string;
 
@@ -83,9 +88,17 @@ export default function QuestsClient({
   initialHotQuests,
   initialTrendingQuests,
   availableCategories,
+  myQuests = [],
 }: QuestsClientProps) {
   const [supabase] = useState(() => createClient());
 
+  /* CHANGED: a Quest / My Quest pair above the filters, matching the
+     Challenges / My Challenges pair on the challenges page so the two halves
+     of the product behave the same way. The filter chips below belong to the
+     Quest tab: Trending, Near Me and Premium are ways of sorting discovery,
+     and none of them mean anything applied to a list of five quests you have
+     already joined. */
+  const [tab, setTab] = useState<QuestTab>("all");
   const [activeFilter, setActiveFilter] = useState<FilterType>("trending");
   /* Distance is attached only by the Near Me sort, so it is optional here
      rather than a second parallel list the render would have to reconcile. */
@@ -96,6 +109,11 @@ export default function QuestsClient({
      order is still the Trending order. Saying so beats a list that silently
      ignores the filter. */
   const [unpinnedNotice, setUnpinnedNotice] = useState(false);
+
+  /* One list, two sources. The My Quest tab reuses the same row markup as
+     discovery rather than a second copy of it, so a change to how a quest
+     reads happens once. */
+  const visibleQuests: QuestWithDistance[] = tab === "mine" ? myQuests : questList;
 
   const filterChips: { id: FilterType; label: string }[] = [
     { id: "trending", label: "Trending" },
@@ -172,8 +190,49 @@ export default function QuestsClient({
           </p>
         </header>
 
+        {/* ── Quest / My Quest ──────────────────────────────────────── */}
+        <div
+          role="tablist"
+          aria-label="All quests or your own"
+          className="mb-4 flex h-12 items-center gap-1 rounded-xl bg-surface-container p-1"
+        >
+          {([
+            ["all", "Quest", initialTrendingQuests.length],
+            ["mine", "My Quest", myQuests.length],
+          ] as const).map(([value, label, count]) => {
+            const active = tab === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(value)}
+                className={[
+                  "flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg",
+                  "text-label-lg font-semibold transition-colors",
+                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                  active
+                    ? "bg-surface-container-lowest text-on-surface elev-1"
+                    : "text-on-surface-variant hover:text-on-surface",
+                ].join(" ")}
+              >
+                {label}
+                <span
+                  className={[
+                    "rounded-full px-1.5 py-0.5 text-label-sm font-bold tabular-nums",
+                    active ? "bg-secondary text-white" : "bg-surface-container-high",
+                  ].join(" ")}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Hot quests rail */}
-        {initialHotQuests.length > 0 && (
+        {tab === "all" && initialHotQuests.length > 0 && (
           <section aria-labelledby="hot-quests-heading">
             <h2
               id="hot-quests-heading"
@@ -228,7 +287,10 @@ export default function QuestsClient({
           </section>
         )}
 
-        {/* Filters */}
+        {/* Filters. Quest tab only: Trending, Near Me and Premium are ways of
+            sorting discovery, and none of them mean anything applied to the
+            handful of quests you have already joined. */}
+        {tab === "all" && (
         <div
           role="group"
           aria-label="Filter quests"
@@ -258,6 +320,7 @@ export default function QuestsClient({
             );
           })}
         </div>
+        )}
 
         {geolocationError && (
           <div
@@ -283,16 +346,18 @@ export default function QuestsClient({
         )}
 
         {/* Quest list */}
-        {questList.length === 0 ? (
+        {visibleQuests.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <MapPin size={40} className="text-on-surface-variant opacity-40" aria-hidden="true" />
             <p className="text-body-lg text-on-surface-variant">
-              No quests yet — check back soon.
+              {tab === "mine"
+                ? "You have not joined a quest yet."
+                : "No quests yet — check back soon."}
             </p>
           </div>
         ) : (
           <ul className="grid list-none grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
-            {questList.map((quest) => (
+            {visibleQuests.map((quest) => (
               <li key={quest.id}>
                 <Link
                   href={`/quests/${quest.id}`}

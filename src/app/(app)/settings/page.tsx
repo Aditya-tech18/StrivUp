@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Bell, ChevronRight, HelpCircle,
   Info, Lock, LogOut, Shield, Trash2,
-  User, UserMinus,
+  ShieldCheck, User, UserMinus,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMyProfile, type Profile } from "@/lib/supabase/profile";
@@ -121,6 +121,15 @@ export default function SettingsPage() {
     },
   ];
 
+  const permissionItems: SettingsItem[] = [
+    {
+      icon: <ShieldCheck size={17} className="text-secondary" />,
+      label: "Permissions",
+      subtitle: "Notifications and location",
+      href: "/settings/permissions",
+    },
+  ];
+
   const accountItems: SettingsItem[] = [
     {
       icon: <Shield size={17} className="text-secondary" />,
@@ -223,6 +232,7 @@ export default function SettingsPage() {
 
         {/* ── Sections ─────────────────────────────────────────────────── */}
         <SettingsGroup title="Profile" items={profileItems} />
+        <SettingsGroup title="Permissions" items={permissionItems} />
         <SettingsGroup title="Account" items={accountItems} />
         <SettingsGroup title="Support" items={supportItems} />
 

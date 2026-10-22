@@ -71,11 +71,35 @@ export default async function QuestsPage() {
   const bizCategories = [...new Set(bizQuests.map(q => q.category).filter(Boolean))] as string[];
   const allCategories = [...new Set([...categories, ...bizCategories])].sort();
 
+  /* The viewer's own quests, for the My Quest tab. Resolved from the merged
+     list rather than with a second quest query: the ids come from
+     quest_participants, and every quest a participant can see is already in
+     mergedTrending. */
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let myQuests: Quest[] = [];
+  if (user) {
+    const { data: joined, error: joinedError } = await supabase
+      .from("quest_participants")
+      .select("quest_id")
+      .eq("user_id", user.id);
+
+    if (joinedError) {
+      console.error("[QuestsPage] my quests", joinedError.message);
+    } else {
+      const mineIds = new Set((joined ?? []).map((r) => r.quest_id as string));
+      myQuests = mergedTrending.filter((q) => mineIds.has(q.id));
+    }
+  }
+
   return (
     <QuestsClient
       initialHotQuests={mergedHot}
       initialTrendingQuests={mergedTrending}
       availableCategories={allCategories}
+      myQuests={myQuests}
     />
   );
 }
