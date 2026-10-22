@@ -11,7 +11,9 @@
     "format:check": "prettier --check .",
     "type-check": "tsc --noEmit",
     "dev:lan": "next dev -H 0.0.0.0",
-    "audit:mobile": "node scripts/audit-mobile.mjs"
+    "audit:mobile": "node scripts/audit-mobile.mjs",
+    "test": "npm run test:strivy",
+    "test:strivy": "node --experimental-strip-types --import ./tests/strivy/register.mjs --test tests/strivy/*.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
@@ -23,6 +25,7 @@
     "react-dom": "19.2.8",
     "react-hook-form": "^7.85.0",
     "sharp": "^0.35.3",
+    "web-push": "^3.6.7",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -30,6 +33,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "eslint-config-prettier": "^10.1.8",

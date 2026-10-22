@@ -26,6 +26,8 @@ export { ModeSwitcher } from "./ModeSwitcher";
 export { AppSidebar } from "./AppSidebar";
 
 export { AlertsProvider, useUnreadCount } from "./AlertsContext";
+export { AppTour, startAppTour } from "./AppTour";
+export { Tour, type TourStep } from "./Tour";
 export { ServiceWorkerRegistrar } from "./ServiceWorkerRegistrar";
 export { BrandMark } from "./BrandMark";
 export { MobileMenu } from "./MobileMenu";

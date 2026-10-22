@@ -21,6 +21,7 @@ import { ShareButton } from "@/components/features/share/ShareButton";
 import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { Button, Card, Badge, Input } from "@/components/ui";
 import type { QuestDetail } from "@/lib/data/quests";
+import { emitStrivyEvent } from "@/components/features/strivy/companion";
 import {
   isUserQuestParticipant,
   getUserQuestParticipation,
@@ -119,6 +120,7 @@ export default function QuestDetailClient({
 
         // For proof_type='none', immediately mark as approved
         if (quest.proof_type === "none") {
+          emitStrivyEvent({ type: "QUEST_COMPLETED" });
           setParticipation({
             id: participationId,
             verification_status: "approved",
@@ -208,6 +210,7 @@ export default function QuestDetailClient({
       );
 
       if (success) {
+        emitStrivyEvent({ type: "TASK_COMPLETED" });
         setProofState("success");
         setParticipation((p) =>
           p

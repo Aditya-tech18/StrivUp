@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { syncAllConnectedUsers } from "@/lib/activity/service";
+import { settleChallengeStakes } from "@/lib/data/stakes";
 
 /**
  * GET /api/activity/cron
@@ -42,7 +43,21 @@ export async function GET(request: NextRequest) {
        a watch syncs late. Ingestion is idempotent, so re-reading costs nothing
        and is strictly safer than trusting the first number we saw. */
     const result = await syncAllConnectedUsers(2);
-    return NextResponse.json({ ok: true, ...result });
+
+    /* Stake settlement rides the same daily job.
+     *
+     * It runs AFTER the activity sync on purpose: a step-counted challenge
+     * can be satisfied by a provider total that only arrives in this very
+     * run, and charging someone for a day the sync was about to complete
+     * would be a forfeit the app itself caused.
+     *
+     * 03:00 UTC is 08:30 IST, so the day being settled closed eight and a
+     * half hours earlier. Idempotent per (challenge, date), so a cron retry
+     * cannot double-charge.
+     */
+    const stakes = await settleChallengeStakes();
+
+    return NextResponse.json({ ok: true, ...result, stakes });
   } catch (err) {
     const message = err instanceof Error ? err.message : "cron sync failed";
     console.error("[activity cron]", err);

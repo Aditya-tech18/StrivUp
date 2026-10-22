@@ -17,6 +17,7 @@ import {
   hasConnectedProvider,
 } from "@/lib/data/activity";
 import type { PhysicalActivityConfig, QuestActivityProgress } from "@/lib/activity/types";
+import { emitStrivyEvent } from "@/components/features/strivy/companion";
 
 interface QuestTask {
   id: string;
@@ -236,8 +237,11 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
         return !t.is_required || s?.verification_status === "approved";
       });
       if (allApproved) {
-        await supabase.from("quest_participants").update({ completed_at: new Date().toISOString(), verification_status: "approved" })
+        const { error: doneError } = await supabase.from("quest_participants").update({ completed_at: new Date().toISOString(), verification_status: "approved" })
           .eq("quest_id", questId).eq("user_id", userId);
+        if (!doneError) emitStrivyEvent({ type: "QUEST_COMPLETED" });
+      } else {
+        emitStrivyEvent({ type: "TASK_COMPLETED" });
       }
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");

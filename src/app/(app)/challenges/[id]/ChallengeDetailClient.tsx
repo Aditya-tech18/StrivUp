@@ -27,6 +27,7 @@ import {
   ChevronRight,
   ClipboardList,
   Clock,
+  Coins,
   Filter,
   Flame,
   ListChecks,
@@ -47,6 +48,7 @@ import {
   uploadProof,
   type SlotData,
 } from "@/lib/data/proofs";
+import { emitStrivyEvent } from "@/components/features/strivy/companion";
 import { InviteSheet } from "@/components/features/InviteSheet";
 import { ShareButton } from "@/components/features/share/ShareButton";
 import { PeopleListSheet } from "@/components/features/people/PeopleList";
@@ -75,6 +77,8 @@ export interface ChallengeDetail {
   visibility: "public" | "private";
   /** Derived at creation time; tells a participant what to photograph. */
   proofInstructions: string | null;
+  /** StrivCoins burned for each missed day. 0 on every unstaked challenge. */
+  dailyStake: number;
 }
 
 export interface LeaderboardEntry {
@@ -182,6 +186,7 @@ function TaskUploadSlot({
 
       const verdict = await callReviewProof(result.submissionId!);
       setLocalStatus(verdict.status);
+      if (verdict.status === "approved") emitStrivyEvent({ type: "CHALLENGE_COMPLETED" });
       setSlot({
         state: verdict.status,
         preview: result.preview,
@@ -390,6 +395,7 @@ function LegacyUploadCard({
       setSlot({ state: "reviewing", preview: result.preview, error: null, rejectionReason: null });
 
       const verdict = await callReviewProof(result.submissionId!);
+      if (verdict.status === "approved") emitStrivyEvent({ type: "CHALLENGE_COMPLETED" });
       setSlot({
         state: verdict.status,
         preview: result.preview,
@@ -847,6 +853,21 @@ export function ChallengeDetailClient({
                     </span>
                     <ChevronRight size={18} className="shrink-0 text-secondary" aria-hidden="true" />
                   </button>
+
+                  {/* What today costs if it is missed. Shown on the prompt
+                      itself rather than buried in the challenge's details,
+                      because the moment it changes behaviour is the moment
+                      someone is deciding whether to bother today. */}
+                  {challenge.dailyStake > 0 ? (
+                    <p className="mt-2 flex items-center gap-1.5 text-label-sm text-on-surface-variant">
+                      <Coins size={13} className="shrink-0 text-warning" aria-hidden="true" />
+                      Miss today and{" "}
+                      <span className="font-bold text-on-surface">
+                        {challenge.dailyStake} coins
+                      </span>{" "}
+                      are gone.
+                    </p>
+                  ) : null}
                 </section>
               ) : null}
 

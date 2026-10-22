@@ -18,6 +18,8 @@ interface NavItem {
   showBadge?: boolean;
   /** Keep this item active for any pathname under this prefix. */
   activePrefix?: string;
+  /** Anchor for the product tour; shared with SidebarNav. */
+  tourId?: string;
   /** Draw the breathing halo. One item at most, or it stops meaning anything. */
   glow?: boolean;
 }
@@ -36,12 +38,16 @@ interface NavItem {
  * Quest carries the glow. It is the paid side of the product and the bar had
  * no way to say one of five equal slots matters more.
  */
+/* tourId values match SidebarNav's, so a tour step spotlights whichever of
+   the two navs is on screen at this breakpoint. Explore and Alerts are not in
+   this bar — Explore lives on the home rail and Alerts moved to the header
+   bell — so those two steps anchor elsewhere rather than here. */
 const USER_ITEMS: NavItem[] = [
-  { href: "/feed",           icon: Home,     label: "Home"       },
-  { href: "/quests",         icon: MapPin,   label: "Quest", glow: true },
-  { href: "/challenges/new", icon: Plus,     label: "Create"     },
-  { href: "/challenges",     icon: Trophy,   label: "Challenges" },
-  { href: "/search",         icon: Search,   label: "Search"     },
+  { href: "/feed",           icon: Home,     label: "Home",       tourId: "nav-feed"   },
+  { href: "/quests",         icon: MapPin,   label: "Quest", glow: true, tourId: "nav-quests" },
+  { href: "/challenges/new", icon: Plus,     label: "Create",     tourId: "nav-create" },
+  { href: "/challenges",     icon: Trophy,   label: "Challenges", tourId: "nav-my-challenges" },
+  { href: "/search",         icon: Search,   label: "Search",     tourId: "nav-search" },
 ];
 
 const BUSINESS_ITEMS: NavItem[] = [
@@ -92,6 +98,7 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
           <Link
             key={item.href}
             href={item.href}
+            data-tour={item.tourId}
             aria-current={isActive ? "page" : undefined}
             aria-label={isCreate ? item.label : undefined}
             className={[

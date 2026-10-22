@@ -871,7 +871,29 @@ body {
       opacity: 1;
       translate: 0 0;
     }
+
+    /* The product tour pins the rail open. A spotlight on a nav item would
+       otherwise frame a bare icon with its label clipped away, because the
+       rail only widens on hover and the tour is not hovering it. Sits here
+       beside the rail's own rules so the two are read together.
+
+       Two more bands beyond the list above: 80 is the PWA install prompt,
+       and 90 is the tour overlay, which has to cover everything including
+       that prompt. */
+    html[data-tour-open] .rail {
+      width: var(--rail-expanded);
+      box-shadow: var(--shadow-e3);
+    }
+    html[data-tour-open] .rail .rail-label {
+      opacity: 1;
+      translate: 0 0;
+    }
   }
+}
+
+/* Outside the md layer: the install prompt is shown at every width. */
+html[data-tour-open] [data-install-prompt] {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -959,10 +981,265 @@ body {
   .pressable:active { transform: none; }
 }
 
+/* ── Sharpened surfaces ──────────────────────────────────────────────────────
+   A second, harder voice for moments that should feel like a commitment: the
+   stake step, a forfeit, a result. Definite edge and a flat offset shadow
+   instead of the soft elevation the rest of the app uses.
+
+   This is an ADDITION, not a replacement. `.elev-*` stays the default
+   everywhere; `.edge` is for the few surfaces that are meant to stop you. Used
+   widely it would turn into a different app, which is not what we are doing.
+   Colours are the existing tokens — nothing new enters the palette. */
+.edge {
+  border: 1.5px solid var(--color-on-surface);
+  box-shadow: 3px 3px 0 0 var(--color-on-surface);
+}
+.edge-brand {
+  border: 1.5px solid var(--color-secondary);
+  box-shadow: 3px 3px 0 0 var(--color-secondary);
+}
+/* Pressing it moves the surface onto its own shadow. */
+.edge-press {
+  transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 120ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.edge-press:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 0 var(--color-on-surface);
+}
+
+/* Machine-ish label for counters and step markers. No webfont: the system
+   mono stack costs nothing to download and is legible at this size. */
+.overline-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Staggered entrance. The delay is set per item with --i so a list arrives in
+   sequence rather than all at once. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.rise {
+  animation: rise-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+/* A value that just changed. Brief, and never on first paint. */
+@keyframes tick-up {
+  0%   { transform: none; }
+  40%  { transform: translateY(-3px) scale(1.06); }
+  100% { transform: none; }
+}
+.tick { animation: tick-up 320ms cubic-bezier(0.22, 1, 0.36, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise { animation: none; }
+  .tick { animation: none; }
+  .edge-press { transition: none; }
+  .edge-press:active { transform: none; }
+}
+
 /* Forced-colors mode strips box-shadow entirely, so depth must fall back to
    something the OS honours, or every card merges into the page. WCAG 1.4.11. */
 @media (forced-colors: active) {
   .elev-1, .elev-2, .elev-3, .elev-4, .elev-5, .surface-raised {
     border: 1px solid CanvasText;
   }
+}
+
+
+/* ─── STRIVY panel theme ──────────────────────────────────────────────────
+   The Strivy chat panel has its own light/dark toggle. Dark mode re-points
+   the colour tokens the panel uses, scoped to the panel, so utilities like
+   bg-surface-container-low simply resolve to the dark values inside it and
+   nothing else in the app changes. Pairs checked for WCAG AA contrast.      */
+.strivy-panel[data-theme="dark"] {
+  color-scheme: dark;
+  --color-surface: #1a1c21;
+  --color-surface-container-lowest: #121418;
+  --color-surface-container-low: #1f2229;
+  --color-surface-container: #2a2e37;
+  --color-on-surface: #e9eaee;
+  --color-on-surface-variant: #aeb3bf;
+  --color-outline-variant: #353a45;
+  /* User bubbles: light on dark, clearly apart from Strivy's grey ones. */
+  --color-primary: #e9eaee;
+  --color-on-primary: #121418;
+  /* Action blue, lifted for dark backgrounds. */
+  --color-secondary: #8ea8ff;
+  --color-on-secondary: #0b1640;
+  --color-secondary-fixed: #24336d;
+  --color-on-secondary-fixed-variant: #d3dcff;
+  --color-tertiary-fixed: #123f2e;
+  --color-on-tertiary-fixed-variant: #98f2c9;
+  --color-error: #ffb4ab;
+  --color-error-container: #4d1714;
+  --color-on-error-container: #ffdad6;
+}
+
+@layer base {
+  .strivy-panel,
+  .strivy-panel * {
+    transition-property: background-color, border-color, color;
+    transition-duration: 180ms;
+    transition-timing-function: ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .strivy-panel,
+  .strivy-panel * {
+    transition: none;
+  }
+}
+
+/* ─── STRIVY motion ────────────────────────────────────────────────────────
+   Launcher: a soft glow that breathes every few seconds, a tiny sparkle now
+   and then, a lift on hover and a press on click. With a new check-in the
+   glow is a little stronger and the button does one short attention bounce.
+   Panel: a bottom sheet slides up on phones; a floating panel scales in from
+   the launcher's corner on desktop; both reverse on close. New messages ease
+   in. Everything is transform/opacity only, and it all switches off under
+   prefers-reduced-motion.                                                  */
+@keyframes strivy-glow {
+  0%, 100% { box-shadow: 0 6px 18px rgb(29 78 216 / 0.28), 0 0 0 0 rgb(29 78 216 / 0); }
+  50% { box-shadow: 0 6px 22px rgb(29 78 216 / 0.36), 0 0 0 7px rgb(29 78 216 / 0.1); }
+}
+@keyframes strivy-glow-strong {
+  0%, 100% { box-shadow: 0 6px 20px rgb(29 78 216 / 0.34), 0 0 0 0 rgb(29 78 216 / 0); }
+  50% { box-shadow: 0 8px 26px rgb(29 78 216 / 0.45), 0 0 0 10px rgb(29 78 216 / 0.14); }
+}
+@keyframes strivy-attention {
+  0%, 100% { transform: scale(1); }
+  20% { transform: scale(1.12); }
+  40% { transform: scale(0.96); }
+  60% { transform: scale(1.05); }
+  80% { transform: scale(1); }
+}
+@keyframes strivy-sparkle {
+  0%, 86%, 100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  91% { opacity: 1; transform: scale(1) rotate(25deg); }
+  96% { opacity: 0; transform: scale(0.5) rotate(50deg); }
+}
+@keyframes strivy-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes strivy-sheet-out { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@keyframes strivy-pop-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes strivy-pop-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(16px) scale(0.94); }
+}
+@keyframes strivy-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes strivy-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes strivy-msg-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes strivy-dot {
+  0%, 80%, 100% { opacity: 0.35; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+
+.strivy-launcher {
+  animation: strivy-glow 4.5s ease-in-out infinite;
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.strivy-launcher:hover { transform: translateY(-2px) scale(1.05); }
+.strivy-launcher:active { transform: scale(0.92); transition-duration: 90ms; }
+.strivy-launcher[data-state="new"] {
+  animation: strivy-glow-strong 2.4s ease-in-out infinite, strivy-attention 900ms ease-out 300ms 2;
+}
+.strivy-launcher .strivy-sparkle {
+  opacity: 0;
+  animation: strivy-sparkle 10s ease-in-out 2s infinite;
+}
+.strivy-launcher[data-state="new"] .strivy-sparkle { animation-duration: 3.5s; animation-delay: 0s; }
+.strivy-launcher .strivy-launcher-icon { transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.strivy-launcher:hover .strivy-launcher-icon { transform: rotate(-12deg); }
+
+.strivy-sheet { animation: strivy-sheet-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.strivy-sheet[data-state="closing"] { animation: strivy-sheet-out 200ms ease-in both; }
+@media (min-width: 768px) {
+  .strivy-sheet {
+    transform-origin: bottom right;
+    animation: strivy-pop-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .strivy-sheet[data-state="closing"] { animation: strivy-pop-out 180ms ease-in both; }
+}
+.strivy-backdrop { animation: strivy-fade-in 200ms ease both; }
+.strivy-backdrop[data-state="closing"] { animation: strivy-fade-out 200ms ease both; }
+.strivy-msg { animation: strivy-msg-in 220ms ease-out both; }
+.strivy-typing-dot { animation: strivy-dot 1.1s ease-in-out infinite; }
+
+/* Avatar: bubble avatars pop in once with their message; the header avatar
+   breathes a soft glow every few seconds, pulses gently while a reply is on
+   its way and ripples outward while listening or speaking. */
+@keyframes strivy-avatar-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+@keyframes strivy-avatar-idle {
+  0%, 82%, 100% { box-shadow: 0 0 0 0 rgb(29 78 216 / 0); }
+  90% { box-shadow: 0 0 0 5px rgb(29 78 216 / 0.14); }
+}
+@keyframes strivy-avatar-think {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.06); filter: brightness(1.12); }
+}
+@keyframes strivy-avatar-ripple {
+  from { opacity: 0.45; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.7); }
+}
+@keyframes strivy-wave {
+  0%, 100% { height: 5px; }
+  50% { height: 18px; }
+}
+.strivy-msg .strivy-avatar { animation: strivy-avatar-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.strivy-avatar[data-state="idle"] { animation: strivy-avatar-idle 6s ease-in-out 1.5s infinite; }
+.strivy-avatar[data-state="thinking"] { animation: strivy-avatar-think 1.4s ease-in-out infinite; }
+.strivy-avatar[data-state="listening"]::after,
+.strivy-avatar[data-state="speaking"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: var(--color-secondary);
+  animation: strivy-avatar-ripple 1.6s ease-out infinite;
+  z-index: -1;
+}
+.strivy-avatar[data-state="speaking"]::after { animation-duration: 1.1s; }
+.strivy-wave-bar { height: 5px; }
+.strivy-wave[data-live="true"] .strivy-wave-bar { animation: strivy-wave 900ms ease-in-out infinite; }
+
+/* ─── STRIVY companion popup ───────────────────────────────────────────────
+   A small speech bubble that pops in near the launcher (or at the top while
+   the chat is open). Static under reduced motion.                           */
+@keyframes strivy-companion-in {
+  0% { opacity: 0; transform: translateY(8px) scale(0.96); }
+  70% { opacity: 1; transform: translateY(-2px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.strivy-companion { animation: strivy-companion-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .strivy-companion,
+  .strivy-launcher,
+  .strivy-launcher *,
+  .strivy-sheet,
+  .strivy-backdrop,
+  .strivy-msg,
+  .strivy-typing-dot,
+  .strivy-avatar,
+  .strivy-avatar::after,
+  .strivy-wave-bar {
+    animation: none !important;
+  }
+  .strivy-avatar::after { display: none; }
+  .strivy-wave-bar { height: 10px; }
+  .strivy-launcher { box-shadow: 0 6px 18px rgb(29 78 216 / 0.3); }
+  .strivy-launcher:hover,
+  .strivy-launcher:active,
+  .strivy-launcher:hover .strivy-launcher-icon { transform: none; }
+  .strivy-launcher .strivy-sparkle { display: none; }
 }

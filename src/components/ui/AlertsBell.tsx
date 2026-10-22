@@ -22,6 +22,10 @@ export function AlertsBell({ className = "" }: { className?: string }) {
   return (
     <Link
       href="/alerts"
+      /* Shares the alerts step's anchor with the desktop rail item. On a
+         phone this bell is the only Alerts entry point, so without it that
+         step would have nothing to spotlight. */
+      data-tour="nav-alerts"
       aria-label={
         unreadCount > 0 ? `Alerts, ${unreadCount} unread` : "Alerts"
       }

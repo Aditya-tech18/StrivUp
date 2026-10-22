@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ChevronDown, ChevronUp, ExternalLink, Mail } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Compass, ExternalLink, Mail } from "lucide-react";
+import { startAppTour } from "@/components/ui";
 
 const SUPPORT_EMAIL = "strivup.officialteam@gmail.com";
 
@@ -81,6 +82,30 @@ export default function HelpPage() {
       </div>
 
       <div className="mx-auto measure-form px-5 pt-5 flex flex-col gap-5">
+
+        {/* Replay the tour. Above the FAQ on purpose: most of what the FAQ
+            answers is shown directly by the tour, so offering it first saves
+            the reading. */}
+        <button
+          type="button"
+          onClick={() => {
+            /* The tour lives in the app shell and navigates as it runs, so it
+               is started by event rather than by rendering it here. */
+            startAppTour();
+            router.push("/feed");
+          }}
+          className="flex items-center gap-3.5 rounded-2xl border border-secondary/25 bg-secondary/5 p-5 text-left transition-colors hover:bg-secondary/10"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary/10">
+            <Compass size={18} className="text-secondary" aria-hidden="true" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-body-md font-bold text-on-surface">Take the tour again</p>
+            <p className="mt-0.5 text-body-sm text-on-surface-variant">
+              A guided lap of every feature, about a minute.
+            </p>
+          </div>
+        </button>
 
         {/* Contact card */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant elev-1 surface-raised p-5">

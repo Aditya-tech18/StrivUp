@@ -17,6 +17,10 @@ import {
   DurationPicker,
   type DurationChoice,
 } from "@/components/features/challenge/DurationPicker";
+import {
+  StakePicker,
+  type StakeChoice,
+} from "@/components/features/challenge/StakePicker";
 import { inferProof, type CoverPreset } from "@/lib/challenges/presets";
 
 const SAMPLES: [string, string][] = [
@@ -45,6 +49,7 @@ export default function ChallengeFormPreviewPage() {
   const [title, setTitle] = useState("30 Day Running Streak");
   const [override, setOverride] = useState<string | null>(null);
   const [duration, setDuration] = useState<DurationChoice | null>(null);
+  const [stake, setStake] = useState<StakeChoice>({ perDay: 0 });
 
   const inferred = inferProof(title, "", category);
 
@@ -78,6 +83,32 @@ export default function ChallengeFormPreviewPage() {
             duration_days ={" "}
             {duration === null ? "(not chosen)" : duration.days === null ? "NULL" : duration.days}
           </p>
+        </section>
+
+        <section className="space-y-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+          <StakePicker
+            value={stake}
+            onChange={setStake}
+            balance={97}
+            durationDays={duration?.days ?? null}
+            eligible
+          />
+          <p className="text-label-sm text-on-surface-variant" data-testid="stake-value">
+            daily_stake = {stake.perDay}
+          </p>
+        </section>
+
+        <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+          <p className="text-body-lg font-bold text-on-surface">Ineligible variant</p>
+          <div className="mt-3">
+            <StakePicker
+              value={{ perDay: 0 }}
+              onChange={() => {}}
+              balance={0}
+              durationDays={30}
+              eligible={false}
+            />
+          </div>
         </section>
 
         <section className="space-y-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">

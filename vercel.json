@@ -3,6 +3,18 @@
     {
       "path": "/api/activity/cron",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/strivy/push/cron",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/strivy/push/cron",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/strivy/push/cron",
+      "schedule": "0 14 * * *"
     }
   ]
 }
