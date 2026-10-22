@@ -141,15 +141,19 @@ export default function RootLayout({
           user gets a full white screen on every single navigation before the
           theme is reapplied. That flash is the reason this pattern exists.
 
-          Reads the saved choice, falls back to the system preference only for
-          someone who has never chosen, and defaults to light. Wrapped in
-          try/catch because localStorage throws outright in some private
-          modes, and a theme is not worth a blank page.
+          Dark ONLY when the person picked dark in Settings. It used to fall
+          back to prefers-color-scheme for anyone who had never chosen, which
+          meant a phone with system dark mode on turned the app dark on the
+          very first visit, without anyone asking for it. Light is the app's
+          look; dark is a choice, so the absence of a choice is light.
+
+          Wrapped in try/catch because localStorage throws outright in some
+          private modes, and a theme is not worth a blank page.
         */}
         <script
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("strivup:theme");if(!t){t=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}document.documentElement.setAttribute("data-theme",t);}catch(e){document.documentElement.setAttribute("data-theme","light");}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("strivup:theme");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){document.documentElement.setAttribute("data-theme","light");}})();`,
           }}
         />
       </head>
