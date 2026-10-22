@@ -433,6 +433,17 @@ test("a StrivUp answer then a general follow-up, and the reverse, keep their own
   assert.match(r2.text, /11/);
 });
 
+test("StrivCoins exist, so a coins question points to the wallet, never 'Not in STRIVUP'", async () => {
+  const { classifyIntent } = await import("@/lib/strivy/intents");
+  for (const m of ["how many coins do I have?", "what are strivcoins", "how do I earn coins"]) {
+    assert.notEqual(classifyIntent(m).intent, "not_built", m);
+  }
+  const r = await chatReply("how many coins do I have?", deterministicProvider);
+  assert.ok(!r.chips.some((c) => c.label === "Not in STRIVUP"));
+  assert.doesNotMatch(r.text, /doesn't have/);
+  assert.match(r.text, /StrivCoins/);
+});
+
 /* ── Cron idempotency ─────────────────────────────────────────────────── */
 
 const BUSY: StrivyFacts = {

@@ -193,8 +193,10 @@ export async function runStrivyPipeline(input: {
   if (dialect) context.dialect = dialect;
   const previous = [...history].reverse().find((t) => t.role === "strivy")?.text ?? null;
   let draft = draftReply(context, message);
-  // Asked the same thing twice: pick another wording when there is one.
-  for (let i = 1; i <= 3 && previous && draft.text === previous; i++) {
+  // Asked the same thing twice: pick another wording when there is one. The
+  // wording is a hash of the message and date, so a few salts can all land on
+  // the same one; ten make that vanishingly rare.
+  for (let i = 1; i <= 10 && previous && draft.text === previous; i++) {
     const again = draftReply(context, message, `again-${i}`);
     if (again.text !== previous) draft = again;
   }

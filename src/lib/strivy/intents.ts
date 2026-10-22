@@ -354,10 +354,17 @@ const RULES: Rule[] = [
     weight: 4,
     // Plural "points" only: "how do I find the boiling point" is science.
     pattern: aboutApp(
-      "points|xp|coins?|badges?|level ?up|leaderboards?",
+      "points|xp|badges?|level ?up|leaderboards?",
       [APP_SUBJECT, ASKS_FOR_SELF, ASKS_IF_EXISTS],
-      "points?|xp|coins?|badges?|levels?"
+      "points?|xp|badges?|levels?"
     ),
+  },
+  {
+    // StrivCoins exist: point to the wallet page, never "Not in STRIVUP".
+    name: "coins",
+    intent: "how_it_works",
+    weight: 5,
+    pattern: aboutApp("coins?|strivcoins?|wallet", [APP_SUBJECT, ASKS_FOR_SELF, ASKS_IF_EXISTS]),
   },
   {
     name: "crews",
