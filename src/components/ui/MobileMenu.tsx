@@ -22,12 +22,12 @@
  * portal measures it against the viewport instead.
  */
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { NAV_ITEMS, BUSINESS_NAV_ITEMS } from "./SidebarNav";
+import { NAV_ITEMS } from "./SidebarNav";
 import { ModeSwitcher } from "./ModeSwitcher";
 import { BrandMark } from "./BrandMark";
 import { useUnreadCount } from "./AlertsContext";
@@ -41,15 +41,25 @@ export function MobileMenu() {
      the pathname: navigation here is always user-initiated, and setState
      straight from an effect body is the cascading-render pattern
      react-hooks/set-state-in-effect rejects. */
-  /* CHANGED: My Challenges is dropped from the drawer, and only from the
-     drawer. It is now a tab on the Challenges page, which the bottom bar
-     already carries, so listing it here was a third route to the same place.
-     The desktop sidebar keeps it, because there is no bottom bar on desktop
+  /* CHANGED: the drawer is now a short list of the things the bottom bar and
+     the rails cannot reach, not a copy of them.
+     
+     Everything else already has a thumb-reachable route: Home, Quest,
+     Challenges, Search and Create are the bottom bar, so repeating them here
+     was a second menu for a navigation that was never missing. What is left
+     is what has nowhere else to live on a phone.
+     
+     The desktop sidebar is untouched, because there is no bottom bar there
      and the rail is the only way in. */
-  const HIDDEN_IN_DRAWER = new Set(["/creator/challenges"]);
+  const isBusiness = pathname.startsWith("/business");
 
-  const items = (pathname.startsWith("/business") ? BUSINESS_NAV_ITEMS : NAV_ITEMS).filter(
-    (i) => !HIDDEN_IN_DRAWER.has(i.href)
+  const DRAWER_HREFS = isBusiness
+    ? []
+    : ["/rewards", "/settings", "/profile"];
+
+  const byHref = new Map(NAV_ITEMS.map((i) => [i.href, i]));
+  const items = DRAWER_HREFS.map((href) => byHref.get(href)).filter(
+    (i): i is NonNullable<typeof i> => Boolean(i)
   );
   // Longest matching href wins, so /business/quests/new does not also light up
   // "My Quests".
@@ -119,12 +129,23 @@ export function MobileMenu() {
               aria-label="All destinations"
               className="flex-1 space-y-1 overflow-y-auto overscroll-contain px-3 py-3 pb-safe"
             >
-              {items.map(({ href, icon: Icon, label, showBadge }) => {
+              {/* CHANGED: the mode switch sits at the TOP, not stranded at the
+                  foot of the list. Switching between running your account and
+                  running your business is the single biggest thing this menu
+                  does; it does not belong below a scroll. In business mode it
+                  is the only thing here. */}
+              {isBusiness && (
+                <div onClick={() => setOpen(false)}>
+                  <ModeSwitcher />
+                </div>
+              )}
+
+              {items.map(({ href, icon: Icon, label, showBadge }, index) => {
                 const isActive = href === activeHref;
                 const badge = showBadge ? unreadCount : 0;
                 return (
+                  <Fragment key={href}>
                   <Link
-                    key={href}
                     href={href}
                     aria-current={isActive ? "page" : undefined}
                     onClick={() => setOpen(false)}
@@ -149,16 +170,19 @@ export function MobileMenu() {
                     </span>
                     {label}
                   </Link>
+
+                  {/* Straight after My Rewards, which is where the person
+                      asked for it and where it is actually reachable. */}
+                  {!isBusiness && index === 0 && (
+                    <div onClick={() => setOpen(false)}>
+                      <ModeSwitcher />
+                    </div>
+                  )}
+                  </Fragment>
                 );
               })}
 
-              {/* Admin / Business mode, on the same terms as the sidebar.
-                  The close is captured on the wrapper rather than passed down:
-                  ModeSwitcher builds its own links and should not have to know
-                  it is inside a drawer. */}
-              <div className="pt-2" onClick={() => setOpen(false)}>
-                <ModeSwitcher />
-              </div>
+
             </nav>
           </div>
         </div>

@@ -51,7 +51,10 @@ const USER_ITEMS: NavItem[] = [
 ];
 
 const BUSINESS_ITEMS: NavItem[] = [
-  { href: "/feed",                 icon: Home,      label: "Home"       },
+  /* CHANGED: was "/feed", which is the USER feed. Tapping Home while in
+     business mode threw you out of business mode entirely. Business Home is
+     the business dashboard. */
+  { href: "/business/dashboard",   icon: Home,      label: "Home", activePrefix: "/business/dashboard" },
   { href: "/explore",              icon: Trophy,    label: "Challenges" },
   { href: "/business/quests/new",  icon: Plus,      label: "Create"     },
   { href: "/quests",               icon: Users,     label: "Quests"     },

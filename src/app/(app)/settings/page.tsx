@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Bell, ChevronRight, HelpCircle,
   Info, Lock, LogOut, Shield, Trash2,
-  ShieldCheck, User, UserMinus,
+  ChevronDown, Palette, ShieldCheck, User, UserMinus,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { getMyProfile, type Profile } from "@/lib/supabase/profile";
 
 interface SettingsItem {
@@ -16,6 +17,56 @@ interface SettingsItem {
   subtitle: string;
   href: string;
   destructive?: boolean;
+}
+
+/**
+ * Appearance — a row that opens in place rather than navigating.
+ *
+ * Expanding beats a sub-page here because the thing being chosen is visible
+ * behind the control: tap Dark and the page under it turns dark immediately,
+ * which is the confirmation. Push it onto its own screen and the preview is
+ * the screen you just left.
+ */
+function AppearanceGroup() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <section>
+      <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em] mb-2 px-1">
+        Appearance
+      </p>
+      <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden elev-1 surface-raised">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls="theme-panel"
+          className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left transition-colors hover:bg-surface-container-low active:bg-surface-container"
+        >
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-surface-container">
+            <Palette size={17} className="text-secondary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-body-md font-semibold leading-tight text-on-surface">Theme</p>
+            <p className="text-body-sm text-on-surface-variant mt-0.5 leading-snug">
+              Light or dark
+            </p>
+          </div>
+          <ChevronDown
+            size={16}
+            className={`text-outline shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          />
+        </button>
+
+        {open && (
+          <div id="theme-panel" className="border-t border-outline-variant p-3">
+            <ThemeToggle />
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
 
 function SettingsGroup({
@@ -232,6 +283,7 @@ export default function SettingsPage() {
 
         {/* ── Sections ─────────────────────────────────────────────────── */}
         <SettingsGroup title="Profile" items={profileItems} />
+        <AppearanceGroup />
         <SettingsGroup title="Permissions" items={permissionItems} />
         <SettingsGroup title="Account" items={accountItems} />
         <SettingsGroup title="Support" items={supportItems} />
