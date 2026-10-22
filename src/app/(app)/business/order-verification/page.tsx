@@ -19,6 +19,8 @@ import {
   Loader2, Receipt, RefreshCw, Search, ShieldCheck, Trophy, User, XCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { getMyBusinessProfile } from "@/lib/data/business";
 import { getBusinessQuests } from "@/lib/data/businessQuests";
 import {
@@ -33,6 +35,28 @@ function timeAgo(iso: string): string {
   const h = Math.floor(mins / 60);
   if (h < 24) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
+}
+
+/**
+ * Loose match for the live filter.
+ *
+ * Staff read a code off a phone screen or a printed slip and often type only
+ * the digits they can make out, so the comparison drops the SV- prefix and
+ * every separator from both sides and asks whether what they typed appears
+ * anywhere in the code. Participant names match too, for the case where the
+ * code is unreadable but the customer is standing there.
+ */
+function normalise(v: string): string {
+  return v.toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+function matchesQuery(v: OrderCodeLookup, query: string): boolean {
+  const q = normalise(query);
+  if (!q) return true;
+  const bare = q.startsWith("SV") ? q.slice(2) : q;
+  const code = normalise(v.order_code);
+  if (code.includes(q) || (bare.length > 0 && code.includes(bare))) return true;
+  return (v.participant_name ?? "").toUpperCase().includes(query.trim().toUpperCase());
 }
 
 function ProfileStat({
@@ -73,6 +97,12 @@ export default function BusinessOrderVerificationPage() {
   const [showReject, setShowReject] = useState(false);
   const [billCode, setBillCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { t } = useLocale();
+
+  /* Derived, not state: the filter is a view of the queue already in memory,
+     so typing costs no round trip and cannot race the queue load. */
+  const filtered = queue.filter((v) => matchesQuery(v, code));
+  const filtering = code.trim().length > 0;
 
   const loadQueue = useCallback(async (ids: string[]) => {
     setQueue(await getPendingVerifications(supabase, ids));
@@ -97,7 +127,7 @@ export default function BusinessOrderVerificationPage() {
 
   const handleSearch = useCallback(async (raw?: string) => {
     const query = (raw ?? code).trim();
-    if (!query) { setError("Enter the STRIVUP code from the order."); return; }
+    if (!query) { setError(t("ov.enterCode")); return; }
 
     setSearching(true);
     setError(null);
@@ -188,17 +218,18 @@ export default function BusinessOrderVerificationPage() {
             <ArrowLeft size={18} className="text-on-surface-variant" />
           </Link>
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-bold text-on-surface">Order Verification</h1>
+            <h1 className="text-sm font-bold text-on-surface">{t("ov.title")}</h1>
             <p className="text-label-sm text-on-surface-variant">
-              Match a STRIVUP code to an incoming order
+              {t("ov.searchHeading")}
             </p>
           </div>
+          <LanguageToggle className="shrink-0" />
           <button
             onClick={() => loadQueue(questIds)}
-            aria-label="Refresh queue"
+            aria-label={t("ov.refresh")}
             className="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant flex items-center gap-1.5 transition-colors tap-target"
           >
-            <RefreshCw size={14} /> <span className="hidden sm:inline">Refresh</span>
+            <RefreshCw size={14} /> <span className="hidden sm:inline">{t("ov.refresh")}</span>
           </button>
         </div>
       </header>
@@ -207,9 +238,9 @@ export default function BusinessOrderVerificationPage() {
 
         {/* ── Search ───────────────────────────────────────────────── */}
         <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
-          <h2 className="text-body-lg font-bold text-on-surface">Search order code</h2>
+          <h2 className="text-body-lg font-bold text-on-surface">{t("ov.searchHeading")}</h2>
           <p className="text-sm text-on-surface-variant mt-0.5">
-            The customer adds this code to the order description on Zomato or Swiggy.
+            {t("ov.searchSub")}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2.5 mt-4">
@@ -221,7 +252,7 @@ export default function BusinessOrderVerificationPage() {
                 value={code}
                 onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(null); }}
                 onKeyDown={(e) => { if (e.key === "Enter") void handleSearch(); }}
-                placeholder="SV____"
+                placeholder={t("ov.placeholder")}
                 maxLength={10}
                 autoComplete="off"
                 spellCheck={false}
@@ -234,10 +265,61 @@ export default function BusinessOrderVerificationPage() {
               className="h-12 px-6 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
             >
               {searching
-                ? <><Loader2 size={16} className="animate-spin" /> Searching…</>
-                : "Search"}
+                ? <><Loader2 size={16} className="animate-spin" /> {t("ov.searching")}</>
+                : t("ov.search")}
             </button>
           </div>
+
+          {/* Live results. The full lookup still runs on Search or Enter and
+              is what actually opens an order, because only it returns the
+              participant detail and the verify action. This list is the
+              shortcut to it: partial digits narrow the open queue as they are
+              typed, and one tap opens the right row. Hidden once a match is
+              on screen so it does not compete with it. */}
+          {filtering && !match && !billCode && (
+            <div className="mt-4">
+              {filtered.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-outline-variant px-3.5 py-3 text-sm text-on-surface-variant">
+                  {t("ov.noMatch")}
+                </p>
+              ) : (
+                <>
+                  <p className="mb-1.5 text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
+                    {filtered.length} {t("ov.matchCount")}
+                  </p>
+                  <ul className="divide-y divide-outline-variant rounded-xl border border-outline-variant">
+                    {filtered.slice(0, 8).map((v) => (
+                      <li key={v.id}>
+                        <button
+                          onClick={() => { setCode(v.order_code); void handleSearch(v.order_code); }}
+                          className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-surface-container-low"
+                        >
+                          <span
+                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                              v.status === "order_verified"
+                                ? "bg-success-container text-on-success-container"
+                                : "bg-warning-container text-on-warning-container"
+                            }`}
+                          >
+                            {v.status === "order_verified" ? <CheckCircle2 size={14} /> : <Clock size={14} />}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-bold tracking-wider text-on-surface">
+                              {v.order_code}
+                            </span>
+                            <span className="block truncate text-xs text-on-surface-variant">
+                              {v.participant_name ?? t("ov.participant")} · {v.task_title}
+                            </span>
+                          </span>
+                          <span className="shrink-0 text-xs font-semibold text-secondary">{t("ov.open")}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          )}
 
           {error && (
             <div role="alert" className="mt-4 flex items-start gap-2.5 rounded-xl bg-error-container border border-error-outline px-3.5 py-3">
@@ -420,9 +502,9 @@ export default function BusinessOrderVerificationPage() {
         <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-body-lg font-bold text-on-surface">Open verifications</h2>
+              <h2 className="text-body-lg font-bold text-on-surface">{t("ov.openHeading")}</h2>
               <p className="text-sm text-on-surface-variant mt-0.5">
-                Codes issued to participants that are not closed yet.
+                {t("ov.openSub")}
               </p>
             </div>
             {queue.length > 0 && (
@@ -434,7 +516,7 @@ export default function BusinessOrderVerificationPage() {
 
           {queue.length === 0 ? (
             <p className="text-sm text-on-surface-variant mt-6 text-center py-10 border border-dashed border-outline-variant rounded-xl">
-              Nothing waiting right now.
+              {t("ov.nothingWaiting")}
             </p>
           ) : (
             <ul className="mt-4 divide-y divide-outline-variant">
@@ -453,7 +535,7 @@ export default function BusinessOrderVerificationPage() {
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-on-surface truncate">
-                      {v.participant_name ?? "Participant"}
+                      {v.participant_name ?? t("ov.participant")}
                     </p>
                     <p className="text-xs text-on-surface-variant truncate">
                       {v.quest_title} · {v.task_title} · {timeAgo(v.created_at)}
@@ -466,7 +548,7 @@ export default function BusinessOrderVerificationPage() {
                     onClick={() => { setCode(v.order_code); void handleSearch(v.order_code); }}
                     className="h-8 px-3 rounded-xl border border-outline-variant hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant shrink-0 transition-colors tap-target"
                   >
-                    Open
+                    {t("ov.open")}
                   </button>
                 </li>
               ))}
