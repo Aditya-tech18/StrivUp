@@ -18,8 +18,8 @@ import type { Profile } from "@/lib/supabase/profile";
  *  profile_private (email, phone, age, gender) — see PII isolation rule. */
 const PROFILE_COLUMNS =
   "id,username,full_name,avatar_url,bio,account_type,verification_status," +
-  "profile_completed,is_deactivated,is_private,pinned_challenge_ids," +
-  "created_at,updated_at";
+  "verification_type,profile_completed,is_deactivated,is_private," +
+  "pinned_challenge_ids,created_at,updated_at";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -47,6 +47,9 @@ function toPublicProfile(raw: Record<string, unknown>): Profile {
     bio: (raw.bio as string) ?? null,
     account_type: (raw.account_type as string) ?? "user",
     verification_status: (raw.verification_status as string) ?? "none",
+    // Public on purpose: the tick is a public claim, so it is readable on a
+    // public profile. The APPLICATION behind it is not.
+    verification_type: ((raw.verification_type as string) ?? "none") as Profile["verification_type"],
     profile_completed: Boolean(raw.profile_completed ?? false),
     is_deactivated: Boolean(raw.is_deactivated ?? false),
     is_private: Boolean(raw.is_private ?? false),

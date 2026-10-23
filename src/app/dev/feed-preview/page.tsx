@@ -134,7 +134,7 @@ const POST: FeedPost = {
   challengeTitle: "100 Days of LeetCode",
   authorName: "Adi Chaubey",
   authorAvatarUrl: "/icons/icon-192.png",
-  verified: false,
+  verification: "none",
   category: "Study",
   dayLabel: "2H AGO",
   streakDay: 12,

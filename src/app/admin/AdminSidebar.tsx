@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Activity, BadgeCheck, Building2, LayoutDashboard, LogOut, ScrollText,
-  ShieldAlert, Users,
+  ShieldAlert, ShieldCheck, Users,
 } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
@@ -22,6 +22,7 @@ export function AdminSidebar({ email, isAdmin, pendingReports, pendingVerificati
     { href: "/admin", label: "Overview", icon: LayoutDashboard },
     { href: "/admin/moderation", label: "Content Moderation", icon: ShieldAlert, badge: pendingReports },
     { href: "/admin/business-verification", label: "Business Verification", icon: BadgeCheck, badge: pendingVerifications, adminOnly: true },
+    { href: "/admin/identity-verification", label: "Identity Verification", icon: ShieldCheck, adminOnly: true },
     { href: "/admin/users", label: "Users", icon: Users, adminOnly: true },
     { href: "/admin/businesses", label: "Businesses", icon: Building2, adminOnly: true },
     { href: "/admin/activity", label: "Activity Monitor", icon: Activity },

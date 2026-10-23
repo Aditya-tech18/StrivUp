@@ -18,6 +18,12 @@ export interface Profile {
   bio: string | null;
   account_type: string;
   verification_status: string;
+  /**
+   * Which tick to draw: 'none', 'user' (blue seal) or 'business' (gold).
+   * Distinct from verification_status, which tracks where an APPLICATION is.
+   * Only the admin review function and the business trigger write it.
+   */
+  verification_type: "none" | "user" | "business";
   profile_completed: boolean;
   /** Added by 20260909 migration — defaults to false before migration runs */
   is_deactivated: boolean;
@@ -87,6 +93,7 @@ function toProfile(raw: Record<string, unknown>): Profile {
     bio:                  (raw.bio as string) ?? null,
     account_type:         (raw.account_type as string) ?? "user",
     verification_status:  (raw.verification_status as string) ?? "none",
+    verification_type:    ((raw.verification_type as string) ?? "none") as Profile["verification_type"],
     profile_completed:    Boolean(raw.profile_completed ?? false),
     is_deactivated:       Boolean(raw.is_deactivated ?? false),
     is_private:           Boolean(raw.is_private ?? false),
@@ -112,7 +119,7 @@ export async function getMyProfile(): Promise<Profile | null> {
     .from("profiles")
     .select(
       "id,username,full_name,avatar_url,bio,account_type," +
-      "verification_status,profile_completed,created_at,updated_at"
+      "verification_status,verification_type,profile_completed,created_at,updated_at"
     )
     .eq("id", user.id)
     .maybeSingle();

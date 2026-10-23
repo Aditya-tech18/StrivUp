@@ -25,6 +25,8 @@ import { FeedCard } from "@/components/features/FeedCard";
 import { HomeRotator } from "@/components/features/home/HomeRotator";
 import { AutoScrollRail } from "@/components/features/home/AutoScrollRail";
 import { ActiveCard } from "@/components/features/home/ActiveCard";
+import { DiscoverList } from "@/components/features/home/DiscoverList";
+import { getPopularOngoing } from "@/lib/data/discover";
 import { createClient } from "@/lib/supabase/server";
 import { getFeedPosts } from "@/lib/data/feed";
 import {
@@ -104,6 +106,13 @@ export default async function FeedPage() {
     if (activeChallenges[i]) activeItems.push(activeChallenges[i]);
     if (activeQuests[i]) activeItems.push(activeQuests[i]);
   }
+
+  /* Nothing joined yet: the rail would be empty, so fill the slot with what
+     everyone else is doing instead of leaving a hole. Fetched only in that
+     case, so an account with activity never pays for this query. */
+  const discover = activeItems.length === 0 && user
+    ? await getPopularOngoing(supabase, 8)
+    : [];
 
   /* Home shows three challenges, not everything: two the person is keeping
      up with and one they are slipping on. See pickHomeTasks. */
@@ -266,7 +275,9 @@ export default async function FeedPage() {
               ))}
             </AutoScrollRail>
           </section>
-        ) : null}
+        ) : (
+          <DiscoverList items={discover} />
+        )}
 
         {/* ── 1. Today's Tasks ───────────────────────────────────────── */}
         <HomeRotator summary={homeSummary} questTasks={questTasks} />

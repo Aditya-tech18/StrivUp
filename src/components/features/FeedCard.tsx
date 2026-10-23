@@ -14,7 +14,8 @@ import { useState } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
-import { BadgeCheck, Flame, MessageCircle, ThumbsUp, Flag, ShieldAlert } from "lucide-react";
+import { Flame, MessageCircle, ThumbsUp, Flag, ShieldAlert } from "lucide-react";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { Card } from "@/components/ui";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { createClient } from "@/lib/supabase/client";
@@ -30,7 +31,7 @@ export interface FeedPost {
   id: string;
   authorName: string;
   authorAvatarUrl: string;
-  verified: boolean;
+  verification: "none" | "user" | "business";
   category: string;
   dayLabel: string; // e.g. "2H AGO"
   streakDay: number; // e.g. 45
@@ -172,13 +173,7 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
                 <span className="text-headline-md text-on-surface font-semibold truncate hover:underline">
                   {post.authorName}
                 </span>
-                {post.verified && (
-                  <BadgeCheck
-                    size={15}
-                    className="text-secondary flex-shrink-0"
-                    aria-label="Verified"
-                  />
-                )}
+                <VerifiedBadge type={post.verification} size={15} />
               </div>
               <p className="text-overline text-on-surface-variant text-label-sm leading-tight mt-0.5">
                 {post.category} &bull; {post.dayLabel}

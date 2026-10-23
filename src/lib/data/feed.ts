@@ -54,7 +54,7 @@ export async function getFeedPosts(
       admin_removed,
       media_width,
       media_height,
-      profiles!user_id ( full_name, avatar_url, verification_status ),
+      profiles!user_id ( full_name, avatar_url, verification_type ),
       challenges!challenge_id ( title )
       `
     )
@@ -108,7 +108,7 @@ export async function getFeedPosts(
     const profile = row.profiles as unknown as {
       full_name: string | null;
       avatar_url: string | null;
-      verification_status: string | null;
+      verification_type: string | null;
     } | null;
     const challenge = row.challenges as unknown as { title: string | null } | null;
 
@@ -121,7 +121,10 @@ export async function getFeedPosts(
       authorAvatarUrl:
         profile?.avatar_url ??
         `https://api.dicebear.com/7.x/avataaars/svg?seed=${row.user_id}`,
-      verified: profile?.verification_status === "approved",
+      /* The tier, not a yes/no: a gold seal and a blue one are different
+         claims and the card has to tell them apart. */
+      verification: (profile?.verification_type ?? "none") as
+        "none" | "user" | "business",
       category: (challenge?.title ?? "CHALLENGE").toUpperCase(),
       dayLabel: relativeLabel(row.submitted_at as string),
       streakDay: (row.day_number as number) ?? 1,

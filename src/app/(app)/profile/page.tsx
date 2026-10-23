@@ -12,6 +12,7 @@ import { SocialIcon, PLATFORM_NAME } from "@/components/ui/SocialIcon";
 import { ActivityHeatmap } from "@/components/ui/ActivityHeatmap";
 import { MobileMenu } from "@/components/ui";
 import { MyPosts } from "@/components/features/profile/MyPosts";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { AutoScrollRail } from "@/components/features/home/AutoScrollRail";
 import { ActiveCard } from "@/components/features/home/ActiveCard";
 import { getTodaysTasks, getTodaysQuestTasks, type TodayTask } from "@/lib/data/today";
@@ -592,6 +593,7 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-1.5">
                   <h2 className="text-body-lg font-bold text-on-surface tracking-[-0.01em] truncate">
                     {displayName}
+                    <VerifiedBadge type={profile?.verification_type} size={18} className="ml-1.5" />
                   </h2>
                   {isVerified && (
                     <ShieldCheck size={15} className="text-secondary shrink-0" aria-label="Verified" />

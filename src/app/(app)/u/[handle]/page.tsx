@@ -26,7 +26,8 @@ import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Flame, Lock, ShieldCheck, Trophy } from "lucide-react";
+import { Flame, Lock, Trophy } from "lucide-react";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { createClient } from "@/lib/supabase/server";
 import {
   getProfileByHandle,
@@ -151,7 +152,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
   const active = stats.filter((s) => s.status === "active");
   const completed = stats.filter((s) => s.status === "completed");
   const name = displayName(profile.full_name, profile.username);
-  const isVerified = profile.verification_status === "approved";
+  const verification = profile.verification_type;
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
@@ -180,14 +181,9 @@ export default async function PublicProfilePage({ params }: PageProps) {
           <div className="flex items-center gap-1.5">
             <h1 className="truncate text-headline-md font-bold text-on-surface">{name}</h1>
             {/* Identity verification only. Never render a Pro/paid badge here —
-                Verified and Premium are separate systems. */}
-            {isVerified ? (
-              <ShieldCheck
-                size={16}
-                className="shrink-0 text-secondary"
-                aria-label="Identity verified"
-              />
-            ) : null}
+                Verified and Premium are separate systems. Gold means the
+                business was verified; blue means the person was. */}
+            <VerifiedBadge type={verification} size={18} />
             {profile.is_private ? (
               <Lock
                 size={14}

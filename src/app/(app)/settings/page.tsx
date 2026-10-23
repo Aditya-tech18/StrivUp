@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Bell, ChevronRight, HelpCircle,
   Info, Lock, LogOut, Shield, Trash2,
-  ChevronDown, Palette, ShieldCheck, User, UserMinus,
+  BadgeCheck, ChevronDown, Palette, ShieldCheck, User, UserMinus,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -163,6 +163,12 @@ export default function SettingsPage() {
       label: "Account Privacy",
       subtitle: "Control who can see your profile",
       href: "/settings/privacy",
+    },
+    {
+      icon: <BadgeCheck size={17} className="text-secondary" />,
+      label: "Verification",
+      subtitle: "Get the blue seal on your profile",
+      href: "/settings/verification",
     },
     {
       icon: <Bell size={17} className="text-secondary" />,
