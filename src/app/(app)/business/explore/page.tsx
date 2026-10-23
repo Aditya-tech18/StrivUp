@@ -5,7 +5,8 @@
  */
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, BadgeCheck, Calendar, CheckCircle2, Copy, ListChecks, Search, Store, Users } from "lucide-react";
+import { ArrowLeft, Calendar, CheckCircle2, Copy, ListChecks, Search, Store, Users } from "lucide-react";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { createClient } from "@/lib/supabase/server";
 import { QUEST_CATEGORIES } from "@/lib/data/businessQuests";
 
@@ -118,7 +119,7 @@ export default async function BusinessExplorePage({ searchParams }: { searchPara
                     <Link href={`/quests/${r.id}`} className="line-clamp-2 text-body-lg font-black leading-snug text-on-surface hover:underline">{r.title}</Link>
                     <p className="flex items-center gap-1 text-sm text-on-surface">
                       <span className="truncate">{name}</span>
-                      {verified && <BadgeCheck size={15} className="shrink-0 text-secondary" aria-label="Verified business" />}
+                      {verified && <VerifiedBadge type="business" size={15} />}
                     </p>
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-on-surface-variant">
                       <span className="flex items-center gap-1"><ListChecks size={13} aria-hidden="true" />{taskCount.get(r.id) ?? 0} tasks</span>

@@ -33,6 +33,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/challenges/new", icon: PlusSquare, label: "Create", tourId: "nav-create"  },
   { href: "/creator/challenges", icon: Trophy, label: "My Challenges", tourId: "nav-my-challenges" },
   { href: "/rewards",        icon: Gift,       label: "My Rewards", tourId: "nav-rewards" },
+  { href: "/settings/verification", icon: BadgeCheck, label: "Get Verified" },
   { href: "/alerts",         icon: Bell,       label: "Alerts", showBadge: true, tourId: "nav-alerts" },
   { href: "/profile",        icon: User,       label: "Profile", tourId: "nav-profile" },
 ];

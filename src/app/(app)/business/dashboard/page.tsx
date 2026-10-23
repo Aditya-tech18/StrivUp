@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  AlertTriangle, Bell, BadgeCheck, BookOpen, CheckCircle2, CheckSquare, ChevronRight,
+  AlertTriangle, Bell, BookOpen, CheckCircle2, CheckSquare, ChevronRight,
   Circle, Clock, Gift, HelpCircle, Plus, Receipt, Search, ShieldCheck, Store, Trophy,
   TrendingUp, Users, XCircle, Zap,
 } from "lucide-react";
@@ -16,6 +16,7 @@ import { useUnreadCount } from "@/components/ui/AlertsContext";
 import { MobileMenu } from "@/components/ui/MobileMenu";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { StringKey as TKey } from "@/lib/i18n/businessStrings";
 import { getMyProfile, type Profile } from "@/lib/supabase/profile";
@@ -140,47 +141,29 @@ export default function BusinessDashboardPage() {
   const name = bp.business_name || t("biz.yourBusiness");
   const city = [bp.city, bp.state].filter(Boolean).join(", ");
 
-  const TOOLS = [
-    {
-      icon: <ShieldCheck size={22} className="text-secondary" />,
-      bg: "bg-secondary-fixed",
-      title: t("tools.verification"),
-      desc: t("tools.verificationDesc"),
-      cta: { label: t("tools.verifyCta"), href: VERIFY_HREF, primary: true },
-      badge: 0,
-    },
-    {
-      icon: <BookOpen size={22} className="text-on-surface-variant" />,
-      bg: "bg-surface-container-low",
-      title: t("tools.history"),
-      desc: t("tools.historyDesc"),
-      cta: { label: t("tools.viewAll"), href: "/business/verification/history", primary: false },
-      badge: 0,
-    },
-    {
-      icon: <Clock size={22} className="text-warning" />,
-      bg: "bg-warning-container",
-      title: t("tools.pending"),
-      desc: t("tools.pendingDesc"),
-      cta: { label: t("tools.reviewNow"), href: VERIFY_HREF, primary: false },
-      badge: insights.pending,
-    },
-    {
-      icon: <HelpCircle size={22} className="text-chart-3" />,
-      bg: "bg-chart-3/10",
-      title: t("tools.how"),
-      desc: t("tools.howDesc"),
-      cta: { label: t("tools.learnMore"), href: "/business/verification/how-it-works", primary: false },
-      badge: 0,
-    },
-  ];
-
-  const QUICK_LINKS = [
-    { icon: <CheckSquare size={18} className="text-warning" />,  bg: "bg-warning-container",  label: t("tools.proofs"),       href: "/business/proof-verification" },
-    { icon: <TrendingUp size={18} className="text-success" />,   bg: "bg-success-container",  label: t("tools.analytics"),    href: "/business/analytics" },
-    { icon: <Users size={18} className="text-chart-3" />,       bg: "bg-chart-3/10", label: t("stat.participants"), href: "/business/participants" },
-    { icon: <Gift size={18} className="text-warning" />,        bg: "bg-warning-container", label: t("tools.rewards"),      href: "/business/rewards" },
-    { icon: <Zap size={18} className="text-secondary" />,           bg: "bg-secondary-fixed",   label: t("tools.promote"),      href: "/business/promote" },
+  /*
+   * CHANGED: this used to be two lists in two visual styles — four big cards
+   * with a title, a sentence and their own button, then five small icon
+   * links under a rule. Nine destinations, drawn two different ways, in a
+   * column already carrying a stats row and an activity feed. That is the
+   * clutter.
+   *
+   * One list now, one tile, ordered by how often a counter actually touches
+   * it. The pending count still rides its own tile, because a number nobody
+   * can see is not a queue.
+   */
+  const TOOL_TILES: {
+    icon: React.ReactNode; bg: string; label: string; href: string; badge?: number;
+  }[] = [
+    { icon: <ShieldCheck size={19} className="text-secondary" />,       bg: "bg-secondary-fixed",     label: t("tools.verification"), href: VERIFY_HREF },
+    { icon: <Clock size={19} className="text-warning" />,               bg: "bg-warning-container",   label: t("tools.pending"),      href: VERIFY_HREF, badge: insights.pending },
+    { icon: <CheckSquare size={19} className="text-warning" />,         bg: "bg-warning-container",   label: t("tools.proofs"),       href: "/business/proof-verification" },
+    { icon: <Users size={19} className="text-chart-3" />,               bg: "bg-chart-3/10",          label: t("stat.participants"),  href: "/business/participants" },
+    { icon: <TrendingUp size={19} className="text-success" />,          bg: "bg-success-container",   label: t("tools.analytics"),    href: "/business/analytics" },
+    { icon: <Gift size={19} className="text-warning" />,                bg: "bg-warning-container",   label: t("tools.rewards"),      href: "/business/rewards" },
+    { icon: <Zap size={19} className="text-secondary" />,               bg: "bg-secondary-fixed",     label: t("tools.promote"),      href: "/business/promote" },
+    { icon: <BookOpen size={19} className="text-on-surface-variant" />, bg: "bg-surface-container-low", label: t("tools.history"),    href: "/business/verification/history" },
+    { icon: <HelpCircle size={19} className="text-chart-3" />,          bg: "bg-chart-3/10",          label: t("tools.how"),          href: "/business/verification/how-it-works" },
   ];
 
   return (
@@ -271,7 +254,7 @@ export default function BusinessDashboardPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-headline-md font-black text-on-surface">{name}</h1>
                 {bp.verification_status === "verified" && (
-                  <BadgeCheck size={18} className="text-secondary" aria-label={t("biz.verified")} />
+                  <VerifiedBadge type="business" size={20} title={t("biz.verified")} />
                 )}
               </div>
               {bp.business_username && <p className="text-sm text-on-surface-variant">@{bp.business_username}</p>}
@@ -410,62 +393,50 @@ export default function BusinessDashboardPage() {
         {/* ── Aside: monitoring ──────────────────────────────────────── */}
         <div className="flex flex-col gap-5">
 
-        {/* ── Business Tools ───────────────────────────────────────────── */}
+        {/* ── Tools ────────────────────────────────────────────────── */}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-5 py-5 elev-1 surface-raised">
-          <h2 className="text-body-lg font-black text-on-surface mb-1">{t("tools.heading")}</h2>
-          <p className="text-sm text-on-surface-variant mb-4">{t("tools.sub")}</p>
-          <div className="grid grid-cols-2 gap-3">
-            {TOOLS.map(tool => (
-              <div key={tool.title} className="rounded-2xl border border-outline-variant p-4 flex flex-col gap-3">
-                <div className="flex items-start justify-between">
-                  <div className={`w-10 h-10 rounded-xl ${tool.bg} flex items-center justify-center`}>{tool.icon}</div>
-                  {tool.badge > 0 && (
-                    <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-warning text-white text-label-sm font-bold flex items-center justify-center">
+          <h2 className="text-body-lg font-black text-on-surface">{t("tools.heading")}</h2>
+          <p className="mt-0.5 mb-4 text-sm text-on-surface-variant">{t("tools.sub")}</p>
+
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-3">
+            {TOOL_TILES.map((tool) => (
+              <Link
+                key={tool.href + tool.label}
+                href={tool.href}
+                className="flex flex-col items-center gap-1.5 rounded-xl py-2.5 transition-colors hover:bg-surface-container-low tap-target"
+              >
+                <span className={`relative flex h-10 w-10 items-center justify-center rounded-xl ${tool.bg}`}>
+                  {tool.icon}
+                  {tool.badge ? (
+                    <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-warning px-1 text-label-sm font-bold leading-none text-white">
                       {tool.badge > 99 ? "99+" : tool.badge}
                     </span>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-on-surface">{tool.title}</p>
-                  <p className="text-xs text-on-surface-variant mt-0.5 leading-snug">{tool.desc}</p>
-                </div>
-                {tool.cta.primary ? (
-                  <Link href={tool.cta.href}>
-                    <span className="w-full h-9 rounded-xl bg-secondary hover:opacity-90 text-white text-xs font-bold flex items-center justify-center transition-colors">
-                      {tool.cta.label}
-                    </span>
-                  </Link>
-                ) : (
-                  <Link href={tool.cta.href} className="text-sm text-secondary font-semibold flex items-center gap-1">
-                    {tool.cta.label} <ChevronRight size={14} />
-                  </Link>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* ── More tools ───────────────────────────────────────────── */}
-          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-outline-variant pt-4 sm:grid-cols-5 lg:grid-cols-3">
-            {QUICK_LINKS.map(q => (
-              <Link key={q.href} href={q.href} className="flex flex-col items-center gap-1.5 rounded-xl py-2 hover:bg-surface-container-low transition-colors tap-target">
-                <div className={`w-9 h-9 rounded-xl ${q.bg} flex items-center justify-center`}>{q.icon}</div>
-                <span className="text-label-sm font-medium text-on-surface-variant text-center leading-tight">{q.label}</span>
+                  ) : null}
+                </span>
+                <span className="text-center text-label-sm font-medium leading-tight text-on-surface-variant">
+                  {tool.label}
+                </span>
               </Link>
             ))}
           </div>
         </div>
 
-        {/* ── Quest Stats Row ───────────────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {/* ── Quest numbers ────────────────────────────────────────────
+            A slim strip, not four more cards. Participants is gone from
+            here: the profile card above already states it, and the same
+            number twice on one screen is how two numbers end up
+            disagreeing. */}
+        <div className="flex items-stretch gap-px overflow-hidden rounded-2xl border border-outline-variant bg-outline-variant elev-1">
           {[
-            { label: t("stat.totalQuests"),  value: questStats.total,         color: "text-secondary" },
-            { label: t("stat.active"),       value: questStats.active,        color: "text-on-success-container" },
-            { label: t("stat.participants"), value: questStats.participants,  color: "text-chart-3" },
+            { label: t("stat.totalQuests"),  value: questStats.total,          color: "text-on-surface" },
+            { label: t("stat.active"),       value: questStats.active,         color: "text-on-success-container" },
             { label: t("stat.pendingProof"), value: questStats.pending_proofs, color: questStats.pending_proofs > 0 ? "text-on-warning-container" : "text-on-surface-variant" },
-          ].map(s => (
-            <div key={s.label} className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-3 flex flex-col items-center elev-1 surface-raised">
-              <span className={`text-xl font-black ${s.color}`}>{s.value}</span>
-              <span className="text-label-sm text-on-surface-variant font-medium mt-0.5 text-center leading-tight">{s.label}</span>
+          ].map((s2) => (
+            <div key={s2.label} className="flex flex-1 flex-col items-center bg-surface-container-lowest py-3">
+              <span className={`text-headline-sm font-black ${s2.color}`}>{s2.value}</span>
+              <span className="mt-0.5 px-1 text-center text-label-sm font-medium leading-tight text-on-surface-variant">
+                {s2.label}
+              </span>
             </div>
           ))}
         </div>

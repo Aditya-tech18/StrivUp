@@ -50,15 +50,24 @@ const USER_ITEMS: NavItem[] = [
   { href: "/search",         icon: Search,   label: "Search",     tourId: "nav-search" },
 ];
 
+/*
+ * CHANGED: this bar had TWO slots pointing at /business/dashboard, Home and
+ * Business. Two identical hrefs meant two identical React keys, which is why
+ * the bar rendered "Home" twice, and both lit up at once because Home matched
+ * /business/dashboard while Business matched the whole /business prefix.
+ *
+ * Business IS home in business mode, so the duplicate slot is gone and its
+ * place went to the business profile. Challenges pointed at /explore and
+ * Quests at /quests, both USER screens, so tapping either dropped you out of
+ * business mode; they point at the business versions now. Every href here is
+ * distinct and every one stays inside /business.
+ */
 const BUSINESS_ITEMS: NavItem[] = [
-  /* CHANGED: was "/feed", which is the USER feed. Tapping Home while in
-     business mode threw you out of business mode entirely. Business Home is
-     the business dashboard. */
-  { href: "/business/dashboard",   icon: Home,      label: "Home", activePrefix: "/business/dashboard" },
-  { href: "/explore",              icon: Trophy,    label: "Challenges" },
-  { href: "/business/quests/new",  icon: Plus,      label: "Create"     },
-  { href: "/quests",               icon: Users,     label: "Quests"     },
-  { href: "/business/dashboard",   icon: Briefcase, label: "Business", activePrefix: "/business" },
+  { href: "/business/dashboard",  icon: Home,      label: "Home",       activePrefix: "/business/dashboard" },
+  { href: "/business/challenges", icon: Trophy,    label: "Challenges", activePrefix: "/business/challenges" },
+  { href: "/business/quests/new", icon: Plus,      label: "Create"      },
+  { href: "/business/quests",     icon: Users,     label: "Quests",     activePrefix: "/business/quests" },
+  { href: "/business/profile",    icon: Briefcase, label: "Business",   activePrefix: "/business/profile" },
 ];
 
 export type { NavItem };
@@ -89,7 +98,9 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
         // CHANGED: /challenges is an index route now, so the prefix rule below
         // would light Challenges up while the Create screen (/challenges/new)
         // is open. The create route is its own slot and owns its own state.
-        const isActive = !isCreate && pathname !== "/challenges/new" && (
+        const onACreateScreen =
+          pathname === "/challenges/new" || pathname === "/business/quests/new";
+        const isActive = !isCreate && !onACreateScreen && (
           pathname === item.href ||
           (item.activePrefix !== undefined && pathname.startsWith(item.activePrefix)) ||
           (item.href !== "/feed" && item.href !== "/business/dashboard" && pathname.startsWith(item.href))
@@ -99,7 +110,7 @@ export function BottomNav({ className = "", ...props }: BottomNavProps) {
 
         return (
           <Link
-            key={item.href}
+            key={`${item.label}-${item.href}`}
             href={item.href}
             data-tour={item.tourId}
             aria-current={isActive ? "page" : undefined}

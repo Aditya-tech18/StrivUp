@@ -53,9 +53,12 @@ export function MobileMenu() {
      and the rail is the only way in. */
   const isBusiness = pathname.startsWith("/business");
 
+  /* Get Verified appears in both modes. In business mode it is the only
+     destination, beside the mode switch: a business owner still verifies as a
+     PERSON, and there was nowhere else on a phone to start that. */
   const DRAWER_HREFS = isBusiness
-    ? []
-    : ["/rewards", "/settings", "/profile"];
+    ? ["/settings/verification"]
+    : ["/rewards", "/settings/verification", "/settings", "/profile"];
 
   const byHref = new Map(NAV_ITEMS.map((i) => [i.href, i]));
   const items = DRAWER_HREFS.map((href) => byHref.get(href)).filter(
@@ -171,9 +174,9 @@ export function MobileMenu() {
                     {label}
                   </Link>
 
-                  {/* Straight after My Rewards, which is where the person
-                      asked for it and where it is actually reachable. */}
-                  {!isBusiness && index === 0 && (
+                  {/* Under My Rewards and Get Verified, still near the top
+                      rather than stranded at the foot of the list. */}
+                  {!isBusiness && index === 1 && (
                     <div onClick={() => setOpen(false)}>
                       <ModeSwitcher />
                     </div>
