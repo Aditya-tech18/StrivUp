@@ -23,7 +23,6 @@ export function PhysicalTaskCard({
   taskDescription,
   config,
   progress,
-  questTitle,
 }: {
   taskTitle: string;
   taskDescription?: string | null;
@@ -31,6 +30,7 @@ export function PhysicalTaskCard({
   progress: QuestActivityProgress | null;
   /** Kept for callers that pass it; the in-app counter needs no connection. */
   isConnected?: boolean;
+  /** Accepted from callers but unused since the card stopped opening a modal. */
   questTitle?: string;
   businessName?: string | null;
 }) {
@@ -67,32 +67,35 @@ export function PhysicalTaskCard({
         </div>
       </div>
 
-      {done ? (
+      {isSteps ? (
         <>
-          <ActivityProgressCard
-            current={current}
-            target={target}
-            unit={config.unit}
-            label={config.frequency === "daily" ? "Today" : "Progress"}
+          {/* The tracker stays mounted after the target is hit. Swapping it for
+              a static summary used to stop the count dead at the target, so a
+              walk that went further simply vanished — and the next day bucket
+              started from whatever the page happened to remember. */}
+          {done && (
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-on-success-container">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Task completed
+              {progress?.completed_at && (
+                <span className="font-normal">
+                  ·{" "}
+                  {new Date(progress.completed_at).toLocaleString("en-IN", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    day: "numeric",
+                    month: "short",
+                  })}
+                </span>
+              )}
+            </p>
+          )}
+          <LiveStepTracker
+            targetSteps={target}
+            timezone={config.timezone || "Asia/Kolkata"}
+            capAtTarget
           />
-          <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-on-success-container">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            Task completed
-            {progress?.completed_at && (
-              <span className="font-normal text-on-success-container">
-                ·{" "}
-                {new Date(progress.completed_at).toLocaleString("en-IN", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  day: "numeric",
-                  month: "short",
-                })}
-              </span>
-            )}
-          </p>
         </>
-      ) : isSteps ? (
-        <LiveStepTracker targetSteps={target} timezone={config.timezone || "Asia/Kolkata"} />
       ) : (
         /* Distance / duration quests have no in-app counter yet — show the
            progress the server has and leave it at that, rather than offering a

@@ -6,6 +6,7 @@ export { PhysicalTaskCard } from "./PhysicalTaskCard";
 export { ActivityPermissionModal } from "./ActivityPermissionModal";
 export { ActivityProviderCard } from "./ActivityProviderCard";
 export { LiveStepTracker } from "./LiveStepTracker";
+export { StepStageTrack, stageBoundaries } from "./StepStageTrack";
 export { DailyStepsCard } from "./DailyStepsCard";
 export { PhysicalQuestBadge } from "./PhysicalQuestBadge";
 export { ActivityHistory } from "./ActivityHistory";

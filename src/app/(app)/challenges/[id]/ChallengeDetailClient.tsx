@@ -53,7 +53,7 @@ import { PeopleListSheet } from "@/components/features/people/PeopleList";
 import { getChallengeMembers, type Facepile as FacepileData } from "@/lib/data/social";
 import { Facepile } from "@/components/features/people/Facepile";
 import type { ChallengeTask, TaskSubmission } from "@/lib/data/tasks";
-import { PhysicalTaskCard } from "@/components/features/activity";
+import { PhysicalTaskCard, LiveStepTracker } from "@/components/features/activity";
 import { currentChallengePeriodProgress } from "@/lib/data/activity";
 import { ProofRequirementsNotice } from "@/components/features/proof/ProofRequirementsNotice";
 import type { ProofRequirement } from "@/lib/data/proofRequirements";
@@ -75,6 +75,9 @@ export interface ChallengeDetail {
   visibility: "public" | "private";
   /** Derived at creation time; tells a participant what to photograph. */
   proofInstructions: string | null;
+  /** Used to decide whether the daily proof should offer the step counter. */
+  category?: string | null;
+  proofMethods?: string[];
 }
 
 export interface LeaderboardEntry {
@@ -336,6 +339,23 @@ function TaskUploadSlot({
 }
 
 /* ── Legacy single-proof upload card ─────────────────────────────────────── */
+/**
+ * Does this challenge measure movement?
+ *
+ * A walking or running challenge was still asking only for a photo, which
+ * proves someone owns shoes rather than that they walked. There is no task
+ * config on a task-less challenge to read a target from, so the signal has to
+ * come from what the creator chose: the category, the proof methods they
+ * picked, or the title itself.
+ */
+const MOVEMENT_WORDS = /\b(walk|walking|steps?|run|running|jog|jogging|cycle|cycling|marathon|10k|5k)\b/i;
+
+function isMovementChallenge(c: ChallengeDetail): boolean {
+  if (c.category && MOVEMENT_WORDS.test(c.category)) return true;
+  if ((c.proofMethods ?? []).some((m) => MOVEMENT_WORDS.test(m))) return true;
+  return MOVEMENT_WORDS.test(c.title) || MOVEMENT_WORDS.test(c.todayTask ?? "");
+}
+
 function LegacyUploadCard({
   challenge,
   userId,
@@ -401,12 +421,25 @@ function LegacyUploadCard({
   );
 
   const isRejected = slot.state === "rejected";
+  const isMovement = isMovementChallenge(challenge);
 
   return (
     // This card paints its own dark navy gradient, so everything inside it is
     // light-on-dark: white/NN text and the 300/400 end of each colour ramp.
     // Do not swap those for the success/warning/error tokens, which are tuned
     // for a light surface and go nearly invisible here.
+    <>
+      {/* A walking or running challenge gets the step counter above the camera.
+          The photo stays — it is still the thing a human reviewer looks at —
+          but asking only for a photo proved someone owns shoes, not that they
+          walked. There is no task config here to read a target from, so the
+          counter runs open-ended and the steps ride along with the day. */}
+      {isMovement && (
+        <div className="mb-3">
+          <LiveStepTracker timezone="Asia/Kolkata" />
+        </div>
+      )}
+
     <div
       className="rounded-xl p-5 space-y-4"
       style={{ background: "linear-gradient(135deg, #0d1c32 0%, #1a3a6b 100%)" }}
@@ -549,6 +582,7 @@ function LegacyUploadCard({
         </div>
       )}
     </div>
+    </>
   );
 }
 

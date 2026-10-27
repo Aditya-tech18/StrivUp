@@ -170,7 +170,7 @@ export async function getChallengeDetail(
     .select(
       `
       id, title, duration_days, thumbnail_url, created_at, description, visibility,
-      proof_instructions, creator_id,
+      proof_instructions, creator_id, category, proof_methods,
       profiles!creator_id ( full_name )
       `
     )
@@ -208,6 +208,10 @@ export async function getChallengeDetail(
     // this; the composer falls back to generic wording.
     proofInstructions: (data.proof_instructions as string | null) ?? null,
     creatorId: (data.creator_id as string | null) ?? null,
+    // Carried so the daily proof card can tell a walking challenge from a
+    // reading one and offer the step counter instead of only a camera.
+    category: (data.category as string | null) ?? null,
+    proofMethods: (data.proof_methods as string[] | null) ?? [],
   };
 }
 
