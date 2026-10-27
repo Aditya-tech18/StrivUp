@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Footprints, MapPin, Pause, Play, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui";
 import { ActivityProgressCard } from "./ActivityProgressCard";
+import { StepStageTrack } from "./StepStageTrack";
 import {
   Pedometer,
   fetchStoredToday,
@@ -37,10 +38,17 @@ export function LiveStepTracker({
   targetSteps,
   timezone = "Asia/Kolkata",
   onSynced,
+  capAtTarget = false,
 }: {
   targetSteps?: number;
   timezone?: string;
   onSynced?: (total: number) => void;
+  /**
+   * Quest context. The quest is satisfied at the target and its figure stops
+   * there, while the counter itself keeps running until the walker stops it —
+   * their steps are still theirs after the quest is done with them.
+   */
+  capAtTarget?: boolean;
 }) {
   const router = useRouter();
 
@@ -227,7 +235,14 @@ export function LiveStepTracker({
       </div>
 
       {targetSteps ? (
-        <ActivityProgressCard current={total} target={targetSteps} unit="steps" />
+        <>
+          <ActivityProgressCard
+            current={capAtTarget ? Math.min(total, targetSteps) : total}
+            target={targetSteps}
+            unit="steps"
+          />
+          <StepStageTrack current={total} target={targetSteps} className="mt-4" />
+        </>
       ) : (
         <p className="text-2xl font-bold tabular-nums text-on-surface">
           {total.toLocaleString("en-IN")}

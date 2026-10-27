@@ -247,7 +247,7 @@ export async function getChallengeDetail(
     .select(
       `
       id, title, duration_days, thumbnail_url, created_at, description, visibility,
-      proof_instructions, creator_id, daily_stake,
+      proof_instructions, creator_id, daily_stake, category, proof_methods,
       profiles!creator_id ( full_name )
       `
     )
@@ -288,6 +288,10 @@ export async function getChallengeDetail(
     /* 0 for every challenge created before stakes existed, which is the
        correct reading: they stake nothing. */
     dailyStake: (data.daily_stake as number | null) ?? 0,
+    // Carried so the daily proof card can tell a walking challenge from a
+    // reading one and offer the step counter instead of only a camera.
+    category: (data.category as string | null) ?? null,
+    proofMethods: (data.proof_methods as string[] | null) ?? [],
   };
 }
 

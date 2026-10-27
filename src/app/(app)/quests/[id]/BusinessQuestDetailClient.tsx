@@ -96,6 +96,14 @@ function daysRemaining(end: string | null): number | null {
   return Math.ceil(ms / 86_400_000);
 }
 
+/** Whole days until the start date; 0 or negative once it has begun. */
+function daysUntil(start: string | null): number | null {
+  if (!start) return null;
+  const ms = new Date(start).getTime() - Date.now();
+  if (!Number.isFinite(ms)) return null;
+  return Math.ceil(ms / 86_400_000);
+}
+
 function durationDays(start: string | null, end: string | null): number | null {
   if (!start || !end) return null;
   const ms = new Date(end).getTime() - new Date(start).getTime();
@@ -141,13 +149,26 @@ export default function BusinessQuestDetailClient({
   const isVerifiedBiz = quest.business_verification === "verified";
   const isEnded = quest.quest_status === "completed" || quest.quest_status === "expired";
 
-  // "Live" means you can still join right now: published/active, not ended,
-  // and the deadline has not passed. A paused or draft quest is not live even
-  // if its dates are still open.
-  const isLive =
-    !isEnded &&
-    (quest.quest_status === "active" || quest.quest_status === "published") &&
-    (daysLeft == null || daysLeft > 0);
+  const daysToStart = daysUntil(quest.start_date);
+
+  /*
+   * A quest moves through three phases, and the dates decide — not the status
+   * alone. Before this, a quest starting next week still read as "Live",
+   * which invited people to upload proof for something that had not begun.
+   *
+   *   upcoming  start date is still ahead
+   *   live      started, not finished, still publicly open
+   *   closed    end date passed, or the status says it is over
+   */
+  const phase: "upcoming" | "live" | "closed" =
+    isEnded || (daysLeft != null && daysLeft <= 0)
+      ? "closed"
+      : daysToStart != null && daysToStart > 0
+        ? "upcoming"
+        : quest.quest_status === "active" || quest.quest_status === "published"
+          ? "live"
+          : "upcoming";
+
   const businessName = quest.business?.business_name ?? quest.business_name ?? "Business";
   const userName = currentUserName?.split(" ")[0] ?? "there";
 
@@ -486,7 +507,10 @@ export default function BusinessQuestDetailClient({
             {/* Two facts decide whether someone joins: how many people are
                 already in, and how long is left. Everything else was noise. */}
             <section className="bg-white rounded-2xl border border-gray-200 px-4 sm:px-5 py-3.5 flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2">
-              {isLive && (
+              {/* The dot only pulses while the quest is actually running —
+                  an animated badge on something that has not started yet
+                  reads as activity that is not happening. */}
+              {phase === "live" ? (
                 <span className="flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 px-2.5 py-1">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping" />
@@ -494,6 +518,20 @@ export default function BusinessQuestDetailClient({
                   </span>
                   <span className="text-[11px] font-bold uppercase tracking-wide text-green-700">
                     Live
+                  </span>
+                </span>
+              ) : phase === "upcoming" ? (
+                <span className="flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-1">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-amber-500" />
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-amber-700">
+                    Upcoming
+                  </span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 rounded-full bg-gray-100 border border-gray-200 px-2.5 py-1">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-gray-400" />
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-gray-600">
+                    Closed
                   </span>
                 </span>
               )}
@@ -508,13 +546,25 @@ export default function BusinessQuestDetailClient({
                 </span>
               </span>
 
-              {quest.end_date && (
+              {(quest.end_date || quest.start_date) && (
                 <span className="flex items-center gap-2">
                   <Calendar size={16} className="text-violet-600 shrink-0" />
                   <span className="text-sm text-gray-700">
-                    {daysLeft != null && daysLeft <= 0 ? (
+                    {phase === "closed" ? (
                       <strong className="text-gray-500 font-semibold">Closed</strong>
-                    ) : (
+                    ) : phase === "upcoming" ? (
+                      <>
+                        Starts{" "}
+                        <strong className="text-gray-900 font-bold">
+                          {quest.start_date ? formatShort(quest.start_date) : "soon"}
+                        </strong>
+                        {daysToStart != null && (
+                          <span className="text-gray-500">
+                            {" "}· {daysToStart === 1 ? "in 1 day" : `in ${daysToStart} days`}
+                          </span>
+                        )}
+                      </>
+                    ) : quest.end_date ? (
                       <>
                         Register by{" "}
                         <strong className="text-gray-900 font-bold">
@@ -526,6 +576,8 @@ export default function BusinessQuestDetailClient({
                           </span>
                         )}
                       </>
+                    ) : (
+                      <strong className="text-gray-900 font-bold">Open now</strong>
                     )}
                   </span>
                 </span>
@@ -598,7 +650,7 @@ export default function BusinessQuestDetailClient({
                   loading={loading}
                   joined={hasJoined}
                   platforms={quest.order_platforms}
-                  isLive={isLive}
+                  phase={phase}
                 />
                 <VerificationStepper />
               </>
@@ -615,7 +667,7 @@ export default function BusinessQuestDetailClient({
                   loading={loading}
                   joined={hasJoined}
                   platforms={quest.order_platforms}
-                  isLive={isLive}
+                  phase={phase}
                 />
                 <VerificationStepper />
               </>
@@ -915,7 +967,7 @@ function AboutQuestCard({
 /* ── Task list ─────────────────────────────────────────────────────────── */
 
 function TaskSection({
-  tasks, completedTaskIds, verifications, onProof, loading, joined, platforms, isLive,
+  tasks, completedTaskIds, verifications, onProof, loading, joined, platforms, phase,
 }: {
   tasks: BusinessQuestDetail["tasks"];
   completedTaskIds: Set<string>;
@@ -924,7 +976,7 @@ function TaskSection({
   loading: boolean;
   joined: boolean;
   platforms: OrderPlatformLink[] | null;
-  isLive: boolean;
+  phase: "upcoming" | "live" | "closed";
 }) {
   if (tasks.length === 0) return null;
 
@@ -959,7 +1011,7 @@ function TaskSection({
             loading={loading}
             joined={joined}
             platforms={platforms}
-            isLive={isLive}
+            phase={phase}
           />
         ))}
       </ul>
@@ -968,7 +1020,7 @@ function TaskSection({
 }
 
 function TaskCard({
-  task, index, completed, verification, onProof, loading, joined, platforms, isLive,
+  task, index, completed, verification, onProof, loading, joined, platforms, phase,
 }: {
   task: BusinessQuestDetail["tasks"][number];
   index: number;
@@ -978,8 +1030,8 @@ function TaskCard({
   loading: boolean;
   joined: boolean;
   platforms: OrderPlatformLink[] | null;
-  /** The quest is open for submissions right now. */
-  isLive: boolean;
+  /** Submissions are only accepted while the quest is live. */
+  phase: "upcoming" | "live" | "closed";
 }) {
   const [open, setOpen] = useState(false);
 
@@ -1000,9 +1052,11 @@ function TaskCard({
   // today and task 1 tomorrow, and forcing an order would just block them.
   const blockedReason = !joined
     ? "Join the Quest to start"
-    : !isLive
-      ? "This Quest is closed"
-      : null;
+    : phase === "upcoming"
+      ? "Quest hasn't started yet"
+      : phase === "closed"
+        ? "This Quest is closed"
+        : null;
 
   return (
     <li className="rounded-2xl border border-outline-variant bg-surface-container-lowest transition-colors hover:border-outline">
