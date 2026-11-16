@@ -220,32 +220,71 @@ export default function BusinessQuestDetailClient({
 
   /* ── Join ───────────────────────────────────────────────────────────── */
 
-  const handleJoin = useCallback(async () => {
-    if (!currentUserId) {
-      router.push(`/login?redirectTo=/quests/${quest.id}`);
-      return;
-    }
-    setJoining(true);
-    const { error } = await supabase.from("quest_participants").upsert(
+  
+const handleJoin = useCallback(async () => {
+  if (!currentUserId) {
+    router.push(`/login?redirectTo=/quests/${quest.id}`);
+    return;
+  }
+
+  if (phase !== "live") return;
+
+  setJoining(true);
+
+  const { error } = await supabase
+    .from("quest_participants")
+    .upsert(
       {
         quest_id: quest.id,
         user_id: currentUserId,
         verification_status: "pending",
         joined_at: new Date().toISOString(),
       },
-      { onConflict: "quest_id,user_id", ignoreDuplicates: true }
+      {
+        onConflict: "quest_id,user_id",
+        ignoreDuplicates: true,
+      }
     );
-    setJoining(false);
 
-    if (error) {
-      setShareNote("Could not join the Quest. Please try again.");
-      return;
-    }
-    setHasJoined(true);
-    void supabase
-      .from("quest_events")
-      .insert({ quest_id: quest.id, user_id: currentUserId, event_type: "join" });
-  }, [currentUserId, quest.id, router, supabase]);
+  setJoining(false);
+
+  if (error) {
+    setShareNote("Could not join the Quest. Please try again.");
+    return;
+  }
+
+  setHasJoined(true);
+
+  void supabase.from("quest_events").insert({
+    quest_id: quest.id,
+    user_id: currentUserId,
+    event_type: "join",
+  });
+
+  // Open the first required order-verification task.
+  const firstTask =
+    tasks.find(
+      (task) =>
+        task.proof_type === "order_verification" &&
+        task.is_required
+    ) ??
+    tasks.find(
+      (task) => task.proof_type === "order_verification"
+    );
+
+  if (firstTask) {
+    setActiveTask(firstTask);
+  }
+
+}, [
+  currentUserId,
+  quest.id,
+  router,
+  supabase,
+  phase,
+  tasks,
+]);
+
 
   /* ── Share ──────────────────────────────────────────────────────────── */
 
