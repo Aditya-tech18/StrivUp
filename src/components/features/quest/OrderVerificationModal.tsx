@@ -204,7 +204,7 @@ export default function OrderVerificationModal({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-primary/60 backdrop-blur-sm px-0 sm:px-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-primary/60 backdrop-blur-sm px-4 py-4"
       role="dialog"
       aria-modal="true"
       aria-label={`${taskTitle} — order verification`}
@@ -215,8 +215,7 @@ export default function OrderVerificationModal({
           behind the keyboard. pb-safe keeps the last button clear of the home
           indicator. overscroll-contain stops a flick at the end of the sheet
           from scrolling the quest page behind it. */}
-      <div className="flex max-h-[92dvh] w-full flex-col overflow-y-auto overscroll-contain rounded-t-3xl border border-outline-variant bg-surface-container-lowest pb-safe elev-5 sm:max-h-[86dvh] sm:max-w-md sm:rounded-2xl sm:pb-0">
-
+      <div className="flex max-h-[82dvh] w-full max-w-[360px] flex-col overflow-y-auto overscroll-contain rounded-2xl border border-outline-variant bg-surface-container-lowest pb-safe elev-5">
         <div aria-hidden="true" className="flex justify-center pt-2 sm:hidden">
           <span className="h-1 w-10 rounded-full bg-outline-variant" />
         </div>
@@ -433,9 +432,9 @@ export default function OrderVerificationModal({
                       </div>
 
                       <p className="mt-2 text-xs leading-relaxed text-on-surface-variant">
-                        {verified
-                          ? "Enter the code the business wrote on your bill."
-                          : `${businessName} writes this code on your bill. Enter it here once your order has been confirmed.`}
+{verified
+  ? "Enter the OTP received on your bill to complete this task."
+  : `${businessName} will provide the OTP on your bill. Enter it here after your order has been verified.`}
                       </p>
 
                       <button
