@@ -60,7 +60,8 @@ export function ProofComposer({
   proofInstruction?: string | null;
 }) {
   const router = useRouter();
-  const fileRef = useRef<HTMLInputElement>(null);
+const cameraRef = useRef<HTMLInputElement>(null);
+const galleryRef = useRef<HTMLInputElement>(null);
 
   const [phase, setPhase] = useState<Phase>("pick");
   const [review, setReview] = useState<Review>("idle");
@@ -187,19 +188,39 @@ export function ProofComposer({
               </div>
             ) : null}
 
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low py-10 transition-colors hover:border-secondary hover:bg-secondary/5"
-            >
-              <ImagePlus size={28} className="text-on-surface-variant" aria-hidden="true" />
-              <span className="text-body-md font-semibold text-on-surface">
-                Choose a photo or video
-              </span>
-              <span className="text-label-sm text-on-surface-variant">
-                It gets checked while you write
-              </span>
-            </button>
+
+<div className="grid grid-cols-2 gap-3">
+
+  <button
+    type="button"
+    onClick={() => cameraRef.current?.click()}
+    className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low py-8 transition-colors hover:border-secondary hover:bg-secondary/5"
+  >
+    <Camera size={30} className="text-secondary" />
+    <span className="text-body-md font-semibold text-on-surface">
+      Take Photo
+    </span>
+    <span className="text-label-sm text-on-surface-variant">
+      Open Camera
+    </span>
+  </button>
+
+  <button
+    type="button"
+    onClick={() => galleryRef.current?.click()}
+    className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low py-8 transition-colors hover:border-secondary hover:bg-secondary/5"
+  >
+    <ImagePlus size={30} className="text-secondary" />
+    <span className="text-body-md font-semibold text-on-surface">
+      Gallery
+    </span>
+    <span className="text-label-sm text-on-surface-variant">
+      Choose Photo or Video
+    </span>
+  </button>
+
+</div>
+
           </div>
         ) : (
           <div className="space-y-4 p-4">
@@ -293,19 +314,36 @@ export function ProofComposer({
           </div>
         )}
 
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*,video/*"
-          className="sr-only"
-          tabIndex={-1}
-          aria-hidden="true"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            e.target.value = "";
-            if (file) void handleFile(file);
-          }}
-        />
+{/* Camera input */}
+<input
+  ref={cameraRef}
+  type="file"
+  accept="image/*"
+  capture="environment"
+  className="sr-only"
+  tabIndex={-1}
+  aria-hidden="true"
+  onChange={(e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) void handleFile(file);
+  }}
+/>
+
+{/* Gallery input */}
+<input
+  ref={galleryRef}
+  type="file"
+  accept="image/*,video/*"
+  className="sr-only"
+  tabIndex={-1}
+  aria-hidden="true"
+  onChange={(e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) void handleFile(file);
+  }}
+/>
       </div>
     </div>
   );
