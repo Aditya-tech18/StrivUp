@@ -12,6 +12,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { compressImage, IMAGE_PRESETS } from "@/lib/image";
+import { observeProofReview, type ProofReviewResult } from "./proofReviewStatus";
 
 /** Day 1 is the day you joined, not the day after. */
 export function calcDayNumber(joinedAt: string | null): number {
@@ -129,13 +130,16 @@ export async function uploadProof(opts: UploadOpts, file: File): Promise<UploadR
 /** Call the review-proof edge function and return normalised verdict. */
 export async function callReviewProof(
   submissionId: string
-): Promise<{ status: "approved" | "rejected" | "pending"; rejectionReason: string | null }> {
+): Promise<ProofReviewResult> {
   try {
     const supabase = createClient();
     const { data, error } = await supabase.functions.invoke("review-proof", {
       body: { submission_id: submissionId },
+      signal: AbortSignal.timeout(10_000),
     });
-    if (error) return { status: "pending", rejectionReason: null };
+    // Upload enqueue is transactional: even a lost browser request is retried
+    // by cron. Observe the saved verdict, rather than invoking the model again.
+    if (error) return await observeProofReview(supabase, submissionId, { waitMs: 0 });
 
     // The function returns `status` alongside `classification`. Read `status`;
     // fall back to deriving it from `classification` so an older deployed
@@ -154,12 +158,12 @@ export async function callReviewProof(
           ? "rejected"
           : "pending");
 
-    if (status === "approved") return { status: "approved", rejectionReason: null };
+    if (status === "approved") return { status: "approved", rejectionReason: null, reviewState: "complete" };
     if (status === "rejected")
-      return { status: "rejected", rejectionReason: payload.rejection_reason ?? null };
-    return { status: "pending", rejectionReason: null };
+      return { status: "rejected", rejectionReason: payload.rejection_reason ?? null, reviewState: "complete" };
+    return await observeProofReview(supabase, submissionId);
   } catch {
     // Edge function errors should not block the UI — fall back to pending
-    return { status: "pending", rejectionReason: null };
+    return { status: "pending", rejectionReason: null, reviewState: "queued" };
   }
 }

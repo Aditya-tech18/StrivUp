@@ -11,6 +11,10 @@ import { chromium } from "playwright";
 // emails, memberships or rewards are created by this test.
 // Usage: npm run test:invites (requires locally installed Google Chrome).
 const require = createRequire(import.meta.url);
+const proofTest = process.argv.includes("--proof-review");
+const proofId = "00000000-0000-4000-8000-000000000004";
+let proof = null;
+let reviewRequests = 0;
 const userId = "00000000-0000-4000-8000-000000000001";
 const challengeId = "00000000-0000-4000-8000-000000000002";
 const code = "TEST2345";
@@ -49,6 +53,29 @@ const api = http.createServer((req, res) => {
   );
   res.setHeader("Content-Type", "application/json");
   if (req.method === "OPTIONS") return res.end();
+  if (proofTest && url.pathname.startsWith("/storage/v1/object/")) {
+    req.resume();
+    return res.end(JSON.stringify({ Key: "test-proof" }));
+  }
+  if (proofTest && url.pathname === "/functions/v1/review-proof") {
+    reviewRequests++;
+    req.resume();
+    res.statusCode = 202;
+    return res.end(JSON.stringify({ status: "pending", review_state: "queued" }));
+  }
+  if (proofTest && url.pathname === "/rest/v1/proof_submissions") {
+    if (req.method === "POST" || req.method === "PATCH") {
+      let input = "";
+      req.on("data", chunk => { input += chunk; });
+      req.on("end", () => {
+        proof = { id: proofId, ai_reviewed: false, verification_status: "pending", ...proof, ...JSON.parse(input) };
+        res.end(JSON.stringify(req.method === "POST" ? { id: proofId } : null));
+      });
+      return;
+    }
+    const rows = proof && (!url.searchParams.has("verification_status") || url.searchParams.get("verification_status") === "eq." + proof.verification_status) ? [proof] : [];
+    return res.end(JSON.stringify(req.headers.accept?.includes("vnd.pgrst.object") ? rows[0] ?? null : rows));
+  }
   if (url.pathname === "/auth/v1/user") return res.end(JSON.stringify(user));
   if (url.pathname === "/auth/v1/signup") return res.end(JSON.stringify(session));
   if (url.pathname === "/rest/v1/rpc/get_invite_preview")
@@ -174,6 +201,34 @@ try {
   page.on("console", (message) => {
     if (message.type() === "error") console.log("Console error:", message.text());
   });
+  if (proofTest) {
+    joined = true;
+    await context.addInitScript(() => {
+      localStorage.setItem("strivup-tour-seen", "1");
+    });
+    await page.goto(`${origin}/challenges/${challengeId}`, { timeout: 120000 });
+    await page.getByRole("button", { name: /Post today's proof/i }).click();
+    const dialog = page.getByRole("dialog", { name: "Post today's proof" });
+    const photo = await page.screenshot();
+    await dialog.locator('input[type="file"]').last().setInputFiles({ name: "proof.png", mimeType: "image/png", buffer: photo });
+    await dialog.getByLabel("Caption").fill("Keep this caption while the server is unavailable");
+    await dialog.getByRole("button", { name: "Save caption and close" }).click();
+    await dialog.waitFor({ state: "hidden" });
+    assert.equal(proof.caption, "Keep this caption while the server is unavailable");
+    assert.equal(proof.verification_status, "pending");
+    console.log("PASS caption survives leaving while proof review is running");
+    proof = null;
+    await page.reload();
+    await page.getByRole("button", { name: /Post today's proof/i }).click();
+    await dialog.locator('input[type="file"]').last().setInputFiles({ name: "proof2.png", mimeType: "image/png", buffer: photo });
+    await dialog.getByText("Saved for automatic review", { exact: true }).waitFor({ timeout: 30000 });
+    const calls = reviewRequests;
+    proof.verification_status = "approved";
+    proof.ai_reviewed = true;
+    await dialog.getByText("Verified", { exact: true }).waitFor({ timeout: 25000 });
+    assert.equal(reviewRequests, calls, "status observation must not invoke the model again");
+    console.log("PASS a later background verdict updates the open composer without another review request");
+  } else {
   if (!process.argv.includes("--signup-only")) {
     await page.goto(`${origin}/join/${code}?auto=1`, { timeout: 120000 });
     await page.waitForURL(`**/challenges/${challengeId}`, { timeout: 45000 });
@@ -253,6 +308,7 @@ try {
     throw error;
   }
   console.log("PASS signup and password setup return to the private invite");
+  }
 } finally {
   await browser?.close();
   if (process.platform === "win32")

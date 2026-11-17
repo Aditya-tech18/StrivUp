@@ -17,6 +17,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ProofComposer } from "@/components/features/challenge/ProofComposer";
+import { ProofReviewWatcher } from "@/components/features/challenge/ProofReviewWatcher";
 import { createClient } from "@/lib/supabase/client";
 import {
   AlertTriangle,
@@ -156,6 +157,7 @@ function TaskUploadSlot({
   const [localStatus, setLocalStatus] = useState<TaskSubmission["status"] | null>(
     submission?.status ?? null
   );
+  const [watchSubmissionId, setWatchSubmissionId] = useState(submission?.submissionId ?? null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -188,6 +190,7 @@ function TaskUploadSlot({
       setLocalStatus("pending");
 
       const verdict = await callReviewProof(result.submissionId!);
+      setWatchSubmissionId(verdict.reviewState === "queued" ? result.submissionId : null);
       setLocalStatus(verdict.status);
       if (verdict.status === "approved") emitStrivyEvent({ type: "CHALLENGE_COMPLETED" });
       setSlot({
@@ -217,6 +220,12 @@ function TaskUploadSlot({
 
   return (
     <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3 elev-1 surface-raised">
+      {isPending && watchSubmissionId ? <ProofReviewWatcher submissionId={watchSubmissionId} onResult={(result) => {
+        setWatchSubmissionId(null);
+        setLocalStatus(result.status);
+        setSlot(s => ({ ...s, state: result.status, rejectionReason: result.rejectionReason }));
+        if (result.status !== "pending") router.refresh();
+      }} /> : null}
       {/* Task header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -372,6 +381,8 @@ function LegacyUploadCard({
   joinedAt: string | null;
   existingSubmission: TaskSubmission | undefined;
 }) {
+  const router = useRouter();
+  const [watchSubmissionId, setWatchSubmissionId] = useState(existingSubmission?.submissionId ?? null);
   const [slot, setSlot] = useState<SlotData>({
     state:
       existingSubmission?.status === "approved"
@@ -415,6 +426,7 @@ function LegacyUploadCard({
       setSlot({ state: "reviewing", preview: result.preview, error: null, rejectionReason: null });
 
       const verdict = await callReviewProof(result.submissionId!);
+      setWatchSubmissionId(verdict.reviewState === "queued" ? result.submissionId : null);
       if (verdict.status === "approved") emitStrivyEvent({ type: "CHALLENGE_COMPLETED" });
       setSlot({
         state: verdict.status,
@@ -435,6 +447,11 @@ function LegacyUploadCard({
     // Do not swap those for the success/warning/error tokens, which are tuned
     // for a light surface and go nearly invisible here.
     <>
+      {slot.state === "pending" && watchSubmissionId ? <ProofReviewWatcher submissionId={watchSubmissionId} onResult={(result) => {
+        setWatchSubmissionId(null);
+        setSlot(s => ({ ...s, state: result.status, rejectionReason: result.rejectionReason }));
+        if (result.status !== "pending") router.refresh();
+      }} /> : null}
       {/* A walking or running challenge gets the step counter above the camera.
           The photo stays — it is still the thing a human reviewer looks at —
           but asking only for a photo proved someone owns shoes, not that they

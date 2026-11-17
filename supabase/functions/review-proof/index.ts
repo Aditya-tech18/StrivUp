@@ -1,359 +1,117 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { reviewImage } from "./review.ts";
+import { isRetryableStatus } from "./policy.ts";
 
-/**
- * review-proof — AI-first proof verification for StrivUp.
- *
- * Pipeline order is load-bearing and must not be reordered:
- *   1. SHA-256 hash of the media, checked against prior submissions.
- *      A hash collision is decided locally and NEVER reaches the model —
- *      it is both free and more reliable than asking an LLM.
- *   2. Gemini (gemini-3.5-flash-lite) judges whether the image is plausible
- *      evidence for the task, returning a structured verdict.
- *   3. Confident verdicts auto-approve / auto-reject. Genuinely uncertain
- *      verdicts stay pending and land in the human review queue.
- *
- * Queue semantics — how to tell the "pending" states apart without a schema
- * change:
- *   ai_reviewed=true,  ai_classification='uncertain' → human review queue
- *   ai_reviewed=false, ai_classification=null        → not yet processed, safe to retry
- * Never set ai_reviewed on a failure path, or the submission becomes a
- * silent orphan that no retry will pick up.
- *
- * IMPORTANT: ai_classification is constrained by
- * proof_submissions_ai_classification_check to exactly
- * ('match' | 'mismatch' | 'uncertain'). Duplicates therefore record 'mismatch'
- * and unsupported media records 'uncertain'; the finer-grained reason lives in
- * ai_reasoning and in moderation_events.event_type ('duplicate_detected').
- * Do not invent new values here without widening that constraint first.
- */
+const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization,x-client-info,apikey,content-type" };
+function json(data: unknown, status = 200) { return Response.json(data, { status, headers: cors }); }
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash-lite";
-const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions";
-
-/** Confidence at or above this is treated as a decision; below it is uncertain. */
-const CONFIDENCE_THRESHOLD = 0.6;
-
-/**
- * Max AI reviews per user per rolling 24h. Every review costs a Gemini call, so
- * without a cap a scripted loop is a billing incident. Legitimate use is a few
- * proofs a day across a handful of challenges, so 30 is generous.
- *
- * Over the cap the submission is NOT rejected — it queues for human review.
- * Rejecting someone for being productive would be the wrong trade.
- */
-const DAILY_AI_REVIEW_CAP = Number(Deno.env.get("DAILY_AI_REVIEW_CAP") ?? "30");
-
-/** Image MIME types the Gemini API accepts inline. */
-const SUPPORTED_IMAGE_TYPES = [
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-];
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method !== "POST") return json({ error: "POST required" }, 405);
+  const projectUrl = Deno.env.get("SUPABASE_URL")!;
+  const admin = createClient(projectUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
+    global: { fetch: (url, init) => fetch(url, { ...init, signal: AbortSignal.timeout(10_000) }) },
   });
-}
-
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  const chunkSize = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  let submissionId: string | undefined, token: string | undefined;
+  let authenticatedWorker = false;
+  async function finish(patch: Record<string, unknown>, event: Record<string, unknown>, error: string | null = null, retryable = false) {
+    const result = await admin.rpc("finish_proof_review", {
+      p_submission_id: submissionId, p_token: token, p_patch: patch,
+      p_event: event, p_error: error, p_retryable: retryable,
+    });
+    if (result.error) throw new Error("Could not persist review: " + result.error.message);
+    return result.data === true;
   }
-  return btoa(binary);
-}
-
-async function sha256Hex(buffer: ArrayBuffer): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", buffer);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-/**
- * Pull the model's text out of an Interactions API response.
- * Shape: { steps: [ { type: "model_output", content: [ { type: "text", text } ] } ] }
- * (The `output_text` shortcut is an SDK convenience and is not present on REST.)
- */
-function extractOutputText(payload: unknown): string {
-  const steps = (payload as { steps?: unknown[] })?.steps;
-  if (!Array.isArray(steps)) return "";
-
-  const chunks: string[] = [];
-  for (const step of steps) {
-    const s = step as { type?: string; content?: unknown[] };
-    if (s?.type !== "model_output" || !Array.isArray(s.content)) continue;
-    for (const part of s.content) {
-      const p = part as { type?: string; text?: string };
-      if (p?.type === "text" && typeof p.text === "string") chunks.push(p.text);
-    }
-  }
-  return chunks.join("");
-}
-
-interface Verdict {
-  matches: boolean;
-  confidence: number;
-  reasoning: string;
-}
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
-  try {
-    const { submission_id } = await req.json();
-    if (!submission_id) {
-      return json({ error: "submission_id required" }, 400);
-    }
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  async function failed(reason: string, retryable: boolean) {
+    await finish(
+      { ai_classification: "uncertain", ai_reasoning: "Automated review unavailable; queued for human review." },
+      { event_type: retryable ? "ai_failed" : "ai_flagged", source: "system", decision: retryable ? null : "uncertain", reason },
+      reason, retryable,
     );
-
-    const { data: submission, error: subError } = await supabase
-      .from("proof_submissions")
-      .select(
-        `id, media_url, verification_status, ai_reviewed, challenge_id, task_id, user_id,
-         challenges ( title, description, category, proof_methods ),
-         challenge_tasks ( title, description, proof_type )`
-      )
-      .eq("id", submission_id)
-      .single();
-
-    if (subError || !submission) {
-      return json({ error: "submission not found" }, 404);
+    return json({ status: "pending", review_state: retryable ? "queued" : "human_review" }, 202);
+  }
+  try {
+    let body;
+    try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
+    submissionId = body?.submission_id;
+    token = body?.review_token;
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (typeof submissionId !== "string" || !uuid.test(submissionId)) return json({ error: "Valid submission_id required" }, 400);
+    if (!token) {
+      // Preserve the gateway JWT check and independently verify user identity.
+      const header = req.headers.get("Authorization") ?? "";
+      const jwt = header.startsWith("Bearer ") ? header.slice(7) : "";
+      if (!jwt) return json({ error: "Sign in required" }, 401);
+      const { data: auth, error: authError } = await admin.auth.getUser(jwt);
+      if (authError || !auth.user) return json({ error: "Sign in required" }, 401);
+      const { data: proof, error } = await admin.from("proof_submissions")
+        .select("id,user_id,verification_status,ai_reviewed,admin_removed,media_url,submitted_at")
+        .eq("id", submissionId).eq("user_id", auth.user.id).maybeSingle();
+      if (error) throw error;
+      if (!proof) return json({ error: "Proof not found" }, 404);
+      if (proof.verification_status !== "pending" || proof.ai_reviewed || proof.admin_removed) {
+        return json({ status: proof.verification_status, review_state: proof.ai_reviewed && proof.verification_status === "pending" ? "human_review" : "complete" });
+      }
+      // Trigger enqueue is transactional with upload. This also recovers legacy uploads.
+      const { error: queueError } = await admin.from("proof_review_jobs").upsert({
+        submission_id: proof.id, submission_version: proof.submitted_at, media_url: proof.media_url,
+      }, { onConflict: "submission_id", ignoreDuplicates: true });
+      if (queueError) throw queueError;
+      const { error: dispatchError } = await admin.rpc("dispatch_proof_reviews", { p_url: projectUrl + "/functions/v1/review-proof" });
+      if (dispatchError) console.error("Immediate dispatch deferred to cron:", dispatchError.message);
+      return json({ status: "pending", review_state: "queued" }, 202);
     }
-
-    // Gate on status only, never on ai_reviewed. A resubmission resets the row
-    // to 'pending' and MUST be re-reviewed; gating on ai_reviewed is what used
-    // to strand every second attempt in pending forever.
-    if (submission.verification_status !== "pending") {
-      return json({
-        skipped: true,
-        reason: "already decided",
-        status: submission.verification_status,
-      });
+    if (typeof token !== "string" || !uuid.test(token)) return json({ error: "Invalid review lease" }, 403);
+    const { data: job, error: jobError } = await admin.rpc("start_proof_review", {
+      p_submission_id: submissionId, p_token: token,
+    });
+    if (jobError) throw jobError;
+    if (!job) return json({ error: "Expired, used or invalid review lease" }, 403);
+    authenticatedWorker = true;
+    const { data: submission, error: subError } = await admin.from("proof_submissions").select(
+      "id,media_url,submitted_at,verification_status,ai_reviewed,admin_removed,user_id,task_id,challenges(title,description,category,proof_methods),challenge_tasks(title,description,proof_type)"
+    ).eq("id", submissionId).single();
+    if (subError) throw subError;
+    if (submission.verification_status !== "pending" || submission.ai_reviewed || submission.admin_removed ||
+        submission.media_url !== job.media_url || Date.parse(submission.submitted_at) !== Date.parse(job.submission_version)) {
+      return json({ skipped: true, reason: "Proof version no longer eligible" });
     }
-
-    if (!submission.media_url) {
-      return json({ skipped: true, reason: "no media_url on submission", status: "pending" });
-    }
-
-    // ── Fetch the media ───────────────────────────────────────────────────────
-    const imgResp = await fetch(submission.media_url);
-    if (!imgResp.ok) {
-      await supabase.from("moderation_events").insert({
-        proof_id: submission_id,
-        user_id: submission.user_id,
-        event_type: "ai_failed",
-        source: "system",
-        reason: `failed to fetch proof media (HTTP ${imgResp.status})`,
-      });
-      return json({ error: "failed to fetch proof media", status: "pending" }, 502);
-    }
-
-    const contentType = (imgResp.headers.get("content-type") ?? "").split(";")[0].trim();
-    const imgBuffer = await imgResp.arrayBuffer();
-    const fileHash = await sha256Hex(imgBuffer);
-
-    // ── 1. SHA-256 dedupe — always before any model call ─────────────────────
-    // Scoped across ALL submissions, not just this user in this challenge:
-    // the cheat that actually happens on a campus is two people sharing one
-    // photo, and a per-user/per-challenge scope waves that straight through.
-    const { data: priorMatches } = await supabase
-      .from("proof_submissions")
-      .select("id, user_id, challenge_id")
-      .eq("file_hash", fileHash)
-      .eq("admin_removed", false)
-      .neq("id", submission_id)
-      .limit(1);
-
-    const dupe = priorMatches?.[0];
-    if (dupe) {
-      const sameUser = dupe.user_id === submission.user_id;
-      const rejectionReason = sameUser
+    const mediaUrl = new URL(submission.media_url);
+    if (mediaUrl.origin !== new URL(projectUrl).origin || !mediaUrl.pathname.startsWith("/storage/v1/object/public/proof-media/")) return await failed("Unsupported proof storage URL", false);
+    const media = await fetch(mediaUrl, { signal: AbortSignal.timeout(10_000) });
+    if (!media.ok) return await failed("Proof media HTTP " + media.status, isRetryableStatus(media.status));
+    const mime = (media.headers.get("content-type") ?? "").split(";")[0].trim();
+    if (Number(media.headers.get("content-length") ?? 0) > 15 * 1024 * 1024) return await failed("Proof too large for automated review", false);
+    const bytes = await media.arrayBuffer();
+    if (bytes.byteLength > 15 * 1024 * 1024) return await failed("Proof too large for automated review", false);
+    const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))).map(b => b.toString(16).padStart(2, "0")).join("");
+    const { data: duplicates, error: duplicateError } = await admin.from("proof_submissions")
+      .select("id,user_id").eq("file_hash", hash).eq("admin_removed", false).neq("id", submissionId).limit(1);
+    if (duplicateError) throw duplicateError;
+    if (duplicates?.length) {
+      const reason = duplicates[0].user_id === submission.user_id
         ? "You've already submitted this exact image before. Please upload a new photo for this task."
         : "This exact image has already been submitted by someone else. Please upload your own photo.";
-
-      const { error: dupeUpdateError } = await supabase
-        .from("proof_submissions")
-        .update({
-          file_hash: fileHash,
-          ai_reviewed: true,
-          // Constrained vocabulary — see the note at the top of this file.
-          ai_classification: "mismatch",
-          ai_confidence: 1,
-          ai_reasoning: sameUser
-            ? "Exact file-hash match against this user's earlier submission."
-            : "Exact file-hash match against a different user's submission.",
-          verification_status: "rejected",
-          rejection_reason: rejectionReason,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq("id", submission_id);
-
-      // Never report a verdict we failed to persist: the caller would show the
-      // participant a rejection while the row sat untouched at 'pending'.
-      if (dupeUpdateError) {
-        return json(
-          { error: "failed to record duplicate verdict", detail: dupeUpdateError.message },
-          500
-        );
-      }
-
-      await supabase.from("moderation_events").insert({
-        proof_id: submission_id,
-        user_id: submission.user_id,
-        event_type: "duplicate_detected",
-        source: "system",
-        decision: "rejected",
-        confidence: 1,
-        reason: sameUser
-          ? "Exact file hash match against a prior submission by the same user"
-          : `Exact file hash match against submission ${dupe.id} by a different user`,
-      });
-
-      return json({
-        status: "rejected",
-        rejection_reason: rejectionReason,
-        classification: "duplicate",
-        confidence: 1,
-        duplicate_of: dupe.id,
-        same_user: sameUser,
-      });
+      const applied = await finish({
+        file_hash: hash, ai_classification: "mismatch", ai_confidence: 1, ai_reasoning: reason,
+        verification_status: "rejected", rejection_reason: reason,
+      }, { event_type: "duplicate_detected", source: "system", decision: "rejected", reason, confidence: 1 });
+      return json({ status: applied ? "rejected" : "pending" });
     }
-
-    // Record the hash even when we cannot decide — it is what makes the next
-    // submission's dedupe check meaningful.
-    if (!SUPPORTED_IMAGE_TYPES.includes(contentType)) {
-      const { error: mediaUpdateError } = await supabase
-        .from("proof_submissions")
-        .update({
-          file_hash: fileHash,
-          ai_reviewed: true,
-          // 'uncertain' is the constraint-legal value for "a human must look".
-          ai_classification: "uncertain",
-          ai_reasoning: `Proof media type "${contentType || "unknown"}" cannot be reviewed automatically; queued for human review.`,
-        })
-        .eq("id", submission_id);
-
-      if (mediaUpdateError) {
-        return json(
-          { error: "failed to queue unsupported media", detail: mediaUpdateError.message },
-          500
-        );
-      }
-
-      return json({
-        status: "pending",
-        classification: "uncertain",
-        reason: "non-image proof — queued for human review",
-      });
-    }
-
-    // ── 1b. Daily AI-review cap ──────────────────────────────────────────────
-    // Checked after dedupe (which is free) but before the paid model call.
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { count: recentReviews } = await supabase
-      .from("proof_submissions")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", submission.user_id)
-      .eq("ai_reviewed", true)
-      .gte("submitted_at", since);
-
-    if ((recentReviews ?? 0) >= DAILY_AI_REVIEW_CAP) {
-      const { error: capError } = await supabase
-        .from("proof_submissions")
-        .update({
-          file_hash: fileHash,
-          ai_reviewed: true,
-          ai_classification: "uncertain",
-          ai_reasoning: `Daily automated-review limit reached (${DAILY_AI_REVIEW_CAP}/24h); queued for human review.`,
-        })
-        .eq("id", submission_id);
-
-      if (capError) {
-        return json({ error: "failed to queue rate-limited proof", detail: capError.message }, 500);
-      }
-
-      await supabase.from("moderation_events").insert({
-        proof_id: submission_id,
-        user_id: submission.user_id,
-        event_type: "ai_flagged",
-        source: "system",
-        decision: "uncertain",
-        reason: `Rate limit: ${recentReviews} AI reviews in the last 24h (cap ${DAILY_AI_REVIEW_CAP})`,
-      });
-
-      return json({
-        status: "pending",
-        classification: "uncertain",
-        reason: "daily automated-review limit reached — queued for human review",
-      });
-    }
-
-    // ── 2. Gemini review ─────────────────────────────────────────────────────
-    const geminiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!geminiKey) {
-      await supabase.from("proof_submissions").update({ file_hash: fileHash }).eq("id", submission_id);
-      await supabase.from("moderation_events").insert({
-        proof_id: submission_id,
-        user_id: submission.user_id,
-        event_type: "ai_failed",
-        source: "system",
-        reason: "GEMINI_API_KEY not configured",
-      });
-      return json({ error: "GEMINI_API_KEY not configured", status: "pending" }, 500);
-    }
-
-    const task = submission.challenge_tasks as unknown as {
-      title: string;
-      description: string | null;
-      proof_type: string | null;
-    } | null;
-    const challenge = submission.challenges as unknown as {
-      title: string;
-      description: string | null;
-      category: string | null;
-      proof_methods: string[] | null;
-    } | null;
-
-    /* An explicit per-task spec, if the creator defined one. This is the same
-       list the participant was shown before uploading (see
-       src/components/features/proof/ProofRequirementsNotice.tsx), so the model
-       is held to exactly what they were promised — not to its own taste. */
-    let spec: {
-      activity_label: string;
-      required_elements: string[];
-      optional_elements: string[];
-      reject_if: string[];
-    } | null = null;
-
+    if (!["image/png", "image/jpeg", "image/webp", "image/heic", "image/heif"].includes(mime)) return await failed("Unsupported media type requires human review: " + mime, false);
+    const { count, error: countError } = await admin.from("proof_submissions").select("id", { count: "exact", head: true })
+      .eq("user_id", submission.user_id).eq("ai_reviewed", true).gte("submitted_at", new Date(Date.now() - 86400000).toISOString());
+    if (countError) throw countError;
+    if ((count ?? 0) >= Number(Deno.env.get("DAILY_AI_REVIEW_CAP") ?? "30")) return await failed("Daily automated-review limit reached; queued for human review", false);
+    const task = submission.challenge_tasks as unknown as { title: string; description?: string; proof_type?: string } | null;
+    const challenge = submission.challenges as unknown as { title: string; description?: string; category?: string; proof_methods?: string[] } | null;
+    let spec: { activity_label: string; required_elements: string[]; optional_elements: string[]; reject_if: string[] } | null = null;
     if (submission.task_id) {
-      const { data: req } = await supabase
-        .from("proof_requirements")
-        .select("activity_label, required_elements, optional_elements, reject_if")
-        .eq("challenge_task_id", submission.task_id)
-        .maybeSingle();
-      if (req && Array.isArray(req.required_elements) && req.required_elements.length > 0) {
-        spec = req as typeof spec;
-      }
+      const { data: requirements, error: requirementError } = await admin.from("proof_requirements")
+        .select("activity_label,required_elements,optional_elements,reject_if").eq("challenge_task_id", submission.task_id).maybeSingle();
+      if (requirementError) throw requirementError;
+      if (requirements?.required_elements?.length) spec = requirements;
     }
-
     const requirement = task
       ? `Task: "${task.title}". ${task.description ?? ""} Expected proof type: ${task.proof_type ?? "unspecified"}.`
       : `Challenge: "${challenge?.title ?? "unknown"}" (category: ${challenge?.category ?? "unspecified"}). Expected proof: ${(challenge?.proof_methods ?? []).join(", ") || "unspecified"}.`;
@@ -394,148 +152,25 @@ Deno.serve(async (req) => {
           "Keep `reasoning` to one short sentence, written so the participant can read it.",
         ].join("\n");
 
-    const aiResponse = await fetch(GEMINI_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "x-goog-api-key": geminiKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: GEMINI_MODEL,
-        input: [
-          { type: "text", text: prompt },
-          {
-            type: "image",
-            data: arrayBufferToBase64(imgBuffer),
-            mime_type: contentType,
-          },
-        ],
-        // Structured output: the schema is enforced by the API, so there is no
-        // need to regex a JSON object out of prose.
-        response_format: {
-          type: "text",
-          mime_type: "application/json",
-          schema: {
-            type: "object",
-            properties: {
-              matches: { type: "boolean" },
-              confidence: { type: "number" },
-              reasoning: { type: "string" },
-            },
-            required: ["matches", "confidence", "reasoning"],
-          },
-        },
-      }),
-    });
 
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      // Leave ai_reviewed false so this submission stays retryable.
-      await supabase.from("proof_submissions").update({ file_hash: fileHash }).eq("id", submission_id);
-      await supabase.from("moderation_events").insert({
-        proof_id: submission_id,
-        user_id: submission.user_id,
-        event_type: "ai_failed",
-        source: "ai",
-        reason: `${GEMINI_MODEL} HTTP ${aiResponse.status}: ${errText.slice(0, 400)}`,
-      });
-      return json({ error: "gemini API error", detail: errText.slice(0, 500), status: "pending" }, 502);
-    }
-
-    const rawText = extractOutputText(await aiResponse.json());
-
-    let verdict: Verdict | null = null;
-    try {
-      const parsed = JSON.parse(rawText) as Partial<Verdict>;
-      if (typeof parsed.matches === "boolean" && typeof parsed.confidence === "number") {
-        verdict = {
-          matches: parsed.matches,
-          // Clamp: a model returning 1.4 or -0.2 must not skew the thresholds.
-          confidence: Math.min(1, Math.max(0, parsed.confidence)),
-          reasoning: typeof parsed.reasoning === "string" ? parsed.reasoning : "",
-        };
+    const result = await reviewImage({ bytes, mime, prompt, apiKey: Deno.env.get("GEMINI_API_KEY") ?? "", model: Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash-lite" });
+    if (!result.verdict) return await failed(result.error ?? "Invalid model verdict", result.retryable);
+    const verdict = result.verdict;
+    const classification = verdict.confidence < 0.6 ? "uncertain" : verdict.matches ? "match" : "mismatch";
+    const status = classification === "match" ? "approved" : classification === "mismatch" ? "rejected" : "pending";
+    const applied = await finish({
+      file_hash: hash, ai_classification: classification, ai_confidence: verdict.confidence, ai_reasoning: verdict.reasoning,
+      verification_status: status, rejection_reason: status === "rejected" ? verdict.reasoning || "This doesn't match the required proof." : null,
+    }, { event_type: classification === "match" ? "ai_approved" : "ai_flagged", source: "ai", decision: classification, reason: verdict.reasoning, confidence: verdict.confidence });
+    return json({ status: applied ? status : "pending", review_state: classification === "uncertain" ? "human_review" : "complete" });
+  } catch (error) {
+    console.error("Proof review error:", error instanceof Error ? error.message : String(error));
+    if (authenticatedWorker) {
+      try { return await failed("Review service temporarily unavailable", true); } catch {
+        // The durable job remains recoverable when its lease expires.
+        return json({ status: "pending", review_state: "queued" }, 503);
       }
-    } catch {
-      verdict = null;
     }
-
-    if (!verdict) {
-      // Unparseable output is an AI failure, not a rejection. The old code
-      // turned it into { matches: false, confidence: 0 }, which quietly
-      // reclassified an infrastructure problem as the participant's fault.
-      await supabase.from("proof_submissions").update({ file_hash: fileHash }).eq("id", submission_id);
-      await supabase.from("moderation_events").insert({
-        proof_id: submission_id,
-        user_id: submission.user_id,
-        event_type: "ai_failed",
-        source: "ai",
-        reason: `Unparseable model output: ${rawText.slice(0, 300)}`,
-      });
-      return json({ error: "could not parse model verdict", status: "pending" }, 502);
-    }
-
-    // ── 3. Three-way outcome ─────────────────────────────────────────────────
-    const classification: "match" | "mismatch" | "uncertain" =
-      verdict.confidence >= CONFIDENCE_THRESHOLD
-        ? verdict.matches
-          ? "match"
-          : "mismatch"
-        : "uncertain";
-
-    const updatePayload: Record<string, unknown> = {
-      file_hash: fileHash,
-      ai_reviewed: true,
-      ai_confidence: verdict.confidence,
-      ai_classification: classification,
-      ai_reasoning: verdict.reasoning,
-    };
-
-    let status: "approved" | "rejected" | "pending" = "pending";
-    let rejectionReason: string | null = null;
-
-    if (classification === "match") {
-      status = "approved";
-      updatePayload.verification_status = "approved";
-      updatePayload.reviewed_at = new Date().toISOString();
-    } else if (classification === "mismatch") {
-      status = "rejected";
-      rejectionReason =
-        verdict.reasoning || "This doesn't appear to match the required proof for this task.";
-      updatePayload.verification_status = "rejected";
-      updatePayload.rejection_reason = rejectionReason;
-      updatePayload.reviewed_at = new Date().toISOString();
-    }
-    // 'uncertain' → verification_status stays 'pending', but ai_reviewed is now
-    // true with classification 'uncertain', which is what puts it in the queue.
-
-    const { error: updateError } = await supabase
-      .from("proof_submissions")
-      .update(updatePayload)
-      .eq("id", submission_id);
-
-    if (updateError) {
-      return json({ error: "failed to update submission", detail: updateError.message }, 500);
-    }
-
-    await supabase.from("moderation_events").insert({
-      proof_id: submission_id,
-      user_id: submission.user_id,
-      event_type: classification === "match" ? "ai_approved" : "ai_flagged",
-      source: "ai",
-      decision: classification,
-      reason: verdict.reasoning,
-      confidence: verdict.confidence,
-    });
-
-    return json({
-      status,
-      rejection_reason: rejectionReason,
-      classification,
-      confidence: verdict.confidence,
-      reasoning: verdict.reasoning,
-      model: GEMINI_MODEL,
-    });
-  } catch (e) {
-    return json({ error: String(e), status: "pending" }, 500);
+    return json({ error: "Unable to queue review right now; the saved upload will be picked up automatically." }, 503);
   }
 });

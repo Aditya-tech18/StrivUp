@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { callReviewProof, uploadProof } from "@/lib/data/proofs";
+import { ProofReviewWatcher } from "./ProofReviewWatcher";
 
 /**
  * ProofComposer — post today's proof.
@@ -29,14 +30,13 @@ import { callReviewProof, uploadProof } from "@/lib/data/proofs";
  * the wait costs nothing. By the time there is something to say, the verdict
  * is usually already in.
  *
- * Post is enabled only once the proof is approved. That is not an artificial
- * gate — a pending or rejected proof is invisible to everyone but its author
- * anyway (see can_see_proof), so "posting" before approval would promise
- * something the database would not deliver.
+ * Approved proofs can be posted; pending proofs can save their caption and
+ * close while the durable worker continues. Pending and rejected proofs stay
+ * private under the existing database visibility rules.
  */
 
 type Phase = "pick" | "compose";
-type Review = "idle" | "uploading" | "checking" | "approved" | "rejected" | "failed";
+type Review = "idle" | "uploading" | "checking" | "approved" | "rejected" | "failed" | "queued" | "human_review";
 
 export function ProofComposer({
   open,
@@ -111,21 +111,18 @@ const galleryRef = useRef<HTMLInputElement>(null);
       setReview("rejected");
       setRejectionReason(verdict.rejectionReason);
     } else {
-      // Still pending: the reviewer could not reach a verdict. Treat it as
-      // reviewable later rather than pretending it failed.
-      setReview("failed");
-      setError("We couldn't check that just now. Your proof is saved — try posting again shortly.");
+      setReview(verdict.reviewState === "human_review" ? "human_review" : "queued");
     }
   }
 
   async function handlePost() {
-    if (!submissionId || review !== "approved" || posting) return;
+    if (!submissionId || !["approved", "checking", "queued", "human_review"].includes(review) || posting) return;
     setPosting(true);
     setError(null);
 
     const supabase = createClient();
     const trimmed = caption.trim();
-    if (trimmed) {
+    {
       const { error: captionError } = await supabase
         .from("proof_submissions")
         .update({ caption: trimmed })
@@ -133,7 +130,7 @@ const galleryRef = useRef<HTMLInputElement>(null);
       // The proof is already approved and visible; a caption that failed to
       // save is worth saying so rather than silently dropping the words.
       if (captionError) {
-        setError("Your proof is posted, but the caption didn't save.");
+        setError("Your proof is saved, but the caption didn't save. Please try again.");
         setPosting(false);
         return;
       }
@@ -145,6 +142,13 @@ const galleryRef = useRef<HTMLInputElement>(null);
     onClose();
   }
 
+  function handleClose() {
+    // A saved upload can finish independently; preserve its caption on exit.
+    if (submissionId && ["approved", "checking", "queued", "human_review"].includes(review)) {
+      void handlePost();
+    } else if (!posting) onClose();
+  }
+
   const statusPill = {
     idle: null,
     uploading: { icon: Loader2, text: "Uploading…", tone: "text-on-surface-variant", spin: true },
@@ -152,6 +156,8 @@ const galleryRef = useRef<HTMLInputElement>(null);
     approved: { icon: CheckCircle2, text: "Verified", tone: "text-success", spin: false },
     rejected: { icon: AlertCircle, text: "Doesn't match", tone: "text-error", spin: false },
     failed: { icon: AlertCircle, text: "Couldn't check", tone: "text-warning", spin: false },
+    queued: { icon: Sparkles, text: "Saved for automatic review", tone: "text-secondary", spin: false },
+    human_review: { icon: Sparkles, text: "Awaiting human review", tone: "text-secondary", spin: false },
   }[review];
 
   return (
@@ -161,9 +167,16 @@ const galleryRef = useRef<HTMLInputElement>(null);
       aria-modal="true"
       aria-label="Post today's proof"
       onClick={(e) => {
-        if (e.target === e.currentTarget && !posting) onClose();
+        if (e.target === e.currentTarget && !posting) handleClose();
       }}
     >
+      {review === "queued" && submissionId ? (
+        <ProofReviewWatcher submissionId={submissionId} onResult={(result) => {
+          setReview(result.status === "pending" ? "human_review" : result.status);
+          setRejectionReason(result.rejectionReason);
+          router.refresh();
+        }} />
+      ) : null}
       <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-surface-container-lowest sm:rounded-2xl">
         <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3">
           <p className="text-body-lg font-bold text-on-surface">
@@ -171,7 +184,7 @@ const galleryRef = useRef<HTMLInputElement>(null);
           </p>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close"
             className="flex h-8 w-8 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container tap-target"
           >
@@ -261,6 +274,11 @@ const galleryRef = useRef<HTMLInputElement>(null);
                     Carry on writing — this finishes on its own.
                   </p>
                 ) : null}
+                {review === "queued" ? (
+                  <p className="mt-1 text-label-sm text-on-surface-variant">Your proof is saved. We’ll retry automatically, even after you leave.</p>
+                ) : review === "human_review" ? (
+                  <p className="mt-1 text-label-sm text-on-surface-variant">Your proof is saved for a person to review. It becomes visible after approval.</p>
+                ) : null}
               </div>
             </div>
 
@@ -300,7 +318,7 @@ const galleryRef = useRef<HTMLInputElement>(null);
               <button
                 type="button"
                 onClick={handlePost}
-                disabled={review !== "approved" || posting}
+                disabled={!["approved", "checking", "queued", "human_review"].includes(review) || !submissionId || posting}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary py-2.5 text-body-md font-semibold text-on-secondary elev-brand transition-opacity disabled:opacity-40"
               >
                 {posting ? (
@@ -308,7 +326,7 @@ const galleryRef = useRef<HTMLInputElement>(null);
                 ) : (
                   <Send size={15} aria-hidden="true" />
                 )}
-                {review === "approved" ? "Post" : "Post when verified"}
+                {review === "approved" ? "Post" : submissionId && ["checking", "queued", "human_review"].includes(review) ? "Save caption and close" : "Post when verified"}
               </button>
             )}
           </div>
