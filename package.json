@@ -13,6 +13,7 @@
     "dev:lan": "next dev -H 0.0.0.0",
     "audit:mobile": "node scripts/audit-mobile.mjs",
     "test": "npm run test:strivy",
+    "test:invites": "node scripts/test-invite-join.mjs",
     "test:strivy": "node --experimental-strip-types --import ./tests/strivy/register.mjs --test tests/strivy/*.test.ts"
   },
   "dependencies": {

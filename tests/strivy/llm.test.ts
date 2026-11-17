@@ -135,7 +135,8 @@ test("'complete my quest' is never pretended; it offers what's left instead", ()
 
 /* ── 2. Context and explicit intent ───────────────────────────────────── */
 
-test("quest → 'kitna hua?' and 'kab tak?' stay on the quest", () => {
+test("quest → 'kitna hua?' and 'kab tak?' stay on the quest", (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-20T12:00:00Z") });
   const progress = draft("kitna hua?", QUEST_ONLY, afterQuest);
   assert.equal(progress.intent.intent, "quests");
   assert.match(progress.reply.text, /0\/3/);

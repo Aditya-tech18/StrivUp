@@ -17,10 +17,29 @@ export const DEFAULT_REDIRECT = "/feed";
 export function safeRedirect(raw: string | null | undefined): string {
   if (!raw) return DEFAULT_REDIRECT;
   if (!raw.startsWith("/")) return DEFAULT_REDIRECT;
-  if (raw.startsWith("//") || raw.startsWith("/\\")) return DEFAULT_REDIRECT;
-  // Never bounce back to an auth screen — that loops.
-  if (raw === "/login" || raw === "/signup" || raw.startsWith("/auth/")) {
+  if (raw.startsWith("//") || raw.includes("\\")) return DEFAULT_REDIRECT;
+
+  // Validate the destination as a browser does: dot segments, tabs and
+  // newlines can change the path or turn it into a protocol-relative URL.
+  const origin = "https://strivup.invalid";
+  let url: URL;
+  let pathname: string;
+  try {
+    url = new URL(raw, origin);
+    pathname = decodeURIComponent(url.pathname).replace(/\/+$/, "");
+  } catch {
     return DEFAULT_REDIRECT;
   }
-  return raw;
+  if (url.origin !== origin || url.pathname.startsWith("//")) return DEFAULT_REDIRECT;
+
+  // Check the path even when the link includes a query string or fragment.
+  if (
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/auth" ||
+    pathname.startsWith("/auth/")
+  ) {
+    return DEFAULT_REDIRECT;
+  }
+  return url.pathname + url.search + url.hash;
 }

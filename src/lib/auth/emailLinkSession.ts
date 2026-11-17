@@ -46,6 +46,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { safeRedirect } from "@/lib/safeRedirect";
 
 export type LinkSessionResult =
   | { ok: true }
@@ -132,7 +133,11 @@ function readFragment(): Record<string, string> {
  */
 function scrubUrl() {
   if (typeof window === "undefined") return;
-  window.history.replaceState(null, "", window.location.pathname);
+  // Keep only the validated continuation. Dropping it along with the tokens
+  // makes a password-page refresh forget the invitation that brought us here.
+  const redirectTo = new URLSearchParams(window.location.search).get("redirectTo");
+  const query = redirectTo ? `?redirectTo=${encodeURIComponent(safeRedirect(redirectTo))}` : "";
+  window.history.replaceState(null, "", window.location.pathname + query);
 }
 
 export async function establishSessionFromEmailLink(

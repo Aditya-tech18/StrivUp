@@ -58,9 +58,14 @@ export async function joinByInviteCode(
   supabase: SupabaseClient,
   code: string
 ): Promise<{ challengeId: string | null; error: string | null }> {
-  const { data, error } = await supabase.rpc("join_challenge_by_invite", {
-    p_code: code,
-  });
+  const signal = AbortSignal.timeout(12_000);
+  const { data, error } = await supabase
+    .rpc("join_challenge_by_invite", { p_code: code })
+    .abortSignal(signal);
+
+  if (signal.aborted) {
+    return { challengeId: null, error: "Joining took too long. Please try again." };
+  }
 
   if (error) {
     // The function raises a readable message for a bad code; surface it as-is

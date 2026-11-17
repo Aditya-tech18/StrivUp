@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyAuthError } from "@/lib/auth/authErrors";
+import { safeRedirect } from "@/lib/safeRedirect";
 import { AuthCard, AuthField, authSubmitBtnCls } from "../AuthCard";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
 import {
@@ -84,7 +85,7 @@ const COPY = {
   },
 } as const;
 
-export function ResetPasswordForm({ mode = "reset" }: { mode?: PasswordFormMode }) {
+export function ResetPasswordForm({ mode = "reset", destination }: { mode?: PasswordFormMode; destination?: string }) {
   const copy = COPY[mode];
   const router = useRouter();
   const [sessionState, setSessionState] = useState<SessionState>("checking");
@@ -135,8 +136,7 @@ export function ResetPasswordForm({ mode = "reset" }: { mode?: PasswordFormMode 
     setDone(true);
     // The link's session is a real session, so there is nothing left to do
     // but send them on.
-    router.push(copy.destination);
-    router.refresh();
+    router.push(destination ? safeRedirect(destination) : copy.destination);
   };
 
   if (sessionState === "checking") {

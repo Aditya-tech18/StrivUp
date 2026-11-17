@@ -126,7 +126,7 @@ export async function getTrendingChallenges(
       Math.floor(
         (Date.now() - new Date(row.created_at as string).getTime()) /
           86_400_000
-      )
+      ) + 1
     );
     const currentDay = Math.min(daysSinceCreation, totalDays);
     const progressPercent = Math.round((currentDay / totalDays) * 100);
@@ -265,7 +265,7 @@ export async function getChallengeDetail(
     1,
     Math.floor(
       (Date.now() - new Date(data.created_at as string).getTime()) / 86_400_000
-    )
+    ) + 1
   );
   const currentDay = Math.min(daysSince, totalDays);
 

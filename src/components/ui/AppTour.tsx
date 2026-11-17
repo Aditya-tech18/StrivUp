@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Tour } from "./Tour";
 import { TOUR_STEPS, TOUR_STORAGE_KEY } from "@/lib/tour/steps";
 
@@ -29,6 +30,7 @@ export function startAppTour(): void {
 }
 
 export function AppTour() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
@@ -36,6 +38,9 @@ export function AppTour() {
      while the first screen is still painting measures the wrong box and feels
      like an ambush. Every setState here fires from a timer or a listener. */
   useEffect(() => {
+    // Invite acceptance and shared links must finish before onboarding can
+    // navigate anywhere. Offer the automatic tour on Home only.
+    if (pathname !== "/feed" || open) return;
     let seen = true;
     try {
       seen = localStorage.getItem(TOUR_STORAGE_KEY) === "1";
@@ -49,7 +54,7 @@ export function AppTour() {
       setOpen(true);
     }, 900);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [pathname, open]);
 
   useEffect(() => {
     const onReplay = () => {

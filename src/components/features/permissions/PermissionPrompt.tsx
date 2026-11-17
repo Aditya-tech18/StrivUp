@@ -16,6 +16,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
 import { ShieldCheck } from "lucide-react";
 import { markPromptSeen, promptSeen } from "./permissionState";
@@ -25,13 +26,15 @@ import { PermissionControls } from "./PermissionControls";
 const DELAY_MS = 2500;
 
 export function PermissionPrompt() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (pathname.startsWith("/join/")) return;
     if (promptSeen()) return;
     const id = window.setTimeout(() => setOpen(true), DELAY_MS);
     return () => window.clearTimeout(id);
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     if (!open) return;
@@ -48,7 +51,7 @@ export function PermissionPrompt() {
     setOpen(false);
   }
 
-  if (!open || typeof document === "undefined") return null;
+  if (!open || pathname.startsWith("/join/") || typeof document === "undefined") return null;
 
   return createPortal(
     <div

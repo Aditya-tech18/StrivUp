@@ -22,7 +22,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Link2Off, Users } from "lucide-react";
+import { Link2Off } from "lucide-react";
 import { BrandMark, Button, ErrorState } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 import { joinByInviteCode } from "@/lib/data/invites";
@@ -32,7 +32,7 @@ import {
   formatTenure,
 } from "@/lib/data/share";
 import { SharePreviewLanding } from "@/components/features/share/SharePreviewLanding";
-import { AutoSubmit } from "./AutoSubmit";
+import { JoinForm, type InviteJoinState } from "./JoinForm";
 
 interface PageProps {
   // Next 16: both are Promises and must be awaited.
@@ -116,23 +116,21 @@ export default async function JoinPage({ params, searchParams }: PageProps) {
   const tenure = preview ? formatTenure(preview.startDate, preview.endDate) : null;
 
   /** Server Action: perform the join, then hand off to the challenge. */
-  async function accept() {
+  async function accept(): Promise<InviteJoinState> {
     "use server";
 
     const client = await createClient();
     const { challengeId, error: joinError } = await joinByInviteCode(client, code);
 
     if (joinError || !challengeId) {
-      redirect(`/join/${encodeURIComponent(code)}?error=1`);
+      return { error: joinError ?? "We couldn't join this challenge. Please try again." };
     }
 
     redirect(`/challenges/${challengeId}`);
   }
 
-  /* Came back from signing in having already tapped Join. Asking them to tap
-     it again would be asking twice for the same decision, so the form submits
-     itself. It is still a POST from a real form, so the no-mutation-on-GET
-     rule holds and the button below is the no-JavaScript path. */
+  /* A visitor returning from sign-in already chose Join. Start one POST after
+     hydration; the form tracks the actual pending result and allows retry. */
   const autoAccept = auto === "1";
 
   return (
@@ -159,13 +157,7 @@ export default async function JoinPage({ params, searchParams }: PageProps) {
           challenge, which is the point.
         </p>
 
-        <form action={accept} className="mt-space-lg">
-          <Button type="submit" variant="primary" size="lg" fullWidth>
-            <Users size={18} aria-hidden="true" />
-            {autoAccept ? "Joining…" : "Accept invite"}
-          </Button>
-          {autoAccept && <AutoSubmit />}
-        </form>
+        <JoinForm action={accept} autoAccept={autoAccept} />
 
         <Link
           href="/feed"

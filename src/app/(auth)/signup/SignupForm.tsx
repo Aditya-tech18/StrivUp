@@ -51,6 +51,9 @@ export function SignupForm() {
   // Where to land after auth. Comes from ?redirectTo (set by proxy.ts when it
   // bounces a signed-out visitor) and is validated to a same-origin path.
   const destination = safeRedirect(useSearchParams().get("redirectTo"));
+  const passwordDestination = destination === "/feed"
+    ? "/set-password"
+    : `/set-password?redirectTo=${encodeURIComponent(destination)}`;
   const [authError, setAuthError] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
   // Set once signUp succeeds and a code is in flight. Holds the address so the
@@ -76,7 +79,7 @@ export function SignupForm() {
         // straight into the app, because the account has no real password
         // until that screen runs. The emailed 6-digit code reaches the same
         // screen, so both halves of the email end in the same place.
-        emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent("/set-password")}`,
+        emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(passwordDestination)}`,
       },
     });
 
@@ -108,8 +111,7 @@ export function SignupForm() {
     // Confirmation off: signUp returned a live session. Still send them to
     // /set-password, because the only password on the account right now is
     // the throwaway one above.
-    router.push("/set-password");
-    router.refresh();
+    router.push(passwordDestination);
   };
 
   /**
@@ -139,8 +141,7 @@ export function SignupForm() {
 
     // CHANGED: the code proves the address, the password is still unset, so
     // the next screen is /set-password. Profile setup follows from there.
-    router.push("/set-password");
-    router.refresh();
+    router.push(passwordDestination);
   };
 
   const handleResend = async () => {

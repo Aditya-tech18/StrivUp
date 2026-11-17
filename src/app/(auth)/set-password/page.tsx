@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ResetPasswordForm } from "../reset-password/ResetPasswordForm";
 import { AuthScreen } from "../AuthScreen";
+import { safeRedirect } from "@/lib/safeRedirect";
 
 /**
  * /set-password — where a new account chooses its first password.
@@ -19,10 +20,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function SetPasswordPage() {
+export default async function SetPasswordPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirectTo?: string }>;
+}) {
+  const { redirectTo } = await searchParams;
   return (
     <AuthScreen>
-      <ResetPasswordForm mode="create" />
+      <ResetPasswordForm mode="create" destination={redirectTo ? safeRedirect(redirectTo) : undefined} />
     </AuthScreen>
   );
 }

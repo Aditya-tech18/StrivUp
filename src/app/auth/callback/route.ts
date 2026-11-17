@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { homeFor } from "@/lib/auth/roles";
+import { safeRedirect } from "@/lib/safeRedirect";
 
 /**
  * GET /auth/callback
@@ -17,16 +18,10 @@ import { homeFor } from "@/lib/auth/roles";
  * (a leading "//" or "/\" is protocol-relative and would send the user
  * off-site once the browser normalises `${origin}${next}`).
  */
-function safeNext(raw: string | null): string {
-  if (!raw || !raw.startsWith("/")) return "/feed";
-  if (raw.startsWith("//") || raw.startsWith("/\\")) return "/feed";
-  return raw;
-}
-
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = safeNext(searchParams.get("next"));
+  const next = safeRedirect(searchParams.get("next"));
 
   if (code) {
     const supabase = await createClient();
