@@ -34,7 +34,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     title: "What Strivy is",
     status: "available",
     keywords: ["strivy", "who are you", "what are you", "ai", "bot", "chatgpt", "purpose"],
-    body: "I'm Strivy, STRIVUP's accountability companion. My job is to help you keep showing up: I check what's due today, how your streaks and week look, whether your proof got verified, and how your quests and rewards are going. I only use your real STRIVUP data, and if I don't have something, I'll say so instead of guessing. Right now my answers come straight from your data, not from an AI model.",
+    body: "I'm Strivy, STRIVUP's accountability companion. My job is to help you keep showing up: I check what's due today, how your streaks and week look, whether your proof got verified, and how your quests and rewards are going. I only use your real STRIVUP data, and if I don't have something, I'll say so instead of guessing. Answers about your progress come straight from your data; for general questions and chat I use a free AI model, checked against your data before you see it.",
   },
   {
     id: "strivy_usage",
@@ -250,13 +250,23 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     body: "Challenges and quests run by gyms and other businesses are being prepared but aren't open to everyone yet.",
   },
 
+  {
+    id: "coins",
+    kind: "concept",
+    title: "StrivCoins",
+    status: "available",
+    keywords: ["coins", "coin", "strivcoins", "strivcoin", "wallet"],
+    body: "STRIVUP has StrivCoins. Your coin balance, how you earn coins and what they unlock are on the StrivCoins page.",
+    link: { label: "Open StrivCoins", href: "/coins" },
+  },
+
   /* ── Not in STRIVUP ─────────────────────────────────────────────────── */
   {
     id: "points",
     kind: "concept",
     title: "Points, XP and badges",
     status: "not_built",
-    keywords: ["points", "point", "xp", "coins", "coin", "badges", "badge", "level", "levels"],
+    keywords: ["points", "point", "xp", "badges", "badge", "level", "levels"],
     body: "STRIVUP doesn't have points, XP or badges. Progress is measured by streaks, consistency and completed challenges.",
   },
   {

@@ -240,6 +240,13 @@ function errorDetail(data: unknown): string {
   return `${errorText(data)} ${rawText.slice(0, 500)}`;
 }
 
+/**
+ * A 200 with nothing usable in it: no text (a reasoning model that spent its
+ * budget thinking), or a safety classifier's verdict. The free router picks
+ * a model per request, so one more try usually lands on a model that answers.
+ */
+class UnusableReplyError extends MalformedModelResponseError {}
+
 export function createOpenRouterProvider(
   config: OpenRouterConfig,
   deps: { fetch?: Fetch; now?: () => number; log?: (message: string) => void } = {}
@@ -337,146 +344,177 @@ export function createOpenRouterProvider(
     enabled: true,
     timeoutMs: config.timeoutMs,
     health,
-    async generateResponse(
-      context: StrivyModelContext,
-      draft: StrivyReply,
-      userMessage: string,
-      options: ModelCallOptions = {}
-    ): Promise<string | null> {
-      if (costTripped) throw new ModelUnavailableError("switched off after a reported cost");
-      if (now() < pausedUntil) throw new ModelUnavailableError(`paused (${pauseReason})`);
-
-      const mode = options.mode ?? "rewrite";
-      const promptStarted = now();
-      const prompt = buildModelPrompt(context, draft, userMessage, {
-        mode,
-        history: options.history ?? [],
-      });
-      const promptMs = now() - promptStarted;
-      const timeout = AbortSignal.timeout(config.timeoutMs);
-      const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
-      const reasoningRequired = now() < reasoningRequiredUntil;
-      const body: Record<string, unknown> = {
-        model: config.model,
-        messages: prompt.messages,
-        max_tokens: (reasoningRequired ? REASONING_MAX_TOKENS : MAX_TOKENS)[mode],
-        ...SAMPLING[mode],
-        stream: false,
-        // A one-line reply needs no thinking. Models that must think refuse
-        // `enabled: false` (HTTP 400), so after such a refusal the request
-        // asks for brief, hidden reasoning instead (see below).
-        reasoning: reasoningRequired ? REASONING_REQUIRED : REASONING_OFF,
-      };
-      if (sendPriceCap) body.provider = { max_price: { prompt: 0, completion: 0 } };
-
-      /**
-       * A refusal STRIVY can fix by changing the request, or null. The model
-       * id is never changed, so a retry is as free as the first try.
-       */
-      const fixRefusal = (data: unknown): "price" | "reasoning" | null => {
-        const detail = errorDetail(data);
-        if (isReasoningRequiredError(detail) && body.reasoning !== REASONING_REQUIRED) {
-          reasoningRequiredUntil = now() + REASONING_REQUIRED_MS;
-          body.reasoning = REASONING_REQUIRED;
-          body.max_tokens = REASONING_MAX_TOKENS[mode];
-          note(
-            "reasoning-required",
-            "[strivy] OpenRouter picked a model that must reason; retrying with brief hidden reasoning (still free)."
-          );
-          return "reasoning";
-        }
-        if (sendPriceCap && isPriceCapError(detail)) {
-          // The id is still free-only; only the extra cap is dropped.
-          sendPriceCap = false;
-          delete body.provider;
-          return "price";
-        }
-        return null;
-      };
-
-      const requestStarted = now();
-      let res: Response;
-      /** A 200 that carried a fixable refusal in its body, already read. */
-      let data: ChatCompletion | null = null;
+    async generateResponse(context, draft, userMessage, options = {}) {
+      // One shared deadline across the retry, so the person never waits
+      // longer than a single timeout.
+      const deadline = AbortSignal.timeout(config.timeoutMs);
+      const signal = options.signal ? AbortSignal.any([options.signal, deadline]) : deadline;
+      const run = () => generateOnce(context, draft, userMessage, { ...options, signal });
       try {
-        for (let attempt = 0; ; attempt++) {
-          data = null;
-          res = await post(body, signal);
-          if (res.status === 400 || res.status === 422) {
-            const refusal = await res.json().catch(() => null);
-            if (attempt < MAX_RETRIES && fixRefusal(refusal)) continue;
-            throw new MalformedModelResponseError(
-              `OpenRouter refused the request (HTTP ${res.status}${errorText(refusal) ? `: ${errorText(refusal)}` : ""})`
-            );
-          }
-          if (res.ok) {
-            // OpenRouter can report an upstream refusal inside a 200.
-            try {
-              data = (await res.json()) as ChatCompletion | null;
-            } catch {
-              throw new MalformedModelResponseError();
-            }
-            if (data?.error && attempt < MAX_RETRIES && fixRefusal(data)) continue;
-          }
-          break;
+        try {
+          const text = await run();
+          if (text !== null) return text;
+          if (signal.aborted) return null;
+          note(
+            "retry-empty",
+            "[strivy] OpenRouter returned no text; asking once more (still free)."
+          );
+        } catch (err) {
+          if (!(err instanceof UnusableReplyError) || signal.aborted) throw err;
+          note(
+            "retry-unusable",
+            `[strivy] OpenRouter reply unusable (${err.message}); asking once more (still free).`
+          );
         }
+        return await run();
       } catch (err) {
-        if (err instanceof MalformedModelResponseError) throw err;
-        if (timeout.aborted) throw new Error(`timed out after ${config.timeoutMs}ms`);
-        if (options.signal?.aborted) throw new Error("cancelled");
-        throw new ModelUnavailableError("OpenRouter isn't reachable");
+        if (deadline.aborted && !options.signal?.aborted) {
+          throw new Error(`timed out after ${config.timeoutMs}ms`);
+        }
+        throw err;
       }
-
-      if (res.status === 401 || res.status === 403) {
-        pause(AUTH_COOLDOWN_MS, "the API key was rejected");
-        throw new ModelUnavailableError("OpenRouter rejected the API key");
-      }
-      if (res.status === 402) {
-        pause(AUTH_COOLDOWN_MS, "OpenRouter wants credits; STRIVY never pays");
-        throw new ModelUnavailableError("OpenRouter asked for credits (402)");
-      }
-      if (res.status === 429) {
-        pause(RATE_LIMIT_COOLDOWN_MS, "free-tier rate limit");
-        throw new ModelUnavailableError("OpenRouter free-tier rate limit (429)");
-      }
-      if (!res.ok) {
-        const failure = await res.json().catch(() => null);
-        throw new MalformedModelResponseError(
-          `OpenRouter answered HTTP ${res.status}${errorText(failure) ? `: ${errorText(failure)}` : ""}`
-        );
-      }
-
-      // OpenRouter can report an upstream failure inside a 200.
-      if (data?.error) throw new MalformedModelResponseError(`OpenRouter: ${errorText(data)}`);
-
-      const cost = typeof data?.usage?.cost === "number" ? data.usage.cost : 0;
-      if (cost > 0) {
-        costTripped = true;
-        log(
-          `[strivy] OpenRouter reported a cost (${cost}) for model ${String(data?.model ?? "?")}. ` +
-            "The model is switched off until the server restarts; STRIVY only uses free models."
-        );
-        throw new ModelUnavailableError("a reply reported a cost");
-      }
-
-      const choice = Array.isArray(data?.choices) ? data.choices[0] : undefined;
-      const content = choice?.message?.content;
-      if (typeof content !== "string") throw new MalformedModelResponseError();
-      const finish = typeof choice?.finish_reason === "string" ? choice.finish_reason : null;
-      options.onStats?.(
-        completionStats(data as ChatCompletion, promptMs, now() - requestStarted, finish)
-      );
-      if (isSafetyClassifierModel(data?.model)) {
-        throw new MalformedModelResponseError(
-          `a safety classifier answered (${String(data?.model).slice(0, 80)})`
-        );
-      }
-      note("ok", `[strivy] OpenRouter text model ready (${config.model}).`);
-      let text = stripInternalMetadata(cleanModelText(content));
-      if (finish === "length") text = trimToSentence(text);
-      return text || null;
     },
   };
+
+  async function generateOnce(
+    context: StrivyModelContext,
+    draft: StrivyReply,
+    userMessage: string,
+    options: ModelCallOptions = {}
+  ): Promise<string | null> {
+    if (costTripped) throw new ModelUnavailableError("switched off after a reported cost");
+    if (now() < pausedUntil) throw new ModelUnavailableError(`paused (${pauseReason})`);
+
+    const mode = options.mode ?? "rewrite";
+    const promptStarted = now();
+    const prompt = buildModelPrompt(context, draft, userMessage, {
+      mode,
+      history: options.history ?? [],
+    });
+    const promptMs = now() - promptStarted;
+    const timeout = AbortSignal.timeout(config.timeoutMs);
+    const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
+    const reasoningRequired = now() < reasoningRequiredUntil;
+    const body: Record<string, unknown> = {
+      model: config.model,
+      messages: prompt.messages,
+      max_tokens: (reasoningRequired ? REASONING_MAX_TOKENS : MAX_TOKENS)[mode],
+      ...SAMPLING[mode],
+      stream: false,
+      // A one-line reply needs no thinking. Models that must think refuse
+      // `enabled: false` (HTTP 400), so after such a refusal the request
+      // asks for brief, hidden reasoning instead (see below).
+      reasoning: reasoningRequired ? REASONING_REQUIRED : REASONING_OFF,
+    };
+    if (sendPriceCap) body.provider = { max_price: { prompt: 0, completion: 0 } };
+
+    /**
+     * A refusal STRIVY can fix by changing the request, or null. The model
+     * id is never changed, so a retry is as free as the first try.
+     */
+    const fixRefusal = (data: unknown): "price" | "reasoning" | null => {
+      const detail = errorDetail(data);
+      if (isReasoningRequiredError(detail) && body.reasoning !== REASONING_REQUIRED) {
+        reasoningRequiredUntil = now() + REASONING_REQUIRED_MS;
+        body.reasoning = REASONING_REQUIRED;
+        body.max_tokens = REASONING_MAX_TOKENS[mode];
+        note(
+          "reasoning-required",
+          "[strivy] OpenRouter picked a model that must reason; retrying with brief hidden reasoning (still free)."
+        );
+        return "reasoning";
+      }
+      if (sendPriceCap && isPriceCapError(detail)) {
+        // The id is still free-only; only the extra cap is dropped.
+        sendPriceCap = false;
+        delete body.provider;
+        return "price";
+      }
+      return null;
+    };
+
+    const requestStarted = now();
+    let res: Response;
+    /** A 200 that carried a fixable refusal in its body, already read. */
+    let data: ChatCompletion | null = null;
+    try {
+      for (let attempt = 0; ; attempt++) {
+        data = null;
+        res = await post(body, signal);
+        if (res.status === 400 || res.status === 422) {
+          const refusal = await res.json().catch(() => null);
+          if (attempt < MAX_RETRIES && fixRefusal(refusal)) continue;
+          throw new MalformedModelResponseError(
+            `OpenRouter refused the request (HTTP ${res.status}${errorText(refusal) ? `: ${errorText(refusal)}` : ""})`
+          );
+        }
+        if (res.ok) {
+          // OpenRouter can report an upstream refusal inside a 200.
+          try {
+            data = (await res.json()) as ChatCompletion | null;
+          } catch {
+            throw new MalformedModelResponseError();
+          }
+          if (data?.error && attempt < MAX_RETRIES && fixRefusal(data)) continue;
+        }
+        break;
+      }
+    } catch (err) {
+      if (err instanceof MalformedModelResponseError) throw err;
+      if (timeout.aborted) throw new Error(`timed out after ${config.timeoutMs}ms`);
+      if (options.signal?.aborted) throw new Error("cancelled");
+      throw new ModelUnavailableError("OpenRouter isn't reachable");
+    }
+
+    if (res.status === 401 || res.status === 403) {
+      pause(AUTH_COOLDOWN_MS, "the API key was rejected");
+      throw new ModelUnavailableError("OpenRouter rejected the API key");
+    }
+    if (res.status === 402) {
+      pause(AUTH_COOLDOWN_MS, "OpenRouter wants credits; STRIVY never pays");
+      throw new ModelUnavailableError("OpenRouter asked for credits (402)");
+    }
+    if (res.status === 429) {
+      pause(RATE_LIMIT_COOLDOWN_MS, "free-tier rate limit");
+      throw new ModelUnavailableError("OpenRouter free-tier rate limit (429)");
+    }
+    if (!res.ok) {
+      const failure = await res.json().catch(() => null);
+      throw new MalformedModelResponseError(
+        `OpenRouter answered HTTP ${res.status}${errorText(failure) ? `: ${errorText(failure)}` : ""}`
+      );
+    }
+
+    // OpenRouter can report an upstream failure inside a 200.
+    if (data?.error) throw new MalformedModelResponseError(`OpenRouter: ${errorText(data)}`);
+
+    const cost = typeof data?.usage?.cost === "number" ? data.usage.cost : 0;
+    if (cost > 0) {
+      costTripped = true;
+      log(
+        `[strivy] OpenRouter reported a cost (${cost}) for model ${String(data?.model ?? "?")}. ` +
+          "The model is switched off until the server restarts; STRIVY only uses free models."
+      );
+      throw new ModelUnavailableError("a reply reported a cost");
+    }
+
+    const choice = Array.isArray(data?.choices) ? data.choices[0] : undefined;
+    const content = choice?.message?.content;
+    if (typeof content !== "string") throw new UnusableReplyError("no text in the reply");
+    const finish = typeof choice?.finish_reason === "string" ? choice.finish_reason : null;
+    options.onStats?.(
+      completionStats(data as ChatCompletion, promptMs, now() - requestStarted, finish)
+    );
+    if (isSafetyClassifierModel(data?.model)) {
+      throw new UnusableReplyError(
+        `a safety classifier answered (${String(data?.model).slice(0, 80)})`
+      );
+    }
+    note("ok", `[strivy] OpenRouter text model ready (${config.model}).`);
+    let text = stripInternalMetadata(cleanModelText(content));
+    if (finish === "length") text = trimToSentence(text);
+    return text || null;
+  }
 }
 
 const count = (n: unknown) => (typeof n === "number" && n >= 0 ? n : null);
