@@ -35,7 +35,7 @@ export interface FeedPost {
   category: string;
   dayLabel: string; // e.g. "2H AGO"
   streakDay: number; // e.g. 45
-  proofImageUrl: string;
+  proofImageUrl: string | null;
   /** Natural pixel size, when known. Null for proofs uploaded before
    *  dimensions were recorded — those fall back to a 4:3 box. */
   mediaWidth: number | null;
@@ -211,16 +211,21 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
             </div>
           ) : (
             <>
-              <Image
-                src={post.proofImageUrl}
-                alt={`Proof of work by ${post.authorName}`}
-                fill
-                // contain, not cover: the container is already the right shape,
-                // so the only images this affects are the clamped extremes —
-                // and letterboxing those beats cutting content out of them.
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 640px"
-              />
+              {post.proofImageUrl ? (
+                /\.(mp4|m4v|mov|webm|ogv|3gp)$/i.test(post.proofImageUrl.split(/[?#]/, 1)[0]) ? (
+                  <video src={post.proofImageUrl} controls playsInline preload="metadata" aria-label={`Proof video by ${post.authorName}`} className="absolute inset-0 h-full w-full object-contain" />
+                ) : (
+                  <Image
+                    src={post.proofImageUrl}
+                    alt={`Proof of work by ${post.authorName}`}
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, 640px"
+                  />
+                )
+              ) : (
+                <p className="p-4 text-center text-body-sm text-on-surface-variant">No photo or video attached.</p>
+              )}
               {/* Reporting UI Overlay */}
               {isReporting && (
                 <div className="absolute inset-0 z-10 bg-black/60 flex items-center justify-center p-4">

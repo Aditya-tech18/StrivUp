@@ -1,5 +1,5 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { reviewImage } from "./review.ts";
+import { reviewImageWithFallback } from "./review.ts";
 import { isRetryableStatus } from "./policy.ts";
 
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization,x-client-info,apikey,content-type" };
@@ -153,7 +153,7 @@ Deno.serve(async (req: Request) => {
         ].join("\n");
 
 
-    const result = await reviewImage({ bytes, mime, prompt, apiKey: Deno.env.get("GEMINI_API_KEY") ?? "", model: Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash-lite" });
+    const result = await reviewImageWithFallback({ bytes, mime, prompt, apiKey: Deno.env.get("GEMINI_API_KEY") ?? "", model: Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash-lite" });
     if (!result.verdict) return await failed(result.error ?? "Invalid model verdict", result.retryable);
     const verdict = result.verdict;
     const classification = verdict.confidence < 0.6 ? "uncertain" : verdict.matches ? "match" : "mismatch";
@@ -162,7 +162,8 @@ Deno.serve(async (req: Request) => {
       file_hash: hash, ai_classification: classification, ai_confidence: verdict.confidence, ai_reasoning: verdict.reasoning,
       verification_status: status, rejection_reason: status === "rejected" ? verdict.reasoning || "This doesn't match the required proof." : null,
     }, { event_type: classification === "match" ? "ai_approved" : "ai_flagged", source: "ai", decision: classification, reason: verdict.reasoning, confidence: verdict.confidence });
-    return json({ status: applied ? status : "pending", review_state: classification === "uncertain" ? "human_review" : "complete" });
+    if (applied) console.info("Proof verdict saved using", result.model);
+    return json({ status: applied ? status : "pending", review_state: !applied ? "queued" : classification === "uncertain" ? "human_review" : "complete" });
   } catch (error) {
     console.error("Proof review error:", error instanceof Error ? error.message : String(error));
     if (authenticatedWorker) {

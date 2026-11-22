@@ -128,7 +128,7 @@ export async function getFeedPosts(
       category: (challenge?.title ?? "CHALLENGE").toUpperCase(),
       dayLabel: relativeLabel(row.submitted_at as string),
       streakDay: (row.day_number as number) ?? 1,
-      proofImageUrl: row.media_url as string,
+      proofImageUrl: row.media_url ?? null,
       mediaWidth: (row.media_width as number | null) ?? null,
       mediaHeight: (row.media_height as number | null) ?? null,
       caption: (row.caption as string) ?? "",

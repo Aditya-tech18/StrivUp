@@ -27,6 +27,7 @@ export interface UploadOpts {
   userId: string | null;
   joinedAt: string | null;
   taskId?: string | null;
+  caption?: string;
   /** If set, PATCH this row instead of INSERT (for resubmits) */
   existingSubmissionId?: string | null;
 }
@@ -44,7 +45,7 @@ export type UploadResult =
   | { submissionId: null; preview: null; error: string };
 
 export async function uploadProof(opts: UploadOpts, file: File): Promise<UploadResult> {
-  const { challengeId, userId, joinedAt, taskId, existingSubmissionId } = opts;
+  const { challengeId, userId, joinedAt, taskId, existingSubmissionId, caption } = opts;
 
   if (!userId) return { submissionId: null, preview: null, error: "Sign in to upload proof." };
 
@@ -77,6 +78,7 @@ export async function uploadProof(opts: UploadOpts, file: File): Promise<UploadR
       .from("proof_submissions")
       .update({
         media_url: publicUrl,
+        ...(caption === undefined ? {} : { caption }),
         verification_status: "pending",
         rejection_reason: null,
         reviewed_by: null,
@@ -93,7 +95,10 @@ export async function uploadProof(opts: UploadOpts, file: File): Promise<UploadR
         media_width: width || null,
         media_height: height || null,
       })
-      .eq("id", existingSubmissionId);
+      .eq("id", existingSubmissionId)
+      .abortSignal(AbortSignal.timeout(15_000))
+      .select("id")
+      .single();
     if (updateError) return { submissionId: null, preview: null, error: updateError.message };
     submissionId = existingSubmissionId;
   } else {
@@ -107,24 +112,18 @@ export async function uploadProof(opts: UploadOpts, file: File): Promise<UploadR
         day_number: dayNumber,
         task_id: taskId ?? null,
         media_url: publicUrl,
+        ...(caption === undefined ? {} : { caption }),
         verification_status: "pending",
       })
       .select("id")
+      .abortSignal(AbortSignal.timeout(15_000))
       .single();
     if (insertError || !insertedRow)
       return { submissionId: null, preview: null, error: insertError?.message ?? "Insert failed" };
     submissionId = insertedRow.id as string;
   }
 
-  // 3. Generate preview data URL
-  const dataUrl = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (ev) => resolve(ev.target?.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-
-  return { submissionId, preview: dataUrl, error: null };
+  return { submissionId, preview: publicUrl, error: null };
 }
 
 /** Call the review-proof edge function and return normalised verdict. */

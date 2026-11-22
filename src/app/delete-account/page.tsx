@@ -99,7 +99,7 @@ export default function PublicDeleteAccountPage() {
           </p>
           <p className="mt-3 flex items-center gap-2 text-body-md">
             <Mail size={16} className="shrink-0 text-on-surface-variant" aria-hidden="true" />
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="font-semibold text-secondary hover:underline">
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="inline-flex min-h-11 min-w-0 items-center break-all font-semibold text-secondary hover:underline">
               {SUPPORT_EMAIL}
             </a>
           </p>

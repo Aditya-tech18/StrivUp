@@ -58,7 +58,7 @@ export default function PublicPrivacyPage() {
         <div className="mt-6 flex flex-col gap-3 rounded-xl border border-outline-variant bg-surface-container-low p-5">
           <p className="flex items-center gap-2 text-body-md text-on-surface">
             <Mail size={16} className="shrink-0 text-on-surface-variant" aria-hidden="true" />
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="font-semibold text-secondary hover:underline">
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="inline-flex min-h-11 min-w-0 items-center break-all font-semibold text-secondary hover:underline">
               {SUPPORT_EMAIL}
             </a>
           </p>

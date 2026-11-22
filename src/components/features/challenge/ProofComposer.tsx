@@ -1,42 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AlertCircle,
-  Camera,
-  CheckCircle2,
-  ImagePlus,
-  Loader2,
-  Send,
-  Sparkles,
-  X,
-} from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { Camera, ImagePlus, Loader2, X } from "lucide-react";
 import { callReviewProof, uploadProof } from "@/lib/data/proofs";
+import { emitStrivyEvent } from "@/components/features/strivy/companion";
 import { ProofReviewWatcher } from "./ProofReviewWatcher";
 
-/**
- * ProofComposer — post today's proof.
- *
- * WHY THIS REPLACES THE OLD FLOW. Before, picking a file blocked the screen on
- * "reviewing" until the edge function answered, and when it approved, nothing
- * refreshed — the post only appeared after a manual reload, which read as the
- * page being stuck. There was also nowhere to say anything about the day; the
- * proof_submissions.caption column existed and no screen ever wrote to it.
- *
- * The order is deliberate: the upload and the review start the moment a file
- * is chosen and run in the background while the caption is being written, so
- * the wait costs nothing. By the time there is something to say, the verdict
- * is usually already in.
- *
- * Approved proofs can be posted; pending proofs can save their caption and
- * close while the durable worker continues. Pending and rejected proofs stay
- * private under the existing database visibility rules.
- */
-
-type Phase = "pick" | "compose";
-type Review = "idle" | "uploading" | "checking" | "approved" | "rejected" | "failed" | "queued" | "human_review";
+type Review = "checking" | "approved" | "rejected" | "queued" | "human_review";
 
 export function ProofComposer({
   open,
@@ -47,6 +18,7 @@ export function ProofComposer({
   taskId = null,
   existingSubmissionId = null,
   proofInstruction,
+  videoOnly = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -54,315 +26,295 @@ export function ProofComposer({
   userId: string | null;
   joinedAt: string | null;
   taskId?: string | null;
-  /** Set when replacing a rejected submission. */
   existingSubmissionId?: string | null;
-  /** What this challenge asks for, derived at creation time. */
   proofInstruction?: string | null;
+  videoOnly?: boolean;
 }) {
   const router = useRouter();
-const cameraRef = useRef<HTMLInputElement>(null);
-const galleryRef = useRef<HTMLInputElement>(null);
-
-  const [phase, setPhase] = useState<Phase>("pick");
-  const [review, setReview] = useState<Review>("idle");
+  const overlay = useRef<HTMLDialogElement>(null);
+  const camera = useRef<HTMLInputElement>(null);
+  const gallery = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [isVideo, setIsVideo] = useState(false);
-  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [submissionId, setSubmissionId] = useState(existingSubmissionId);
+  const saved = useRef(false);
   const [caption, setCaption] = useState("");
-  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [review, setReview] = useState<Review | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [posting, setPosting] = useState(false);
 
-  // No reset effect: the parent gives this a key that changes each time the
-  // sheet opens, so every open is a fresh mount with fresh state. Clearing
-  // nine useStates from an effect is the cascading-render pattern
-  // react-hooks/set-state-in-effect exists to catch, and remounting is both
-  // cheaper to reason about and impossible to get half-right.
+  // The software keyboard can shrink the visual viewport while the CSS layout
+  // viewport stays the same. Keep the footer inside the visible area on both.
+  useEffect(() => {
+    const node = overlay.current;
+    const viewport = window.visualViewport;
+    if (!open || !node) return;
+    node.showModal();
+    function resize() {
+      if (!node || !viewport) return;
+      node.style.top = viewport.offsetTop + "px";
+      node.style.height = viewport.height + "px";
+    }
+    resize();
+    viewport?.addEventListener("resize", resize);
+    viewport?.addEventListener("scroll", resize);
+    return () => {
+      viewport?.removeEventListener("resize", resize);
+      viewport?.removeEventListener("scroll", resize);
+      node.close();
+    };
+  }, [open]);
+
+  useEffect(
+    () => () => {
+      if (preview) URL.revokeObjectURL(preview);
+    },
+    [preview]
+  );
+
   if (!open) return null;
 
-  async function handleFile(file: File) {
-    setIsVideo(file.type.startsWith("video/"));
+  function selectFile(selected: File) {
+    setFile(selected);
+    setPreview(URL.createObjectURL(selected));
     setError(null);
-    setRejectionReason(null);
-    setReview("uploading");
-    // Straight to the caption step: there is nothing to look at on an upload
-    // spinner, and the whole point is that the wait overlaps with writing.
-    setPhase("compose");
+  }
 
-    const result = await uploadProof(
-      { challengeId, userId, joinedAt, taskId, existingSubmissionId },
-      file
+  function recordVerdict(result: Awaited<ReturnType<typeof callReviewProof>>) {
+    setReview(
+      result.status === "pending"
+        ? result.reviewState === "human_review"
+          ? "human_review"
+          : "queued"
+        : result.status
     );
+    setError(
+      result.status === "rejected"
+        ? (result.rejectionReason ?? "Choose another photo that shows the required proof.")
+        : null
+    );
+    if (result.status === "approved") emitStrivyEvent({ type: "CHALLENGE_COMPLETED" });
+  }
 
-    if (result.error || !result.submissionId) {
-      setReview("failed");
-      setError(result.error ?? "Upload failed.");
-      return;
-    }
-
-    setPreview(result.preview);
-    setSubmissionId(result.submissionId);
-    setReview("checking");
-
-    const verdict = await callReviewProof(result.submissionId);
-    if (verdict.status === "approved") {
-      setReview("approved");
-    } else if (verdict.status === "rejected") {
-      setReview("rejected");
-      setRejectionReason(verdict.rejectionReason);
-    } else {
-      setReview(verdict.reviewState === "human_review" ? "human_review" : "queued");
+  async function submit() {
+    if (!file || uploading || review) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const result = await uploadProof(
+        {
+          challengeId,
+          userId,
+          joinedAt,
+          taskId,
+          existingSubmissionId: submissionId,
+          caption: caption.trim(),
+        },
+        file
+      );
+      if (result.error || !result.submissionId) {
+        setError(result.error ?? "Upload failed. Please try again.");
+        return;
+      }
+      setSubmissionId(result.submissionId);
+      saved.current = true;
+      setReview("checking");
+      void callReviewProof(result.submissionId).then(recordVerdict);
+    } catch {
+      setError("We couldn't upload the proof. Please try again.");
+    } finally {
+      setUploading(false);
     }
   }
 
-  async function handlePost() {
-    if (!submissionId || !["approved", "checking", "queued", "human_review"].includes(review) || posting) return;
-    setPosting(true);
-    setError(null);
-
-    const supabase = createClient();
-    const trimmed = caption.trim();
-    {
-      const { error: captionError } = await supabase
-        .from("proof_submissions")
-        .update({ caption: trimmed })
-        .eq("id", submissionId);
-      // The proof is already approved and visible; a caption that failed to
-      // save is worth saying so rather than silently dropping the words.
-      if (captionError) {
-        setError("Your proof is saved, but the caption didn't save. Please try again.");
-        setPosting(false);
-        return;
-      }
-    }
-
-    // This is the line whose absence made the old flow look stuck: the server
-    // components holding the feed and the day's state have to be told.
-    router.refresh();
+  function close() {
+    if (uploading) return;
+    if (saved.current) router.refresh();
     onClose();
   }
 
-  function handleClose() {
-    // A saved upload can finish independently; preserve its caption on exit.
-    if (submissionId && ["approved", "checking", "queued", "human_review"].includes(review)) {
-      void handlePost();
-    } else if (!posting) onClose();
-  }
-
-  const statusPill = {
-    idle: null,
-    uploading: { icon: Loader2, text: "Uploading…", tone: "text-on-surface-variant", spin: true },
-    checking: { icon: Sparkles, text: "Checking your proof…", tone: "text-secondary", spin: false },
-    approved: { icon: CheckCircle2, text: "Verified", tone: "text-success", spin: false },
-    rejected: { icon: AlertCircle, text: "Doesn't match", tone: "text-error", spin: false },
-    failed: { icon: AlertCircle, text: "Couldn't check", tone: "text-warning", spin: false },
-    queued: { icon: Sparkles, text: "Saved for automatic review", tone: "text-secondary", spin: false },
-    human_review: { icon: Sparkles, text: "Awaiting human review", tone: "text-secondary", spin: false },
-  }[review];
+  const status =
+    review &&
+    {
+      checking: "Proof submitted. Checking your proof…",
+      approved: "Verified",
+      rejected: "Proof needs a different photo",
+      queued: "Saved for automatic review",
+      human_review: "Awaiting human review",
+    }[review];
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center"
-      role="dialog"
-      aria-modal="true"
+    <dialog
+      ref={overlay}
+      className="fixed inset-x-0 top-0 m-0 flex h-dvh max-h-none w-full max-w-none items-end justify-center bg-transparent p-0 backdrop:bg-black/50 sm:items-center"
       aria-label="Post today's proof"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !posting) handleClose();
+      onClick={(event) => {
+        if (event.target === event.currentTarget) close();
+      }}
+      onCancel={(event) => {
+        event.preventDefault();
+        close();
       }}
     >
       {review === "queued" && submissionId ? (
-        <ProofReviewWatcher submissionId={submissionId} onResult={(result) => {
-          setReview(result.status === "pending" ? "human_review" : result.status);
-          setRejectionReason(result.rejectionReason);
-          router.refresh();
-        }} />
+        <ProofReviewWatcher submissionId={submissionId} onResult={recordVerdict} />
       ) : null}
-      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-surface-container-lowest sm:rounded-2xl">
-        <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3">
-          <p className="text-body-lg font-bold text-on-surface">
-            {phase === "pick" ? "Today's proof" : "Add a caption"}
-          </p>
+
+      <form
+        className="flex max-h-[calc(100%-0.5rem)] w-full max-w-md flex-col overflow-hidden rounded-t-2xl bg-surface-container-lowest sm:max-h-[92%] sm:rounded-2xl"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submit();
+        }}
+      >
+        <header className="flex shrink-0 items-center justify-between border-b border-outline-variant px-4 py-2">
+          <h2 className="text-body-lg font-bold text-on-surface">
+            {file ? "Add a caption" : "Today's proof"}
+          </h2>
           <button
             type="button"
-            onClick={handleClose}
+            onClick={close}
+            disabled={uploading}
             aria-label="Close"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container tap-target"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container"
           >
-            <X size={16} aria-hidden="true" />
+            <X size={18} aria-hidden="true" />
           </button>
-        </div>
+        </header>
 
-        {phase === "pick" ? (
-          <div className="space-y-4 p-4">
-            {proofInstruction ? (
-              <div className="flex items-start gap-2.5 rounded-xl bg-secondary/8 p-3">
-                <Camera size={16} className="mt-0.5 shrink-0 text-secondary" aria-hidden="true" />
-                <p className="text-body-sm text-on-surface-variant">{proofInstruction}</p>
-              </div>
-            ) : null}
-
-
-<div className="grid grid-cols-2 gap-3">
-
-  <button
-    type="button"
-    onClick={() => cameraRef.current?.click()}
-    className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low py-8 transition-colors hover:border-secondary hover:bg-secondary/5"
-  >
-    <Camera size={30} className="text-secondary" />
-    <span className="text-body-md font-semibold text-on-surface">
-      Take Photo
-    </span>
-    <span className="text-label-sm text-on-surface-variant">
-      Open Camera
-    </span>
-  </button>
-
-  <button
-    type="button"
-    onClick={() => galleryRef.current?.click()}
-    className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low py-8 transition-colors hover:border-secondary hover:bg-secondary/5"
-  >
-    <ImagePlus size={30} className="text-secondary" />
-    <span className="text-body-md font-semibold text-on-surface">
-      Gallery
-    </span>
-    <span className="text-label-sm text-on-surface-variant">
-      Choose Photo or Video
-    </span>
-  </button>
-
-</div>
-
-          </div>
-        ) : (
-          <div className="space-y-4 p-4">
-            <div className="flex gap-3">
-              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-surface-container">
-                {preview && !isVideo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={preview} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    {review === "uploading" ? (
-                      <Loader2 size={18} className="animate-spin text-on-surface-variant" aria-hidden="true" />
-                    ) : (
-                      <Camera size={18} className="text-on-surface-variant" aria-hidden="true" />
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                {statusPill ? (
-                  <p className={`flex items-center gap-1.5 text-label-sm font-semibold ${statusPill.tone}`}>
-                    <statusPill.icon
-                      size={13}
-                      className={statusPill.spin ? "animate-spin" : ""}
-                      aria-hidden="true"
-                    />
-                    {statusPill.text}
-                  </p>
-                ) : null}
-
-                {review === "rejected" && rejectionReason ? (
-                  <p className="mt-1 text-label-sm text-on-surface-variant">{rejectionReason}</p>
-                ) : null}
-
-                {review === "checking" ? (
-                  <p className="mt-1 text-label-sm text-on-surface-variant">
-                    Carry on writing — this finishes on its own.
-                  </p>
-                ) : null}
-                {review === "queued" ? (
-                  <p className="mt-1 text-label-sm text-on-surface-variant">Your proof is saved. We’ll retry automatically, even after you leave.</p>
-                ) : review === "human_review" ? (
-                  <p className="mt-1 text-label-sm text-on-surface-variant">Your proof is saved for a person to review. It becomes visible after approval.</p>
-                ) : null}
+        <div className="min-h-0 overflow-y-auto overscroll-contain p-4">
+          {!file ? (
+            <div className="space-y-4">
+              {proofInstruction ? (
+                <p className="rounded-xl bg-secondary/8 p-3 text-body-sm">{proofInstruction}</p>
+              ) : null}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => camera.current?.click()}
+                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-outline-variant p-4 text-secondary hover:bg-secondary/5"
+                >
+                  <Camera size={26} aria-hidden="true" />
+                  <span className="font-semibold">{videoOnly ? "Record video" : "Take photo"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => gallery.current?.click()}
+                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-outline-variant p-4 text-secondary hover:bg-secondary/5"
+                >
+                  <ImagePlus size={26} aria-hidden="true" />
+                  <span className="font-semibold">Gallery</span>
+                </button>
               </div>
             </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                {preview && !file.type.startsWith("video/") ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={preview}
+                    alt="Selected proof"
+                    className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                  />
+                ) : (
+                  <Camera size={24} aria-hidden="true" />
+                )}
+                <p role="status" className="break-all text-body-sm text-on-surface-variant">
+                  {status ?? file.name}
+                </p>
+              </div>
+              <label className="block text-label-md font-semibold" htmlFor="proof-caption">
+                Caption (optional)
+              </label>
+              <textarea
+                id="proof-caption"
+                aria-label="Caption"
+                value={caption}
+                onChange={(event) => setCaption(event.target.value)}
+                maxLength={500}
+                rows={3}
+                readOnly={uploading || Boolean(review)}
+                placeholder="How did it go today?"
+                className="w-full resize-none rounded-xl border border-outline-variant bg-surface-container-low p-3 text-base text-on-surface focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+              />
+              {error ? (
+                <p role="alert" className="text-body-sm text-error">
+                  {error}
+                </p>
+              ) : null}
+            </div>
+          )}
+        </div>
 
-            <textarea
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              maxLength={500}
-              rows={4}
-              placeholder="How did it go today?"
-              aria-label="Caption"
-              className="w-full resize-none rounded-xl border border-outline-variant bg-surface-container-lowest p-3 text-body-md text-on-surface placeholder:text-outline focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
-            />
-            <p className="-mt-2 text-right text-label-sm text-on-surface-variant">
-              {caption.length}/500
-            </p>
-
-            {error ? (
-              <p role="alert" className="text-label-sm text-error">
-                {error}
-              </p>
-            ) : null}
-
-            {review === "rejected" || review === "failed" ? (
+        {file ? (
+          <footer className="flex shrink-0 gap-2 border-t border-outline-variant bg-surface-container-lowest px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+            {!review || review === "rejected" ? (
               <button
                 type="button"
+                disabled={uploading}
                 onClick={() => {
-                  setPhase("pick");
-                  setReview("idle");
+                  setFile(null);
                   setPreview(null);
+                  setReview(null);
                   setError(null);
                 }}
-                className="w-full rounded-xl border border-outline-variant py-2.5 text-body-md font-semibold text-on-surface transition-colors hover:bg-surface-container"
+                className="min-h-11 rounded-xl border border-outline-variant px-3 text-label-md font-semibold disabled:opacity-50"
               >
-                Try a different photo
+                Change media
+              </button>
+            ) : null}
+            {review && review !== "rejected" ? (
+              <button
+                type="button"
+                onClick={close}
+                className="min-h-11 flex-1 rounded-xl bg-secondary px-3 font-semibold text-on-secondary"
+              >
+                Done
               </button>
             ) : (
               <button
-                type="button"
-                onClick={handlePost}
-                disabled={!["approved", "checking", "queued", "human_review"].includes(review) || !submissionId || posting}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary py-2.5 text-body-md font-semibold text-on-secondary elev-brand transition-opacity disabled:opacity-40"
+                type="submit"
+                disabled={uploading || review === "rejected"}
+                className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-secondary px-3 font-semibold text-on-secondary disabled:opacity-50"
               >
-                {posting ? (
-                  <Loader2 size={15} className="animate-spin" aria-hidden="true" />
-                ) : (
-                  <Send size={15} aria-hidden="true" />
-                )}
-                {review === "approved" ? "Post" : submissionId && ["checking", "queued", "human_review"].includes(review) ? "Save caption and close" : "Post when verified"}
+                {uploading ? (
+                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                ) : null}
+                {uploading ? "Uploading…" : "Upload proof"}
               </button>
             )}
-          </div>
-        )}
+          </footer>
+        ) : null}
 
-{/* Camera input */}
-<input
-  ref={cameraRef}
-  type="file"
-  accept="image/*"
-  capture="environment"
-  className="sr-only"
-  tabIndex={-1}
-  aria-hidden="true"
-  onChange={(e) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (file) void handleFile(file);
-  }}
-/>
-
-{/* Gallery input */}
-<input
-  ref={galleryRef}
-  type="file"
-  accept="image/*,video/*"
-  className="sr-only"
-  tabIndex={-1}
-  aria-hidden="true"
-  onChange={(e) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (file) void handleFile(file);
-  }}
-/>
-      </div>
-    </div>
+        <input
+          ref={camera}
+          type="file"
+          accept={videoOnly ? "video/*" : "image/*"}
+          capture="environment"
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(event) => {
+            const selected = event.target.files?.[0];
+            event.target.value = "";
+            if (selected) selectFile(selected);
+          }}
+        />
+        <input
+          ref={gallery}
+          type="file"
+          accept={videoOnly ? "video/*" : "image/*,video/*"}
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(event) => {
+            const selected = event.target.files?.[0];
+            event.target.value = "";
+            if (selected) selectFile(selected);
+          }}
+        />
+      </form>
+    </dialog>
   );
 }

@@ -12,9 +12,15 @@ import { chromium } from "playwright";
 // Usage: npm run test:invites (requires locally installed Google Chrome).
 const require = createRequire(import.meta.url);
 const proofTest = process.argv.includes("--proof-review");
+const releaseSmoke = process.argv.includes("--release-smoke");
 const proofId = "00000000-0000-4000-8000-000000000004";
 let proof = null;
 let reviewRequests = 0;
+let failUpload = false;
+let stallUpload = false;
+let historicalProof = null;
+let withTask = false;
+const taskId = "00000000-0000-4000-8000-000000000006";
 const userId = "00000000-0000-4000-8000-000000000001";
 const challengeId = "00000000-0000-4000-8000-000000000002";
 const code = "TEST2345";
@@ -55,6 +61,11 @@ const api = http.createServer((req, res) => {
   if (req.method === "OPTIONS") return res.end();
   if (proofTest && url.pathname.startsWith("/storage/v1/object/")) {
     req.resume();
+    if (stallUpload) return;
+    if (failUpload) {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ message: "Test upload rejected" }));
+    }
     return res.end(JSON.stringify({ Key: "test-proof" }));
   }
   if (proofTest && url.pathname === "/functions/v1/review-proof") {
@@ -73,7 +84,9 @@ const api = http.createServer((req, res) => {
       });
       return;
     }
-    const rows = proof && (!url.searchParams.has("verification_status") || url.searchParams.get("verification_status") === "eq." + proof.verification_status) ? [proof] : [];
+    const rows = [proof, historicalProof].filter(row => row &&
+      (!url.searchParams.has("id") || url.searchParams.get("id") === "eq." + row.id) &&
+      (!url.searchParams.has("verification_status") || url.searchParams.get("verification_status") === "eq." + row.verification_status));
     return res.end(JSON.stringify(req.headers.accept?.includes("vnd.pgrst.object") ? rows[0] ?? null : rows));
   }
   if (url.pathname === "/auth/v1/user") return res.end(JSON.stringify(user));
@@ -117,6 +130,9 @@ const api = http.createServer((req, res) => {
       },
     ];
   if (table === "challenges") rows = [challenge];
+  if (table === "challenge_tasks" && withTask) rows = [{
+    id: taskId, challenge_id: challengeId, title: "Practice a drill", proof_type: "photo", is_required: true, sort_order: 0,
+  }];
   if (table === "challenge_participants" && joined)
     rows = [
       {
@@ -176,7 +192,7 @@ try {
   }
   console.log("Isolated invite test app is ready");
   browser = await chromium.launch({ channel: "chrome", headless: true });
-  const context = await browser.newContext();
+  const context = await browser.newContext({ serviceWorkers: "block" });
   const jwtPart = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");
   const exp = Math.floor(Date.now() / 1000) + 3600;
   const accessToken = `${jwtPart({ alg: "HS256", typ: "JWT" })}.${jwtPart({ sub: userId, role: "authenticated", aud: "authenticated", exp })}.test-signature`;
@@ -188,39 +204,105 @@ try {
     expires_at: exp,
     user,
   };
-  await context.addCookies([
+  const cookies = [
     {
       name: "sb-127-auth-token",
       value: `base64-${Buffer.from(JSON.stringify(session)).toString("base64url")}`,
       url: origin,
     },
-  ]);
+  ];
+  await context.addCookies(cookies);
   const page = await context.newPage();
   page.setDefaultTimeout(25000);
   page.on("pageerror", (error) => console.log("Browser error:", error.message));
   page.on("console", (message) => {
     if (message.type() === "error") console.log("Console error:", message.text());
   });
-  if (proofTest) {
-    joined = true;
+  if (releaseSmoke) {
     await context.addInitScript(() => {
-      localStorage.setItem("strivup-tour-seen", "1");
+      if (location.protocol !== "http:") return;
+      localStorage.setItem("strivup:tour:v1", "1");
+      localStorage.setItem("strivup:perm:prompted:v1", "1");
+    });
+    const failures = [];
+    for (const path of [
+      "/feed", "/explore", "/challenges", "/challenges/new", "/quests", "/search",
+      "/alerts", "/profile", "/profile/followers", "/profile/following", "/settings",
+      "/settings/edit-profile", "/settings/privacy", "/settings/account-details",
+      "/settings/permissions", "/activity", "/coins", "/rewards", "/creator/challenges",
+    ]) {
+      await context.addCookies(cookies);
+      const screen = await context.newPage();
+      await screen.setViewportSize({ width: 390, height: 740 });
+      let browserError;
+      screen.on("pageerror", error => { browserError = error.message; });
+      try {
+        const response = await screen.goto(origin + path, { waitUntil: "domcontentloaded", timeout: 90000 });
+        await screen.locator("main").first().waitFor({ state: "visible", timeout: 15000 });
+        assert.equal(response.status(), 200);
+        assert.equal(new URL(screen.url()).pathname, path);
+        assert.equal(await screen.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "horizontal overflow");
+        assert.equal(browserError, undefined);
+        console.log("PASS", path);
+      } catch (error) {
+        failures.push(path);
+        console.log("FAIL", path, error.message.split("\n")[0]);
+      } finally {
+        await screen.close();
+      }
+    }
+    assert.deepEqual(failures, []);
+  } else if (proofTest) {
+    joined = true;
+    historicalProof = { id: "00000000-0000-4000-8000-000000000005", day_number: 1, verification_status: "approved", ai_reviewed: true };
+    challenge.created_at = new Date(Date.now() - 86_400_000).toISOString();
+    await context.addInitScript(() => {
+      if (location.protocol !== "http:") return;
+      localStorage.setItem("strivup:tour:v1", "1");
+      localStorage.setItem("strivup:perm:prompted:v1", "1");
+      const timeout = AbortSignal.timeout.bind(AbortSignal);
+      AbortSignal.timeout = ms => timeout(ms === 60_000 ? 1_500 : ms);
     });
     await page.goto(`${origin}/challenges/${challengeId}`, { timeout: 120000 });
+    await page.getByText("No photo or video attached.", { exact: true }).waitFor();
     await page.getByRole("button", { name: /Post today's proof/i }).click();
     const dialog = page.getByRole("dialog", { name: "Post today's proof" });
     const photo = await page.screenshot();
-    await dialog.locator('input[type="file"]').last().setInputFiles({ name: "proof.png", mimeType: "image/png", buffer: photo });
+    const chooser = page.waitForEvent("filechooser");
+    await dialog.getByRole("button", { name: /Take Photo/i }).click();
+    await (await chooser).setFiles({ name: "camera-proof.png", mimeType: "image/png", buffer: photo });
     await dialog.getByLabel("Caption").fill("Keep this caption while the server is unavailable");
-    await dialog.getByRole("button", { name: "Save caption and close" }).click();
+    await page.setViewportSize({ width: 360, height: 345 });
+    assert.equal(proof, null, "selecting a photo must wait for explicit submission");
+    const upload = dialog.getByRole("button", { name: "Upload proof", exact: true });
+    await upload.waitFor({ timeout: 5000 });
+    assert.equal(await upload.evaluate(button => button.getBoundingClientRect().bottom <= innerHeight), true);
+    stallUpload = true;
+    await upload.click();
+    await dialog.getByRole("alert").waitFor({ timeout: 10_000 });
+    stallUpload = false;
+    assert.equal(await dialog.getByLabel("Caption").inputValue(), "Keep this caption while the server is unavailable");
+    console.log("PASS a stalled camera upload times out and can be retried");
+    failUpload = true;
+    await upload.click();
+    await dialog.getByRole("alert").getByText("Test upload rejected").waitFor();
+    assert.equal(await dialog.getByLabel("Caption").inputValue(), "Keep this caption while the server is unavailable");
+    failUpload = false;
+    await upload.click();
+    await dialog.getByRole("button", { name: "Done" }).click();
     await dialog.waitFor({ state: "hidden" });
     assert.equal(proof.caption, "Keep this caption while the server is unavailable");
+    assert.equal(proof.day_number, 2, "yesterday's proof must not block today's upload");
     assert.equal(proof.verification_status, "pending");
     console.log("PASS caption survives leaving while proof review is running");
     proof = null;
+    historicalProof.media_url = "/test-proof.mp4";
+    await page.route("**/test-proof.mp4", route => route.fulfill({ status: 200, contentType: "video/mp4", body: "" }));
     await page.reload();
+    await page.locator('video[aria-label^="Proof video by"]').waitFor();
     await page.getByRole("button", { name: /Post today's proof/i }).click();
     await dialog.locator('input[type="file"]').last().setInputFiles({ name: "proof2.png", mimeType: "image/png", buffer: photo });
+    await dialog.getByRole("button", { name: "Upload proof", exact: true }).click();
     await dialog.getByText("Saved for automatic review", { exact: true }).waitFor({ timeout: 30000 });
     const calls = reviewRequests;
     proof.verification_status = "approved";
@@ -228,6 +310,19 @@ try {
     await dialog.getByText("Verified", { exact: true }).waitFor({ timeout: 25000 });
     assert.equal(reviewRequests, calls, "status observation must not invoke the model again");
     console.log("PASS a later background verdict updates the open composer without another review request");
+
+    await dialog.getByRole("button", { name: "Done" }).click();
+    proof = null;
+    withTask = true;
+    await page.reload();
+    await page.getByRole("region", { name: "Challenge tasks" }).getByRole("button", { name: "Upload proof" }).click();
+    await dialog.locator('input[capture="environment"]').setInputFiles({ name: "task-camera.png", mimeType: "image/png", buffer: photo });
+    await dialog.getByLabel("Caption").fill("Here is my task proof");
+    await dialog.getByRole("button", { name: "Upload proof", exact: true }).click();
+    await dialog.getByRole("button", { name: "Done" }).click();
+    assert.equal(proof.task_id, taskId);
+    assert.equal(proof.caption, "Here is my task proof");
+    console.log("PASS camera caption uploads attach to the selected task");
   } else {
   if (!process.argv.includes("--signup-only")) {
     await page.goto(`${origin}/join/${code}?auto=1`, { timeout: 120000 });

@@ -34,7 +34,6 @@ import {
   ListChecks,
   Loader2,
   Lock,
-  RefreshCw,
   Rocket,
   Trophy,
   Upload,
@@ -45,6 +44,7 @@ import {
 import { Badge, BrandMark, Card } from "@/components/ui";
 import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
 import {
+  calcDayNumber,
   callReviewProof,
   uploadProof,
   type SlotData,
@@ -143,211 +143,61 @@ function TaskUploadSlot({
   userId: string | null;
   joinedAt: string | null;
 }) {
-  const [slot, setSlot] = useState<SlotData>({
-    state:
-      submission?.status === "approved"
-        ? "approved"
-        : submission?.status === "pending"
-          ? "pending"
-          : "idle",
-    preview: null,
-    error: null,
-    rejectionReason: submission?.rejectionReason ?? null,
-  });
-  const [localStatus, setLocalStatus] = useState<TaskSubmission["status"] | null>(
-    submission?.status ?? null
-  );
-  const [watchSubmissionId, setWatchSubmissionId] = useState(submission?.submissionId ?? null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
   const router = useRouter();
-
-  const handleFile = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      e.target.value = "";
-      if (!file) return;
-      setSlot({ state: "uploading", preview: null, error: null, rejectionReason: null });
-
-      const result = await uploadProof(
-        {
-          challengeId,
-          userId,
-          joinedAt,
-          taskId: task.id,
-          existingSubmissionId:
-            localStatus === "rejected" ? (submission?.submissionId ?? null) : null,
-        },
-        file
-      );
-
-      if (result.error) {
-        setSlot({ state: "error", preview: null, error: result.error, rejectionReason: null });
-        return;
-      }
-
-      // Optimistically show "reviewing" while edge function runs
-      setSlot({ state: "reviewing", preview: result.preview, error: null, rejectionReason: null });
-      setLocalStatus("pending");
-
-      const verdict = await callReviewProof(result.submissionId!);
-      setWatchSubmissionId(verdict.reviewState === "queued" ? result.submissionId : null);
-      setLocalStatus(verdict.status);
-      if (verdict.status === "approved") emitStrivyEvent({ type: "CHALLENGE_COMPLETED" });
-      setSlot({
-        state: verdict.status,
-        preview: result.preview,
-        error: null,
-        rejectionReason: verdict.rejectionReason,
-      });
-
-      // An approved proof becomes visible to everyone, but the feed and the
-      // day's state live in server components that know nothing about this
-      // tile. Without telling them, the post only appeared after a manual
-      // reload — which is what "the page gets stuck" was describing.
-      if (verdict.status === "approved") router.refresh();
-    },
-    [challengeId, userId, joinedAt, task.id, localStatus, submission, router]
-  );
-
-  const isApproved = slot.state === "approved";
-  const isReviewing = slot.state === "reviewing";
-  const isPending = slot.state === "pending";
-  const isRejected = slot.state === "rejected";
-  const isIdle = slot.state === "idle";
-
-  // Rejection reason: prefer live verdict, fall back to DB value
-  const shownRejectionReason = slot.rejectionReason ?? submission?.rejectionReason ?? null;
+  const status = submission?.status;
+  const canUpload = !status || status === "rejected";
 
   return (
-    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3 elev-1 surface-raised">
-      {isPending && watchSubmissionId ? <ProofReviewWatcher submissionId={watchSubmissionId} onResult={(result) => {
-        setWatchSubmissionId(null);
-        setLocalStatus(result.status);
-        setSlot(s => ({ ...s, state: result.status, rejectionReason: result.rejectionReason }));
-        if (result.status !== "pending") router.refresh();
-      }} /> : null}
-      {/* Task header */}
+    <div className="space-y-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
+      {status === "pending" && submission ? (
+        <ProofReviewWatcher submissionId={submission.submissionId} onResult={result => {
+          if (result.status !== "pending") router.refresh();
+        }} />
+      ) : null}
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-on-surface text-sm">{task.title}</h3>
-            {!task.isRequired && (
-              <Badge variant="default" className="text-label-sm">
-                Optional
-              </Badge>
-            )}
-            {task.proofType && task.proofType !== "none" && (
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-sm font-semibold text-on-surface">{task.title}</h3>
+            {!task.isRequired ? <Badge variant="default" className="text-label-sm">Optional</Badge> : null}
+            {task.proofType && task.proofType !== "none" ? (
               <span className="text-label-sm text-on-surface-variant">
                 {PROOF_TYPE_ICONS[task.proofType]} {task.proofType}
               </span>
-            )}
+            ) : null}
           </div>
-          {task.description && (
-            <p className="text-xs text-on-surface-variant mt-0.5">{task.description}</p>
-          )}
+          {task.description ? <p className="mt-0.5 text-xs text-on-surface-variant">{task.description}</p> : null}
         </div>
-        {/* Status badge */}
-        {isApproved && (
-          <div className="flex items-center gap-1 text-on-success-container flex-shrink-0">
-            <CheckCircle2 size={16} aria-hidden="true" />
-            <span className="text-xs font-semibold">Approved</span>
-          </div>
-        )}
-        {(isPending || isReviewing) && (
-          <div className="flex items-center gap-1 text-on-warning-container flex-shrink-0">
-            {isReviewing ? (
-              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-            ) : (
-              <Clock size={14} aria-hidden="true" />
-            )}
-            <span className="text-xs font-semibold">{isReviewing ? "Reviewing…" : "Pending"}</span>
-          </div>
-        )}
-        {isRejected && (
-          <div className="flex items-center gap-1 text-error flex-shrink-0">
-            <XCircle size={14} aria-hidden="true" />
-            <span className="text-xs font-semibold">Rejected</span>
-          </div>
-        )}
+        {status ? (
+          <Badge variant={status === "approved" ? "success" : status === "rejected" ? "error" : "outline"}>
+            {status === "approved" ? "Approved" : status === "rejected" ? "Rejected" : "Pending"}
+          </Badge>
+        ) : null}
       </div>
-
-      {/* Rejection reason */}
-      {isRejected && shownRejectionReason && (
-        <div className="rounded-lg bg-error-container border border-error-outline px-3 py-2 text-xs text-on-error-container">
-          <strong>Reason:</strong> {shownRejectionReason}
-        </div>
-      )}
-
-      {/* Hidden file input */}
-      <input
-        ref={inputRef}
-        type="file"
-        accept={task.proofType === "video" ? "video/*" : "image/*,video/*"}
-        className="sr-only"
-        onChange={handleFile}
-        aria-hidden="true"
-      />
-
-      {/* Action area */}
-      {!isApproved && (
-        <>
-          {slot.state === "uploading" && (
-            <div className="flex items-center gap-2 text-on-surface-variant text-sm">
-              <Loader2 size={14} className="animate-spin" />
-              Uploading…
-            </div>
-          )}
-
-          {(isIdle || isRejected) && (
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              disabled={!userId}
-              className={[
-                "w-full h-9 rounded-lg border-2 border-dashed",
-                "flex items-center justify-center gap-2",
-                "text-sm font-medium transition-colors",
-                isRejected
-                  ? "border-error-outline text-error hover:bg-error-container"
-                  : "border-secondary/30 text-secondary hover:bg-secondary/5",
-                !userId ? "opacity-50 cursor-not-allowed" : "",
-              ].join(" ")}
-            >
-              {isRejected ? (
-                <>
-                  <RefreshCw size={14} aria-hidden="true" /> Resubmit
-                </>
-              ) : (
-                <>
-                  <Upload size={14} aria-hidden="true" /> Upload Proof
-                </>
-              )}
-            </button>
-          )}
-
-          {(isReviewing || isPending) && slot.preview && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={slot.preview}
-              alt="Proof preview"
-              className="w-full rounded-lg object-cover max-h-32"
-            />
-          )}
-
-          {slot.state === "error" && (
-            <div className="space-y-2">
-              {slot.error && <p className="text-error text-xs">{slot.error}</p>}
-              <button
-                type="button"
-                onClick={() => inputRef.current?.click()}
-                className="flex items-center gap-1.5 text-xs text-secondary hover:underline"
-              >
-                <RefreshCw size={12} /> Retry
-              </button>
-            </div>
-          )}
-        </>
-      )}
+      {status === "rejected" && submission?.rejectionReason ? (
+        <p className="rounded-lg border border-error-outline bg-error-container px-3 py-2 text-xs text-on-error-container">
+          <strong>Reason:</strong> {submission.rejectionReason}
+        </p>
+      ) : null}
+      {canUpload ? (
+        <button type="button" onClick={() => setComposerOpen(true)} disabled={!userId}
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-secondary/30 text-sm font-medium text-secondary hover:bg-secondary/5 disabled:opacity-50">
+          <Upload size={14} aria-hidden="true" /> {status === "rejected" ? "Resubmit proof" : "Upload proof"}
+        </button>
+      ) : null}
+      {composerOpen ? (
+        <ProofComposer
+          open
+          onClose={() => setComposerOpen(false)}
+          challengeId={challengeId}
+          userId={userId}
+          joinedAt={joinedAt}
+          taskId={task.id}
+          existingSubmissionId={submission?.submissionId ?? null}
+          proofInstruction={task.description || task.title}
+          videoOnly={task.proofType === "video"}
+        />
+      ) : null}
     </div>
   );
 }
@@ -722,12 +572,12 @@ export function ChallengeDetailClient({
     });
   };
 
-  // Build a map: taskId → submission (latest per task)
+  const proofDay = calcDayNumber(joinedAt);
+  const todaysSubmissions = userSubmissions.filter((submission) => submission.dayNumber === proofDay);
   const submissionByTask = Object.fromEntries(
-    userSubmissions.filter((s) => s.taskId).map((s) => [s.taskId!, s])
+    todaysSubmissions.filter((s) => s.taskId).map((s) => [s.taskId!, s])
   );
-  // Legacy (no task_id)
-  const legacySubmission = userSubmissions.find((s) => !s.taskId);
+  const legacySubmission = todaysSubmissions.find((s) => !s.taskId);
 
   // Creator controls are gated on `isCreator`, resolved server-side from
   // challenges.creator_id. Previously these were shown to every signed-in
@@ -884,7 +734,7 @@ export function ChallengeDetailClient({
               {/* The first thing a participant should see on opening a
                   challenge is the one action they came to do. It used to be
                   buried under the task list. */}
-              {userId ? (
+              {userId && !hasTasks && legacySubmission?.status !== "pending" && legacySubmission?.status !== "approved" ? (
                 <section aria-label="Today's proof" className="mb-4">
                   <button
                     type="button"
@@ -899,7 +749,7 @@ export function ChallengeDetailClient({
                         Post today&apos;s proof
                       </span>
                       <span className="block text-body-sm text-on-surface-variant">
-                        {challenge.proofInstructions ?? "Upload it, write a caption, post."}
+                        {challenge.proofInstructions ?? "Choose a photo or video, add a caption, then upload."}
                       </span>
                     </span>
                     <ChevronRight size={18} className="shrink-0 text-secondary" aria-hidden="true" />
@@ -975,6 +825,7 @@ export function ChallengeDetailClient({
                             <ProofRequirementsNotice requirement={requirement} />
                           )}
                           <TaskUploadSlot
+                            key={proofDay + ":" + (submissionByTask[task.id]?.submissionId ?? "new") + ":" + (submissionByTask[task.id]?.status ?? "")}
                             task={task}
                             submission={submissionByTask[task.id]}
                             challengeId={challenge.id}
@@ -988,6 +839,7 @@ export function ChallengeDetailClient({
                 </section>
               ) : (
                 <LegacyUploadCard
+                  key={proofDay + ":" + (legacySubmission?.submissionId ?? "new") + ":" + (legacySubmission?.status ?? "")}
                   challenge={challenge}
                   userId={userId}
                   joinedAt={joinedAt}
@@ -996,7 +848,7 @@ export function ChallengeDetailClient({
               )}
 
               {/* Rejected submissions notice (task mode) */}
-              {hasTasks && userSubmissions.some((s) => s.status === "rejected") && (
+              {hasTasks && todaysSubmissions.some((s) => s.status === "rejected") && (
                 <div className="rounded-lg bg-error-container border border-error-outline px-4 py-3 flex gap-2 text-sm text-on-error-container">
                   <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
@@ -1201,6 +1053,7 @@ export function ChallengeDetailClient({
         challengeId={challenge.id}
         userId={userId}
         joinedAt={joinedAt}
+        existingSubmissionId={legacySubmission?.status === "rejected" ? legacySubmission.submissionId : null}
         proofInstruction={challenge.proofInstructions}
       />
     </div>
