@@ -1,17 +1,9 @@
-/**
- * AlertRow — one notification, and the rules that decide how it looks.
- *
- * Lifted out of app/(app)/alerts/page.tsx so the dev harness can render every
- * kind at once: the page needs a session and real rows, so the colours, the
- * destination pills and the grouping could not otherwise be looked at.
- * Behaviour is unchanged by the move.
- */
-
 "use client";
 
 import Image from "next/image";
 import {
   Bell,
+  Check,
   CheckCircle2,
   ChevronRight,
   MessageCircle,
@@ -26,19 +18,9 @@ import type { ComponentType } from "react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type NotificationType =
-  | "new_follower"
-  | "proof_approved"
-  | "proof_rejected"
-  | "challenge_joined"
-  | "business_verification_approved"
-  | "proof_liked"
-  | "proof_commented"
-  | string;
-
 export interface Notification {
   id: string;
-  type: NotificationType;
+  type: string;
   title: string;
   message: string | null;
   is_read: boolean;
@@ -55,85 +37,84 @@ export type CoverMap = Map<string, string>;
 
 // ── Tone ──────────────────────────────────────────────────────────────────────
 
-/**
- * Colour, icon and wording per kind.
- *
- * Every tone is an existing brand token. Colour is never the only signal:
- * each row still carries its own icon and its own words, so the kind is
- * legible without relying on hue. WCAG 1.4.1.
- */
 interface Tone {
   icon: ComponentType<LucideProps>;
-  /** The bar down the left edge. */
+  label: string;
+  category?: "proof" | "social";
   accent: string;
-  /** The card wash. Kept very light so body text keeps its contrast. */
-  tint: string;
-  /** The icon tile. */
   iconBg: string;
   iconFg: string;
 }
 
-const TONES: Record<string, Tone> = {
+const FOLLOW_TONE: Tone = {
+  icon: UserPlus,
+  label: "Follow activity",
+  category: "social",
+  accent: "bg-secondary",
+  iconBg: "bg-secondary/10",
+  iconFg: "text-secondary",
+};
+
+const PROOF_APPROVED_TONE: Tone = {
+  icon: CheckCircle2,
+  label: "Proof review",
+  category: "proof",
+  accent: "bg-success",
+  iconBg: "bg-success/10",
+  iconFg: "text-success",
+};
+
+const PROOF_REJECTED_TONE: Tone = {
+  icon: XCircle,
+  label: "Proof review",
+  category: "proof",
+  accent: "bg-error",
+  iconBg: "bg-error/10",
+  iconFg: "text-error",
+};
+
+const TONES: Partial<Record<string, Tone>> = {
   challenge_joined: {
     icon: Users,
+    label: "Challenge activity",
     accent: "bg-secondary",
-    tint: "bg-secondary/5",
     iconBg: "bg-secondary/10",
     iconFg: "text-secondary",
   },
-  new_follower: {
-    icon: UserPlus,
-    accent: "bg-secondary",
-    tint: "bg-secondary/5",
-    iconBg: "bg-secondary/10",
-    iconFg: "text-secondary",
-  },
-  follow_request: {
-    icon: UserPlus,
-    accent: "bg-secondary",
-    tint: "bg-secondary/5",
-    iconBg: "bg-secondary/10",
-    iconFg: "text-secondary",
-  },
-  follow_accepted: {
-    icon: UserPlus,
-    accent: "bg-secondary",
-    tint: "bg-secondary/5",
-    iconBg: "bg-secondary/10",
-    iconFg: "text-secondary",
-  },
-  proof_approved: {
-    icon: CheckCircle2,
-    accent: "bg-success",
-    tint: "bg-success/5",
-    iconBg: "bg-success/10",
-    iconFg: "text-success",
-  },
+  new_follower: FOLLOW_TONE,
+  follow_request: FOLLOW_TONE,
+  follow_accepted: FOLLOW_TONE,
+  proof_approved: PROOF_APPROVED_TONE,
+  quest_task_approved: PROOF_APPROVED_TONE,
+  proof_rejected: PROOF_REJECTED_TONE,
+  quest_task_rejected: PROOF_REJECTED_TONE,
   business_verification_approved: {
     icon: Store,
+    label: "Business update",
     accent: "bg-success",
-    tint: "bg-success/5",
     iconBg: "bg-success/10",
     iconFg: "text-success",
   },
-  proof_rejected: {
-    icon: XCircle,
+  business_verification_rejected: {
+    icon: Store,
+    label: "Business update",
     accent: "bg-error",
-    tint: "bg-error/5",
     iconBg: "bg-error/10",
     iconFg: "text-error",
   },
   proof_liked: {
     icon: ThumbsUp,
+    label: "Reaction",
+    category: "social",
     accent: "bg-warning",
-    tint: "bg-warning/5",
     iconBg: "bg-warning-container",
     iconFg: "text-warning",
   },
   proof_commented: {
     icon: MessageCircle,
+    label: "Comment",
+    category: "social",
     accent: "bg-warning",
-    tint: "bg-warning/5",
     iconBg: "bg-warning-container",
     iconFg: "text-warning",
   },
@@ -141,13 +122,13 @@ const TONES: Record<string, Tone> = {
 
 const FALLBACK_TONE: Tone = {
   icon: Bell,
+  label: "Update",
   accent: "bg-outline",
-  tint: "bg-surface-container-low",
   iconBg: "bg-surface-container",
   iconFg: "text-on-surface-variant",
 };
 
-export function toneFor(type: NotificationType): Tone {
+export function toneFor(type: Notification["type"]): Tone {
   return TONES[type] ?? FALLBACK_TONE;
 }
 
@@ -185,9 +166,9 @@ export function destinationFor(n: Notification): { href: string; label: string }
 
 export function relativeTime(isoString: string): string {
   const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
-  if (diff < 60) return `${diff}s ago`;
+  if (diff < 60) return "Just now";
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
   return new Date(isoString).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -231,89 +212,70 @@ export function AlertRow({
   const tone = toneFor(notif.type);
   const Icon = tone.icon;
   const dest = destinationFor(notif);
+  const ActionIcon = dest ? ChevronRight : Check;
+  const actionLabel = dest?.label ?? (!notif.is_read && onTap ? "Mark as read" : null);
+  const cardClass = [
+    "relative flex w-full items-start gap-3 rounded-2xl border border-outline-variant/85 py-3.5 pr-3.5 pl-4 text-left sm:p-4 sm:pl-5",
+    notif.is_read ? "bg-surface-container-lowest" : "bg-surface-container",
+  ].join(" ");
 
-  return (
-    /* One tap target for the whole row. The pill on the right is a span, not
-       a nested button: a button inside a button is invalid markup and gives a
-       keyboard two stops for one action. */
-    <button
-      type="button"
-      onClick={onTap ? () => onTap(notif) : undefined}
-      aria-label={dest ? `${notif.title}. ${dest.label}.` : notif.title}
-      className={[
-        "relative flex w-full items-center gap-3 overflow-hidden rounded-2xl",
-        "border border-outline-variant py-3.5 pl-5 pr-3 text-left",
-        "transition-colors duration-150",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
-        notif.is_read
-          ? "bg-surface-container-lowest hover:bg-surface-container"
-          : `${tone.tint} hover:brightness-[0.98]`,
-      ].join(" ")}
-    >
-      {/* Accent down the left edge, carrying the kind. */}
+  const content = (
+    <>
       <span
-        className={`absolute inset-y-0 left-0 w-1.5 ${tone.accent} ${
-          notif.is_read ? "opacity-40" : ""
-        }`}
+        className={`absolute inset-y-3 left-0 w-0.75 rounded-r-full ${tone.accent} ${notif.is_read ? "opacity-40" : ""}`}
         aria-hidden="true"
       />
-
-      {/* Unread dot, so read and unread differ by more than a background
-          wash. */}
-      <span className="absolute left-2.5 top-1/2 -translate-y-1/2" aria-hidden="true">
-        {!notif.is_read && <span className={`block h-2 w-2 rounded-full ${tone.accent}`} />}
-      </span>
-
       <span
-        className={`ml-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tone.iconBg}`}
+        className={`relative grid size-10 shrink-0 place-items-center rounded-xl ${tone.iconBg}`}
+        aria-hidden="true"
       >
-        <Icon size={20} className={tone.iconFg} aria-hidden="true" />
+        <Icon size={19} className={tone.iconFg} />
+        {!notif.is_read && (
+          <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2 border-surface-container bg-secondary" />
+        )}
       </span>
-
-      <span className="min-w-0 flex-1">
-        <span
-          className={[
-            "block truncate text-body-md",
-            notif.is_read ? "text-on-surface" : "font-bold text-on-surface",
-          ].join(" ")}
-        >
+      <span className="min-w-0 flex-1 wrap-anywhere">
+        <span className="mb-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
+          <span className={`text-[11px] font-bold tracking-wide uppercase ${tone.iconFg}`}>
+            {!notif.is_read && <span className="sr-only">Unread. </span>}
+            {tone.label}
+          </span>
+          <time dateTime={notif.created_at} className="text-xs leading-4 whitespace-nowrap text-on-surface-variant">
+            {relativeTime(notif.created_at)}
+          </time>
+        </span>
+        <span className="block font-display text-sm leading-5 font-bold text-on-surface sm:text-base">
           {notif.title}
         </span>
         {notif.message && (
-          <span className="mt-0.5 line-clamp-2 block text-body-sm text-on-surface-variant">
+          <span className="mt-1 block text-sm leading-5 text-on-surface-variant">
             {notif.message}
           </span>
         )}
-        <span className="mt-1 block text-label-sm text-on-surface-variant">
-          {relativeTime(notif.created_at)}
-        </span>
+        {actionLabel && (
+          <span className="mt-2 inline-flex items-center gap-1 rounded-lg bg-secondary/10 px-2.5 py-1 text-xs font-semibold text-secondary">
+            {actionLabel}
+            <ActionIcon size={13} aria-hidden="true" />
+          </span>
+        )}
       </span>
-
-      {/* Cover of whatever this is about. Dropped on the narrowest phones,
-          where the destination matters more than the picture. */}
       {cover && (
-        <span className="relative hidden h-11 w-14 shrink-0 overflow-hidden rounded-lg bg-surface-container sm:block">
-          <Image src={cover} alt="" fill sizes="56px" className="object-cover" />
+        <span className="relative hidden h-12 w-16 shrink-0 self-center overflow-hidden rounded-lg bg-surface-container sm:block">
+          <Image src={cover} alt="" fill sizes="64px" className="object-cover" />
         </span>
       )}
+    </>
+  );
 
-      {/* The destination, named. It stays on at phone width, because "where
-          does this go" is the whole point of the pill and a bare chevron
-          does not answer it. The cover above is what gives way instead. */}
-      {dest && (
-        <span
-          className={[
-            "inline-flex shrink-0 items-center gap-0.5 rounded-full",
-            "px-2.5 py-1.5 text-label-md font-semibold sm:px-3",
-            notif.is_read
-              ? "bg-surface-container text-on-surface-variant"
-              : `${tone.iconBg} ${tone.iconFg}`,
-          ].join(" ")}
-        >
-          {dest.label}
-          <ChevronRight size={14} aria-hidden="true" />
-        </span>
-      )}
+  if (!onTap || !actionLabel) return <div className={cardClass}>{content}</div>;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onTap(notif)}
+      className={`${cardClass} transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary`}
+    >
+      {content}
     </button>
   );
 }

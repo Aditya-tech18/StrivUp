@@ -1,31 +1,8 @@
 "use client";
 
-/**
- * Alerts page — /alerts
- *
- * Rebuilt against the mockup: notifications grouped by when they happened,
- * each row carrying a coloured accent down its left edge, a tinted icon tile,
- * the cover of whatever it is about, and a pill saying where tapping goes.
- *
- * What the redesign is actually for. The old list was one flat column of
- * near-identical rows: the same grey card whether a payout-bearing quest had
- * a new participant or somebody liked a photo, and nothing on a row said
- * where it would take you. Colour by kind and an explicit destination are
- * what make a long list scannable.
- *
- * One real bug fixed along the way: notifications carry related_quest_id in
- * the live schema and this page never selected it, so a quest notification
- * marked itself read and then navigated nowhere. Quest rows now route to
- * /quests/[id].
- *
- * Still true from before: tapping a row marks it read optimistically and then
- * navigates. "Mark all as read" updates the database and the global badge.
- * Pending follow requests keep their own card at the top.
- */
-
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell } from "lucide-react";
+import { Bell, CheckCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button, MobileMenu } from "@/components/ui";
 import { useUnreadCount } from "@/components/ui/AlertsContext";
@@ -35,12 +12,13 @@ import {
   destinationFor,
   groupFor,
   GROUPS,
+  toneFor,
   type CoverMap,
   type Group,
   type Notification,
 } from "@/components/features/alerts/AlertRow";
 
-// ── Page component ────────────────────────────────────────────────────────────
+const FILTERS = ["All", "Unread", "Proof", "Social"] as const;
 
 export default function AlertsPage() {
   const router = useRouter();
@@ -50,9 +28,12 @@ export default function AlertsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [covers, setCovers] = useState<CoverMap>(new Map());
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
   const [markingAll, setMarkingAll] = useState(false);
-
-  // ── Load ───────────────────────────────────────────────────────────────────
+  const markingIds = useRef(new Set<string>());
 
   useEffect(() => {
     let cancelled = false;
@@ -60,9 +41,14 @@ export default function AlertsPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user || cancelled) return;
+      if (cancelled) return;
+      if (!user) {
+        setLoadError(true);
+        setLoading(false);
+        return;
+      }
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("notifications")
         .select(
           "id, type, title, message, is_read, related_challenge_id, related_quest_id, related_user_id, created_at"
@@ -72,9 +58,13 @@ export default function AlertsPage() {
         .limit(100);
 
       if (cancelled) return;
+      setLoading(false);
+      if (error) {
+        setLoadError(true);
+        return;
+      }
       const rows = (data ?? []) as Notification[];
       setNotifications(rows);
-      setLoading(false);
 
       /* Cover art, two batched queries for the whole page rather than one per
          row. Decoration: a failure here leaves the icon tile showing and
@@ -108,148 +98,187 @@ export default function AlertsPage() {
       setCovers(map);
     })();
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadAttempt, supabase]);
 
-  // ── Tap handler ────────────────────────────────────────────────────────────
+  function retryLoad() {
+    setLoadError(false);
+    setLoading(true);
+    setLoadAttempt((attempt) => attempt + 1);
+  }
 
-  const handleTap = useCallback(
-    async (notif: Notification) => {
-      // Optimistic update
-      if (!notif.is_read) {
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
-        );
-        markOneRead();
+  async function handleTap(notif: Notification) {
+    if (!notif.is_read) {
+      if (markingIds.current.has(notif.id)) return;
+      markingIds.current.add(notif.id);
+      setActionError(null);
 
-        await supabase
-          .from("notifications")
-          .update({ is_read: true })
-          .eq("id", notif.id);
+      const { error } = await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("id", notif.id)
+        .eq("is_read", false);
+
+      markingIds.current.delete(notif.id);
+      if (error) {
+        setActionError("Couldn't mark this alert as read. Try again.");
+        return;
       }
 
-      const dest = destinationFor(notif);
-      if (dest) router.push(dest.href);
-    },
-    [markOneRead, router, supabase]
-  );
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
+      );
+      markOneRead();
+    }
+    const dest = destinationFor(notif);
+    if (dest) router.push(dest.href);
+  }
 
-  // ── Mark all read ──────────────────────────────────────────────────────────
-
-  const handleMarkAllRead = useCallback(async () => {
+  async function handleMarkAllRead() {
     setMarkingAll(true);
+    setActionError(null);
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) { setMarkingAll(false); return; }
+    const result = user
+      ? await supabase
+          .from("notifications")
+          .update({ is_read: true })
+          .eq("user_id", user.id)
+          .eq("is_read", false)
+      : null;
 
-    await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("user_id", user.id)
-      .eq("is_read", false);
-
+    setMarkingAll(false);
+    if (!result || result.error) {
+      setActionError("Couldn't mark alerts as read. Try again.");
+      return;
+    }
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     markAllRead();
-    setMarkingAll(false);
-  }, [markAllRead, supabase]);
+  }
 
-  // ── Grouping ───────────────────────────────────────────────────────────────
-
-  const grouped = useMemo(() => {
-    const buckets = new Map<Group, Notification[]>();
-    for (const n of notifications) {
-      const g = groupFor(n.created_at);
-      const list = buckets.get(g);
-      if (list) list.push(n);
-      else buckets.set(g, [n]);
+  const unreadCount = notifications.filter((notification) => !notification.is_read).length;
+  const visibleNotifications = notifications.filter((notification) => {
+    switch (filter) {
+      case "Unread": return !notification.is_read;
+      case "Proof": return toneFor(notification.type).category === "proof";
+      case "Social": return toneFor(notification.type).category === "social";
+      default: return true;
     }
-    // Fixed order, newest bucket first, skipping any that are empty.
-    return GROUPS.filter((g) => buckets.has(g)).map((g) => ({
-      group: g,
-      items: buckets.get(g) as Notification[],
-    }));
-  }, [notifications]);
-
-  // ── Render ─────────────────────────────────────────────────────────────────
-
-  const hasUnread = notifications.some((n) => !n.is_read);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-body-md text-on-surface-variant">Loading…</p>
-      </div>
-    );
+  });
+  const grouped = new Map<Group, Notification[]>();
+  for (const notification of visibleNotifications) {
+    const group = groupFor(notification.created_at);
+    const items = grouped.get(group);
+    if (items) items.push(notification);
+    else grouped.set(group, [notification]);
   }
 
   return (
-    <div className="min-h-screen bg-surface px-4 py-6 pb-24">
-      <div className="mx-auto max-w-xl">
-
-        {/* Header */}
-        <div className="mb-5 flex items-center justify-between">
-          <div className="flex min-w-0 items-center gap-1.5">
+    <div className="min-h-screen bg-surface">
+      <header className="sticky top-0 z-30 border-b border-outline-variant/70 bg-surface/95 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-4 sm:px-6">
+          <div className="-ml-2 md:hidden">
             <MobileMenu />
-            <h1 className="text-headline-md text-on-surface">Alerts</h1>
-            {hasUnread && (
-              <span className="ml-1 rounded-full bg-error px-2 py-0.5 text-label-sm font-bold text-white">
-                {notifications.filter((n) => !n.is_read).length}
-              </span>
-            )}
           </div>
-          {hasUnread && (
-            <Button
-              variant="outline"
-              size="sm"
+          <h1 className="font-display text-lg font-extrabold text-on-surface">Alerts</h1>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-2xl px-4 pt-4 pb-10 sm:px-6 sm:pt-6">
+        <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-display text-xl font-extrabold tracking-tight text-on-surface sm:text-2xl">
+              Inbox activity
+            </h2>
+            <span
+              role="status"
+              className={unreadCount > 0 ? "rounded-full bg-streak/20 px-2 py-1 text-xs font-bold whitespace-nowrap text-streak-ink" : "sr-only"}
+            >
+              {unreadCount > 0 ? `${unreadCount} unread` : ""}
+            </span>
+          </div>
+          {unreadCount > 0 && (
+            <button
+              type="button"
               onClick={handleMarkAllRead}
               disabled={markingAll}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm font-semibold whitespace-nowrap text-secondary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:opacity-50"
             >
-              {markingAll ? "Marking…" : "Mark all as read"}
-            </Button>
+              <CheckCheck size={17} aria-hidden="true" />
+              {markingAll ? "Marking…" : "Mark all read"}
+            </button>
           )}
         </div>
 
-        {/* Pending follow requests, for private accounts. Renders nothing when
-            there are none, so a public account never sees an empty card. */}
-        <div className="mb-5">
-          <FollowRequests />
+        <div className="mt-3 mb-5 flex flex-wrap gap-2.5" role="group" aria-label="Filter alerts">
+          {FILTERS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={filter === option}
+              onClick={() => setFilter(option)}
+              className="min-h-10 rounded-full border border-outline-variant bg-surface-container-low px-3.5 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary aria-pressed:border-secondary aria-pressed:bg-secondary aria-pressed:text-on-secondary sm:px-4"
+            >
+              {option}
+            </button>
+          ))}
         </div>
 
-        {/* Empty state */}
-        {notifications.length === 0 && (
-          <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-            <Bell size={40} className="text-on-surface-variant opacity-40" aria-hidden="true" />
-            <p className="text-body-lg text-on-surface-variant">No notifications yet.</p>
-          </div>
-        )}
+        <div className="flex flex-col gap-5">
+          <FollowRequests />
 
-        {/* Grouped list */}
-        {grouped.map(({ group, items }) => (
-          <section key={group} className="mb-5" aria-labelledby={`group-${group}`}>
-            <h2
-              id={`group-${group}`}
-              className="mb-2 px-1 text-label-md font-semibold text-on-surface-variant"
-            >
-              {group}
-            </h2>
+          {actionError && (
+            <p role="alert" className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">
+              {actionError}
+            </p>
+          )}
 
-            <ul className="flex flex-col gap-2" role="list">
-              {items.map((notif) => {
-                const coverId = notif.related_quest_id ?? notif.related_challenge_id;
-                return (
-                  <li key={notif.id}>
-                    <AlertRow
-                      notif={notif}
-                      cover={coverId ? covers.get(coverId) : undefined}
-                      onTap={handleTap}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ))}
+          {loading ? (
+            <p role="status" className="rounded-2xl border border-outline-variant bg-surface-container-low p-8 text-center text-sm text-on-surface-variant">
+              Loading alerts…
+            </p>
+          ) : loadError ? (
+            <div className="space-y-3 rounded-2xl border border-outline-variant bg-surface-container-low p-8 text-center">
+              <p role="alert" className="text-sm text-on-surface">Couldn&apos;t load alerts.</p>
+              <Button variant="secondary" onClick={retryLoad}>Try again</Button>
+            </div>
+          ) : visibleNotifications.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-low px-6 py-10 text-center">
+              <span className="grid size-12 place-items-center rounded-2xl bg-secondary/10 text-secondary">
+                <Bell size={22} aria-hidden="true" />
+              </span>
+              <p className="text-sm font-semibold text-on-surface">
+                {filter === "Unread" ? "You're all caught up." : filter === "All" ? "No alerts yet." : `No ${filter.toLowerCase()} alerts yet.`}
+              </p>
+            </div>
+          ) : GROUPS.map((group, index) => {
+            const items = grouped.get(group);
+            if (!items) return null;
+
+            const headingId = `alerts-group-${index}`;
+            return (
+              <section key={group} aria-labelledby={headingId}>
+                <h3 id={headingId} className="mb-2.5 flex items-center gap-3 text-xs font-bold tracking-wider text-on-surface-variant uppercase after:h-px after:flex-1 after:bg-outline-variant/80">
+                  {group}
+                </h3>
+                <ul className="flex flex-col gap-2.5" role="list">
+                  {items.map((notif) => {
+                    const coverId = notif.related_quest_id ?? notif.related_challenge_id;
+                    return (
+                      <li key={notif.id}>
+                        <AlertRow
+                          notif={notif}
+                          cover={coverId ? covers.get(coverId) : undefined}
+                          onTap={handleTap}
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
