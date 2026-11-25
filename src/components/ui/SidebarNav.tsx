@@ -8,8 +8,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BadgeCheck, BarChart3, Bell, Compass, Gift, Home, LayoutDashboard, ListChecks, MapPin, PlusSquare, ReceiptText,
-  Search, Settings, Store, Trophy, User,
+  BadgeCheck, BarChart3, Bell, Coins, Compass, Gift, Home, LayoutDashboard, ListChecks, MapPin, PlusSquare, ReceiptText,
+  MessageSquare, Search, Settings, Store, Trophy, User,
 } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
@@ -26,16 +26,20 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/feed",           icon: Home,       label: "Home",   tourId: "nav-feed"    },
+  { href: "/feed",           icon: Home,       label: "Today",  tourId: "nav-feed"    },
   { href: "/explore",        icon: Compass,    label: "Explore", tourId: "nav-explore" },
+  { href: "/feed/community", icon: MessageSquare, label: "Community" },
   { href: "/search",         icon: Search,     label: "Search", tourId: "nav-search"  },
   { href: "/quests",         icon: MapPin,     label: "Quests", tourId: "nav-quests"  },
   { href: "/challenges/new", icon: PlusSquare, label: "Create", tourId: "nav-create"  },
-  { href: "/creator/challenges", icon: Trophy, label: "My Challenges", tourId: "nav-my-challenges" },
+  { href: "/challenges", icon: Trophy, label: "My Challenges" },
+  { href: "/creator/challenges", icon: ListChecks, label: "Manage Challenges", tourId: "nav-my-challenges" },
   { href: "/rewards",        icon: Gift,       label: "My Rewards", tourId: "nav-rewards" },
+  { href: "/coins",          icon: Coins,      label: "StrivCoins" },
   { href: "/settings/verification", icon: BadgeCheck, label: "Get Verified" },
   { href: "/alerts",         icon: Bell,       label: "Alerts", showBadge: true, tourId: "nav-alerts" },
   { href: "/profile",        icon: User,       label: "Profile", tourId: "nav-profile" },
+  { href: "/settings",       icon: Settings,   label: "Settings" },
 ];
 
 // Business dashboard navigation (shown on /business/*).
@@ -62,7 +66,7 @@ export function SidebarNav() {
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
   return (
-    <nav className="flex-1 px-3 py-4 space-y-1" aria-label="Main navigation">
+    <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-3" aria-label="Main navigation">
       {items.map(({ href, icon: Icon, label, showBadge, tourId }) => {
         const isActive = href === activeHref;
         const badgeCount = showBadge ? unreadCount : 0;

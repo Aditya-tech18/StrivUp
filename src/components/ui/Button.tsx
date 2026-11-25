@@ -11,18 +11,16 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-on-primary hover:opacity-90 active:opacity-80 elev-2 lift",
-  // The brand action carries a blue-tinted glow so it reads as the one thing
-  // on the page you are meant to press.
+    "bg-secondary text-on-secondary hover:opacity-90 active:opacity-80 elev-brand",
   secondary:
-    "bg-secondary text-on-secondary hover:opacity-90 active:opacity-80 elev-brand lift",
+    "bg-secondary/12 text-secondary hover:bg-secondary/20 active:bg-secondary/25",
   outline:
     "bg-transparent text-primary border border-outline hover:bg-surface-variant active:bg-surface-container pressable",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
   sm: "h-8 px-3 text-[length:var(--text-body-md)] gap-1.5",
-  md: "h-10 px-4 text-[length:var(--text-body-lg)] gap-2",
+  md: "min-h-11 px-4 text-[length:var(--text-body-lg)] gap-2",
   lg: "h-12 px-6 text-[length:var(--text-body-lg)] gap-2",
 };
 

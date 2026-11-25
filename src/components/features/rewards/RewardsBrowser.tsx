@@ -35,6 +35,11 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 const TYPE_ICON = { cash: Coins, coupon: Ticket, badge: Award } as const;
+const TYPE_ACCENT = {
+  cash: "bg-coin/15 text-coin-ink",
+  coupon: "bg-secondary/12 text-secondary",
+  badge: "bg-streak/15 text-streak-ink",
+} as const;
 
 function rewardTitle(r: RewardRow): string {
   if (r.type === "coupon") return r.couponTitle ?? "Coupon reward";
@@ -66,7 +71,7 @@ export function RewardsBrowser({ rewards }: { rewards: RewardRow[] }) {
 
   return (
     <section aria-labelledby="rewards-list-heading">
-      <h2 id="rewards-list-heading" className="sr-only">
+      <h2 id="rewards-list-heading" className="mb-3 font-display text-headline-md font-bold text-on-surface">
         Your rewards
       </h2>
 
@@ -75,7 +80,7 @@ export function RewardsBrowser({ rewards }: { rewards: RewardRow[] }) {
       <div
         role="group"
         aria-label="Filter rewards by type"
-        className="-mx-5 mb-4 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="mb-4 flex gap-1 overflow-x-auto rounded-xl bg-surface-container p-1"
       >
         {FILTERS.map(({ key, label }) => {
           const active = filter === key;
@@ -86,11 +91,11 @@ export function RewardsBrowser({ rewards }: { rewards: RewardRow[] }) {
               onClick={() => setFilter(key)}
               aria-pressed={active}
               className={[
-                "h-9 shrink-0 rounded-full border px-4 text-label-lg font-semibold transition-colors",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                "min-h-11 min-w-max flex-1 rounded-lg px-2 text-label-md font-bold transition-colors sm:text-label-lg",
+                "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary",
                 active
-                  ? "border-secondary bg-secondary text-white"
-                  : "border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container",
+                  ? "bg-secondary text-on-secondary focus-visible:outline-on-secondary"
+                  : "text-on-surface-variant hover:bg-surface-container-high",
               ].join(" ")}
             >
               {label}
@@ -117,21 +122,20 @@ export function RewardsBrowser({ rewards }: { rewards: RewardRow[] }) {
               <li key={r.id}>
                 <Link
                   href={`/rewards/${r.id}`}
-                  className="flex items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 transition-colors hover:bg-surface-container elev-1 surface-raised tap-target"
+                  className="flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-3.5 transition-colors hover:bg-surface-container tap-target"
                 >
                   <span
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
-                      dim ? "bg-surface-container" : "bg-secondary/10"
+                      dim ? "bg-surface-container text-on-surface-variant" : TYPE_ACCENT[r.type]
                     }`}
                   >
                     <Icon
                       size={20}
-                      className={dim ? "text-on-surface-variant" : "text-secondary"}
                       aria-hidden="true"
                     />
                   </span>
 
-                  <span className="min-w-0 flex-1">
+                  <span className="min-w-20 flex-1">
                     <span
                       className={`block truncate text-body-lg font-bold tracking-[-0.01em] ${
                         dim ? "text-on-surface-variant" : "text-on-surface"

@@ -220,6 +220,10 @@ export const EN = {
 
   /* Order verification detail */
   "ov.backToDashboard": "Back to dashboard",
+  "ov.twoCode": "Two-Code Verification",
+  "ov.orderStep": "Step 1 of 2",
+  "ov.billStep": "Step 2 of 2",
+  "ov.billCodeLabel": "Bill verification code",
   "ov.orderCodeLabel": "STRIVUP order code",
   "ov.tasksDone": "Tasks done",
   "ov.verifiedOrders": "Verified orders",
@@ -597,6 +601,10 @@ export const HI: Partial<Record<StringKey, string>> = {
   "an.emptyBody": "लोग आपके क्वेस्ट से जुड़ना शुरू करेंगे तो एनालिटिक्स दिखेगा।",
 
   "ov.backToDashboard": "डैशबोर्ड पर वापस",
+  "ov.twoCode": "दो कोड से सत्यापन",
+  "ov.orderStep": "चरण 1 / 2",
+  "ov.billStep": "चरण 2 / 2",
+  "ov.billCodeLabel": "बिल सत्यापन कोड",
   "ov.orderCodeLabel": "STRIVUP ऑर्डर कोड",
   "ov.tasksDone": "पूरे किए टास्क",
   "ov.verifiedOrders": "सत्यापित ऑर्डर",

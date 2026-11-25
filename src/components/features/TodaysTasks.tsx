@@ -60,7 +60,7 @@ function TaskRow({ task }: { task: TodayTask }) {
     <Link
       // challengeId carries the quest id on a quest row; `kind` is what routes.
       href={`/${task.kind === "quest" ? "quests" : "challenges"}/${task.challengeId}`}
-      className="flex items-center justify-between gap-space-sm rounded-lg bg-surface-container-low p-space-sm transition-transform active:scale-[0.99]"
+            className="flex items-center justify-between gap-space-sm rounded-xl border border-outline-variant bg-surface-container-low p-space-sm hover:border-secondary/50"
     >
       <div className="flex min-w-0 items-center gap-space-sm">
         <div
@@ -167,7 +167,7 @@ export function TodaysTasks({
     return (
       <section className="flex flex-col gap-space-sm" aria-label="Today's tasks">
         <h3 className="text-headline-sm text-on-surface">Today&apos;s Tasks</h3>
-        <div className="rounded-xl bg-surface-container-lowest p-space-md elev-1 surface-raised">
+        <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-space-md">
           <p className="text-body-md text-on-surface">You have nothing due today.</p>
           <p className="mt-1 text-body-sm text-on-surface-variant">
             Join a challenge and it&apos;ll show up here every day until you finish it.
@@ -179,7 +179,7 @@ export function TodaysTasks({
           <div className="mt-space-md grid grid-cols-2 gap-space-sm">
             <Link
               href="/explore"
-              className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-primary px-space-sm text-label-lg text-on-primary elev-1 transition-transform active:scale-[0.99]"
+              className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-secondary px-space-sm text-label-lg font-bold text-on-secondary"
             >
               <Compass size={16} aria-hidden="true" />
               Browse
@@ -236,9 +236,9 @@ export function TodaysTasks({
               onClick={() => setView(v)}
               aria-pressed={view === v}
               className={[
-                "rounded-full px-3 py-1 text-label-sm font-semibold capitalize transition-colors",
+                "min-h-11 rounded-full px-3 py-1 text-label-sm font-semibold capitalize transition-colors",
                 view === v
-                  ? "bg-surface-container-lowest text-on-surface elev-1"
+                  ? "bg-secondary/12 text-secondary"
                   : "text-on-surface-variant hover:text-on-surface",
               ].join(" ")}
             >
@@ -248,11 +248,11 @@ export function TodaysTasks({
         </div>
       )}
 
-      <div className="flex flex-col gap-space-md rounded-xl bg-surface-container-lowest p-space-md elev-1 surface-raised">
+      <div className="flex flex-col gap-space-md rounded-2xl border border-outline-variant bg-surface-container-lowest p-space-md">
         {/* ── Discipline Index ─────────────────────────────────────────── */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-label-sm text-on-surface-variant">
-            <span>Daily Discipline Index</span>
+            <span>Tasks completed</span>
             <span className="font-bold text-on-surface">
               {showQuests
                 ? `${questTasks.length === 0 ? 0 : Math.round((questsDone / questTasks.length) * 100)}%`
@@ -279,7 +279,7 @@ export function TodaysTasks({
                 className={[
                   "h-2 flex-1 rounded-full",
                   t.state === "done"
-                    ? "bg-primary"
+                    ? "bg-streak-ink"
                     : t.state === "pending"
                       ? "bg-secondary animate-pulse"
                       : "bg-surface-container-highest",

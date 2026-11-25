@@ -25,16 +25,14 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
         {/* ── Desktop sidebar (md+) ───────────────────────────────────── */}
         <aside
           aria-label="Sidebar navigation"
-          className="rail hidden md:fixed md:inset-y-0 md:flex md:flex-col md:border-r md:border-outline-variant md:bg-surface-container-low"
+          className="rail hidden md:fixed md:inset-y-0 md:flex md:flex-col md:border-r md:border-outline-variant md:bg-surface-container-lowest"
         >
           {/* Brand mark. The square mark is what shows in the collapsed rail,
               so it keeps the nav items' padding; the wordmark appears beside it
               once the rail expands. */}
-          <div className="flex items-center gap-3 border-b border-outline-variant px-5 py-4">
-            <BrandMark variant="mark" height={22} priority className="shrink-0" />
-            <span className="rail-label">
-              <BrandMark variant="wordmark" height={18} />
-            </span>
+          <div className="flex h-16 items-center gap-3 border-b border-outline-variant px-5">
+            <BrandMark variant="mark" height={26} priority className="shrink-0" />
+            <span className="rail-label font-display text-lg font-extrabold text-on-surface">StrivUp</span>
           </div>
 
           {/* Nav items — AppSidebar serves business navigation on /business/* */}

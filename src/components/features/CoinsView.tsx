@@ -1,14 +1,20 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  ArrowRight,
   BadgeCheck,
   CalendarCheck,
   Coins,
   Flag,
+  Gift,
+  History,
   Lock,
   MapPin,
+  Snowflake,
+  Sparkles,
   Trophy,
   Users,
+  UserRound,
 } from "lucide-react";
 import {
   COIN_REASON_LABEL,
@@ -17,18 +23,14 @@ import {
   type CoinRules,
 } from "@/lib/data/coins";
 
-/**
- * CoinsView — the presentational half of the StrivCoin wallet.
- *
- * Split from the route so it can be rendered against fabricated data in
- * /dev/coins-preview. The page itself sits behind auth, and shipping a screen
- * nobody has ever looked at is how the duplicate-title bug in Today's Tasks
- * got as far as it did.
- *
- * Holds no state and fetches nothing — every number is passed in.
- */
+const coinNumber = new Intl.NumberFormat("en-IN");
 
-/** One row of the earning table. */
+const REWARD_ICONS: Record<string, typeof Gift> = {
+  streak_freeze: Snowflake,
+  profile_frame: UserRound,
+  challenge_boost: Sparkles,
+};
+
 function EarnRow({
   icon,
   title,
@@ -49,7 +51,7 @@ function EarnRow({
         <p className="text-body-md font-medium text-on-surface">{title}</p>
         <p className="text-label-sm text-on-surface-variant">{detail}</p>
       </div>
-      <span className="shrink-0 rounded-full bg-on-tertiary-container/10 px-2.5 py-1 text-label-sm font-bold text-on-tertiary-container">
+      <span className="shrink-0 rounded-full bg-coin/15 px-2.5 py-1 text-label-sm font-bold text-coin-ink">
         {amount}
       </span>
     </li>
@@ -65,7 +67,7 @@ function earnRows(r: CoinRules) {
       amount: `+${r.daily_checkin}`,
     },
     {
-      icon: <BadgeCheck size={17} className="text-on-tertiary-container" aria-hidden="true" />,
+      icon: <BadgeCheck size={17} className="text-streak-ink" aria-hidden="true" />,
       title: "Proof approved",
       detail: `Up to ${r.proof_approved_daily_max} a day`,
       amount: `+${r.proof_approved}`,
@@ -77,7 +79,7 @@ function earnRows(r: CoinRules) {
       amount: `+${r.challenge_joined}`,
     },
     {
-      icon: <Trophy size={17} className="text-on-tertiary-container" aria-hidden="true" />,
+      icon: <Trophy size={17} className="text-streak-ink" aria-hidden="true" />,
       title: "Finish a challenge",
       detail: `${r.challenge_min_duration}+ days, and at least ${Math.round(
         r.challenge_min_consistency * 100
@@ -93,7 +95,7 @@ function earnRows(r: CoinRules) {
       amount: `+${r.quest_joined}`,
     },
     {
-      icon: <Flag size={17} className="text-on-tertiary-container" aria-hidden="true" />,
+      icon: <Flag size={17} className="text-streak-ink" aria-hidden="true" />,
       title: "Complete a quest",
       detail: "Verified by the business",
       amount: `+${r.quest_completed}`,
@@ -112,136 +114,140 @@ export function CoinsView({
   history: CoinEvent[];
   rewards: CoinReward[];
 }) {
+  const availableRewards = rewards.filter((reward) => reward.available).length;
+  const card = "rounded-2xl border border-outline-variant bg-surface-container-lowest";
+
   return (
     <div className="min-h-screen bg-surface">
-      <header className="sticky top-0 pt-safe z-40 border-b border-outline-variant bg-surface/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-14 max-w-2xl items-center gap-space-xs px-gutter">
+      <header className="sticky top-0 z-30 border-b border-outline-variant bg-surface/95 pt-safe backdrop-blur-sm">
+        <div className="mx-auto flex min-h-14 max-w-3xl items-center gap-3 px-4 sm:px-6">
           <Link
             href="/feed"
-            aria-label="Back"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-colors hover:bg-surface-container tap-target"
+            aria-label="Back to Today"
+            className="flex size-11 shrink-0 items-center justify-center rounded-full text-on-surface transition-colors hover:bg-surface-container"
           >
             <ArrowLeft size={20} aria-hidden="true" />
           </Link>
-          <h1 className="text-headline-sm text-on-surface">StrivCoins</h1>
+          <h1 className="font-display text-headline-md font-bold text-on-surface">StrivCoins</h1>
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-2xl flex-col gap-space-lg px-gutter py-space-lg">
-        {/* ── Balance ─────────────────────────────────────────────────── */}
+      <div className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-4 sm:gap-6 sm:px-6 sm:py-6">
         <section
-          aria-label="Your balance"
-          className="flex flex-col items-center rounded-xl bg-primary px-space-md py-space-lg text-on-primary shadow-sm"
+          aria-labelledby="coin-balance-title"
+          className={`${card} bg-[radial-gradient(ellipse_at_top_right,color-mix(in_srgb,var(--color-coin)_14%,transparent),transparent_65%)] p-4 sm:p-5`}
         >
-          <Coins size={26} className="text-tertiary-fixed" aria-hidden="true" />
-          <p className="mt-space-xs text-display-mobile tabular-nums">{balance}</p>
-          <p className="text-label-md text-primary-fixed-dim">
-            {balance === 1 ? "StrivCoin" : "StrivCoins"}
+          <div className="flex flex-wrap items-center justify-between gap-x-3">
+            <h2 id="coin-balance-title" className="text-body-sm font-semibold text-on-surface-variant">
+              Available balance
+            </h2>
+            <a
+              href="#coin-earning"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-label-md font-bold text-coin-ink transition-colors hover:bg-coin/15"
+            >
+              How StrivCoins work <ArrowRight size={15} aria-hidden="true" />
+            </a>
+          </div>
+          <p className="flex items-center gap-2.5 font-display text-display-mobile font-extrabold tabular-nums text-coin-ink">
+            <Coins size={29} aria-hidden="true" />
+            {coinNumber.format(balance)}
+            <span aria-hidden="true" className="text-headline-sm font-bold">SC</span>
+            <span className="sr-only">{balance === 1 ? "StrivCoin" : "StrivCoins"}</span>
           </p>
         </section>
 
-        {/* ── Earning ─────────────────────────────────────────────────── */}
-        <section aria-label="How you earn">
-          <h2 className="mb-space-xs text-headline-sm text-on-surface">How you earn</h2>
-          {rules ? (
-            <>
-              <ul className="divide-y divide-outline-variant rounded-xl bg-surface-container-lowest px-space-md shadow-sm">
-                {earnRows(rules).map((row) => (
-                  <EarnRow key={row.title} {...row} />
-                ))}
-              </ul>
-              <p className="mt-space-xs px-1 text-label-sm text-on-surface-variant">
-                Up to {rules.daily_global_cap} coins a day from everyday actions. Finishing
-                a challenge or a quest is on top of that. Challenges you created yourself
-                pay {Math.round(rules.self_created_multiplier * 100)}%.
-              </p>
-            </>
-          ) : (
-            <p className="rounded-xl bg-surface-container-lowest p-space-md text-body-sm text-on-surface-variant shadow-sm">
-              Couldn&apos;t load the earning rates right now.
-            </p>
-          )}
-        </section>
+        <nav aria-label="StrivCoins sections" className="grid grid-cols-2 gap-1 rounded-xl bg-surface-container p-1">
+          <a
+            href="#coin-perks"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-secondary px-2 text-center text-label-lg font-bold text-on-secondary transition-colors hover:bg-secondary/85"
+          >
+            <Gift size={16} aria-hidden="true" /> Perks catalog
+          </a>
+          <a
+            href="#coin-activity"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-lg px-2 text-center text-label-lg font-semibold text-on-surface transition-colors hover:bg-surface-container-high"
+          >
+            <History size={16} aria-hidden="true" /> Coin activity
+          </a>
+        </nav>
 
-        {/* ── Spending ────────────────────────────────────────────────── */}
-        <section aria-label="What you can unlock">
-          <h2 className="mb-space-xs text-headline-sm text-on-surface">What they unlock</h2>
-          <ul className="flex flex-col gap-space-sm">
+        <section id="coin-perks" aria-labelledby="coin-perks-title" className="scroll-mt-20">
+          <div className="mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+            <h2 id="coin-perks-title" className="font-display text-headline-md font-bold text-on-surface">Perks catalog</h2>
+            {availableRewards > 0 && (
+              <span className="rounded-full bg-streak px-2 py-1 text-label-sm font-bold text-on-streak">
+                {availableRewards} available
+              </span>
+            )}
+          </div>
+          <ul className="grid gap-3">
             {rewards.map((reward) => {
-              const affordable = balance >= reward.cost;
+              const Icon = REWARD_ICONS[reward.id] ?? Gift;
+              const needed = Math.max(0, reward.cost - balance);
               return (
-                <li
-                  key={reward.id}
-                  className="flex items-center gap-space-sm rounded-xl bg-surface-container-lowest p-space-md shadow-sm"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-space-xs">
-                      <p className="text-body-md font-semibold text-on-surface">
-                        {reward.name}
-                      </p>
-                      {!reward.available ? (
-                        <span className="flex items-center gap-1 rounded bg-surface-container px-1.5 py-0.5 text-label-sm font-medium text-on-surface-variant">
-                          <Lock size={11} aria-hidden="true" />
-                          Coming soon
+                <li key={reward.id} className={`${card} p-4`}>
+                  <div className="flex items-start gap-3">
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-coin/12 text-coin-ink">
+                      <Icon size={21} aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-2.5 gap-y-1">
+                        <h3 className="text-body-lg font-bold leading-tight text-on-surface">{reward.name}</h3>
+                        <span className="shrink-0 text-body-md font-bold tabular-nums text-coin-ink">
+                          {coinNumber.format(reward.cost)} SC
                         </span>
-                      ) : null}
+                      </div>
+                      <p className="mt-1 text-body-sm text-on-surface-variant">{reward.description}</p>
                     </div>
-                    <p className="mt-0.5 text-body-sm text-on-surface-variant">
-                      {reward.description}
-                    </p>
                   </div>
-                  <span
-                    className={[
-                      "shrink-0 rounded-full px-3 py-1.5 text-label-md font-bold tabular-nums",
-                      affordable
-                        ? "bg-on-tertiary-container/10 text-on-tertiary-container"
-                        : "bg-surface-container text-on-surface-variant",
-                    ].join(" ")}
-                  >
-                    {reward.cost}
-                  </span>
+                  <div className="mt-3 flex items-center gap-2 rounded-lg bg-surface-container-low px-3 py-2 text-label-md font-semibold text-on-surface-variant">
+                    {!reward.available ? (
+                      <><Lock size={14} aria-hidden="true" /> Coming soon</>
+                    ) : needed > 0 ? (
+                      <><Lock size={14} aria-hidden="true" /> {coinNumber.format(needed)} SC to go</>
+                    ) : (
+                      <><BadgeCheck size={15} className="text-streak-ink" aria-hidden="true" /> Balance sufficient</>
+                    )}
+                  </div>
                 </li>
               );
             })}
           </ul>
-          <p className="mt-space-xs px-1 text-label-sm text-on-surface-variant">
-            Business quest rewards — vouchers, free sessions and the like — are claimed on
-            the quest itself and funded by the business running it.
+          <p className="mt-3 px-1 text-label-sm text-on-surface-variant">
+            Claim business vouchers, free sessions and other quest rewards from their quest pages.
           </p>
         </section>
 
-        {/* ── History ─────────────────────────────────────────────────── */}
-        <section aria-label="Recent activity">
-          <h2 className="mb-space-xs text-headline-sm text-on-surface">Recent activity</h2>
+        <section id="coin-activity" aria-labelledby="coin-activity-title" className={`${card} scroll-mt-20 p-4 sm:p-5`}>
+          <h2 id="coin-activity-title" className="mb-3 flex items-center gap-2 font-display text-headline-md font-bold text-on-surface">
+            <History size={19} className="shrink-0 text-secondary" aria-hidden="true" />
+            Recent coin activity
+          </h2>
           {history.length === 0 ? (
-            <div className="rounded-xl bg-surface-container-lowest px-space-md py-space-lg text-center shadow-sm">
-              <p className="text-body-md text-on-surface">No coins earned yet.</p>
-              <p className="mt-1 text-body-sm text-on-surface-variant">
-                Open the app tomorrow and you&apos;ll have your first.
-              </p>
+            <div className="rounded-xl bg-surface-container-low px-4 py-5 text-center">
+              <p className="text-body-md font-semibold text-on-surface">No coin activity yet.</p>
+              <p className="mt-1 text-body-sm text-on-surface-variant">Coins you earn will appear here.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-outline-variant rounded-xl bg-surface-container-lowest px-space-md shadow-sm">
+            <ul className="space-y-2">
               {history.map((event) => (
-                <li key={event.id} className="flex items-center justify-between py-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-body-md text-on-surface">
+                <li key={event.id} className="flex items-center gap-3 rounded-xl bg-surface-container-low px-3 py-2.5">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-coin/12 text-coin-ink">
+                    <Coins size={16} aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-body-md font-medium text-on-surface">
                       {COIN_REASON_LABEL[event.reason] ?? event.reason}
                     </p>
-                    <p className="text-label-sm text-on-surface-variant">
+                    <time dateTime={event.createdAt} className="text-label-sm text-on-surface-variant">
                       {new Date(event.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
                       })}
-                    </p>
+                    </time>
                   </div>
-                  <span
-                    className={[
-                      "shrink-0 text-label-lg font-bold tabular-nums",
-                      event.delta > 0 ? "text-on-tertiary-container" : "text-on-surface-variant",
-                    ].join(" ")}
-                  >
-                    {event.delta > 0 ? `+${event.delta}` : event.delta}
+                  <span className={`shrink-0 text-label-lg font-bold tabular-nums ${event.delta > 0 ? "text-streak-ink" : "text-on-surface-variant"}`}>
+                    {event.delta > 0 && "+"}{coinNumber.format(event.delta)} SC
                   </span>
                 </li>
               ))}
@@ -249,11 +255,29 @@ export function CoinsView({
           )}
         </section>
 
-        {/* Required for this to remain a loyalty programme rather than a
-            financial product — see the migration's design contract. */}
-        <p className="px-1 pb-space-md text-label-sm text-on-surface-variant/80">
-          StrivCoins have no cash value, cannot be bought, transferred or exchanged for
-          money, and may expire or change.
+        <section id="coin-earning" aria-labelledby="coin-earning-title" className="scroll-mt-20">
+          <h2 id="coin-earning-title" className="mb-3 font-display text-headline-md font-bold text-on-surface">How you earn</h2>
+          {rules ? (
+            <>
+              <ul className={`${card} divide-y divide-outline-variant px-4`}>
+                {earnRows(rules).map((row) => (
+                  <EarnRow key={row.title} {...row} />
+                ))}
+              </ul>
+              <p className="mt-3 px-1 text-label-sm text-on-surface-variant">
+                Earn up to {rules.daily_global_cap} coins a day from everyday actions, plus extra for
+                finishing challenges and quests. Challenges you create yourself pay {Math.round(rules.self_created_multiplier * 100)}%.
+              </p>
+            </>
+          ) : (
+            <p className={`${card} p-4 text-body-sm text-on-surface-variant`}>
+              Couldn&apos;t load the earning rates right now.
+            </p>
+          )}
+        </section>
+
+        <p className="px-1 pb-6 text-label-sm text-on-surface-variant">
+          StrivCoins have no cash value, cannot be bought, transferred or exchanged for money, and may expire or change.
         </p>
       </div>
     </div>

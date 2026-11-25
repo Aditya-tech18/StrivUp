@@ -2,25 +2,13 @@ import Link from "next/link";
 import { BrandMark } from "@/components/ui";
 
 /**
- * AuthCard — the panel every auth screen sits in.
- *
- * Light, on the app's own palette: a near-white card over the same mesh
- * background the entry screen uses. An earlier version made these screens
- * dark, which looked good on its own but meant signing in was the one dark
- * moment in an otherwise white-and-blue product — you noticed the change of
- * theme more than the screen.
- *
- * Slightly translucent with a blur behind it, so the mesh colour reads through
- * the card edges instead of the card punching a flat white hole in it.
- */
-/**
  * The card shell on its own, for screens that bring their own header — the
  * business sign-in forms render their own logo and headline, so they use this
  * rather than <AuthCard>.
  */
 export const authCardCls = [
-  "w-full max-w-sm rounded-2xl border border-outline-variant",
-  "bg-surface-container-lowest/85 p-8 elev-3 backdrop-blur-xl",
+  "w-full max-w-sm rounded-3xl border border-outline-variant",
+  "bg-surface-container-lowest p-5 sm:p-8 elev-2",
 ].join(" ");
 
 export function AuthCard({
@@ -44,13 +32,14 @@ export function AuthCard({
           <Link
             href="/"
             aria-label="StrivUp home"
-            className="flex h-12 items-center justify-center rounded-xl px-3 transition-colors hover:bg-surface-container"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-secondary/10 px-3 font-display text-base font-extrabold text-secondary transition-colors hover:bg-secondary/15"
           >
-            <BrandMark variant="wordmark" height={22} priority />
+            <span aria-hidden="true"><BrandMark variant="mark" height={22} priority /></span>
+            StrivUp
           </Link>
         </div>
         <div className="space-y-1">
-          <h1 className="text-headline-lg-mobile text-on-surface">{title}</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-on-surface">{title}</h1>
           {subtitle ? <p className="text-body-md text-on-surface-variant">{subtitle}</p> : null}
         </div>
       </div>
@@ -163,7 +152,7 @@ export const authSocialBtnCls = [
 /** The primary submit button, in the brand's action blue. */
 export const authSubmitBtnCls = [
   "group w-full flex items-center justify-center gap-2 h-11 px-4 rounded-xl",
-  "bg-secondary hover:bg-secondary-container text-on-secondary text-body-lg font-semibold",
+  "bg-secondary text-on-secondary text-body-lg font-semibold hover:opacity-90",
   "elev-brand transition-all duration-200",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
   "disabled:opacity-50 disabled:cursor-not-allowed",

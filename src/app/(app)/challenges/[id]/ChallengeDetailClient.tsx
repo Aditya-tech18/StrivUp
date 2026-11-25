@@ -1,27 +1,17 @@
 "use client";
 
-/**
- * ChallengeDetailClient.tsx — all interactive UI for a challenge detail page.
- *
- * Backward-compatible:
- *   • tasks.length === 0 → existing single-proof-per-day dark card (unchanged)
- *   • tasks.length  >  0 → task list with per-task status, upload, rejection
- *
- * Upload state machine per task (or the single legacy slot):
- *   idle → uploading → pending | error
- *   rejected tasks show reason + "Resubmit" (updates the existing row)
- */
-
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, useCallback, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ProofComposer } from "@/components/features/challenge/ProofComposer";
 import { ProofReviewWatcher } from "@/components/features/challenge/ProofReviewWatcher";
 import { createClient } from "@/lib/supabase/client";
 import {
   AlertTriangle,
+  ArrowLeft,
   Bell,
+  ChartNoAxesColumnIncreasing,
   Calendar,
   Camera,
   CheckCircle2,
@@ -29,26 +19,21 @@ import {
   ClipboardList,
   Clock,
   Coins,
-  Filter,
   Flame,
+  Images,
   ListChecks,
   Loader2,
   Lock,
-  Rocket,
+  ShieldCheck,
   Trophy,
   Upload,
   UserPlus,
   Users,
-  XCircle,
+  Zap,
 } from "lucide-react";
-import { Badge, BrandMark, Card } from "@/components/ui";
+import { Badge, BrandMark, UserAvatar } from "@/components/ui";
 import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
-import {
-  calcDayNumber,
-  callReviewProof,
-  uploadProof,
-  type SlotData,
-} from "@/lib/data/proofs";
+import { calcDayNumber } from "@/lib/data/proofs";
 import { emitStrivyEvent } from "@/components/features/strivy/companion";
 import { InviteSheet } from "@/components/features/InviteSheet";
 import { ShareButton } from "@/components/features/share/ShareButton";
@@ -110,20 +95,18 @@ export interface ChallengeDetailClientProps {
   memberPile?: FacepileData;
 }
 
-/* ── Helpers ─────────────────────────────────────────────────────────────── */
-function formatCount(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return n.toString();
-}
-
-
-const PROOF_TYPE_ICONS: Record<string, string> = {
-  photo: "📷",
-  video: "🎥",
-  text: "✍️",
-  link: "🔗",
-  none: "✓",
+const PROOF_TYPE_LABELS = {
+  photo: "Photo",
+  video: "Video",
+  text: "Text",
+  link: "Link",
+  physical_activity: "Activity",
+  none: null,
 };
+
+function celebrateApproval() {
+  emitStrivyEvent({ type: "CHALLENGE_COMPLETED" });
+}
 
 
 
@@ -147,26 +130,26 @@ function TaskUploadSlot({
   const router = useRouter();
   const status = submission?.status;
   const canUpload = !status || status === "rejected";
+  const proofType = task.proofType ? PROOF_TYPE_LABELS[task.proofType] : null;
 
   return (
-    <div className="space-y-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised">
+    <div className="space-y-3 rounded-xl bg-surface-container-high/55 p-3 sm:p-4">
       {status === "pending" && submission ? (
         <ProofReviewWatcher submissionId={submission.submissionId} onResult={result => {
           if (result.status !== "pending") router.refresh();
         }} />
       ) : null}
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-3">
+        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
+          <ClipboardList size={18} aria-hidden="true" />
+        </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold text-on-surface">{task.title}</h3>
+            <h3 className="break-words text-sm font-bold text-on-surface">{task.title}</h3>
             {!task.isRequired ? <Badge variant="default" className="text-label-sm">Optional</Badge> : null}
-            {task.proofType && task.proofType !== "none" ? (
-              <span className="text-label-sm text-on-surface-variant">
-                {PROOF_TYPE_ICONS[task.proofType]} {task.proofType}
-              </span>
-            ) : null}
+            {proofType ? <span className="text-xs font-semibold text-on-surface-variant">{proofType}</span> : null}
           </div>
-          {task.description ? <p className="mt-0.5 text-xs text-on-surface-variant">{task.description}</p> : null}
+          {task.description ? <p className="mt-1 text-sm leading-relaxed text-on-surface-variant">{task.description}</p> : null}
         </div>
         {status ? (
           <Badge variant={status === "approved" ? "success" : status === "rejected" ? "error" : "outline"}>
@@ -175,13 +158,13 @@ function TaskUploadSlot({
         ) : null}
       </div>
       {status === "rejected" && submission?.rejectionReason ? (
-        <p className="rounded-lg border border-error-outline bg-error-container px-3 py-2 text-xs text-on-error-container">
-          <strong>Reason:</strong> {submission.rejectionReason}
+        <p className="rounded-lg border border-error-outline bg-error-container px-3 py-2 text-sm text-on-error-container">
+          {submission.rejectionReason}
         </p>
       ) : null}
       {canUpload ? (
         <button type="button" onClick={() => setComposerOpen(true)} disabled={!userId}
-          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-secondary/30 text-sm font-medium text-secondary hover:bg-secondary/5 disabled:opacity-50">
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-secondary-container px-3 text-sm font-semibold text-on-secondary-container transition-opacity hover:opacity-90 disabled:opacity-50">
           <Upload size={14} aria-hidden="true" /> {status === "rejected" ? "Resubmit proof" : "Upload proof"}
         </button>
       ) : null}
@@ -189,11 +172,13 @@ function TaskUploadSlot({
         <ProofComposer
           open
           onClose={() => setComposerOpen(false)}
+          onApproved={celebrateApproval}
           challengeId={challengeId}
           userId={userId}
           joinedAt={joinedAt}
           taskId={task.id}
           existingSubmissionId={submission?.submissionId ?? null}
+          proofTitle={task.title}
           proofInstruction={task.description || task.title}
           videoOnly={task.proofType === "video"}
         />
@@ -224,238 +209,79 @@ function LegacyUploadCard({
   challenge,
   userId,
   joinedAt,
-  existingSubmission,
+  submission,
 }: {
   challenge: ChallengeDetail;
   userId: string | null;
   joinedAt: string | null;
-  existingSubmission: TaskSubmission | undefined;
+  submission: TaskSubmission | undefined;
 }) {
   const router = useRouter();
-  const [watchSubmissionId, setWatchSubmissionId] = useState(existingSubmission?.submissionId ?? null);
-  const [slot, setSlot] = useState<SlotData>({
-    state:
-      existingSubmission?.status === "approved"
-        ? "approved"
-        : existingSubmission?.status === "rejected"
-          ? "rejected"
-          : existingSubmission
-            ? "pending"
-            : "idle",
-    preview: null,
-    error: null,
-    rejectionReason: existingSubmission?.rejectionReason ?? null,
-  });
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleFile = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      e.target.value = "";
-      if (!file) return;
-      setSlot({ state: "uploading", preview: null, error: null, rejectionReason: null });
-
-      const result = await uploadProof(
-        {
-          challengeId: challenge.id,
-          userId,
-          joinedAt,
-          taskId: null,
-          existingSubmissionId:
-            slot.state === "rejected" ? (existingSubmission?.submissionId ?? null) : null,
-        },
-        file
-      );
-
-      if (result.error) {
-        setSlot({ state: "error", preview: null, error: result.error, rejectionReason: null });
-        return;
-      }
-
-      // Show "reviewing" while the edge function runs
-      setSlot({ state: "reviewing", preview: result.preview, error: null, rejectionReason: null });
-
-      const verdict = await callReviewProof(result.submissionId!);
-      setWatchSubmissionId(verdict.reviewState === "queued" ? result.submissionId : null);
-      if (verdict.status === "approved") emitStrivyEvent({ type: "CHALLENGE_COMPLETED" });
-      setSlot({
-        state: verdict.status,
-        preview: result.preview,
-        error: null,
-        rejectionReason: verdict.rejectionReason,
-      });
-    },
-    [challenge.id, userId, joinedAt, slot.state, existingSubmission]
-  );
-
-  const isRejected = slot.state === "rejected";
-  const isMovement = isMovementChallenge(challenge);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const status = submission?.status;
+  const rejected = status === "rejected";
 
   return (
-    // This card paints its own dark navy gradient, so everything inside it is
-    // light-on-dark: white/NN text and the 300/400 end of each colour ramp.
-    // Do not swap those for the success/warning/error tokens, which are tuned
-    // for a light surface and go nearly invisible here.
-    <>
-      {slot.state === "pending" && watchSubmissionId ? <ProofReviewWatcher submissionId={watchSubmissionId} onResult={(result) => {
-        setWatchSubmissionId(null);
-        setSlot(s => ({ ...s, state: result.status, rejectionReason: result.rejectionReason }));
-        if (result.status !== "pending") router.refresh();
-      }} /> : null}
-      {/* A walking or running challenge gets the step counter above the camera.
-          The photo stays — it is still the thing a human reviewer looks at —
-          but asking only for a photo proved someone owns shoes, not that they
-          walked. There is no task config here to read a target from, so the
-          counter runs open-ended and the steps ride along with the day. */}
-      {isMovement && (
-        <div className="mb-3">
-          <LiveStepTracker timezone="Asia/Kolkata" />
-        </div>
-      )}
-
-    <div
-      className="rounded-xl p-5 space-y-4"
-      style={{ background: "linear-gradient(135deg, #0d1c32 0%, #1a3a6b 100%)" }}
-    >
-      <div>
-        <div className="flex items-center gap-1.5 mb-1">
-          <Calendar size={12} className="text-white/60" aria-hidden="true" />
-          <span className="text-overline text-white/60 text-label-sm">CURRENT CHALLENGE</span>
-        </div>
-        <h2 className="text-white font-semibold text-base leading-snug">
-          Day {challenge.currentDay}: {challenge.todayTask}
+    <section id="proof" aria-label="Today's proof" className="scroll-mt-24 space-y-3 rounded-2xl bg-surface-container-low p-4 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight">
+          <Camera size={19} className="text-streak-ink" aria-hidden="true" /> Today&apos;s proof
         </h2>
-        <p className="text-white/50 text-xs mt-1">
-          {challenge.currentDay} of {challenge.totalDays} days
-        </p>
+        <span className="rounded-full bg-surface-container-high px-2.5 py-1 text-xs font-semibold text-on-surface-variant">
+          Day {challenge.currentDay} of {challenge.totalDays}
+        </span>
       </div>
 
-      {/* Rejection reason (live verdict or DB value) */}
-      {isRejected && (slot.rejectionReason ?? existingSubmission?.rejectionReason) && (
-        <div className="rounded-lg bg-red-900/30 border border-red-500/30 px-3 py-2 text-xs text-red-300">
-          <strong>Rejected:</strong> {slot.rejectionReason ?? existingSubmission?.rejectionReason}
-        </div>
-      )}
+      {isMovementChallenge(challenge) ? <LiveStepTracker timezone="Asia/Kolkata" /> : null}
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*,video/*"
-        className="sr-only"
-        onChange={handleFile}
-        aria-hidden="true"
-      />
+      {status === "pending" && submission ? (
+        <>
+          <ProofReviewWatcher submissionId={submission.submissionId} onResult={(result) => {
+            if (result.status !== "pending") router.refresh();
+          }} />
+          <p role="status" className="flex items-center gap-2 rounded-xl bg-surface-container-high p-3 text-sm font-semibold">
+            <Clock size={17} className="shrink-0 text-coin-ink" aria-hidden="true" />
+            Proof saved and awaiting review
+          </p>
+        </>
+      ) : null}
 
-      {/* Idle or rejected → upload/resubmit button */}
-      {(slot.state === "idle" || slot.state === "rejected") && (
+      {status === "approved" ? (
+        <p role="status" className="flex items-center gap-2 rounded-xl bg-streak/15 p-3 text-sm font-bold text-streak-ink">
+          <CheckCircle2 size={17} className="shrink-0" aria-hidden="true" /> Proof approved
+        </p>
+      ) : null}
+
+      {rejected && submission?.rejectionReason ? (
+        <p className="rounded-xl bg-error-container px-3 py-2 text-sm text-on-error-container">{submission.rejectionReason}</p>
+      ) : null}
+
+      {!status || rejected ? (
         <button
           type="button"
-          onClick={() => inputRef.current?.click()}
+          onClick={() => setComposerOpen(true)}
           disabled={!userId}
-          className={[
-            "w-full h-11 rounded-lg bg-white text-primary",
-            "flex items-center justify-center gap-2 font-semibold text-sm",
-            "hover:bg-white/90 active:bg-white/80 transition-colors",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
-            !userId ? "opacity-50 cursor-not-allowed" : "",
-          ].join(" ")}
+          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary-container px-4 text-sm font-bold text-on-secondary-container transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          <Upload size={16} aria-hidden="true" />
-          {userId
-            ? isRejected
-              ? "Resubmit Proof"
-              : "Upload Today's Proof"
-            : "Sign in to upload proof"}
+          <Camera size={18} aria-hidden="true" />
+          {userId ? (rejected ? "Resubmit proof" : "Post today's proof") : "Sign in to upload proof"}
         </button>
-      )}
+      ) : null}
 
-      {slot.state === "uploading" && (
-        <div className="w-full h-11 rounded-lg bg-white/10 flex items-center justify-center gap-2 text-white/80 text-sm font-medium">
-          <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-          Uploading…
-        </div>
-      )}
-
-      {/* Reviewing (edge function in-flight) */}
-      {slot.state === "reviewing" && (
-        <div className="space-y-2">
-          {slot.preview && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={slot.preview}
-              alt="Proof preview"
-              className="w-full rounded-lg object-cover max-h-40"
-            />
-          )}
-          <div className="w-full h-11 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center gap-2 text-white/80 text-sm font-medium">
-            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-            Reviewing your proof…
-          </div>
-        </div>
-      )}
-
-      {/* Pending */}
-      {slot.state === "pending" && (
-        <div className="space-y-2">
-          {slot.preview && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={slot.preview}
-              alt="Proof preview"
-              className="w-full rounded-lg object-cover max-h-40"
-            />
-          )}
-          <div className="w-full h-11 rounded-lg bg-yellow-500/20 border border-yellow-400/30 flex items-center justify-center gap-2 text-yellow-300 text-sm font-medium">
-            <Clock size={16} aria-hidden="true" />
-            Pending review — we&apos;ll notify you when approved
-          </div>
-          <button
-            type="button"
-            onClick={() => setSlot((s) => ({ ...s, state: "idle" }))}
-            className="w-full text-white/40 text-xs hover:text-white/60 transition-colors"
-          >
-            Upload again
-          </button>
-        </div>
-      )}
-
-      {/* Approved */}
-      {slot.state === "approved" && (
-        <div className="space-y-2">
-          {slot.preview && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={slot.preview}
-              alt="Proof preview"
-              className="w-full rounded-lg object-cover max-h-40"
-            />
-          )}
-          <div className="w-full h-11 rounded-lg bg-green-500/20 border border-green-400/30 flex items-center justify-center gap-2 text-green-300 text-sm font-medium">
-            <CheckCircle2 size={16} aria-hidden="true" />
-            Proof approved!
-          </div>
-        </div>
-      )}
-
-      {slot.state === "error" && (
-        <div className="space-y-2">
-          {slot.error && <p className="text-red-300 text-xs">{slot.error}</p>}
-          <div className="w-full h-11 rounded-lg bg-red-500/20 border border-red-400/30 flex items-center justify-center gap-2 text-red-300 text-sm font-medium">
-            <XCircle size={16} aria-hidden="true" />
-            Upload failed. Try again.
-          </div>
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            className="w-full h-11 rounded-xl bg-white text-primary flex items-center justify-center gap-2 font-semibold text-sm hover:bg-white/90 transition-colors"
-          >
-            <Upload size={16} aria-hidden="true" />
-            Retry Upload
-          </button>
-        </div>
-      )}
-    </div>
-    </>
+      {composerOpen ? (
+        <ProofComposer
+          open
+          onClose={() => setComposerOpen(false)}
+          onApproved={celebrateApproval}
+          challengeId={challenge.id}
+          userId={userId}
+          joinedAt={joinedAt}
+          existingSubmissionId={rejected ? submission?.submissionId : null}
+          proofInstruction={challenge.proofInstructions}
+          proofTitle={challenge.title}
+        />
+      ) : null}
+    </section>
   );
 }
 
@@ -477,7 +303,6 @@ export function ChallengeDetailClient({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isParticipant, setIsParticipant] = useState(initialIsParticipant);
-  const [composerOpen, setComposerOpen] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const hasTasks = tasks.length > 0;
 
@@ -579,263 +404,191 @@ export function ChallengeDetailClient({
   );
   const legacySubmission = todaysSubmissions.find((s) => !s.taskId);
 
-  // Creator controls are gated on `isCreator`, resolved server-side from
-  // challenges.creator_id. Previously these were shown to every signed-in
-  // viewer and relied on the target page rejecting them, so non-creators were
-  // offered links that just bounced.
+  const isPrivate = challenge.visibility === "private";
+  const panel = "space-y-3 rounded-2xl bg-surface-container-low p-4 sm:p-5";
+  const toolbarButton = "grid size-11 shrink-0 place-items-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface";
 
   return (
-    <div className="min-h-screen bg-surface">
-      {/* ── TopAppBar ────────────────────────────────────────────────── */}
-      <header className="sticky top-0 pt-safe z-40 bg-surface/95 backdrop-blur-sm border-b border-outline-variant">
-        <div className="flex items-center justify-between px-4 h-14 mx-auto measure-page">
-          <div className="flex items-center gap-2">
-            <BrandMark variant="wordmark" height={20} priority />
-          </div>
-          <div className="flex items-center gap-1">
-            {/* Share. Everyone gets this, not just the creator: the person
-                most likely to pull someone else in is a participant who is
-                already doing it. A private challenge shares its invite link,
-                a public one shares the page, and both now carry a preview
-                card. */}
-            <ShareButton
-              kind="challenge"
-              id={challenge.id}
-              title={challenge.title}
-              isPrivate={challenge.visibility === "private"}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-secondary tap-target"
-            />
-            {/* Invite — the cold-start mechanism. Creator-only. */}
-            {isCreator && (
-              <button
-                type="button"
-                onClick={() => setInviteOpen(true)}
-                className="flex items-center gap-1 text-xs text-secondary font-semibold hover:underline w-9 h-9 justify-center rounded-full hover:bg-surface-variant transition-colors tap-target"
-                title="Invite people"
-                aria-label="Invite people to this challenge"
-              >
-                <UserPlus size={17} aria-hidden="true" />
-              </button>
-            )}
-            {/* Manage Tasks — creator-only */}
-            {isCreator && (
-              <Link
-                href={`/creator/challenges/${challenge.id}/manage-tasks`}
-                className="flex items-center gap-1 text-xs text-on-surface-variant font-medium hover:text-secondary transition-colors w-9 h-9 justify-center rounded-full hover:bg-surface-variant tap-target"
-                title="Manage tasks"
-                aria-label="Manage tasks"
-              >
-                <ListChecks size={18} aria-hidden="true" />
-              </Link>
-            )}
-            {/* Creator review link */}
-            {isCreator && (
-              <Link
-                href={`/creator/challenges/${challenge.id}/submissions`}
-                className="flex items-center gap-1 text-xs text-secondary font-semibold hover:underline w-9 h-9 justify-center rounded-full hover:bg-surface-variant transition-colors tap-target"
-                title="Review submissions"
-                aria-label="Review submissions"
-              >
-                <ClipboardList size={15} aria-hidden="true" />
-              </Link>
-            )}
-            <Link
-              href="/alerts"
-              aria-label="Notifications"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
-            >
-              <Bell size={20} strokeWidth={1.75} aria-hidden="true" />
-            </Link>
-          </div>
+    <div className="min-h-screen bg-surface text-on-surface">
+      <header className="sticky top-0 z-40 border-b border-outline-variant/60 bg-surface/95 pt-safe backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-1 sm:gap-2 sm:px-6">
+          <Link href="/challenges" aria-label="Back to challenges" className={toolbarButton + " -ml-2"}>
+            <ArrowLeft size={21} aria-hidden="true" />
+          </Link>
+          <BrandMark variant="mark" height={23} className="mr-1 hidden shrink-0 sm:block" />
+          <p className="min-w-0 flex-1 font-display text-sm leading-tight font-extrabold tracking-tight sm:text-lg">Challenge details</p>
+          <ShareButton
+            kind="challenge"
+            id={challenge.id}
+            title={challenge.title}
+            isPrivate={isPrivate}
+            className={toolbarButton}
+          />
+          {isCreator ? (
+            <button type="button" onClick={() => setInviteOpen(true)} className={toolbarButton} aria-label="Invite people to this challenge" title="Invite people">
+              <UserPlus size={19} aria-hidden="true" />
+            </button>
+          ) : null}
+          <Link href="/alerts" aria-label="Notifications" className={toolbarButton + " -mr-2"}>
+            <Bell size={19} aria-hidden="true" />
+          </Link>
         </div>
       </header>
 
-      <div className="mx-auto measure-page pb-8 space-y-5">
-        {/* ── Banner ────────────────────────────────────────────────── */}
-        <div className="relative">
-          <div className="relative h-48 w-full bg-surface-variant overflow-hidden">
+      <div className="mx-auto max-w-5xl space-y-4 px-4 py-4 sm:space-y-5 sm:px-6 sm:py-6">
+        <section aria-labelledby="challenge-title" className="overflow-hidden rounded-2xl bg-surface-container-low sm:rounded-3xl">
+          <div className="relative flex min-h-56 flex-col justify-end overflow-hidden bg-[#151c2a] p-4 text-white sm:min-h-72 sm:p-6 lg:min-h-80">
             <Image
               src={challenge.bannerUrl}
-              alt={challenge.title}
+              alt=""
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, 672px"
-              priority
+              sizes="(max-width: 767px) calc(100vw - 32px), (max-width: 1050px) 90vw, 976px"
+              preload
             />
-          </div>
-          <div className="mx-4 -mt-6 relative z-10">
-            <Card bordered padding="md" className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h1 className="text-headline-md text-on-surface font-semibold leading-tight">
-                  {challenge.title}
-                </h1>
-                <p className="text-xs text-on-surface-variant mt-0.5">
-                  Created by {challenge.creatorName}
-                </p>
-              </div>
-              {/* Tappable: the count is the entry point to the list of who
-                  is actually in this, which is the thing that makes a
-                  challenge feel inhabited rather than empty. */}
-              <button
-                type="button"
-                onClick={() => setMembersOpen(true)}
-                aria-label={`See the ${challenge.memberCount} people in this challenge`}
-                className="flex items-center gap-1 bg-secondary-container rounded-full px-3 py-1 flex-shrink-0 transition-colors hover:bg-secondary-fixed-dim tap-target"
-              >
-                <Users size={12} className="text-on-secondary-container" aria-hidden="true" />
-                <span className="text-overline text-on-secondary-container text-label-sm font-semibold">
-                  {formatCount(challenge.memberCount)} MEMBERS
+            <div className="absolute inset-0 bg-linear-to-b from-black/50 via-black/20 to-[#101522]" aria-hidden="true" />
+
+            <div className="absolute inset-x-4 top-4 flex flex-wrap items-center justify-between gap-2 sm:inset-x-6 sm:top-6">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-streak px-2.5 py-1 text-xs font-bold text-on-streak">
+                {isPrivate ? <Lock size={13} aria-hidden="true" /> : <Zap size={13} aria-hidden="true" />}
+                {isPrivate ? "Private challenge" : "Public challenge"}
+              </span>
+              {challenge.dailyStake > 0 ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-coin px-2.5 py-1 text-xs font-bold text-on-coin">
+                  <Coins size={13} aria-hidden="true" /> {challenge.dailyStake} StrivCoins per day
                 </span>
-              </button>
-            </Card>
-          </div>
-        </div>
+              ) : null}
+            </div>
 
-        {/* Who is in it, by face. Sits under the hero card where the member
-            pill above only gives a number. */}
-        {memberPile && memberPile.total > 0 && (
-          <div className="px-4 pt-3">
-            <Facepile
-              people={memberPile.people}
-              total={memberPile.total}
-              verb="Joined by"
-              noun="member"
-              size={24}
-              onOpen={() => setMembersOpen(true)}
-            />
+            <div className="relative max-w-2xl pt-12">
+              <p className="mb-2 w-fit rounded-full bg-[#151c2a]/90 px-2.5 py-1 text-xs font-semibold text-white/90">Hosted by {challenge.creatorName}</p>
+              <h1 id="challenge-title" className="break-words font-display text-3xl leading-tight font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
+                {challenge.title}
+              </h1>
+              {challenge.category ? <p className="mt-1 text-sm font-semibold text-white/85 capitalize">{challenge.category.replace(/[-_]+/g, " ")}</p> : null}
+            </div>
           </div>
-        )}
+          {challenge.dailyStake > 0 ? (
+            <p className="flex items-start gap-2 bg-surface-container-high px-4 py-3 text-sm text-on-surface-variant sm:px-6">
+              <ShieldCheck className="shrink-0 text-streak-ink" size={18} aria-hidden="true" />
+              <span>Missed days cost <strong className="text-coin-ink">{challenge.dailyStake} StrivCoins</strong> each.</span>
+            </p>
+          ) : null}
+        </section>
 
-        <div className="px-4 space-y-5">
-          {/* ── Stats row ───────────────────────────────────────────── */}
-          <div className="grid grid-cols-3 gap-3" role="list" aria-label="Challenge statistics">
-            {[
-              { label: "ACTIVE", value: challenge.activeCount.toLocaleString(), icon: null },
-              { label: "SUCCESS", value: `${challenge.successPercent}%`, icon: null },
-              {
-                label: "STREAK",
-                value: challenge.currentStreak,
-                icon: <Flame size={14} className="text-secondary-fixed-dim" aria-hidden="true" />,
-              },
-            ].map(({ label, value, icon }) => (
-              <Card key={label} bordered padding="sm" className="text-center" role="listitem">
-                <p className="text-overline text-on-surface-variant text-label-sm">{label}</p>
-                <div className="flex items-center justify-center gap-1 mt-1">
-                  {icon}
-                  <p className="font-bold text-on-surface text-xl leading-tight">{value}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          {/* ── Participant gate: task list / upload / join CTA ─────── */}
-          {isParticipant ? (
-            <>
-              {/* The first thing a participant should see on opening a
-                  challenge is the one action they came to do. It used to be
-                  buried under the task list. */}
-              {userId && !hasTasks && legacySubmission?.status !== "pending" && legacySubmission?.status !== "approved" ? (
-                <section aria-label="Today's proof" className="mb-4">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3" aria-label="Challenge statistics" role="list">
+          {[
+            { label: "Duration", value: challenge.totalDays, unit: "days", detail: "Day " + challenge.currentDay + " of " + challenge.totalDays, Icon: Calendar, tone: "text-secondary" },
+            { label: "Active members", value: challenge.activeCount.toLocaleString(), detail: "See members", Icon: Users, tone: "text-streak-ink" },
+            { label: "Your streak", value: challenge.currentStreak, unit: challenge.currentStreak === 1 ? "day" : "days", Icon: Flame, tone: "text-coin-ink" },
+            { label: "Latest proof rate", value: challenge.successPercent + "%", Icon: ChartNoAxesColumnIncreasing, tone: "text-secondary" },
+          ].map(({ label, value, unit, detail, Icon, tone }) => {
+            const isMembers = Icon === Users;
+            const content = (
+              <>
+                <span className="flex items-center justify-between gap-2 text-[0.6875rem] font-bold tracking-wider text-on-surface-variant uppercase sm:text-xs">
+                  {label}
+                  <Icon size={16} className={"shrink-0 " + tone} aria-hidden="true" />
+                </span>
+                <span className="mt-2 block font-display text-2xl leading-none font-extrabold tracking-tight tabular-nums sm:text-[1.75rem]">
+                  {value}{unit ? <span className="ml-1 text-xs font-semibold tracking-normal text-on-surface-variant">{unit}</span> : null}
+                </span>
+                {detail ? <span className={"mt-2 block text-xs font-semibold " + (isMembers ? "text-streak-ink" : "text-on-surface-variant")}>{detail}</span> : null}
+                {Icon === ChartNoAxesColumnIncreasing ? (
+                  <span className="mt-2 block h-1 overflow-hidden rounded-full bg-surface-container-highest" aria-hidden="true">
+                    <span className="block h-full rounded-full bg-streak" style={{ width: challenge.successPercent + "%" }} />
+                  </span>
+                ) : null}
+              </>
+            );
+            return (
+              <div key={label} role="listitem" className="min-w-0 rounded-xl bg-surface-container-low">
+                {isMembers ? (
                   <button
                     type="button"
-                    onClick={() => setComposerOpen(true)}
-                    className="flex w-full items-center gap-3 rounded-2xl border border-secondary/30 bg-secondary/5 p-4 text-left transition-colors hover:bg-secondary/10"
+                    onClick={() => setMembersOpen(true)}
+                    className="block h-full w-full rounded-xl p-3 text-left transition-colors hover:bg-surface-container-high sm:p-4"
                   >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-on-secondary">
-                      <Camera size={20} aria-hidden="true" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-body-lg font-bold text-on-surface">
-                        Post today&apos;s proof
-                      </span>
-                      <span className="block text-body-sm text-on-surface-variant">
-                        {challenge.proofInstructions ?? "Choose a photo or video, add a caption, then upload."}
-                      </span>
-                    </span>
-                    <ChevronRight size={18} className="shrink-0 text-secondary" aria-hidden="true" />
+                    {content}
                   </button>
+                ) : <div className="p-3 sm:p-4">{content}</div>}
+              </div>
+            );
+          })}
+        </div>
 
-                  {/* What today costs if it is missed. Shown on the prompt
-                      itself rather than buried in the challenge's details,
-                      because the moment it changes behaviour is the moment
-                      someone is deciding whether to bother today. */}
-                  {challenge.dailyStake > 0 ? (
-                    <p className="mt-2 flex items-center gap-1.5 text-label-sm text-on-surface-variant">
-                      <Coins size={13} className="shrink-0 text-warning" aria-hidden="true" />
-                      Miss today and{" "}
-                      <span className="font-bold text-on-surface">
-                        {challenge.dailyStake} coins
-                      </span>{" "}
-                      are gone.
-                    </p>
-                  ) : null}
-                </section>
-              ) : null}
+        {isCreator ? (
+          <nav aria-label="Creator tools" className="flex flex-wrap gap-2">
+            <Link href={"/creator/challenges/" + challenge.id + "/manage-tasks"} className="flex min-h-11 min-w-fit flex-1 items-center justify-center gap-2 rounded-xl bg-surface-container-low px-3 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface">
+              <ListChecks size={17} className="text-secondary" aria-hidden="true" /> Manage tasks
+            </Link>
+            <Link href={"/creator/challenges/" + challenge.id + "/submissions"} className="flex min-h-11 min-w-fit flex-1 items-center justify-center gap-2 rounded-xl bg-surface-container-low px-3 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface">
+              <ClipboardList size={17} className="text-secondary" aria-hidden="true" /> Review submissions
+            </Link>
+          </nav>
+        ) : null}
 
-              {/* Task list OR legacy single-proof card */}
-              {hasTasks ? (
-                <section aria-label="Challenge tasks">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-headline-md text-on-surface font-semibold">
-                      Today&apos;s Tasks
+        <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div className="min-w-0 space-y-4 sm:space-y-5">
+            {isParticipant ? (
+              hasTasks ? (
+                <section id="proof" aria-label="Challenge tasks" className={panel + " scroll-mt-24"}>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight">
+                      <ListChecks size={19} className="text-streak-ink" aria-hidden="true" /> Today&apos;s tasks
                     </h2>
-                    <span className="text-xs text-on-surface-variant">
+                    <span className="rounded-full bg-surface-container-high px-2.5 py-1 text-xs font-semibold text-on-surface-variant">
                       Day {challenge.currentDay} of {challenge.totalDays}
                     </span>
                   </div>
-                  {!userId && (
-                    <div className="mb-3 rounded-lg border border-outline-variant bg-surface-container px-4 py-3 flex items-center gap-2 text-sm text-on-surface-variant">
-                      <Lock size={14} aria-hidden="true" />
-                      Sign in to upload proof for each task.
-                    </div>
-                  )}
-                  <div className="space-y-3">
-                    {tasks.map((task) => {
-                      // A physical task owns its whole card: the step counter
-                      // replaces the upload slot, and the task completes itself
-                      // once the target is reached. Falls through to the normal
-                      // slot if the target was never configured.
-                      const activityConfig = activityConfigs.get(task.id);
-                      if (task.proofType === "physical_activity" && activityConfig) {
-                        return (
-                          <PhysicalTaskCard
-                            key={task.id}
-                            taskTitle={task.title}
-                            taskDescription={task.description}
-                            config={activityConfig}
-                            progress={currentChallengePeriodProgress(
-                              activityProgress,
-                              task.id,
-                              new Date().toLocaleDateString("en-CA", {
-                                timeZone: activityConfig.timezone || "Asia/Kolkata",
-                              })
-                            )}
-                            questTitle={challenge.title}
-                          />
-                        );
-                      }
-                      const requirement = proofRequirements.get(task.id);
-                      const alreadyApproved =
-                        submissionByTask[task.id]?.status === "approved";
+                  {!userId ? (
+                    <p className="flex items-center gap-2 rounded-xl bg-surface-container-high p-3 text-sm text-on-surface-variant">
+                      <Lock size={16} aria-hidden="true" /> Sign in to upload proof for each task.
+                    </p>
+                  ) : null}
+                  {tasks.map((task) => {
+                    // A configured physical task uses its tracker in place of a media upload.
+                    const activityConfig = activityConfigs.get(task.id);
+                    if (task.proofType === "physical_activity" && activityConfig) {
                       return (
-                        <div key={task.id} className="space-y-2">
-                          {/* Shown before the upload control, and hidden once the
-                              task is approved — at that point it is just noise. */}
-                          {requirement && !alreadyApproved && (
-                            <ProofRequirementsNotice requirement={requirement} />
+                        <PhysicalTaskCard
+                          key={task.id}
+                          taskTitle={task.title}
+                          taskDescription={task.description}
+                          config={activityConfig}
+                          progress={currentChallengePeriodProgress(
+                            activityProgress,
+                            task.id,
+                            new Date().toLocaleDateString("en-CA", {
+                              timeZone: activityConfig.timezone || "Asia/Kolkata",
+                            })
                           )}
-                          <TaskUploadSlot
-                            key={proofDay + ":" + (submissionByTask[task.id]?.submissionId ?? "new") + ":" + (submissionByTask[task.id]?.status ?? "")}
-                            task={task}
-                            submission={submissionByTask[task.id]}
-                            challengeId={challenge.id}
-                            userId={userId}
-                            joinedAt={joinedAt}
-                          />
-                        </div>
+                          questTitle={challenge.title}
+                        />
                       );
-                    })}
-                  </div>
+                    }
+                    const requirement = proofRequirements.get(task.id);
+                    const submission = submissionByTask[task.id];
+                    return (
+                      <div key={task.id} className="space-y-2">
+                        {requirement && submission?.status !== "approved" ? <ProofRequirementsNotice requirement={requirement} /> : null}
+                        <TaskUploadSlot
+                          key={proofDay + ":" + (submission?.submissionId ?? "new") + ":" + (submission?.status ?? "")}
+                          task={task}
+                          submission={submission}
+                          challengeId={challenge.id}
+                          userId={userId}
+                          joinedAt={joinedAt}
+                        />
+                      </div>
+                    );
+                  })}
+                  {todaysSubmissions.some((submission) => submission.status === "rejected") ? (
+                    <p className="flex items-start gap-2 rounded-xl bg-error-container p-3 text-sm text-on-error-container">
+                      <AlertTriangle size={17} className="mt-0.5 shrink-0" aria-hidden="true" />
+                      Review the reasons above before resubmitting any rejected tasks.
+                    </p>
+                  ) : null}
                 </section>
               ) : (
                 <LegacyUploadCard
@@ -843,189 +596,130 @@ export function ChallengeDetailClient({
                   challenge={challenge}
                   userId={userId}
                   joinedAt={joinedAt}
-                  existingSubmission={legacySubmission}
+                  submission={legacySubmission}
                 />
-              )}
+              )
+            ) : isPrivate ? (
+              <section aria-label="Join this challenge" className={panel}>
+                <div className="flex items-start gap-3">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary-fixed text-on-secondary-fixed">
+                    <Lock size={19} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <h2 className="font-display font-extrabold tracking-tight">This challenge is private</h2>
+                    <p className="mt-1 text-sm text-on-surface-variant">Ask the creator for an invite link to join.</p>
+                  </div>
+                </div>
+              </section>
+            ) : null}
 
-              {/* Rejected submissions notice (task mode) */}
-              {hasTasks && todaysSubmissions.some((s) => s.status === "rejected") && (
-                <div className="rounded-lg bg-error-container border border-error-outline px-4 py-3 flex gap-2 text-sm text-on-error-container">
-                  <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <strong>Some tasks were rejected.</strong> Review the reasons above and
-                    resubmit.
-                  </div>
+            <section aria-labelledby="challenge-rules" className={panel}>
+              <h2 id="challenge-rules" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight">
+                <ShieldCheck size={19} className="text-streak-ink" aria-hidden="true" /> Rules &amp; proof
+              </h2>
+              <div className="flex items-start gap-3 rounded-xl bg-surface-container-high/55 p-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
+                  <ClipboardList size={17} aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold">What to do</h3>
+                  <p className="mt-1 whitespace-pre-line break-words text-sm leading-relaxed text-on-surface-variant">{challenge.todayTask}</p>
                 </div>
-              )}
-            </>
-          ) : (
-            /* Not a participant — show Join CTA or private wall */
-            <section aria-label="Join this challenge">
-              {challenge.visibility === "public" ? (
-                <div
-                  className="rounded-2xl border border-outline-variant bg-surface-container-lowest px-6 py-8 text-center space-y-4 elev-1 surface-raised"
-                  style={{ background: "linear-gradient(135deg, #0d1c32 0%, #1a3a6b 100%)" }}
-                >
-                  <div>
-                    <p className="text-overline text-white/60 text-label-sm mb-1">
-                      READY TO COMMIT?
-                    </p>
-                    <h2 className="text-white font-semibold text-lg leading-snug">
-                      Join {challenge.title}
-                    </h2>
-                    <p className="text-white/60 text-xs mt-1">
-                      {challenge.memberCount.toLocaleString()} members · {challenge.totalDays} day
-                      challenge
-                    </p>
-                  </div>
-                  {joinError && <p className="text-red-300 text-sm">{joinError}</p>}
-                  <button
-                    type="button"
-                    onClick={handleJoin}
-                    disabled={isPending}
-                    className={[
-                      "w-full h-12 rounded-xl bg-white text-primary",
-                      "flex items-center justify-center gap-2 font-semibold text-sm",
-                      "hover:bg-white/90 active:bg-white/80 transition-colors",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
-                      isPending ? "opacity-70 cursor-not-allowed" : "",
-                    ].join(" ")}
-                  >
-                    {isPending ? (
-                      <Loader2 size={18} className="animate-spin" aria-hidden="true" />
-                    ) : (
-                      <>
-                        <Rocket size={16} aria-hidden="true" /> Join Challenge — It&apos;s Free
-                      </>
-                    )}
-                  </button>
-                  <p className="text-white/40 text-xs">Upload your first proof after joining.</p>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-outline-variant bg-surface-container px-6 py-8 text-center space-y-2">
-                  <Lock size={28} className="text-on-surface-variant mx-auto" aria-hidden="true" />
-                  <p className="font-semibold text-on-surface">Private Challenge</p>
-                  <p className="text-sm text-on-surface-variant">
-                    Private challenges are joined by invite link. Ask the creator to send you one.
+              </div>
+              <div className="flex items-start gap-3 rounded-xl bg-surface-container-high/55 p-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-streak text-on-streak">
+                  <Camera size={17} aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold">{hasTasks ? "Task proof" : "Daily proof"}</h3>
+                  <p className="mt-1 break-words text-sm leading-relaxed text-on-surface-variant">
+                    {challenge.proofInstructions || (hasTasks ? "Follow the proof requirements for each task." : "Upload a photo or video showing your activity. You can add a caption before submitting.")}
                   </p>
                 </div>
-              )}
+              </div>
+              {hasTasks && !isParticipant ? (
+                <ol className="space-y-1 rounded-xl bg-surface-container-high/55 py-2 pr-3 pl-8 text-sm text-on-surface-variant marker:font-semibold marker:text-secondary list-decimal">
+                  {tasks.map((task) => (
+                    <li key={task.id} className="break-words py-1">
+                      <span className="font-semibold text-on-surface">{task.title}</span>{task.isRequired ? null : " (optional)"}
+                      {task.description ? <p className="mt-0.5 leading-relaxed">{task.description}</p> : null}
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
             </section>
-          )}
+          </div>
 
-          {/* ── Leaderboard ───────────────────────────────────────────── */}
-          <section aria-label="Leaderboard">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-headline-md text-on-surface font-semibold">Leaderboard</h2>
-              <Link
-                href={`/challenges/${challenge.id}/leaderboard`}
-                className="text-secondary text-sm font-semibold hover:underline"
-              >
-                View All
+          <section aria-labelledby="challenge-leaderboard" className={panel + " self-start"}>
+            <div className="flex flex-wrap items-center justify-between gap-x-2">
+              <h2 id="challenge-leaderboard" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight">
+                <Trophy size={19} className="text-coin-ink" aria-hidden="true" /> Leaderboard
+              </h2>
+              <Link href={"/challenges/" + challenge.id + "/leaderboard"} className="inline-flex min-h-11 items-center gap-0.5 rounded-md text-xs font-bold text-secondary hover:underline">
+                View all <ChevronRight size={14} aria-hidden="true" />
               </Link>
             </div>
-
             {leaderboard.length > 0 ? (
-              <Card bordered padding="none">
-                {leaderboard.map((entry, idx) => (
-                  <div
-                    key={entry.rank}
-                    className={[
-                      "flex items-center gap-3 px-4 py-3",
-                      idx < leaderboard.length - 1 ? "border-b border-outline-variant" : "",
-                    ].join(" ")}
-                  >
-                    <span
-                      className={[
-                        "w-6 text-center font-bold text-sm flex-shrink-0",
-                        entry.rank === 1 ? "text-warning" : "text-on-surface-variant",
-                      ].join(" ")}
-                    >
+              <ol className="space-y-2">
+                {leaderboard.map((entry) => (
+                  <li key={entry.rank} className="flex min-h-14 items-center gap-2.5 rounded-xl bg-surface-container-high/55 px-3 py-2">
+                    <span className={"grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold " + (entry.rank === 1 ? "bg-coin text-on-coin" : "bg-surface-container-highest text-on-surface-variant")}>
                       {entry.rank}
                     </span>
-                    <div className="relative w-9 h-9 rounded-full overflow-hidden flex-shrink-0 bg-surface-variant">
-                      <Image
-                        src={entry.avatarUrl}
-                        alt={entry.name}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-on-surface text-sm truncate">
-                          {entry.name}
-                        </span>
-                        {entry.badge === "champion" && (
-                          <Badge
-                            variant="secondary"
-                            className="text-label-sm !bg-warning-container !text-on-warning-container"
-                          >
-                            Champion
-                          </Badge>
-                        )}
-                        {entry.badge === "leader" && (
-                          <Badge variant="default" className="text-label-sm">
-                            Leader
-                          </Badge>
-                        )}
-                      </div>
+                    <UserAvatar src={entry.avatarUrl} size={34} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold">{entry.name}</p>
                       <p className="text-xs text-on-surface-variant">
-                        {entry.totalDays !== null
-                          ? `${entry.daysCompleted}/${entry.totalDays} DAYS`
-                          : `${entry.daysCompleted} DAY STREAK`}
+                        {entry.totalDays !== null ? entry.daysCompleted + "/" + entry.totalDays + " days" : entry.daysCompleted + " day streak"}
                       </p>
                     </div>
-                    {entry.rank === 1 && (
-                      <Trophy
-                        size={18}
-                        className="text-warning flex-shrink-0"
-                        aria-label="Champion trophy"
-                      />
-                    )}
-                  </div>
+                    {entry.badge ? (
+                      <span className={"rounded-full px-2 py-1 text-[0.6875rem] font-bold " + (entry.badge === "champion" ? "bg-coin/20 text-coin-ink" : "bg-streak/20 text-streak-ink")}>
+                        {entry.badge === "champion" ? "Champion" : "Leader"}
+                      </span>
+                    ) : null}
+                  </li>
                 ))}
-              </Card>
-            ) : (
-              <div className="rounded-xl border border-outline-variant px-6 py-5 text-center">
-                <p className="text-on-surface-variant text-sm">
-                  No streaks recorded yet. Be the first!
-                </p>
-              </div>
-            )}
-          </section>
-
-          {/* ── Community Feed ────────────────────────────────────────── */}
-          <section aria-label="Community Feed">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-headline-md text-on-surface font-semibold">Community Feed</h2>
-              <button
-                type="button"
-                className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors tap-target"
-                aria-label="Filter feed"
-              >
-                <Filter size={18} strokeWidth={1.75} aria-hidden="true" />
-              </button>
-            </div>
-
-            {feed.length > 0 ? (
-              <div className="space-y-4">
-                {feed.map((post) => (
-                  <FeedCard key={post.id} post={post} viewerId={userId} />
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-outline-variant px-6 py-8 text-center">
-                <p className="text-body-md text-on-surface-variant text-sm">
-                  No approved posts yet. Upload your proof above to be the first!
-                </p>
-              </div>
-            )}
+              </ol>
+            ) : <p className="rounded-xl bg-surface-container-high/55 p-3 text-sm text-on-surface-variant">No streaks recorded yet.</p>}
+            {memberPile && memberPile.total > 0 ? (
+              <Facepile people={memberPile.people} total={memberPile.total} verb="Joined by" noun="member" size={25} className="min-h-11 max-w-full" onOpen={() => setMembersOpen(true)} />
+            ) : null}
           </section>
         </div>
 
-        <div className="h-4" aria-hidden="true" />
+        <section aria-labelledby="challenge-community" className={panel}>
+          <h2 id="challenge-community" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight">
+            <Images size={19} className="text-streak-ink" aria-hidden="true" /> Recent community proofs
+          </h2>
+          {feed.length > 0 ? (
+            <div className="space-y-3">
+              {feed.map((post) => <FeedCard key={post.id} post={post} viewerId={userId} />)}
+            </div>
+          ) : (
+            <p className="rounded-xl bg-surface-container-high/55 p-3 text-sm text-on-surface-variant">No approved posts yet.</p>
+          )}
+        </section>
+
+        {!isParticipant && !isPrivate ? (
+          <footer aria-label="Join this challenge" className="sticky bottom-[var(--bottom-nav-h)] z-20 -mx-4 border-t border-outline-variant/60 bg-surface/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 md:bottom-0">
+            {joinError ? <p role="alert" className="mb-2 rounded-xl bg-error-container p-3 text-sm text-on-error-container">{joinError}</p> : null}
+            <button
+              type="button"
+              onClick={handleJoin}
+              disabled={isPending}
+              className="flex min-h-12 w-full flex-wrap items-center justify-center gap-2 rounded-xl bg-secondary-container px-4 py-2 font-bold text-on-secondary-container transition-opacity hover:opacity-90 disabled:opacity-60"
+            >
+              {isPending ? <Loader2 size={18} className="motion-safe:animate-spin" aria-hidden="true" /> : <Zap size={18} aria-hidden="true" />}
+              {isPending ? "Joining…" : "Join challenge"}
+              {challenge.dailyStake > 0 ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-black/20 px-2 py-0.5 text-xs">
+                  <Coins size={13} aria-hidden="true" /> {challenge.dailyStake} per day
+                </span>
+              ) : null}
+            </button>
+          </footer>
+        ) : null}
       </div>
       <PeopleListSheet
         open={membersOpen}
@@ -1035,8 +729,6 @@ export function ChallengeDetailClient({
         onClose={() => setMembersOpen(false)}
         load={() => getChallengeMembers(createClient(), challenge.id, userId)}
       />
-
-      {/* -- Invite sheet (creator-only) ------------------------------- */}
       {inviteOpen && isCreator ? (
         <InviteSheet
           challengeId={challenge.id}
@@ -1044,18 +736,6 @@ export function ChallengeDetailClient({
           onClose={() => setInviteOpen(false)}
         />
       ) : null}
-      <ProofComposer
-        // Remounts on each open, which is what keeps the previous attempt's
-        // preview and verdict from reappearing.
-        key={composerOpen ? "composer-open" : "composer-closed"}
-        open={composerOpen}
-        onClose={() => setComposerOpen(false)}
-        challengeId={challenge.id}
-        userId={userId}
-        joinedAt={joinedAt}
-        existingSubmissionId={legacySubmission?.status === "rejected" ? legacySubmission.submissionId : null}
-        proofInstruction={challenge.proofInstructions}
-      />
     </div>
   );
 }

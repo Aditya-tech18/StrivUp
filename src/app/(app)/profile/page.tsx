@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Camera, Check, ChevronRight, Coins, Compass, Edit2, Flame, Gift,
+  Camera, Check, ChevronRight, Coins, Compass, Edit2, Flame, Gift, Images,
   Loader2, Plus, Settings, ShieldCheck, Trash2, Trophy, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -12,6 +12,7 @@ import { SocialIcon, PLATFORM_NAME } from "@/components/ui/SocialIcon";
 import { ActivityHeatmap } from "@/components/ui/ActivityHeatmap";
 import { MobileMenu } from "@/components/ui";
 import { MyPosts } from "@/components/features/profile/MyPosts";
+import { ShareButton } from "@/components/features/share/ShareButton";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { AutoScrollRail } from "@/components/features/home/AutoScrollRail";
 import { ActiveCard } from "@/components/features/home/ActiveCard";
@@ -43,6 +44,12 @@ interface HeatmapEntry { submission_date: string; submission_count: number; }
 
 /** Sentinel for the combined view, which has no challenge_id to key on. */
 const ALL_ACTIVITY = "all";
+
+const ACHIEVEMENT_ACCENTS = [
+  "bg-streak/15 text-streak-ink",
+  "bg-coin/15 text-coin-ink",
+  "bg-secondary/12 text-secondary",
+];
 
 // ── Platform labels (no emojis) ─────────────────────────────────────────
 const PLATFORM_LABEL: Record<string, string> = {
@@ -217,7 +224,7 @@ function ManageModal({
                   "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
                   pinned ? "bg-secondary border-secondary" : "border-outline",
                 ].join(" ")}>
-                  {pinned && <Check size={11} className="text-white" strokeWidth={3} />}
+                  {pinned && <Check size={11} className="text-on-secondary" strokeWidth={3} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-body-md font-semibold text-on-surface truncate">{s.title}</p>
@@ -236,7 +243,7 @@ function ManageModal({
         </div>
         <button
           onClick={onClose}
-          className="w-full mt-4 h-11 rounded-xl bg-secondary text-white font-bold text-body-md elev-2"
+          className="w-full mt-4 h-11 rounded-xl bg-secondary text-on-secondary font-bold text-body-md elev-2"
         >
           Done
         </button>
@@ -291,7 +298,6 @@ export default function ProfilePage() {
 
   const [heatId,      setHeatId]      = useState<string>(ALL_ACTIVITY);
   const [heatEntries, setHeatEntries] = useState<HeatmapEntry[]>([]);
-  const [heatStreak,  setHeatStreak]  = useState(0);
 
   // Inline edit state
   const [editing,   setEditing]   = useState(false);
@@ -366,7 +372,6 @@ export default function ProfilePage() {
       // Default to every kind of proof. Scoping to the first active challenge
       // meant someone whose activity is all quests saw an empty grid, and
       // someone with no active challenge saw no grid at all.
-      setHeatStreak(stats.find(s => s.status === "active")?.current_streak ?? 0);
       const { data: hmData, error: hmError } = await supabase
         .from("profile_activity_heatmap")
         .select("submission_date,submission_count")
@@ -413,7 +418,6 @@ export default function ProfilePage() {
       if (error) console.error("heatmap query failed", error);
       setHeatEntries((data ?? []) as HeatmapEntry[]);
     } catch (err) { console.error("heatmap switch failed", err); }
-    setHeatStreak(allStats.find(s => s.challenge_id === cid)?.current_streak ?? 0);
   };
 
   const handleSave = async () => {
@@ -482,7 +486,7 @@ export default function ProfilePage() {
         <Sk className="h-5 w-24" />
         <div className="flex gap-2"><Sk className="w-9 h-9 rounded-xl" /><Sk className="w-9 h-9 rounded-xl" /></div>
       </div>
-      <div className="mx-auto measure-page px-4 py-4 flex flex-col gap-3">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-4 sm:gap-5 sm:px-6 sm:py-6">
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 flex flex-col gap-4 elev-1 surface-raised">
           <div className="flex gap-4">
             <Sk className="w-[76px] h-[76px] rounded-full shrink-0" />
@@ -508,29 +512,35 @@ export default function ProfilePage() {
 
   const displayName = profile?.full_name || "Your Name";
   const isVerified  = profile?.verification_status === "approved";
+  const activeStats = allStats.filter((stat) => stat.status === "active");
+  const topStreak = activeStats.reduce((longest, stat) => Math.max(longest, stat.current_streak), 0);
+  const selectedStreak = activeStats.find((stat) => stat.challenge_id === heatId)?.current_streak;
+  const profileCard = "rounded-2xl border border-outline-variant bg-surface-container-lowest";
 
   return (
     <div className="min-h-screen bg-surface pb-28">
 
       {/* ── Sticky header ───────────────────────────────────────────────── */}
-      <div className="sticky top-0 pt-safe z-30 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant">
+      <div className="sticky top-0 pt-safe z-30 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
         <div className="mx-auto measure-page flex items-center justify-between px-5 py-3.5">
           <div className="flex min-w-0 items-center gap-1.5">
             <MobileMenu />
-            <h1 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">My Profile</h1>
+            <h1 data-tour="nav-profile" className="font-display text-headline-md font-bold text-on-surface">My Profile</h1>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setEditing(v => !v)}
-              aria-label="Edit profile"
-              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors tap-target"
+              aria-label="Quick edit profile"
+              aria-expanded={editing}
+              aria-controls="profile-edit"
+              className="flex size-10 items-center justify-center rounded-full bg-surface-container text-on-surface-variant transition-colors hover:bg-surface-container-high tap-target"
             >
               <Edit2 size={15} className="text-on-surface-variant" />
             </button>
             <button
               onClick={() => router.push("/settings")}
               aria-label="Settings"
-              className="w-9 h-9 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors tap-target"
+              className="flex size-10 items-center justify-center rounded-full bg-surface-container text-on-surface-variant transition-colors hover:bg-surface-container-high tap-target"
             >
               <Settings size={15} className="text-on-surface-variant" />
             </button>
@@ -550,17 +560,17 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div className="mx-auto measure-page px-4 py-4 flex flex-col gap-3">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-4 sm:gap-5 sm:px-6 sm:py-6">
 
         {/* ── Profile card ─────────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] overflow-hidden elev-1 surface-raised">
-          <div className="px-4 pt-5 pb-4">
+        <div className={`${profileCard} overflow-hidden bg-[radial-gradient(ellipse_at_top_right,color-mix(in_srgb,var(--color-streak)_12%,transparent),transparent_58%)]`}>
+          <div className="p-4 sm:p-5">
 
             {/* Avatar + name */}
             <div className="flex items-start gap-3.5">
               <label className="relative cursor-pointer shrink-0">
                 <div className={[
-                  "w-[76px] h-[76px] rounded-full overflow-hidden border-2 border-outline-variant bg-secondary/8",
+                  "size-[76px] rounded-full overflow-hidden border-2 border-outline-variant bg-secondary/10 sm:size-[88px]",
                   uploading ? "opacity-60" : "",
                 ].join(" ")}>
                   {profile?.avatar_url ? (
@@ -574,14 +584,15 @@ export default function ProfilePage() {
                     </div>
                   )}
                 </div>
-                <div className="absolute bottom-0 right-0 w-[22px] h-[22px] rounded-full bg-secondary border-2 border-white flex items-center justify-center elev-2">
+                <div className="absolute bottom-0 right-0 flex size-6 items-center justify-center rounded-full border-2 border-surface-container-lowest bg-secondary text-on-secondary">
                   {uploading
-                    ? <Loader2 size={10} className="text-white animate-spin" />
-                    : <Camera size={10} className="text-white" />
+                    ? <Loader2 size={11} className="animate-spin" aria-hidden="true" />
+                    : <Camera size={11} aria-hidden="true" />
                   }
                 </div>
                 <input
                   type="file"
+                  aria-label="Upload a profile photo"
                   accept="image/jpeg,image/png,image/webp"
                   className="sr-only"
                   onChange={handleAvatar}
@@ -591,7 +602,7 @@ export default function ProfilePage() {
 
               <div className="flex-1 min-w-0 pt-1">
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-body-lg font-bold text-on-surface tracking-[-0.01em] truncate">
+                  <h2 className="font-display text-headline-lg-mobile font-bold text-on-surface break-words sm:text-headline-lg">
                     {displayName}
                     <VerifiedBadge type={profile?.verification_type} size={18} className="ml-1.5" />
                   </h2>
@@ -613,55 +624,93 @@ export default function ProfilePage() {
                     + Add bio
                   </button>
                 )}
-                {!editing && (
-                  <button
-                    onClick={() => router.push("/settings/edit-profile")}
-                    className="mt-2.5 px-3.5 py-1.5 rounded-xl border border-outline-variant text-body-sm font-semibold text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors tap-target"
-                  >
-                    Edit Profile
-                  </button>
-                )}
               </div>
             </div>
 
-            {/* Followers / Following */}
-            <div className="flex items-center gap-5 mt-4 pt-3.5 border-t border-outline-variant">
-              <button onClick={() => setShowFoll(true)} className="flex flex-col items-center group">
-                <span className="text-headline-md font-bold text-on-surface tabular-nums tracking-tight">
-                  {fmtN(fCount)}
-                </span>
-                <span className="text-label-sm text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
-                  Followers
-                </span>
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 rounded-xl bg-surface-container-low px-3">
+              <button
+                type="button"
+                onClick={() => setShowFoll(true)}
+                className="min-h-11 text-body-sm text-on-surface-variant transition-colors hover:text-secondary"
+              >
+                <span className="mr-1.5 font-bold tabular-nums text-on-surface">{fmtN(fCount)}</span>
+                Followers
               </button>
-              <div className="w-px h-7 bg-outline-variant" />
-              <button onClick={() => setShowFolg(true)} className="flex flex-col items-center group">
-                <span className="text-headline-md font-bold text-on-surface tabular-nums tracking-tight">
-                  {fmtN(fgCount)}
-                </span>
-                <span className="text-label-sm text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
-                  Following
-                </span>
+              <button
+                type="button"
+                onClick={() => setShowFolg(true)}
+                className="min-h-11 text-body-sm text-on-surface-variant transition-colors hover:text-secondary"
+              >
+                <span className="mr-1.5 font-bold tabular-nums text-on-surface">{fmtN(fgCount)}</span>
+                Following
               </button>
-              {coinBalance !== null && (
-                <>
-                  <div className="w-px h-7 bg-outline-variant" />
-                  <button
-                    onClick={() => router.push("/coins")}
-                    className="flex flex-col items-center group"
-                    aria-label={`${coinBalance} StrivCoins. Open your wallet.`}
-                  >
-                    <span className="flex items-center gap-1 text-[20px] font-bold text-on-surface tabular-nums tracking-tight">
-                      <Coins size={15} className="text-on-tertiary-container" aria-hidden="true" />
-                      {fmtN(coinBalance)}
-                    </span>
-                    <span className="text-[11px] text-on-surface-variant font-medium group-hover:text-secondary transition-colors">
-                      StrivCoins
-                    </span>
-                  </button>
-                </>
-              )}
             </div>
+
+            <div className="mt-3 grid grid-cols-4 gap-1.5 sm:gap-2.5">
+              <Link
+                href="#consistency"
+                className="flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-streak px-0.5 py-2.5 text-center text-on-streak transition-colors hover:bg-streak/85"
+              >
+                <span className="flex items-center gap-1 font-display text-body-lg leading-none font-bold tabular-nums">
+                  <Flame size={14} aria-hidden="true" />
+                  {fmtN(topStreak)}d
+                </span>
+                <span className="text-[10px] leading-tight font-semibold sm:text-label-sm">Top active streak</span>
+              </Link>
+              {coinBalance !== null && (
+                <Link
+                  href="/coins"
+                  className="flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-container px-0.5 py-2.5 text-center transition-colors hover:bg-surface-container-high"
+                  aria-label={`${coinBalance} StrivCoins. Open your wallet.`}
+                >
+                  <span className="flex items-center gap-1 font-display text-body-lg leading-none font-bold tabular-nums text-coin-ink">
+                    <Coins size={14} aria-hidden="true" />
+                    {fmtN(coinBalance)}
+                  </span>
+                  <span className="text-[10px] leading-tight font-semibold text-on-surface-variant sm:text-label-sm">StrivCoins</span>
+                </Link>
+              )}
+              <Link
+                href="#active-challenges"
+                className="flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-container px-0.5 py-2.5 text-center transition-colors hover:bg-surface-container-high"
+              >
+                <span className="flex items-center gap-1 font-display text-body-lg leading-none font-bold tabular-nums text-on-surface">
+                  <Trophy size={14} className="text-secondary" aria-hidden="true" />
+                  {fmtN(challengeCards.length)}
+                </span>
+                <span className="text-[10px] leading-tight font-semibold text-on-surface-variant sm:text-label-sm">Active challenges</span>
+              </Link>
+              <Link
+                href="#my-posts"
+                className="flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-surface-container px-0.5 py-2.5 text-center transition-colors hover:bg-surface-container-high"
+              >
+                <span className="flex items-center gap-1 font-display text-body-lg leading-none font-bold tabular-nums text-on-surface">
+                  <Images size={14} className="text-secondary" aria-hidden="true" />
+                  {fmtN(myPosts.length)}
+                </span>
+                <span className="text-[10px] leading-tight font-semibold text-on-surface-variant sm:text-label-sm">Recent posts</span>
+              </Link>
+            </div>
+
+            {!editing && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link
+                  href="/settings/edit-profile"
+                  className="inline-flex min-h-11 min-w-fit flex-1 items-center justify-center gap-2 rounded-xl bg-surface-container-high px-3 text-body-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-highest"
+                >
+                  <Edit2 size={15} aria-hidden="true" /> Edit Profile
+                </Link>
+                {profile?.username && !profile.is_private && (
+                  <ShareButton
+                    kind="profile"
+                    id={encodeURIComponent(profile.username)}
+                    title={displayName}
+                    label="Share Profile"
+                    className="inline-flex min-h-11 min-w-fit flex-1 items-center justify-center gap-2 rounded-xl bg-streak px-3 text-body-sm font-semibold text-on-streak transition-colors hover:bg-streak/85"
+                  />
+                )}
+              </div>
+            )}
 
             {/* Social links pills */}
             {links.length > 0 && !editing && (
@@ -701,7 +750,7 @@ export default function ProfilePage() {
 
           {/* Inline edit form */}
           {editing && (
-            <div className="border-t border-outline-variant px-4 py-4 bg-surface-container-low flex flex-col gap-3">
+            <div id="profile-edit" className="flex flex-col gap-3 border-t border-outline-variant bg-surface-container-low p-4">
               <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-[0.08em]">
                 Editing Profile
               </p>
@@ -782,7 +831,7 @@ export default function ProfilePage() {
                         placeholder="https://…"
                         className="flex-1 h-9 rounded-xl border border-outline-variant bg-surface-container-lowest px-3 text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary tap-target"
                       />
-                      <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-white text-body-md font-semibold disabled:opacity-40 tap-target">Add</button>
+                      <button onClick={handleAddLink} disabled={!newUrl.trim()} className="px-3 h-9 rounded-xl bg-secondary text-on-secondary text-body-md font-semibold disabled:opacity-40 tap-target">Add</button>
                       <button onClick={() => { setAddingLink(false); setNewUrl(""); }} className="px-3 h-9 rounded-xl border border-outline-variant text-on-surface text-body-md tap-target">✕</button>
                     </div>
                   </div>
@@ -793,7 +842,7 @@ export default function ProfilePage() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex-1 h-10 rounded-xl bg-secondary text-white font-bold text-body-md flex items-center justify-center gap-1.5 disabled:opacity-50 elev-2 tap-target"
+                  className="flex-1 h-10 rounded-xl bg-secondary text-on-secondary font-bold text-body-md flex items-center justify-center gap-1.5 disabled:opacity-50 elev-2 tap-target"
                 >
                   {saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Save Changes"}
                 </button>
@@ -804,6 +853,43 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+
+        {/* ── Consistency Heatmap ────────────────────────────────────────── */}
+        {/* id is the landing target for the streak pill in the feed header;
+            scroll-mt clears the sticky header so the card is not hidden. */}
+        {/* Always rendered. It used to be gated on having an active challenge,
+            which hid the grid entirely from anyone whose activity is quests. */}
+        <section id="consistency" aria-labelledby="consistency-heading" className={`${profileCard} scroll-mt-20 p-4 sm:p-5`}>
+          <div className="flex items-center justify-between mb-3 gap-2">
+            <h3 id="consistency-heading" className="font-display text-headline-md font-bold text-on-surface">Consistency</h3>
+            <select
+              aria-label="Heatmap source"
+              value={heatId}
+              onChange={e => switchHeatmap(e.target.value)}
+              className="min-h-10 max-w-[145px] truncate rounded-xl bg-surface-container px-2 text-label-sm font-semibold text-on-surface focus-visible:outline-2 focus-visible:outline-secondary"
+            >
+              <option value={ALL_ACTIVITY}>All activity</option>
+              {activeStats.map(s => (
+                <option key={s.challenge_id} value={s.challenge_id}>
+                  {s.title.length > 22 ? s.title.slice(0, 22) + "…" : s.title}
+                </option>
+              ))}
+            </select>
+          </div>
+          <ActivityHeatmap
+            days={heatEntries.map(e => ({ date: e.submission_date, count: e.submission_count }))}
+            label={heatId === ALL_ACTIVITY ? "Your activity over the last six months" : "Challenge activity over the last six months"}
+            period="the last 6 months"
+            inset
+            actions={
+              selectedStreak !== undefined && selectedStreak > 0 ? (
+                <span className="rounded-full bg-streak/15 px-2 py-1 text-label-sm font-semibold text-streak-ink">
+                  {selectedStreak}-day streak
+                </span>
+              ) : null
+            }
+          />
+        </section>
 
         {/* ── My Active Challenges, then My Quests ─────────────────────── */}
         {/* CHANGED: these were one card holding a 3-up grid of small tiles,
@@ -817,15 +903,15 @@ export default function ProfilePage() {
             automatically. The pinned-challenge grid and its Manage modal are
             kept below, because pinning is a separate thing from browsing what
             you are doing. */}
-        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
+        <section id="active-challenges" className={`${profileCard} scroll-mt-20 p-4 sm:p-5`}>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">
+            <h3 className="font-display text-headline-md font-bold text-on-surface">
               My Active Challenges
               {challengeCards.length > 0 && (
                 <span className="ml-1 font-normal text-on-surface-variant">({challengeCards.length})</span>
               )}
             </h3>
-            {allStats.filter(s => s.status === "active").length > 0 && (
+            {activeStats.length > 0 && (
               <button
                 onClick={() => setManageOpen(true)}
                 className="shrink-0 text-body-md font-bold text-secondary transition-opacity hover:opacity-75"
@@ -865,9 +951,9 @@ export default function ProfilePage() {
           )}
         </section>
 
-        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
+        <section className={`${profileCard} p-4 sm:p-5`}>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="flex items-center gap-1.5 text-body-lg font-bold text-on-surface tracking-[-0.01em]">
+            <h3 className="flex items-center gap-1.5 font-display text-headline-md font-bold text-on-surface">
               <Trophy size={16} className="text-secondary" aria-hidden="true" />
               My Quests
               {questCards.length > 0 && (
@@ -919,10 +1005,10 @@ export default function ProfilePage() {
             be stated, and the two would eventually disagree. */}
         <Link
           href="/rewards"
-          className="flex items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 shadow-[0_1px_4px_rgba(0,0,0,0.07)] transition-colors hover:bg-surface-container elev-1 surface-raised tap-target"
+          className={`${profileCard} flex items-center gap-3 p-4 transition-colors hover:bg-surface-container sm:p-5`}
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10">
-            <Gift size={22} className="text-secondary" aria-hidden="true" />
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-coin/15 text-coin-ink">
+            <Gift size={22} aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="block text-body-lg font-bold tracking-[-0.01em] text-on-surface">
@@ -936,9 +1022,9 @@ export default function ProfilePage() {
         </Link>
 
         {/* ── My Posts ─────────────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
+        <div id="my-posts" className={`${profileCard} scroll-mt-20 p-4 sm:p-5`}>
           <div className="mb-3 flex items-baseline justify-between">
-            <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">
+            <h3 className="font-display text-headline-md font-bold text-on-surface">
               My Posts
               {myPosts.length > 0 && (
                 <span className="ml-1 font-normal text-on-surface-variant">({myPosts.length})</span>
@@ -948,78 +1034,31 @@ export default function ProfilePage() {
           {userId && <MyPosts posts={myPosts} viewerId={userId} />}
         </div>
 
-        {/* ── Consistency Heatmap ────────────────────────────────────────── */}
-        {/* id is the landing target for the streak pill in the feed header;
-            scroll-mt clears the sticky header so the card is not hidden. */}
-        {/* Always rendered. It used to be gated on having an active challenge,
-            which hid the grid entirely from anyone whose activity is quests. */}
-        <div id="consistency" className="scroll-mt-20 bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
-          <div className="flex items-center justify-between mb-3 gap-2">
-            <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em]">Consistency</h3>
-            <select
-              aria-label="Heatmap source"
-              value={heatId}
-              onChange={e => switchHeatmap(e.target.value)}
-              className="text-label-sm font-medium text-on-surface bg-surface-container border border-outline-variant rounded-xl px-2 py-1.5 focus:outline-none max-w-[150px] truncate tap-target"
-            >
-              <option value={ALL_ACTIVITY}>All activity</option>
-              {allStats.filter(s => s.status === "active").map(s => (
-                <option key={s.challenge_id} value={s.challenge_id}>
-                  {s.title.length > 22 ? s.title.slice(0, 22) + "…" : s.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          <ActivityHeatmap
-            days={heatEntries.map(e => ({ date: e.submission_date, count: e.submission_count }))}
-            label={heatId === ALL_ACTIVITY ? "Your activity over the last six months" : "Challenge activity over the last six months"}
-            period="the last 6 months"
-            actions={
-              heatId !== ALL_ACTIVITY && heatStreak > 0 ? (
-                <span className="text-label-sm font-semibold text-secondary">
-                  {heatStreak}-day streak
-                </span>
-              ) : null
-            }
-          />
-        </div>
-
         {/* ── Achievements ─────────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-[0_1px_4px_rgba(0,0,0,0.07)] p-4 elev-1 surface-raised">
-          <h3 className="text-body-lg font-bold text-on-surface tracking-[-0.01em] mb-3">Achievements</h3>
+        <div className={`${profileCard} p-4 sm:p-5`}>
+          <h3 className="mb-3 font-display text-headline-md font-bold text-on-surface">Achievements</h3>
           {achievements.length > 0 ? (
-            <div>
-              {achievements.map((a, i) => {
-                const BG = ["bg-warning-container","bg-secondary-fixed","bg-chart-3/10","bg-warning-container","bg-success-container","bg-error-container","bg-chart-2/10","bg-chart-2/10"];
-                const FG = ["text-on-warning-container","text-secondary","text-chart-3","text-on-warning-container","text-on-success-container","text-on-error-container","text-chart-2","text-chart-2"];
-                const idx = i % BG.length;
-                return (
-                  <div key={a.challenge_id} className="flex items-center gap-3 py-3 border-b border-outline-variant last:border-0">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${BG[idx]}`}>
-                      <span className={`text-body-md font-black ${FG[idx]}`}>{a.title.charAt(0)}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-body-md font-semibold text-on-surface truncate">{a.title}</p>
-                      <p className="text-label-sm text-on-surface-variant">
-                        Completed{a.completed_at
-                          ? ` · ${new Date(a.completed_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
-                          : ""}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <span className="text-label-sm font-bold px-2 py-0.5 rounded-full bg-success-container text-on-success-container border border-success-outline">
-                        Completed
-                      </span>
-                      <ChevronRight size={14} className="text-outline" />
-                    </div>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {achievements.map((a, i) => (
+                <li key={a.challenge_id} className="flex items-center gap-3 rounded-xl bg-surface-container-low p-3">
+                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-full ${ACHIEVEMENT_ACCENTS[i % ACHIEVEMENT_ACCENTS.length]}`}>
+                    <Trophy size={18} aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-body-md font-semibold text-on-surface">{a.title}</p>
+                    <p className="text-label-sm text-on-surface-variant">
+                      Completed{a.completed_at
+                        ? ` · ${new Date(a.completed_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+                        : ""}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
+                </li>
+              ))}
+            </ul>
           ) : (
             <div className="flex flex-col items-center gap-2.5 py-6 text-center">
               <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-                <ChevronRight size={20} className="text-on-surface-variant" />
+                <Trophy size={20} className="text-on-surface-variant" aria-hidden="true" />
               </div>
               <p className="text-body-md text-on-surface-variant max-w-[220px] leading-relaxed">
                 Your achievements will appear here as you complete challenges and quests.

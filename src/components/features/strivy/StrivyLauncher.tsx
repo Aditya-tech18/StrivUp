@@ -49,6 +49,11 @@ const StrivyPanel = dynamic(() => import("./StrivyPanel"), { ssr: false });
 
 /** Matches the panel's closing animation in globals.css (instant with reduced motion). */
 const CLOSE_MS = 200;
+const OPEN_FROM_SETTINGS_EVENT = "strivup:strivy:open-from-settings";
+
+export function openStrivyFromSettings(trigger: HTMLButtonElement) {
+  window.dispatchEvent(new CustomEvent(OPEN_FROM_SETTINGS_EVENT, { detail: trigger }));
+}
 
 const EXACT_ROUTES = new Set(["/feed", "/explore", "/search", "/alerts", "/profile", "/quests"]);
 
@@ -70,8 +75,10 @@ export function StrivyLauncher() {
   const [checkIns, setCheckIns] = useState<CheckInPayload[]>([]);
   const ownerRef = useRef<string | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const wasOpen = useRef(false);
   const companion = useStrivyCompanion({ pathname, panelOpen: open && !closing });
+  const hideCompanion = companion.hide;
   const close = useCallback(() => {
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     setClosing(true);
@@ -102,6 +109,21 @@ export function StrivyLauncher() {
     );
     setCheckIns([]);
   }, [checkIns]);
+
+  useEffect(() => {
+    if (pathname !== "/settings" || open) return;
+
+    const onOpenFromSettings = (event: Event) => {
+      const trigger = (event as CustomEvent<HTMLButtonElement>).detail;
+      if (!(trigger instanceof HTMLButtonElement)) return;
+      settingsTriggerRef.current = trigger;
+      hideCompanion();
+      openPanel();
+    };
+
+    window.addEventListener(OPEN_FROM_SETTINGS_EVENT, onOpenFromSettings);
+    return () => window.removeEventListener(OPEN_FROM_SETTINGS_EVENT, onOpenFromSettings);
+  }, [hideCompanion, open, openPanel, pathname]);
 
   // Restore this tab's conversation for the signed-in user; wipe it on sign-out
   // or when a different account signs in. getSession() reads the local
@@ -157,10 +179,17 @@ export function StrivyLauncher() {
     if (ownerRef.current) saveChat(ownerRef.current, messages);
   }, [messages]);
 
-  // Keyboard users land back on the launcher after closing the panel.
+  // Return focus to whichever control launched the panel.
   useEffect(() => {
-    if (open) wasOpen.current = true;
-    else if (wasOpen.current) buttonRef.current?.focus({ preventScroll: true });
+    if (open) {
+      wasOpen.current = true;
+    } else if (wasOpen.current) {
+      const trigger = settingsTriggerRef.current;
+      const target = trigger?.isConnected ? trigger : buttonRef.current;
+      target?.focus({ preventScroll: true });
+      settingsTriggerRef.current = null;
+      wasOpen.current = false;
+    }
   }, [open]);
 
   if (!showOn(pathname) && !open) return null;

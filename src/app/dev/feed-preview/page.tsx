@@ -20,11 +20,11 @@ import type { SuggestedProfile, PersonCard } from "@/lib/data/social";
 import { Facepile } from "@/components/features/people/Facepile";
 import { FeedCard, type FeedPost } from "@/components/features/FeedCard";
 import { HomeRotator } from "@/components/features/home/HomeRotator";
-import { AutoScrollRail } from "@/components/features/home/AutoScrollRail";
 import { BottomNav } from "@/components/ui";
 import { PermissionControls } from "@/components/features/permissions/PermissionControls";
 import { AlertRow, type Notification } from "@/components/features/alerts/AlertRow";
 import { ActiveCard } from "@/components/features/home/ActiveCard";
+import { TodaySpotlight } from "@/components/features/home/TodaySpotlight";
 
 function task(over: Partial<TodayTask> & { key: string }): TodayTask {
   return {
@@ -330,28 +330,28 @@ export default function FeedPreviewPage() {
           <div className="border-l-2 border-secondary pl-space-sm">
             <h2 className="text-label-lg text-on-surface">Bottom nav</h2>
             <p className="text-body-sm text-on-surface-variant">
-              Home, Quest (glowing), plus, Challenges, Search.
+              Today, Explore, Create, Quests, Community.
             </p>
           </div>
           <BottomNav />
         </section>
 
-        {/* The self-scrolling Active rail. Eight items, which is more than
-            fits, so the loop and its duplicate copy are both exercised. */}
+        <section aria-label="Next task examples" className="grid gap-3">
+          <TodaySpotlight task={{ ...MIXED[1], thumbnailUrl: "/home/park-run.webp" }} />
+        </section>
+
         <section className="flex flex-col gap-space-sm" data-testid="active-rail-section">
           <div className="border-l-2 border-secondary pl-space-sm">
             <h2 className="text-label-lg text-on-surface">
-              Active rail: auto-scroll, loop, borders
+              Active trackers
             </h2>
             <p className="text-body-sm text-on-surface-variant">
-              Quests blue, challenges black. Hover pauses it.
+              Challenge and quest status with consistency where available.
             </p>
           </div>
-          <AutoScrollRail label="Active challenges and quests">
-            {RAIL_ITEMS.map((t) => (
-              <ActiveCard key={t.key} task={t} />
-            ))}
-          </AutoScrollRail>
+          {RAIL_ITEMS.map((t) => (
+            <ActiveCard key={t.key} task={t} />
+          ))}
         </section>
 
         <section className="flex flex-col gap-space-sm">

@@ -9,8 +9,7 @@
  * script in app/layout.tsx replays it before the first paint, which is what
  * stops a dark-mode user being flashed a white screen on every navigation.
  *
- * System preference is read only as the initial default for someone who has
- * never chosen. Once they choose, their choice wins and stays won.
+ * Light is the default. Once someone chooses a theme, their choice persists.
  */
 
 import { useEffect, useState } from "react";
@@ -39,7 +38,7 @@ const OPTIONS: { value: Theme; label: string; hint: string; icon: typeof Sun }[]
   { value: "dark", label: "Dark", hint: "Easier at night", icon: Moon },
 ];
 
-export function ThemeToggle() {
+export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   /* Starts from whatever the pre-paint script already put on <html>, so the
      control never contradicts the page it is sitting on. Read after mount
      because the server has no document. */
@@ -49,6 +48,29 @@ export function ThemeToggle() {
     const id = window.setTimeout(() => setTheme(readTheme()), 0);
     return () => window.clearTimeout(id);
   }, []);
+
+  function chooseTheme(value: Theme) {
+    applyTheme(value);
+    setTheme(value);
+  }
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        aria-label="Dark mode"
+        aria-pressed={theme === "dark"}
+        onClick={() => chooseTheme(readTheme() === "dark" ? "light" : "dark")}
+        className="inline-flex size-11 items-center justify-center rounded-full border border-current/20 hover:bg-current/5"
+      >
+        {theme === "dark" ? (
+          <Sun size={19} aria-hidden="true" />
+        ) : (
+          <Moon size={19} aria-hidden="true" />
+        )}
+      </button>
+    );
+  }
 
   return (
     <div role="radiogroup" aria-label="Theme" className="flex flex-col gap-2">
@@ -60,10 +82,7 @@ export function ThemeToggle() {
             type="button"
             role="radio"
             aria-checked={active}
-            onClick={() => {
-              applyTheme(value);
-              setTheme(value);
-            }}
+            onClick={() => chooseTheme(value)}
             className={[
               "flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
@@ -75,7 +94,9 @@ export function ThemeToggle() {
             <span
               className={[
                 "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-                active ? "bg-secondary/15 text-secondary" : "bg-surface-container text-on-surface-variant",
+                active
+                  ? "bg-secondary/15 text-secondary"
+                  : "bg-surface-container text-on-surface-variant",
               ].join(" ")}
             >
               <Icon size={17} aria-hidden="true" />

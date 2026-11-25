@@ -77,7 +77,7 @@ const ORDER_STEPS = [
 
 export default function OrderVerificationModal({
   open, onClose, supabase, questId, taskId, taskTitle,
-  userName, businessName, existing, onCompleted, onIssued,
+  businessName, existing, onCompleted, onIssued,
 }: Props) {
   const [step, setStep] = useState<Step>(() => stepFor(existing));
   const [row, setRow] = useState<OrderVerification | null>(existing);
@@ -204,7 +204,7 @@ export default function OrderVerificationModal({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-primary/60 backdrop-blur-sm px-4 py-4"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/65 px-3 py-3 backdrop-blur-sm sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label={`${taskTitle} — order verification`}
@@ -215,36 +215,44 @@ export default function OrderVerificationModal({
           behind the keyboard. pb-safe keeps the last button clear of the home
           indicator. overscroll-contain stops a flick at the end of the sheet
           from scrolling the quest page behind it. */}
-      <div className="flex max-h-[82dvh] w-full max-w-[360px] flex-col overflow-y-auto overscroll-contain rounded-2xl border border-outline-variant bg-surface-container-lowest pb-safe elev-5">
+      <div className="flex max-h-[90dvh] w-full max-w-lg flex-col overflow-y-auto overscroll-contain rounded-3xl border border-outline-variant bg-surface pb-safe elev-5">
         <div aria-hidden="true" className="flex justify-center pt-2 sm:hidden">
           <span className="h-1 w-10 rounded-full bg-outline-variant" />
         </div>
 
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center gap-3 rounded-t-3xl border-b border-outline-variant bg-surface-container-lowest px-5 py-4 sm:rounded-t-2xl">
+        <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-outline-variant bg-surface/95 px-4 py-3 backdrop-blur-sm sm:px-5">
           {step === "how" && (
             <button
               onClick={() => setStep("codes")}
               aria-label="Back"
-              className="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 tap-target"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-secondary"
             >
               <ArrowLeft size={18} className="text-on-surface-variant" />
             </button>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-body-lg font-bold text-on-surface truncate">{title}</p>
-            <p className="text-xs text-on-surface-variant truncate">{taskTitle}</p>
+            <h2 className="text-lg font-extrabold leading-tight text-on-surface">{title}</h2>
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 tap-target"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-secondary"
           >
             <X size={18} className="text-on-surface-variant" />
           </button>
         </div>
 
-        <div className="px-5 py-5">
+        <div className="p-4 sm:p-5">
+          <div className="mb-4 flex items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-3.5">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/12 text-secondary">
+              <Receipt size={20} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="break-words text-sm font-bold text-on-surface">{taskTitle}</p>
+              {businessName && <p className="mt-0.5 break-words text-xs text-on-surface-variant">{businessName}</p>}
+            </div>
+          </div>
 
           {/* ── Step: loading ────────────────────────────────────────── */}
           {/* CHANGED: this replaced the "Did you order from X?" question.
@@ -255,10 +263,6 @@ export default function OrderVerificationModal({
               <Loader2 size={28} className="animate-spin text-secondary" aria-hidden="true" />
               <p className="text-sm font-semibold text-on-surface">
                 Getting your order code…
-              </p>
-              <p className="max-w-[260px] text-xs leading-relaxed text-on-surface-variant">
-                One code per task. If you have been here before, this is the
-                same code you already have.
               </p>
             </div>
           )}
@@ -280,7 +284,7 @@ export default function OrderVerificationModal({
               </div>
               <button
                 onClick={startIssue}
-                className="mt-5 h-12 w-full rounded-xl bg-secondary text-sm font-bold text-white transition-colors hover:opacity-90"
+                className="mt-5 h-12 w-full rounded-xl bg-secondary text-sm font-bold text-on-secondary transition-colors hover:opacity-90"
               >
                 Try again
               </button>
@@ -317,7 +321,7 @@ export default function OrderVerificationModal({
               </ol>
               <button
                 onClick={() => setStep(row ? "codes" : "loading")}
-                className="mt-5 h-11 w-full rounded-xl bg-secondary text-sm font-bold text-white transition-colors hover:opacity-90"
+                className="mt-5 h-11 w-full rounded-xl bg-secondary text-sm font-bold text-on-secondary transition-colors hover:opacity-90"
               >
                 Got it
               </button>
@@ -335,40 +339,38 @@ export default function OrderVerificationModal({
                 const verified = row.status === "order_verified";
                 return (
                   <>
-                    {/* CHANGED: the greeting that opened the old question
-                        screen moved here, so the sheet still opens with a
-                        sentence addressed to the person rather than straight
-                        into a code block. */}
-                    <p className="mb-4 text-sm leading-relaxed text-on-surface-variant">
-                      Hey <span className="font-semibold text-on-surface">{userName}</span>
-                      <span aria-hidden="true"> 👋</span> here is your code for this task.
-                    </p>
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <p className="text-sm font-bold text-on-surface">Two-Code Verification</p>
+                      <span className="shrink-0 rounded-full bg-secondary/12 px-2.5 py-1 text-xs font-bold text-secondary">
+                        Step {verified ? 2 : 1} of 2
+                      </span>
+                    </div>
 
                     {/* ── Section 1: the code STRIVUP generated ─────────── */}
-                    <section aria-labelledby="otp-1-heading">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-secondary text-white text-label-sm font-bold flex items-center justify-center shrink-0">
-                          1
+                    <section aria-labelledby="otp-1-heading" className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-3.5 sm:p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-streak text-xs font-bold text-on-streak" aria-hidden="true">
+                          <Check size={14} />
                         </span>
                         <h3 id="otp-1-heading" className="text-sm font-bold text-on-surface">
                           Your STRIVUP order code
                         </h3>
-                        <span className="ml-auto text-label-sm font-bold px-2 py-0.5 rounded-full border border-success-outline bg-success-container text-on-success-container">
+                        <span className="ml-auto rounded-full bg-streak/12 px-2 py-1 text-xs font-bold text-streak-ink">
                           Generated
                         </span>
                       </div>
 
-                      <div className="mt-2.5 rounded-2xl border border-secondary-fixed-dim bg-secondary-fixed/60 px-5 py-5 text-center">
-                        <p className="text-display-mobile leading-none font-bold tracking-[0.18em] text-secondary select-all">
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-outline-variant bg-surface px-3 py-1.5">
+                        <p className="select-all break-all font-mono text-xl font-extrabold tracking-[0.12em] text-on-surface">
                           {row.order_code}
                         </p>
                         <button
                           onClick={handleCopy}
-                          className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-secondary hover:opacity-90 text-white text-sm font-bold transition-colors tap-target"
+                          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-secondary hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-secondary"
                         >
                           {copied
-                            ? <><Check size={15} /> COPIED</>
-                            : <><Copy size={15} /> COPY OTP</>}
+                            ? <><Check size={15} /> Copied</>
+                            : <><Copy size={15} /> Copy code</>}
                         </button>
                       </div>
 
@@ -380,10 +382,10 @@ export default function OrderVerificationModal({
                     </section>
 
                     {/* ── Section 2: the code the business writes on the bill ─ */}
-                    <section aria-labelledby="otp-2-heading" className="mt-6 pt-5 border-t border-outline-variant">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-5 h-5 rounded-full text-label-sm font-bold flex items-center justify-center shrink-0 ${
-                          verified ? "bg-secondary text-white" : "bg-surface-container-highest text-on-surface-variant"}`}>
+                    <section aria-labelledby="otp-2-heading" className="mt-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-3.5 sm:p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                          verified ? "bg-secondary text-on-secondary" : "bg-surface-container-highest text-on-surface-variant"}`} aria-hidden="true">
                           2
                         </span>
                         <h3 id="otp-2-heading" className={`text-sm font-bold ${
@@ -416,18 +418,18 @@ export default function OrderVerificationModal({
                           eight tries. handleBillSubmit does not even send it:
                           it answers locally, which is faster and clearer than
                           a server error. */}
-                      <div className="mt-2.5 flex h-14 items-center gap-2 rounded-xl border-2 border-outline-variant bg-surface-container-lowest px-4 transition-colors focus-within:border-secondary">
+                      <div className="mt-3 flex h-14 items-center gap-2 rounded-xl border-2 border-outline-variant bg-surface px-4 transition-colors focus-within:border-secondary">
                         <Receipt size={18} className="shrink-0 text-on-surface-variant" />
                         <input
                           id="bill-code"
                           value={billInput}
                           onChange={(e) => { setBillInput(e.target.value.toUpperCase()); setError(null); }}
                           onKeyDown={(e) => { if (e.key === "Enter") handleBillSubmit(); }}
-                          placeholder="Enter OTP received on bill"
+                          placeholder="Enter the code on your bill"
                           maxLength={10}
                           autoComplete="off"
                           spellCheck={false}
-                          className="min-w-0 flex-1 bg-transparent text-xl font-bold tracking-[0.18em] text-on-surface placeholder:text-sm placeholder:font-semibold placeholder:tracking-normal placeholder:text-on-surface-variant focus:outline-none"
+                          className="min-w-0 flex-1 bg-transparent font-mono text-xl font-bold tracking-[0.18em] text-on-surface placeholder:font-sans placeholder:text-sm placeholder:font-semibold placeholder:tracking-normal placeholder:text-on-surface-variant focus:outline-none"
                         />
                       </div>
 
@@ -440,7 +442,7 @@ export default function OrderVerificationModal({
                       <button
                         onClick={handleBillSubmit}
                         disabled={busy || !billInput.trim()}
-                        className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-bold text-white transition-colors hover:opacity-90 disabled:opacity-40"
+                        className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-2 py-2 text-sm font-bold text-on-secondary transition-colors hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:opacity-40"
                       >
                         {busy
                           ? <><Loader2 size={16} className="animate-spin" /> Verifying...</>
@@ -450,11 +452,10 @@ export default function OrderVerificationModal({
 
                     {error && <ErrorNote message={error} />}
 
-                    <p className="mt-5 rounded-xl border border-outline-variant bg-surface-container-low px-3.5 py-3 text-xs leading-relaxed text-on-surface-variant">
-                      One code per task. This is your code for this task and it
-                      stays the same every time you come back, for as long as the
-                      Quest is running.
-                    </p>
+                    <div className="mt-3 flex gap-2 rounded-xl border border-outline-variant bg-surface-container-lowest px-3.5 py-3 text-xs leading-relaxed text-on-surface-variant">
+                      <ShieldCheck size={16} className="shrink-0 text-streak-ink" aria-hidden="true" />
+                      Use the order code shown here for this task.
+                    </div>
 
                     {/* CHANGED: the instructions that used to sit behind
                         "NO, NOT YET" are reachable here instead, at any
@@ -469,7 +470,7 @@ export default function OrderVerificationModal({
                     {!verified && (
                       <button
                         onClick={onClose}
-                        className="mt-2.5 h-11 w-full rounded-xl bg-primary text-sm font-bold text-white transition-colors hover:bg-primary-container"
+                        className="mt-2.5 min-h-11 w-full rounded-xl bg-surface-container-high px-3 py-2 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-highest"
                       >
                         Done, I have added the code
                       </button>
@@ -483,8 +484,8 @@ export default function OrderVerificationModal({
           {/* ── Step: done ────────────────────────────────────────────── */}
           {step === "done" && (
             <div className="text-center py-3">
-              <div className="w-14 h-14 rounded-full bg-success-container border border-success-outline flex items-center justify-center mx-auto">
-                <ClipboardCheck size={26} className="text-on-success-container" />
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-streak text-on-streak">
+                <ClipboardCheck size={26} aria-hidden="true" />
               </div>
               <p className="text-headline-md font-bold text-on-surface mt-4">
                 Task Completed <span aria-hidden="true">✓</span>
@@ -494,7 +495,7 @@ export default function OrderVerificationModal({
               </p>
               <button
                 onClick={onClose}
-                className="mt-6 w-full h-12 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-sm transition-colors"
+                className="mt-6 h-12 w-full rounded-xl bg-secondary text-sm font-bold text-on-secondary transition-colors hover:opacity-90"
               >
                 Back to Quest
               </button>

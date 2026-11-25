@@ -24,22 +24,18 @@ export function CoinPill({
   return (
     <Link
       href="/coins"
-      aria-label={`${balance} StrivCoins. See how to earn and what they unlock.`}
-      className="relative flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1 transition-transform active:scale-95"
+      aria-label={`${balance} StrivCoins${earnedToday > 0 ? `, ${earnedToday} earned today` : ""}. View your balance.`}
+      className="relative inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-coin/30 bg-coin/12 px-3 text-coin-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
     >
-      <Coins size={15} className="text-on-tertiary-container" aria-hidden="true" />
-      <span className="text-label-md font-bold tabular-nums text-on-surface" aria-hidden="true">
-        {balance}
-      </span>
-
-      <span className="sr-only">
-        {balance} StrivCoins{earnedToday > 0 ? `, ${earnedToday} earned today` : ""}
+      <Coins size={16} aria-hidden="true" />
+      <span className="text-label-md font-bold tabular-nums" aria-hidden="true">
+        {balance.toLocaleString("en-IN")} <span className="text-label-sm">SC</span>
       </span>
 
       {earnedToday > 0 ? (
         <span
           aria-hidden="true"
-          className="animate-coin-float pointer-events-none absolute -top-2 right-1 text-label-sm font-bold text-on-tertiary-container"
+          className="animate-coin-float pointer-events-none absolute -top-2 right-1 text-label-sm font-bold text-coin-ink"
         >
           +{earnedToday}
         </span>

@@ -167,14 +167,14 @@ function Switch({
       onClick={onToggle}
       className={[
         "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2",
-        on ? "bg-secondary" : "bg-outline-variant",
+        on ? "bg-streak" : "bg-outline-variant",
       ].join(" ")}
     >
       <span
         aria-hidden="true"
         className={[
-          "absolute left-0 top-0.5 h-5 w-5 rounded-full bg-surface-container-lowest shadow transition-transform",
-          on ? "translate-x-[22px]" : "translate-x-0.5",
+          "absolute left-0 top-0.5 h-5 w-5 rounded-full shadow transition-transform",
+          on ? "translate-x-[22px] bg-on-streak" : "translate-x-0.5 bg-surface-container-lowest",
         ].join(" ")}
       />
     </button>

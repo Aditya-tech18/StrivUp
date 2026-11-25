@@ -1,159 +1,85 @@
 "use client";
 
-import { type HTMLAttributes } from "react";
+import type { ComponentType, HTMLAttributes } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Briefcase, Home, MapPin,
-  Plus, Search, Trophy, Users,
+  Briefcase,
+  Compass,
+  Home,
+  MapPin,
+  MessageSquare,
+  Plus,
+  Trophy,
+  Users,
+  type LucideProps,
 } from "lucide-react";
-import type { LucideProps } from "lucide-react";
-import type { ComponentType } from "react";
-import { useUnreadCount } from "./AlertsContext";
 
 interface NavItem {
   href: string;
   icon: ComponentType<LucideProps>;
   label: string;
-  showBadge?: boolean;
-  /** Keep this item active for any pathname under this prefix. */
-  activePrefix?: string;
-  /** Anchor for the product tour; shared with SidebarNav. */
   tourId?: string;
-  /** Draw the breathing halo. One item at most, or it stops meaning anything. */
-  glow?: boolean;
 }
 
-/**
- * CHANGED: Explore and Alerts left the bar; Quest and Challenges took their
- * places either side of the plus, and Search moved to the far right.
- *
- *   Home | Quest | + | Challenges | Search
- *
- * Alerts moved to the top right of the home header, where the bell already
- * sat, so the unread badge now lives there and in the drawer rather than
- * down here. Explore is not gone: /explore is still reachable from the
- * Explore link on the home rail, from search, and from the desktop rail.
- *
- * Quest carries the glow. It is the paid side of the product and the bar had
- * no way to say one of five equal slots matters more.
- */
-/* tourId values match SidebarNav's, so a tour step spotlights whichever of
-   the two navs is on screen at this breakpoint. Explore and Alerts are not in
-   this bar — Explore lives on the home rail and Alerts moved to the header
-   bell — so those two steps anchor elsewhere rather than here. */
+/* The tour uses the same targets on both sides of the mobile breakpoint. */
 const USER_ITEMS: NavItem[] = [
-  { href: "/feed",           icon: Home,     label: "Home",       tourId: "nav-feed"   },
-  { href: "/quests",         icon: MapPin,   label: "Quest", glow: true, tourId: "nav-quests" },
-  { href: "/challenges/new", icon: Plus,     label: "Create",     tourId: "nav-create" },
-  { href: "/challenges",     icon: Trophy,   label: "Challenges", tourId: "nav-my-challenges" },
-  { href: "/search",         icon: Search,   label: "Search",     tourId: "nav-search" },
+  { href: "/feed", icon: Home, label: "Today", tourId: "nav-feed" },
+  { href: "/explore", icon: Compass, label: "Explore", tourId: "nav-explore" },
+  { href: "/challenges/new", icon: Plus, label: "Create", tourId: "nav-create" },
+  { href: "/quests", icon: MapPin, label: "Quests", tourId: "nav-quests" },
+  { href: "/feed/community", icon: MessageSquare, label: "Community" },
 ];
 
-/*
- * CHANGED: this bar had TWO slots pointing at /business/dashboard, Home and
- * Business. Two identical hrefs meant two identical React keys, which is why
- * the bar rendered "Home" twice, and both lit up at once because Home matched
- * /business/dashboard while Business matched the whole /business prefix.
- *
- * Business IS home in business mode, so the duplicate slot is gone and its
- * place went to the business profile. Challenges pointed at /explore and
- * Quests at /quests, both USER screens, so tapping either dropped you out of
- * business mode; they point at the business versions now. Every href here is
- * distinct and every one stays inside /business.
- */
 const BUSINESS_ITEMS: NavItem[] = [
-  { href: "/business/dashboard",  icon: Home,      label: "Home",       activePrefix: "/business/dashboard" },
-  { href: "/business/challenges", icon: Trophy,    label: "Challenges", activePrefix: "/business/challenges" },
-  { href: "/business/quests/new", icon: Plus,      label: "Create"      },
-  { href: "/business/quests",     icon: Users,     label: "Quests",     activePrefix: "/business/quests" },
-  { href: "/business/profile",    icon: Briefcase, label: "Business",   activePrefix: "/business/profile" },
+  { href: "/business/dashboard", icon: Home, label: "Home" },
+  { href: "/business/challenges", icon: Trophy, label: "Challenges" },
+  { href: "/business/quests/new", icon: Plus, label: "Create" },
+  { href: "/business/quests", icon: Users, label: "Quests" },
+  { href: "/business/profile", icon: Briefcase, label: "Business" },
 ];
 
 export type { NavItem };
-type BottomNavProps = HTMLAttributes<HTMLElement>;
 
-export function BottomNav({ className = "", ...props }: BottomNavProps) {
+export function BottomNav({ className = "", ...props }: HTMLAttributes<HTMLElement>) {
   const pathname = usePathname();
-  const { unreadCount } = useUnreadCount();
-
-  const isBusiness = pathname.startsWith("/business");
-  const items = isBusiness ? BUSINESS_ITEMS : USER_ITEMS;
+  const items = pathname.startsWith("/business") ? BUSINESS_ITEMS : USER_ITEMS;
+  const active = items
+    .filter(({ href }) => pathname === href || pathname.startsWith(`${href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
   return (
     <nav
       aria-label="Bottom navigation"
-      className={[
-        "fixed bottom-0 left-0 right-0 z-50",
-        "flex h-[var(--bottom-nav-h)] items-stretch pb-safe",
-        "bg-surface-container-lowest border-t border-outline-variant",
-        "shadow-[0_-1px_0_0_rgba(0,0,0,0.05)]",
-        "md:hidden",
-        className,
-      ].filter(Boolean).join(" ")}
+      className={`fixed inset-x-0 bottom-0 z-50 flex h-[var(--bottom-nav-h)] items-stretch border-t border-outline-variant bg-surface-container-lowest pb-safe md:hidden ${className}`}
       {...props}
     >
-      {items.map(item => {
-        const isCreate = item.href.endsWith("/new");
-        // CHANGED: /challenges is an index route now, so the prefix rule below
-        // would light Challenges up while the Create screen (/challenges/new)
-        // is open. The create route is its own slot and owns its own state.
-        const onACreateScreen =
-          pathname === "/challenges/new" || pathname === "/business/quests/new";
-        const isActive = !isCreate && !onACreateScreen && (
-          pathname === item.href ||
-          (item.activePrefix !== undefined && pathname.startsWith(item.activePrefix)) ||
-          (item.href !== "/feed" && item.href !== "/business/dashboard" && pathname.startsWith(item.href))
-        );
-        const Icon = item.icon;
-        const badge = item.showBadge ? unreadCount : 0;
+      {items.map(({ href, icon: Icon, label, tourId }) => {
+        const isCreate = Icon === Plus;
+        const isActive = href === active;
 
         return (
           <Link
-            key={`${item.label}-${item.href}`}
-            href={item.href}
-            data-tour={item.tourId}
+            key={href}
+            href={href}
+            data-tour={tourId}
             aria-current={isActive ? "page" : undefined}
-            aria-label={isCreate ? item.label : undefined}
-            className={[
-              "flex flex-1 flex-col items-center justify-center gap-0.5 select-none transition-colors",
-              isCreate ? "relative" : "",
-              isActive ? "text-secondary" : "text-on-surface-variant hover:text-on-surface",
-            ].join(" ")}
+            className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg text-label-sm select-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary ${isActive ? "font-bold text-secondary" : "font-medium text-on-surface-variant hover:text-on-surface"}`}
           >
-            {isCreate ? (
-              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center elev-brand -mt-6">
-                <Icon size={22} strokeWidth={2.5} className="text-white" />
-              </div>
-            ) : (
-              <>
-                {/* CHANGED: the Quest slot's wrapper carries .nav-glow, a
-                    box-shadow and transform loop that composites on the GPU
-                    and holds its lit state under prefers-reduced-motion. */}
-                <span
-                  className={[
-                    "relative inline-flex items-center justify-center",
-                    item.glow ? "h-7 w-7 nav-glow text-secondary" : "",
-                  ].join(" ")}
-                >
-                  <Icon size={22} strokeWidth={isActive || item.glow ? 2.5 : 1.75} />
-                  {badge > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-error text-white text-label-sm font-bold leading-4 flex items-center justify-center">
-                      {badge > 99 ? "99+" : badge}
-                    </span>
-                  )}
-                </span>
-                <span
-                  className={`text-label-sm leading-none ${
-                    item.glow
-                      ? "font-bold text-secondary"
-                      : `font-medium ${isActive ? "text-secondary" : ""}`
-                  }`}
-                >
-                  {item.label}
-                </span>
-              </>
-            )}
+            <span
+              className={
+                isCreate
+                  ? "flex size-9 items-center justify-center rounded-xl bg-secondary text-on-secondary"
+                  : `flex h-8 w-12 items-center justify-center rounded-full ${isActive ? "bg-secondary/12" : ""}`
+              }
+            >
+              <Icon
+                size={isCreate ? 22 : 20}
+                strokeWidth={isActive || isCreate ? 2.4 : 1.8}
+                aria-hidden="true"
+              />
+            </span>
+            {label}
           </Link>
         );
       })}

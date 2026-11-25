@@ -1,33 +1,15 @@
-/**
- * app/(app)/feed/page.tsx — Home Feed
- *
- * Server component. Four stacked sections, in deliberate order:
- *
- *   0. Active Challenges and Quests — your in-flight sprints, in a rail that
- *      scrolls itself and loops. First on the page on purpose.
- *   1. Today's Tasks    — what YOU owe today, with a closing meter.
- *   2. People to follow — who is worth watching, once the above is handled.
- *   3. Live Cohort Proof — what everyone else is shipping.
- *
- * The order is the product thesis: the home screen is a to-do list first and a
- * social feed second. A passive wall of other people's proofs gives nobody a
- * reason to open the app on day 9; an unfinished checklist does. Suggestions
- * sit below the things already committed to, for the same reason.
- *
- * All counts are real. Where the design mockups showed large placeholder
- * figures ("4,821 builders grinding"), this renders actual data and leans on
- * early-adopter framing when the numbers are small.
- */
-
 import Link from "next/link";
-import { ChevronRight, Flame, Trophy, User } from "lucide-react";
+import { ArrowRight, Flame, Search, Trophy, User } from "lucide-react";
 import { FeedCard } from "@/components/features/FeedCard";
-import { HomeRotator } from "@/components/features/home/HomeRotator";
-import { AutoScrollRail } from "@/components/features/home/AutoScrollRail";
 import { ActiveCard } from "@/components/features/home/ActiveCard";
 import { DiscoverList } from "@/components/features/home/DiscoverList";
-import { getPopularOngoing } from "@/lib/data/discover";
+import { TodaySpotlight } from "@/components/features/home/TodaySpotlight";
+import { TodaysTasks } from "@/components/features/TodaysTasks";
+import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAccountsRail";
+import { CoinPill } from "@/components/features/CoinPill";
+import { AlertsBell, BrandMark, MobileMenu } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
+import { getPopularOngoing } from "@/lib/data/discover";
 import { getFeedPosts } from "@/lib/data/feed";
 import {
   getTodaysTasks,
@@ -36,41 +18,20 @@ import {
   type TodayTask,
 } from "@/lib/data/today";
 import { getProfileSuggestions, getFacepiles } from "@/lib/data/social";
-import { SuggestedAccountsRail } from "@/components/features/people/SuggestedAccountsRail";
 import { getCoinStateWithCheckin } from "@/lib/data/coins";
-import { CoinPill } from "@/components/features/CoinPill";
-import { AlertsBell, BrandMark, MobileMenu } from "@/components/ui";
 
-/** "Thursday, 24 May" — matches the design's date eyebrow. */
-function todayLabel(): string {
-  return new Date().toLocaleDateString("en-IN", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
-}
+const dateFormat = new Intl.DateTimeFormat("en-IN", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  timeZone: "Asia/Kolkata",
+});
 
-/**
- * Greeting keyed to progress rather than time of day. "Good morning" is filler;
- * "2 left today" is information.
- */
-function greeting(completed: number, total: number): string {
-  if (total === 0) return "Start Something";
-  if (completed === total) return "Fully Locked In";
-  if (completed === 0) return "Stay Locked In";
-  return `${total - completed} Left Today`;
-}
-
-/* ── Page ────────────────────────────────────────────────────────────────── */
 export default async function FeedPage() {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  // proxy.ts guards this route, so `user` is present in practice; the fallback
-  // keeps the page renderable rather than throwing if that ever changes.
   const [today, posts, coins, questTasks, suggestions] = await Promise.all([
     user
       ? getTodaysTasks(supabase, user.id)
@@ -83,9 +44,8 @@ export default async function FeedPage() {
           bestStreak: 0,
           justCompleted: 0,
         }),
-    getFeedPosts(supabase, { limit: 20, viewerId: user?.id }),
-    // Claims the daily check-in as a side effect. Deduped on the IST calendar
-    // date in Postgres, so opening the feed twice earns one coin, not two.
+    getFeedPosts(supabase, { limit: 3, viewerId: user?.id }),
+    // The daily check-in is deduplicated on the IST calendar date in Postgres.
     user
       ? getCoinStateWithCheckin(supabase, user.id)
       : Promise.resolve({ balance: 0, earnedToday: 0 }),
@@ -93,13 +53,11 @@ export default async function FeedPage() {
     user ? getProfileSuggestions(supabase, 12) : Promise.resolve([]),
   ]);
 
-  /* One card per challenge or quest, not per task, and the two interleaved
-     so neither kind is buried behind a run of the other. */
   const activeChallenges = Array.from(
-    new Map(today.tasks.map((t) => [t.challengeId, t])).values()
+    new Map(today.tasks.map((task) => [task.challengeId, task])).values()
   );
   const activeQuests = Array.from(
-    new Map(questTasks.map((t) => [t.challengeId, t])).values()
+    new Map(questTasks.map((task) => [task.challengeId, task])).values()
   );
   const activeItems: TodayTask[] = [];
   for (let i = 0; i < Math.max(activeChallenges.length, activeQuests.length); i += 1) {
@@ -107,233 +65,194 @@ export default async function FeedPage() {
     if (activeQuests[i]) activeItems.push(activeQuests[i]);
   }
 
-  /* Nothing joined yet: the rail would be empty, so fill the slot with what
-     everyone else is doing instead of leaving a hole. Fetched only in that
-     case, so an account with activity never pays for this query. */
-  const discover = activeItems.length === 0 && user
-    ? await getPopularOngoing(supabase, 8)
-    : [];
-
-  /* Home shows three challenges, not everything: two the person is keeping
-     up with and one they are slipping on. See pickHomeTasks. */
-  const homeSummary = { ...today, tasks: pickHomeTasks(today.tasks) };
-
-  /* Faces for the rail. Two queries for the whole rail rather than two per
-     card, and only for the ids actually on screen. */
-  const [challengePiles, questPiles] = await Promise.all([
+  const [discover, challengePiles, questPiles] = await Promise.all([
+    activeItems.length === 0 && user ? getPopularOngoing(supabase, 8) : Promise.resolve([]),
     getFacepiles(
       supabase,
       "challenge_participants",
-      activeChallenges.map((t) => t.challengeId),
+      activeChallenges.map((task) => task.challengeId),
       3
     ),
     getFacepiles(
       supabase,
       "quest_participants",
-      activeQuests.map((t) => t.challengeId),
+      activeQuests.map((task) => task.challengeId),
       3
     ),
   ]);
+  const homeSummary = { ...today, tasks: pickHomeTasks(today.tasks) };
+  const allTasks = [...today.tasks, ...questTasks];
+  const spotlight =
+    allTasks.find((task) => task.state === "todo" || task.state === "rejected") ??
+    allTasks.find((task) => task.state === "pending") ??
+    allTasks[0];
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* ── Sticky header ────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-surface/80 pt-safe elev-1 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-gutter">
-          <div className="flex items-center gap-space-sm">
+      <header className="sticky top-0 z-40 border-b border-outline-variant bg-surface-container-lowest/95 pt-safe backdrop-blur-xl">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2">
             <MobileMenu />
-            <BrandMark variant="mark" height={26} priority />
-            <div className="flex flex-col">
-              <BrandMark variant="wordmark" height={16} />
-              <span className="text-label-sm font-medium text-on-surface-variant">Home Feed</span>
-            </div>
+            <BrandMark variant="mark" height={24} priority className="shrink-0" />
+            <span className="truncate font-display text-lg font-extrabold text-on-surface">
+              StrivUp
+            </span>
           </div>
-
-          <div className="flex items-center gap-space-xs">
-            {/* CHANGED: Alerts left the bottom bar, so its unread badge
-                moved onto this bell. Same destination, same position; it now
-                carries the count the bottom tab used to show. */}
+          <div className="flex items-center gap-1">
+            <Link
+              href="/search"
+              aria-label="Search"
+              data-tour="nav-search"
+              className="grid size-11 place-items-center rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-secondary focus-visible:outline-2 focus-visible:outline-secondary"
+            >
+              <Search size={19} aria-hidden="true" />
+            </Link>
             <AlertsBell />
             <Link
               href="/profile"
               aria-label="Profile"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:text-on-surface"
+              data-tour="nav-profile"
+              className="grid size-11 place-items-center rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-secondary focus-visible:outline-2 focus-visible:outline-secondary"
             >
-              <User size={22} strokeWidth={1.75} aria-hidden="true" />
+              <User size={20} aria-hidden="true" />
             </Link>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-2xl flex-col gap-space-lg px-gutter pb-space-xl">
-        {/* ── Date + streak pill ─────────────────────────────────────── */}
-        <div className="flex items-center justify-between pt-space-sm">
-          <div className="flex flex-col">
-            <span className="text-label-sm uppercase tracking-wider text-on-surface-variant">
-              {todayLabel()}
-            </span>
-            <h2 className="text-headline-lg-mobile text-on-surface">
-              {greeting(today.completed, today.total)}
-            </h2>
+      <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 pt-5 pb-8 sm:px-6 sm:pt-7">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-on-surface-variant">
+              {dateFormat.format(new Date())}
+            </p>
+            <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-on-surface sm:text-4xl">
+              Today
+            </h1>
           </div>
-
-          {/* Reward and consistency read in one glance. */}
-          <div className="flex shrink-0 items-center gap-space-xs">
+          <div className="flex max-w-full flex-wrap items-center gap-2">
             {today.bestStreak > 0 ? (
               <Link
                 href="/profile#consistency"
-                aria-label={`${today.bestStreak} day streak. See your consistency heatmap.`}
-                className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-high px-space-md py-1.5 elev-1 transition-transform active:scale-95 tap-target"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-streak px-3 text-xs font-bold text-on-streak focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
               >
-                <Flame size={15} className="text-secondary" aria-hidden="true" />
-                <span className="text-label-md font-bold text-on-surface">
-                  {today.bestStreak}
-                </span>
+                <Flame size={16} aria-hidden="true" /> {today.bestStreak}-day streak
               </Link>
             ) : null}
             <CoinPill balance={coins.balance} earnedToday={coins.earnedToday} />
           </div>
         </div>
 
-        {/* ── Completion celebration ─────────────────────────────────────
-            Shown once, on the first visit after a challenge finishes. This is
-            the payoff the product had no way of delivering before — and the
-            moment most likely to make someone tell a friend. */}
         {today.justCompleted > 0 ? (
           <section
             aria-label="Challenge completed"
-            className="flex items-center gap-space-md rounded-xl bg-primary p-space-md text-on-primary elev-1"
+            className="flex flex-wrap items-center gap-3 rounded-2xl border border-streak/40 bg-streak/15 p-4"
           >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-on-tertiary-container/20">
-              <Trophy size={22} className="text-tertiary-fixed" aria-hidden="true" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-label-lg font-bold">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-streak text-on-streak">
+              <Trophy size={21} aria-hidden="true" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-sm font-bold text-on-surface">
                 You finished{" "}
-                {today.justCompleted === 1
-                  ? "a challenge"
-                  : `${today.justCompleted} challenges`}
-                .
+                {today.justCompleted === 1 ? "a challenge" : `${today.justCompleted} challenges`}.
               </p>
-              <p className="text-body-sm text-primary-fixed-dim">
-                Every day of it is on your profile. Go and look.
+              <p className="text-sm text-on-surface-variant">
+                See what you achieved on your profile.
               </p>
             </div>
             <Link
               href="/profile"
-              className="ml-auto shrink-0 rounded-lg bg-on-primary px-space-md py-2 text-label-md font-semibold text-primary tap-target"
+              className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-secondary hover:underline"
             >
-              View
+              View profile <ArrowRight size={15} aria-hidden="true" />
             </Link>
           </section>
         ) : null}
 
-        {/* ── 0. Active challenges and quests ─────────────────────────
-            CHANGED: moved up from below Today's Tasks, into the slot People
-            to follow used to hold. What someone has already committed to
-            outranks who they might follow: the rail is the reason the app
-            was opened, and it is now the first thing under the header. */}
-        {activeItems.length > 0 ? (
-          <section
-            className="flex flex-col gap-space-sm"
-            aria-label="Active challenges and quests"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-space-xs">
-                <h3 className="text-headline-sm text-on-surface">
-                  Active Challenges &amp; Quests
-                </h3>
-                <span className="text-label-sm font-medium text-on-surface-variant">
-                  ({activeItems.length})
-                </span>
-              </div>
-              <Link
-                href="/explore"
-                className="flex items-center text-label-md font-medium text-secondary hover:underline"
-              >
-                Explore
-                <ChevronRight size={16} aria-hidden="true" />
-              </Link>
-            </div>
-
-            {/* CHANGED: the plain overflow container became AutoScrollRail,
-                which scrolls the row continuously and loops it without a
-                seam. Manual swiping, the links and the facepiles are
-                untouched; the rail hands control back the moment it is
-                touched, hovered or focused. */}
-            <AutoScrollRail label="Active challenges and quests">
-              {activeItems.map((task) => (
-                <ActiveCard
-                  key={task.key}
-                  task={task}
-                  pile={
-                    task.kind === "quest"
-                      ? questPiles.get(task.challengeId)
-                      : challengePiles.get(task.challengeId)
-                  }
-                />
-              ))}
-            </AutoScrollRail>
-          </section>
-        ) : (
-          <DiscoverList items={discover} />
-        )}
-
-        {/* ── 1. Today's Tasks ───────────────────────────────────────── */}
-        <HomeRotator summary={homeSummary} questTasks={questTasks} />
-
-        {/* ── 2. People to follow ─────────────────────────────────────
-            CHANGED: moved down into the slot the Active rail used to hold.
-            Still above the feed, because an account following nobody has
-            nothing to come back for, but no longer ahead of the things the
-            person is already doing. Skippable, and it hides itself once
-            there is nobody left to suggest. */}
-        {user && suggestions.length > 0 ? (
-          <SuggestedAccountsRail people={suggestions} viewerId={user.id} />
-        ) : null}
-
-        {/* ── 3. Live cohort proof ───────────────────────────────────── */}
-        <section className="flex flex-col gap-space-sm" aria-label="Community proof feed">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-space-xs">
-              <span
-                className="h-2 w-2 rounded-full bg-on-tertiary-container"
-                aria-hidden="true"
-              />
-              <h3 className="text-headline-sm text-on-surface">Live Cohort Proof</h3>
-            </div>
-            {posts.length > 0 ? (
-              <span className="text-label-sm text-on-surface-variant">
-                {posts.length} verified {posts.length === 1 ? "proof" : "proofs"}
-              </span>
-            ) : null}
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+          <div className="flex min-w-0 flex-col gap-5">
+            {spotlight ? <TodaySpotlight task={spotlight} /> : null}
+            <TodaysTasks summary={homeSummary} questTasks={questTasks} />
           </div>
 
-          {posts.length > 0 ? (
-            <div className="flex flex-col gap-space-md">
-              {posts.map((post) => (
-                <FeedCard key={post.id} post={post} viewerId={user?.id ?? null} />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-xl bg-surface-container-lowest px-space-md py-space-xl text-center elev-1 surface-raised">
-              <p className="text-headline-sm text-on-surface">No proof posted yet</p>
-              <p className="mx-auto mt-1 max-w-xs text-body-sm text-on-surface-variant">
-                This is where verified proof from everyone in your challenges shows up. Be
-                the first to put something here.
-              </p>
-              {/* A quiet link, not a second dark slab — Today's Tasks above
-                  already owns the primary call to action on an empty home, and
-                  two identical buttons pointing at /explore read as a mistake. */}
-              <Link
-                href="/explore"
-                className="mt-space-sm inline-block text-label-md font-semibold text-secondary hover:underline"
+          <aside
+            aria-label="Challenges and quests"
+            className="flex min-w-0 flex-col gap-4 lg:row-span-2"
+          >
+            {activeItems.length > 0 ? (
+              <section
+                aria-labelledby="active-tracker-heading"
+                className="flex min-w-0 flex-col gap-2"
               >
-                Browse challenges
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 id="active-tracker-heading" className="text-lg font-bold text-on-surface">
+                    Active trackers
+                  </h2>
+                  <Link
+                    href="/challenges"
+                    className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-secondary hover:underline"
+                  >
+                    All challenges <ArrowRight size={15} aria-hidden="true" />
+                  </Link>
+                </div>
+                {activeItems.map((task) => (
+                  <ActiveCard
+                    key={task.key}
+                    task={task}
+                    pile={
+                      task.kind === "quest"
+                        ? questPiles.get(task.challengeId)
+                        : challengePiles.get(task.challengeId)
+                    }
+                  />
+                ))}
+              </section>
+            ) : (
+              <DiscoverList items={discover} />
+            )}
+
+            <Link
+              href="/how-quests-work"
+              className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 text-sm font-bold text-secondary hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+            >
+              How local quests work <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+            {user && suggestions.length > 0 ? (
+              <SuggestedAccountsRail people={suggestions} viewerId={user.id} />
+            ) : null}
+          </aside>
+
+          <section
+            aria-labelledby="community-proof-heading"
+            className="flex min-w-0 flex-col gap-3"
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 id="community-proof-heading" className="text-xl font-extrabold text-on-surface">
+                Community proof
+              </h2>
+              <Link
+                href="/feed/community"
+                className="inline-flex min-h-11 items-center gap-1 text-sm font-bold text-secondary hover:underline focus-visible:outline-2 focus-visible:outline-secondary"
+              >
+                View community feed <ArrowRight size={15} aria-hidden="true" />
               </Link>
             </div>
-          )}
-        </section>
+            {posts.length > 0 ? (
+              posts.map((post) => (
+                <FeedCard key={post.id} post={post} viewerId={user?.id ?? null} />
+              ))
+            ) : (
+              <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-6 text-center">
+                <p className="font-display text-base font-bold text-on-surface">
+                  No proof posted yet
+                </p>
+                <p className="mx-auto mt-1 max-w-xs text-sm text-on-surface-variant">
+                  Verified proof from your challenges will show up here.
+                </p>
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );

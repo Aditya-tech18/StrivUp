@@ -15,9 +15,9 @@ import { GatewayScreen } from "./(auth)/GatewayScreen";
 import { OAuthCodeForwarder } from "./OAuthCodeForwarder";
 
 export const metadata: Metadata = {
-  title: "India's Platform for Growth",
+  title: "Daily Challenges, Local Quests & Streaks",
   description:
-    "Build discipline, join challenges, and grow with a community that holds you accountable.",
+    "Join daily challenges, prove your progress, and build streaks together. Explore local quests and earn StrivCoins for eligible activities.",
 };
 
 export default function RootPage() {

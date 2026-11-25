@@ -29,7 +29,13 @@ import { Check, Copy, Link2, Share2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { ensureInviteCode, inviteUrl } from "@/lib/data/invites";
 
-type Kind = "challenge" | "quest";
+type Kind = "challenge" | "quest" | "profile";
+
+const SHARE_PATHS: Record<Kind, string> = {
+  challenge: "challenges",
+  quest: "quests",
+  profile: "u",
+};
 
 /**
  * Where a desktop share goes.
@@ -108,7 +114,7 @@ export function ShareButton({
 
   async function resolveUrl(): Promise<string> {
     const origin = window.location.origin;
-    const pageUrl = `${origin}/${kind === "challenge" ? "challenges" : "quests"}/${id}`;
+    const pageUrl = `${origin}/${SHARE_PATHS[kind]}/${id}`;
 
     if (kind !== "challenge" || !isPrivate) return pageUrl;
 
@@ -121,10 +127,11 @@ export function ShareButton({
     setBusy(true);
     try {
       const url = await resolveUrl();
-      const text =
-        kind === "challenge"
-          ? `Join me on "${title}" on StrivUp.`
-          : `Take on "${title}" on StrivUp.`;
+      const text = {
+        challenge: `Join me on "${title}" on StrivUp.`,
+        quest: `Take on "${title}" on StrivUp.`,
+        profile: "See my profile on StrivUp.",
+      }[kind];
 
       // The phone's own app picker, which is what people expect from a share
       // arrow and what puts WhatsApp, Instagram and the rest in one sheet.

@@ -208,20 +208,17 @@ export default function BusinessOrderVerificationPage() {
   return (
     <div className="min-h-screen bg-surface pb-24">
 
-      <header className="sticky top-0 z-30 bg-surface-container-lowest border-b border-outline-variant">
-        <div className="mx-auto measure-wide px-5 lg:px-8 h-14 flex items-center gap-3">
+      <header className="sticky top-0 z-30 border-b border-outline-variant bg-surface/95 backdrop-blur-sm">
+        <div className="mx-auto flex min-h-14 measure-page items-center gap-2 px-4 sm:gap-3 lg:px-8">
           <Link
             href="/business/dashboard"
             aria-label={t("ov.backToDashboard")}
-            className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center shrink-0 transition-colors tap-target"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-secondary"
           >
             <ArrowLeft size={18} className="text-on-surface-variant" />
           </Link>
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-bold text-on-surface">{t("ov.title")}</h1>
-            <p className="text-label-sm text-on-surface-variant">
-              {t("ov.searchHeading")}
-            </p>
+            <h1 className="text-base font-extrabold leading-tight tracking-tight text-on-surface sm:text-lg">{t("ov.title")}</h1>
           </div>
           <LanguageToggle className="shrink-0" />
           <button
@@ -234,18 +231,23 @@ export default function BusinessOrderVerificationPage() {
         </div>
       </header>
 
-      <div className="mx-auto measure-wide px-5 lg:px-8 py-6 flex flex-col gap-6">
+      <div className="mx-auto flex measure-page flex-col gap-4 px-4 py-5 sm:gap-5 lg:px-8">
 
         {/* ── Search ───────────────────────────────────────────────── */}
-        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
-          <h2 className="text-body-lg font-bold text-on-surface">{t("ov.searchHeading")}</h2>
-          <p className="text-sm text-on-surface-variant mt-0.5">
-            {t("ov.searchSub")}
-          </p>
+        <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/12 text-secondary">
+              <Receipt size={20} aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="text-base font-bold text-on-surface">{t("ov.searchHeading")}</h2>
+              <p className="mt-0.5 text-sm text-on-surface-variant">{t("ov.searchSub")}</p>
+            </div>
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-2.5 mt-4">
             <label htmlFor="order-code" className="sr-only">{t("ov.orderCodeLabel")}</label>
-            <div className="w-full sm:flex-1 flex items-center gap-2 rounded-xl border-2 border-outline-variant focus-within:border-secondary bg-surface-container-lowest px-4 h-12 transition-colors elev-1 surface-raised">
+            <div className="flex h-12 w-full items-center gap-2 rounded-xl border-2 border-outline-variant bg-surface px-4 transition-colors focus-within:border-secondary sm:flex-1">
               <Search size={17} className="text-on-surface-variant shrink-0" />
               <input
                 id="order-code"
@@ -256,13 +258,13 @@ export default function BusinessOrderVerificationPage() {
                 maxLength={10}
                 autoComplete="off"
                 spellCheck={false}
-                className="flex-1 min-w-0 bg-transparent text-lg font-bold tracking-[0.15em] text-on-surface placeholder:text-on-surface-variant focus:outline-none"
+                className="min-w-0 flex-1 bg-transparent font-mono text-lg font-bold tracking-[0.15em] text-on-surface placeholder:text-on-surface-variant focus:outline-none"
               />
             </div>
             <button
               onClick={() => handleSearch()}
               disabled={searching || !code.trim()}
-              className="h-12 px-6 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+              className="flex h-12 items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-sm font-bold text-on-secondary transition-colors hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:opacity-40"
             >
               {searching
                 ? <><Loader2 size={16} className="animate-spin" /> {t("ov.searching")}</>
@@ -330,12 +332,12 @@ export default function BusinessOrderVerificationPage() {
 
           {/* ── Match ──────────────────────────────────────────────── */}
           {match && (
-            <div className="mt-5 rounded-2xl border border-outline-variant overflow-hidden">
+            <div className="mt-5 overflow-hidden rounded-2xl border border-outline-variant">
               {/* Who is asking. Public identity and their progress on THIS
                   quest only: enough to judge whether the order is genuine,
                   without handing over a profile dossier. */}
-              <div className="px-5 py-4 bg-surface-container-low border-b border-outline-variant">
-                <div className="flex items-start gap-3">
+              <div className="border-b border-outline-variant bg-surface-container-high p-3 sm:p-4">
+                <div className="flex flex-wrap items-start gap-3">
                   <div className="w-12 h-12 rounded-full bg-surface-container-lowest border border-outline-variant overflow-hidden shrink-0 flex items-center justify-center elev-1 surface-raised">
                     {match.participant_avatar ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -352,17 +354,14 @@ export default function BusinessOrderVerificationPage() {
                     {match.participant_username && (
                       <p className="text-xs text-on-surface-variant">@{match.participant_username}</p>
                     )}
-                    <p className="text-xs text-on-surface-variant mt-0.5 truncate">
+                    <p className="mt-0.5 break-words text-xs text-on-surface-variant">
                       {match.quest_title} · {match.task_title}
                     </p>
                   </div>
 
-                  <span className="text-lg font-bold tracking-[0.15em] text-on-surface shrink-0">
-                    {match.order_code}
-                  </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 mt-3">
+                <div className="mt-3 grid grid-cols-3 gap-2">
                   <ProfileStat
                     icon={Trophy}
                     value={`${match.tasks_completed_here}/${match.tasks_total_here}`}
@@ -388,12 +387,30 @@ export default function BusinessOrderVerificationPage() {
                 </p>
               </div>
 
-              <div className="p-5">
+              <div className="space-y-3 bg-surface p-3 sm:p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-bold text-on-surface">{t("ov.twoCode")}</h3>
+                  <span className="shrink-0 rounded-full bg-secondary/12 px-2.5 py-1 text-xs font-bold text-secondary">
+                    {t(billCode ? "ov.billStep" : "ov.orderStep")}
+                  </span>
+                </div>
+                <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-streak text-xs font-bold text-on-streak" aria-hidden="true">1</span>
+                    <p className="text-sm font-bold text-on-surface">{t("ov.orderCodeLabel")}</p>
+                  </div>
+                  <p className="mt-2 select-all break-all rounded-lg bg-surface px-3 py-2 font-mono text-lg font-extrabold tracking-widest text-on-surface">
+                    {match.order_code}
+                  </p>
+                </div>
                 {billCode ? (
-                  <>
-                    <div className="flex items-center gap-2.5 rounded-xl bg-success-container border border-success-outline px-4 py-3">
-                      <CheckCircle2 size={18} className="text-on-success-container shrink-0" />
-                      <p className="text-sm font-bold text-on-success-container">{t("ov.orderVerified")}</p>
+                  <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-xs font-bold text-on-secondary" aria-hidden="true">2</span>
+                      <p className="text-sm font-bold text-on-surface">{t("ov.billCodeLabel")}</p>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-streak/12 px-2 py-1 text-xs font-bold text-streak-ink">
+                        <CheckCircle2 size={14} aria-hidden="true" /> {t("ov.orderVerified")}
+                      </span>
                     </div>
 
                     <p className="text-sm text-on-surface-variant leading-relaxed mt-4">
@@ -401,19 +418,13 @@ export default function BusinessOrderVerificationPage() {
                       They enter it in STRIVUP to complete the task.
                     </p>
 
-                    <div className="mt-3 rounded-2xl border border-secondary-fixed-dim bg-secondary-fixed/60 px-5 py-5 text-center">
-                      <div className="flex items-center justify-center gap-2 text-secondary">
-                        <Receipt size={16} />
-                        <span className="text-label-sm font-bold uppercase tracking-wider">
-                          Bill verification code
-                        </span>
-                      </div>
-                      <p className="text-display-mobile leading-none font-bold tracking-[0.18em] text-secondary mt-2.5 select-all">
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-outline-variant bg-surface px-3 py-1.5">
+                      <p className="select-all break-all font-mono text-xl font-extrabold tracking-[0.14em] text-on-surface">
                         {billCode}
                       </p>
                       <button
                         onClick={handleCopyBill}
-                        className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-secondary hover:opacity-90 text-white text-sm font-bold transition-colors tap-target"
+                        className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-secondary hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-secondary"
                       >
                         {copied ? <><Check size={15} /> Copied</> : <><Copy size={15} /> Copy code</>}
                       </button>
@@ -425,7 +436,7 @@ export default function BusinessOrderVerificationPage() {
                     >
                       Verify another order
                     </button>
-                  </>
+                  </div>
                 ) : (
                   <>
                     {match.status === "cancelled" || match.status === "expired" ? (
@@ -468,7 +479,7 @@ export default function BusinessOrderVerificationPage() {
                           </div>
                         )}
 
-                        <div className="flex gap-2 mt-4">
+                        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row">
                           <button
                             onClick={() => (showReject ? void handleReject() : setShowReject(true))}
                             disabled={rejecting || verifying}
@@ -482,7 +493,7 @@ export default function BusinessOrderVerificationPage() {
                           <button
                             onClick={handleVerify}
                             disabled={verifying || rejecting}
-                            className="flex-1 h-12 rounded-xl bg-success hover:bg-success disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+                            className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-bold text-on-secondary transition-colors hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:opacity-40 sm:flex-1"
                           >
                             {verifying
                               ? <><Loader2 size={16} className="animate-spin" /> Verifying...</>
@@ -499,7 +510,7 @@ export default function BusinessOrderVerificationPage() {
         </section>
 
         {/* ── Open queue ───────────────────────────────────────────── */}
-        <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 elev-1 surface-raised">
+        <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-body-lg font-bold text-on-surface">{t("ov.openHeading")}</h2>
@@ -508,7 +519,7 @@ export default function BusinessOrderVerificationPage() {
               </p>
             </div>
             {queue.length > 0 && (
-              <span className="text-xs font-bold text-secondary bg-secondary-fixed border border-secondary-fixed-dim px-2.5 py-1 rounded-full shrink-0">
+              <span className="shrink-0 rounded-full bg-streak/12 px-2.5 py-1 text-xs font-bold text-streak-ink">
                 {queue.length}
               </span>
             )}

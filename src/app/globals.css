@@ -3,10 +3,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    StrivUp design system — Tailwind v4 @theme
    ───────────────────────────────────────────────────────────────────────────
-   Token values are the canonical StrivUp design spec. Reconciled against the
-   reference mockups; where the old values drifted (surface was #fbf9fb, now
-   #fbf9f9; primary-container was navy #0d1c32, now near-black #1b1b1b) the
-   spec wins.
+   Keep action blue, streak lime, and StrivCoin gold distinct in both themes.
 
    Namespaces matter in v4 — they are what generates utilities:
      --color-*    -> bg-*, text-*, border-*
@@ -25,6 +22,7 @@
 @theme {
   /* ── Font family ─────────────────────────────────────────────────────── */
   --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-jakarta), var(--font-inter), system-ui, sans-serif;
 
   /* ── Primary (near-black; StrivUp's ink) ─────────────────────────────── */
   --color-primary: #000000;
@@ -47,6 +45,13 @@
   --color-on-secondary-fixed: #001551;
   --color-on-secondary-fixed-variant: #0039b5;
 
+  --color-streak: #acf847;
+  --color-on-streak: #1b1c1d;
+  --color-streak-ink: #3c630e;
+  --color-coin: #fbbf24;
+  --color-on-coin: #1b1c1d;
+  --color-coin-ink: #805300;
+
   /* ── Tertiary (green; reserved for verified / success states) ─────────── */
   --color-tertiary: #000000;
   --color-on-tertiary: #ffffff;
@@ -58,30 +63,30 @@
   --color-on-tertiary-fixed-variant: #005237;
 
   /* ── Background / surface ────────────────────────────────────────────── */
-  --color-background: #fbf9f9;
-  --color-on-background: #1b1c1c;
-  --color-surface: #fbf9f9;
-  --color-on-surface: #1b1c1c;
-  --color-surface-variant: #e3e2e2;
-  --color-on-surface-variant: #4c4546;
-  --color-surface-bright: #fbf9f9;
-  --color-surface-dim: #dbdad9;
-  --color-surface-tint: #5e5e5e;
+  --color-background: #fbf9fb;
+  --color-on-background: #1b1c1d;
+  --color-surface: #fbf9fb;
+  --color-on-surface: #1b1c1d;
+  --color-surface-variant: #e8edf6;
+  --color-on-surface-variant: #434655;
+  --color-surface-bright: #ffffff;
+  --color-surface-dim: #e5e9f3;
+  --color-surface-tint: #1d4ed8;
 
   /* Elevation ladder — lowest is pure white (cards sit on tinted surface) */
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f5f3f3;
-  --color-surface-container: #efeded;
-  --color-surface-container-high: #e9e8e7;
-  --color-surface-container-highest: #e3e2e2;
+  --color-surface-container-low: #f5f6fa;
+  --color-surface-container: #f0f2f8;
+  --color-surface-container-high: #e9edf7;
+  --color-surface-container-highest: #e0e6f2;
 
   /* ── Inverse (toasts, snackbars) ─────────────────────────────────────── */
   --color-inverse-surface: #303031;
   --color-inverse-on-surface: #f2f0f0;
 
   /* ── Outline ─────────────────────────────────────────────────────────── */
-  --color-outline: #7e7576;
-  --color-outline-variant: #cfc4c5;
+  --color-outline: #68758b;
+  --color-outline-variant: #d9deeb;
 
   /* ── Error ───────────────────────────────────────────────────────────── */
   --color-error: #ba1a1a;
@@ -273,6 +278,12 @@
   --spacing-margin-lg: 3rem;
 }
 
+@layer base {
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+  }
+}
+
 /* ─── Base ──────────────────────────────────────────────────────────────── */
 html {
   -webkit-font-smoothing: antialiased;
@@ -371,10 +382,8 @@ body {
    palette is worse than none: a single token left light is the one that turns
    up as white text on white somewhere nobody looked.
 
-   How the surfaces were chosen. Light rises from #fbf9f9 toward white;
-   dark does the reverse, sinking to near black and lifting containers
-   upward. Raised means LIGHTER in dark, which is why surface-container-lowest
-   is the darkest value here and the brightest one in light.
+   The midnight canvas is darker than content cards. Raised overlays use
+   the lighter end of the same navy scale.
 
    The brand blue keeps its hue and gains lightness. #1d4ed8 on near black is
    roughly 2.4:1 against the surface, which fails text contrast outright, so
@@ -401,13 +410,16 @@ body {
   --color-inverse-primary: #1b1b1b;
 
   --color-secondary: #7da2ff;
-  --color-on-secondary: #06142e;
+  --color-on-secondary: #0b1220;
   --color-secondary-container: #1d4ed8;
   --color-on-secondary-container: #ffffff;
   --color-secondary-fixed: #dce1ff;
   --color-secondary-fixed-dim: #b7c4ff;
   --color-on-secondary-fixed: #001551;
   --color-on-secondary-fixed-variant: #0039b5;
+
+  --color-streak-ink: #acf847;
+  --color-coin-ink: #fbbf24;
 
   --color-tertiary: #67dca8;
   --color-on-tertiary: #00261a;
@@ -418,25 +430,25 @@ body {
   --color-on-tertiary-fixed: #002114;
   --color-on-tertiary-fixed-variant: #005237;
 
-  --color-background: #0f1113;
-  --color-on-background: #e6e8ea;
-  --color-surface: #0f1113;
-  --color-on-surface: #e6e8ea;
-  --color-surface-variant: #2b3035;
-  --color-on-surface-variant: #aab2b8;
-  --color-surface-bright: #35393d;
-  --color-surface-dim: #0a0c0d;
+  --color-background: #0b1220;
+  --color-on-background: #f1f5f9;
+  --color-surface: #0b1220;
+  --color-on-surface: #f1f5f9;
+  --color-surface-variant: #24334b;
+  --color-on-surface-variant: #a9b8cc;
+  --color-surface-bright: #293950;
+  --color-surface-dim: #08101c;
   --color-surface-tint: #7da2ff;
-  --color-surface-container-lowest: #15181a;
-  --color-surface-container-low: #191c1f;
-  --color-surface-container: #1e2225;
-  --color-surface-container-high: #262a2e;
-  --color-surface-container-highest: #2f3438;
+  --color-surface-container-lowest: #131e30;
+  --color-surface-container-low: #151f31;
+  --color-surface-container: #172337;
+  --color-surface-container-high: #1b2940;
+  --color-surface-container-highest: #24334b;
   --color-inverse-surface: #e6e8ea;
   --color-inverse-on-surface: #1b1c1c;
 
-  --color-outline: #8c9398;
-  --color-outline-variant: #343a3f;
+  --color-outline: #8798b2;
+  --color-outline-variant: #34445d;
 
   --color-error: #ffb4ab;
   --color-on-error: #690005;
@@ -501,7 +513,7 @@ body {
 }
 
 :root[data-theme="dark"] .glass {
-  background-color: rgb(15 17 19 / 0.82);
+  background-color: rgb(11 18 32 / 0.82);
 }
 
 /* ─── StrivCoin earn flourish ───────────────────────────────────────────────
@@ -905,7 +917,7 @@ body {
      property here, so it is opt-in per element rather than applied broadly,
      and it always has an opaque colour behind it as a fallback. */
   .glass {
-    background-color: rgb(251 249 249 / 0.82);
+    background-color: rgb(251 249 251 / 0.82);
     backdrop-filter: saturate(180%) blur(12px);
     -webkit-backdrop-filter: saturate(180%) blur(12px);
   }

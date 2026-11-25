@@ -1,8 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, useEffect, useRef } from "react";
-import { Loader2, Users } from "lucide-react";
-import { Button } from "@/components/ui";
+import { Loader2, LockKeyhole } from "lucide-react";
 
 export interface InviteJoinState {
   error: string | null;
@@ -25,20 +24,20 @@ export function JoinForm({
   }, [autoAccept, submit]);
 
   return (
-    <form action={submit} className="mt-space-lg" aria-busy={pending}>
+    <form action={submit} aria-busy={pending}>
       {state.error && (
-        <p role="alert" className="mb-space-sm text-body-md text-error">
+        <p role="alert" className="mb-2 rounded-xl bg-error-container px-3 py-2 text-sm text-on-error-container">
           {state.error}
         </p>
       )}
-      <Button type="submit" variant="primary" size="lg" fullWidth disabled={pending}>
+      <button type="submit" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary-container px-4 font-bold text-on-secondary-container transition-opacity hover:opacity-90 disabled:opacity-60" disabled={pending}>
         {pending ? (
-          <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+          <Loader2 size={18} className="motion-safe:animate-spin" aria-hidden="true" />
         ) : (
-          <Users size={18} aria-hidden="true" />
+          <LockKeyhole size={18} aria-hidden="true" />
         )}
         {pending ? "Joining…" : state.error ? "Try again" : "Accept invite"}
-      </Button>
+      </button>
     </form>
   );
 }

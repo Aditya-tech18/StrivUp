@@ -93,7 +93,15 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
   if (!isParticipant) return null;
 
   return (
-    <div className="p-4 flex flex-col gap-3">
+    <div className="flex flex-col gap-3 p-4">
+      {state !== "completed" && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-bold text-on-surface">Two-Code Verification</p>
+          <span className="rounded-full bg-secondary/12 px-2.5 py-1 text-xs font-bold text-secondary">
+            Step {state === "verified" ? 2 : 1} of 2
+          </span>
+        </div>
+      )}
       {error && <p role="alert" className="text-sm text-on-error-container bg-error-container border border-error-outline rounded-xl px-3 py-2">{error}</p>}
 
       {state === "completed" && (
@@ -147,7 +155,7 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
           )}
 
           <button type="button" onClick={postProof} disabled={busy}
-            className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-3 py-2 text-sm font-bold text-on-secondary hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:opacity-50">
             {busy ? <Loader2 size={16} className="animate-spin" /> : <Receipt size={16} />}
             {state === "ready" ? "Post Proof — Get Verification Code" : "Post Proof Again"}
           </button>
@@ -156,13 +164,18 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
 
       {state === "waiting" && request && (
         <>
-          <div className="rounded-2xl border-2 border-dashed border-secondary-fixed-dim bg-secondary-fixed px-4 py-4 text-center">
-            <p className="text-label-sm font-bold uppercase tracking-wider text-on-secondary-fixed">Your verification code</p>
-            <p className="mt-1 font-mono text-display-mobile font-black tracking-widest text-on-surface">{request.sv_code}</p>
-            <button type="button" onClick={() => copy(request.sv_code)}
-              className="mt-2 inline-flex h-10 items-center gap-1.5 rounded-xl bg-surface-container-lowest px-4 text-sm font-bold text-secondary border border-secondary-fixed-dim">
-              <Copy size={14} /> {copied ? "Copied" : "Copy Code"}
-            </button>
+          <div className="rounded-xl border border-outline-variant bg-surface-container-high p-3">
+            <p className="flex items-center gap-2 text-sm font-bold text-on-surface">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-streak text-xs font-bold text-on-streak" aria-hidden="true">1</span>
+              Your verification code
+            </p>
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-surface px-3 py-1.5">
+              <p className="select-all break-all font-mono text-lg font-extrabold tracking-widest text-on-surface">{request.sv_code}</p>
+              <button type="button" onClick={() => copy(request.sv_code)}
+                className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-secondary hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-secondary">
+                <Copy size={14} aria-hidden="true" /> {copied ? "Copied" : "Copy Code"}
+              </button>
+            </div>
           </div>
           <p className="text-sm text-on-surface-variant leading-relaxed">
             Add this code to your <span className="font-semibold">Zomato/Swiggy order description</span> before placing your order.
@@ -185,18 +198,21 @@ export function OrderVerificationTask({ task, request, completed, isParticipant,
             <CheckCircle2 size={18} className="text-on-success-container shrink-0" />
             <p className="text-sm font-bold text-on-success-container">Order Verified ✓</p>
           </div>
-          <label htmlFor={`bill-${task.id}`} className="text-sm font-semibold text-on-surface">
-            Enter the verification code written on your bill
-          </label>
-          <input id={`bill-${task.id}`} value={billCode} onChange={e => { setBillCode(formatCodeInput(e.target.value, "BV")); setError(null); }}
-            onKeyDown={e => e.key === "Enter" && billCode.length >= 9 && submitBillCode()}
-            placeholder="BV-000000" inputMode="text" autoCapitalize="characters" autoComplete="one-time-code" maxLength={9}
-            className="h-14 rounded-xl border border-outline bg-surface-container-lowest px-4 text-center font-mono text-2xl font-black tracking-widest text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
-          <p className="text-xs text-on-surface-variant">Bill code valid for {expiresIn(request?.bill_code_expires_at, now)}.</p>
-          <button type="button" onClick={submitBillCode} disabled={busy || billCode.length < 9}
-            className="w-full h-12 rounded-xl bg-success hover:bg-success text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
-            {busy ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />} Verify &amp; Complete Task
-          </button>
+          <div className="space-y-2.5 rounded-xl border border-outline-variant bg-surface-container-high p-3">
+            <label htmlFor={`bill-${task.id}`} className="flex items-center gap-2 text-sm font-bold text-on-surface">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold text-on-secondary" aria-hidden="true">2</span>
+              Enter the verification code written on your bill
+            </label>
+            <input id={`bill-${task.id}`} value={billCode} onChange={e => { setBillCode(formatCodeInput(e.target.value, "BV")); setError(null); }}
+              onKeyDown={e => e.key === "Enter" && billCode.length >= 9 && submitBillCode()}
+              placeholder="BV-000000" inputMode="text" autoCapitalize="characters" autoComplete="one-time-code" maxLength={9}
+              className="h-14 w-full rounded-xl border border-outline-variant bg-surface px-3 text-center font-mono text-xl font-extrabold tracking-widest text-on-surface placeholder:text-on-surface-variant focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/30" />
+            <p className="text-xs text-on-surface-variant">Bill code valid for {expiresIn(request?.bill_code_expires_at, now)}.</p>
+            <button type="button" onClick={submitBillCode} disabled={busy || billCode.length < 9}
+              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-3 py-2 text-sm font-bold text-on-secondary hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:opacity-40">
+              {busy ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />} Verify &amp; Complete Task
+            </button>
+          </div>
         </>
       )}
 

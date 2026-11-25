@@ -305,17 +305,17 @@ export default function StrivyPanel({
         </div>
 
         {/* Header */}
-        <header className="flex items-center gap-2.5 border-b border-outline-variant px-4 py-3">
+        <header className="flex items-center gap-2.5 border-b border-outline-variant bg-[radial-gradient(ellipse_at_top_right,color-mix(in_srgb,var(--color-streak)_12%,transparent),transparent_70%)] px-4 py-3">
           <StrivyAvatar size={32} state={avatarState} />
           <div className="flex min-w-0 flex-1 flex-col">
             <h2
               id="strivy-title"
-              className="text-[15px] font-extrabold leading-5 tracking-wide text-on-surface"
+              className="font-display text-headline-sm font-bold text-on-surface"
             >
               STRIVY
             </h2>
             <p className="truncate text-[12px] leading-4 text-on-surface-variant" aria-live="off">
-              {voiceOn ? "Listening mode 🎙️" : sending ? "typing…" : "Your accountability buddy"}
+              {voiceOn ? "Listening mode" : sending ? "Typing…" : "Accountability copilot"}
             </p>
           </div>
           {messages.length > 0 && (
@@ -382,7 +382,7 @@ export default function StrivyPanel({
               <div className="flex flex-col items-start gap-3 pb-2 pt-4">
                 <StrivyAvatar size={44} state="idle" />
                 <div>
-                  <p className="text-headline-md text-on-surface">Hey, I&apos;m Strivy 👋</p>
+                  <p className="font-display text-headline-md font-bold text-on-surface">Hey, I&apos;m Strivy 👋</p>
                   <p className="text-body-md text-on-surface-variant">
                     What are we getting done today? 👀
                   </p>
@@ -393,7 +393,7 @@ export default function StrivyPanel({
                       key={s}
                       type="button"
                       onClick={() => void send(s)}
-                      className="rounded-xl border border-outline-variant bg-surface-container-lowest px-3 py-2.5 text-left text-[13px] font-medium leading-5 text-on-surface transition-colors hover:border-secondary hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+                      className="min-h-11 rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-left text-[13px] font-medium leading-5 text-on-surface transition-colors hover:border-secondary hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
                     >
                       {s}
                     </button>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, FileText, Gift } from "lucide-react";
+import { ArrowLeft, ArrowRight, Coins, FileText, Gift, History, Ticket, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatMoney, getMyRewards, summarise } from "@/lib/data/rewards";
 import { RewardsBrowser } from "@/components/features/rewards/RewardsBrowser";
@@ -46,71 +46,82 @@ export default async function RewardsPage() {
       label: "Rewards earned",
       value: String(summary.totalEarned),
       hint: "Approved and in progress",
+      icon: Gift,
+      accent: "bg-secondary/12 text-secondary",
     },
     {
       label: "Awaiting payment",
       value: formatMoney(summary.cashAwaitingMinor),
-      hint: "Not yet in your account",
+      hint: "Payment pending",
+      icon: History,
+      accent: "bg-coin/15 text-coin-ink",
     },
     {
       label: "Paid out",
       value: formatMoney(summary.cashPaidMinor),
       hint: "Confirmed transfers only",
+      icon: Wallet,
+      accent: "bg-streak/15 text-streak-ink",
     },
     {
       label: "Coupons available",
       value: String(summary.couponsOpen),
       hint: "Unredeemed and unexpired",
+      icon: Ticket,
+      accent: "bg-secondary/12 text-secondary",
     },
   ];
 
   return (
     <div className="min-h-screen bg-surface pb-24">
-      <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-outline-variant bg-surface-container-lowest px-5 py-4">
-        <Link href="/profile" aria-label="Back to profile">
-          <ArrowLeft className="h-5 w-5 text-on-surface-variant" />
-        </Link>
-        <h1 className="flex-1 text-body-lg font-bold tracking-[-0.01em] text-on-surface">
-          My Rewards
-        </h1>
-        <Link
-          href="/rewards/terms"
-          aria-label="Reward terms and conditions"
-          className="flex h-9 items-center gap-1.5 rounded-full border border-outline-variant px-3 text-label-lg font-semibold text-on-surface-variant transition-colors hover:bg-surface-container"
-        >
-          <FileText size={15} aria-hidden="true" />
-          Terms
-        </Link>
+      <header className="sticky top-0 z-30 border-b border-outline-variant bg-surface/95 pt-safe backdrop-blur-sm">
+        <div className="mx-auto flex min-h-14 max-w-3xl items-center gap-3 px-4 sm:px-6">
+          <Link href="/profile" aria-label="Back to profile" className="flex size-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-surface-container">
+            <ArrowLeft size={20} aria-hidden="true" className="text-on-surface" />
+          </Link>
+          <h1 className="flex-1 font-display text-headline-md font-bold text-on-surface">My Rewards</h1>
+          <Link
+            href="/rewards/terms"
+            aria-label="Reward terms and conditions"
+            className="flex min-h-11 items-center gap-1.5 rounded-full px-3 text-label-lg font-semibold text-on-surface-variant transition-colors hover:bg-surface-container"
+          >
+            <FileText size={15} aria-hidden="true" />
+            Terms
+          </Link>
+        </div>
       </header>
 
-      <main className="mx-auto measure-page space-y-5 px-5 py-5">
-        {/* Summary. Four tiles, each one a figure the database can defend. */}
-        <section aria-label="Rewards summary" className="grid grid-cols-2 gap-2.5">
-          {tiles.map((t) => (
+      <div className="mx-auto max-w-3xl space-y-5 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+        <section aria-label="Rewards summary" className="grid grid-cols-2 gap-2 rounded-2xl border border-outline-variant bg-surface-container-lowest p-2.5 sm:grid-cols-4 sm:gap-3 sm:p-3">
+          {tiles.map(({ label, value, hint, icon: Icon, accent }) => (
             <div
-              key={t.label}
-              className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 elev-1 surface-raised"
+              key={label}
+              className="min-w-0 rounded-xl bg-surface-container-low p-3"
             >
-              <p className="text-label-md font-semibold text-on-surface-variant">{t.label}</p>
-              <p className="mt-1 text-headline-md font-bold tracking-[-0.02em] text-on-surface">
-                {t.value || formatMoney(0)}
+              <span className={`mb-2 flex size-8 items-center justify-center rounded-lg ${accent}`}>
+                <Icon size={16} aria-hidden="true" />
+              </span>
+              <p className="text-label-md font-semibold text-on-surface-variant">{label}</p>
+              <p className="mt-0.5 wrap-anywhere font-display text-headline-md font-bold tabular-nums text-on-surface">
+                {value}
               </p>
-              <p className="mt-0.5 text-label-sm text-on-surface-variant">{t.hint}</p>
+              <p className="mt-0.5 text-label-sm text-on-surface-variant">{hint}</p>
             </div>
           ))}
         </section>
 
         {rewards.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-outline bg-surface-container-lowest p-6 text-center">
-            <Gift className="mx-auto mb-2 h-8 w-8 text-on-surface-variant" aria-hidden="true" />
-            <h2 className="text-body-md font-bold text-on-surface">No rewards yet</h2>
+          <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-6 text-center">
+            <span className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl bg-secondary/12 text-secondary">
+              <Gift size={22} aria-hidden="true" />
+            </span>
+            <h2 className="font-display text-headline-md font-bold text-on-surface">No rewards yet</h2>
             <p className="mx-auto mt-1 max-w-sm text-body-sm leading-relaxed text-on-surface-variant">
-              Rewards show up here once a challenge or quest you completed has been
-              reviewed. Nothing is listed until it has actually been awarded to you.
+              Awards from completed challenges and quests appear here after review.
             </p>
             <Link
               href="/explore"
-              className="mt-4 inline-flex h-10 items-center rounded-xl bg-secondary px-5 text-body-md font-bold text-white elev-2 tap-target"
+              className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-secondary px-5 text-body-md font-bold text-on-secondary transition-colors hover:bg-secondary/85"
             >
               Explore challenges
             </Link>
@@ -118,6 +129,17 @@ export default async function RewardsPage() {
         ) : (
           <RewardsBrowser rewards={rewards} />
         )}
+
+        <Link
+          href="/coins"
+          className="flex items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4 transition-colors hover:bg-surface-container"
+        >
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-coin/15 text-coin-ink">
+            <Coins size={20} aria-hidden="true" />
+          </span>
+          <span className="flex-1 text-body-md font-bold text-on-surface">StrivCoins wallet</span>
+          <ArrowRight size={18} className="text-on-surface-variant" aria-hidden="true" />
+        </Link>
 
         <p className="text-center text-label-sm leading-relaxed text-on-surface-variant">
           Rewards are awarded under the{" "}
@@ -127,7 +149,7 @@ export default async function RewardsPage() {
           . Eligibility and amounts are decided by review, and a reward is only
           payable once its status says so.
         </p>
-      </main>
+      </div>
     </div>
   );
 }

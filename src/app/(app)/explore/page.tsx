@@ -2,9 +2,7 @@
  * app/(app)/explore/page.tsx — Explore / Challenge Discovery
  *
  * Server component: fetches challenges and quests from Supabase and passes
- * them to ExploreClient, which owns the header, the Quests/Challenges toggle
- * and the search box. Both lists are fetched up front so switching tabs and
- * searching are instant and need no network.
+ * them to ExploreClient for instant discovery filters and search.
  */
 
 import { createClient } from "@/lib/supabase/server";
@@ -66,11 +64,6 @@ export default async function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* The header lives in ExploreClient because the Quests/Challenges
-          toggle sits inside it and is client state. Keeping them in one
-          element is what makes the whole bar stick as a single block under
-          the notch, rather than two stacked sticky bars whose offsets have to
-          be kept in sync by hand. */}
       <ExploreClient featured={featured} trending={trending} quests={quests} mine={mine} />
     </div>
   );

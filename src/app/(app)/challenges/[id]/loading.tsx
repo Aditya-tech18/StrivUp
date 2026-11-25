@@ -1,62 +1,39 @@
 import { Skeleton } from "@/components/ui";
 
-/**
- * Shown the instant a challenge link is tapped, before the server has
- * answered.
- *
- * The group-level (app)/loading.tsx is feed-shaped, so until now opening a
- * challenge flashed three post cards and then replaced them with a hero and a
- * task list. This matches the real layout, so the skeleton turns into content
- * in place rather than being swapped out.
- */
 export default function ChallengeDetailLoading() {
   return (
     <div aria-busy="true" className="min-h-screen bg-surface">
-      <span className="sr-only" role="status">
-        Loading challenge…
-      </span>
+      <span className="sr-only" role="status">Loading challenge…</span>
 
-      {/* Top bar */}
-      <div className="flex h-14 items-center justify-between border-b border-outline-variant px-4 pt-safe">
-        <Skeleton className="h-5 w-24" />
-        <Skeleton className="h-8 w-8 rounded-full" />
+      <div className="border-b border-outline-variant/60 pt-safe">
+        <div className="mx-auto flex h-[3.25rem] max-w-5xl items-center gap-3 px-4 sm:px-6">
+          <Skeleton className="size-8 shrink-0 rounded-full" />
+          <Skeleton className="h-5 w-28" />
+          <Skeleton className="ml-auto size-8 rounded-full" />
+        </div>
       </div>
 
-      <div className="mx-auto measure-page">
-        {/* Hero */}
-        <Skeleton className="h-56 w-full rounded-none" />
+      <div className="mx-auto max-w-5xl space-y-4 px-4 py-4 sm:space-y-5 sm:px-6 sm:py-6">
+        <Skeleton className="h-56 w-full rounded-2xl sm:h-72 sm:rounded-3xl lg:h-80" />
 
-        <div className="space-y-5 px-4 py-5">
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-3/4" />
-            <Skeleton className="h-4 w-1/3" />
-          </div>
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+          {[0, 1, 2, 3].map((index) => (
+            <div key={index} className="space-y-2 rounded-xl bg-surface-container-low p-3 sm:p-4">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-6 w-12" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          ))}
+        </div>
 
-          {/* Stat row */}
-          <div className="grid grid-cols-3 gap-3">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="space-y-2 rounded-xl border border-outline-variant p-3">
-                <Skeleton className="mx-auto h-5 w-10" />
-                <Skeleton className="mx-auto h-3 w-14" />
-              </div>
-            ))}
-          </div>
-
-          {/* Task list */}
-          <div className="space-y-3">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 rounded-2xl border border-outline-variant p-4"
-              >
-                <Skeleton className="h-10 w-10 rounded-xl" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-2/3" />
-                  <Skeleton className="h-3 w-1/3" />
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          {[0, 1].map((index) => (
+            <div key={index} className="space-y-3 rounded-2xl bg-surface-container-low p-4 sm:p-5">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-11 w-full rounded-xl" />
+              <Skeleton className="h-11 w-full rounded-xl" />
+            </div>
+          ))}
         </div>
       </div>
     </div>

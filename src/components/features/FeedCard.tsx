@@ -138,15 +138,10 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5",
       ].join(" ")}
     >
-      {/* CHANGED: a thin StrivUp-blue edge on every proof card, so a post
-          reads as one object against the feed background instead of merging
-          into it. Kept to 1px and the brand secondary at low opacity: at full
-          strength a border this long competes with the proof photo, which is
-          the thing people are meant to look at. */}
       <Card
         bordered
         padding="none"
-        className="overflow-hidden border border-secondary/30 ring-1 ring-inset ring-secondary/10"
+        className="overflow-hidden rounded-2xl border border-outline-variant"
       >
         {/* ── Header: avatar + meta + streak badge ── */}
         <div className="flex items-start justify-between gap-3 p-4 pb-3">
@@ -182,9 +177,9 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
           </Link>
           {/* Streak badge */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-primary-container rounded-full px-2.5 py-1 flex-shrink-0">
-              <Flame size={12} className="text-secondary-fixed-dim" aria-hidden="true" />
-              <span className="text-overline text-on-primary text-label-sm font-semibold">
+            <div className="flex shrink-0 items-center gap-1 rounded-full bg-streak px-2.5 py-1 text-on-streak">
+              <Flame size={13} aria-hidden="true" />
+              <span className="text-xs font-bold tabular-nums">
                 DAY {post.streakDay}
               </span>
             </div>
@@ -266,15 +261,17 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
         </div>
 
         {/* ── Caption ── */}
-        <div className="px-4 pt-3 pb-2">
-          <p className="text-body-md text-on-surface leading-relaxed line-clamp-3">
-            {post.caption}
-          </p>
-        </div>
+        {post.caption && !post.adminRemoved ? (
+          <div className="px-4 pt-3 pb-2">
+            <p className="line-clamp-3 text-body-md leading-relaxed text-on-surface">
+              {post.caption}
+            </p>
+          </div>
+        ) : null}
 
         {/* ── Like / comment row ── */}
-        <div className="flex items-center justify-between px-4 pb-4 pt-1">
-          <div className="flex items-center gap-5">
+        <div className="flex items-center justify-between border-t border-outline-variant/70 px-4 py-1">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleToggleLike}
@@ -282,7 +279,7 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
               aria-pressed={liked}
               aria-label={liked ? `Unlike, ${likeCount} likes` : `Like, ${likeCount} likes`}
               className={[
-                "flex items-center gap-1.5 transition-colors duration-150 group",
+                "group flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl transition-colors duration-150 hover:bg-surface-container",
                 "disabled:cursor-default disabled:opacity-50",
                 liked ? "text-secondary" : "text-on-surface-variant hover:text-secondary",
               ].join(" ")}
@@ -304,7 +301,7 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
               aria-expanded={showComments}
               aria-label={`${commentCount} comments`}
               className={[
-                "flex items-center gap-1.5 transition-colors duration-150 group",
+                "group flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl transition-colors duration-150 hover:bg-surface-container",
                 showComments ? "text-secondary" : "text-on-surface-variant hover:text-secondary",
               ].join(" ")}
             >
@@ -330,7 +327,7 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
               kind="challenge"
               id={post.challengeId}
               title={post.challengeTitle}
-              className="flex items-center gap-1.5 text-on-surface-variant transition-colors duration-150 hover:text-secondary"
+              className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl text-on-surface-variant transition-colors duration-150 hover:bg-surface-container hover:text-secondary"
             />
           </div>
 
@@ -340,7 +337,7 @@ export function FeedCard({ post, viewerId = null }: { post: FeedPost; viewerId?:
             )}
             <button
               type="button"
-              className="text-on-surface-variant hover:text-error transition-colors duration-150 group"
+              className="group grid size-11 place-items-center rounded-xl text-on-surface-variant transition-colors duration-150 hover:bg-surface-container hover:text-error"
               aria-label="Report content"
               onClick={() => setIsReporting(true)}
               disabled={post.adminRemoved}

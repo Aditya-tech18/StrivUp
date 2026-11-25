@@ -162,32 +162,37 @@ function VerifyContent() {
   /* ── SEARCH SCREEN ────────────────────────────────────────────────────── */
   if (screen === "search") return (
     <div className="min-h-screen bg-surface pb-28">
-      <div className="flex items-center gap-3 px-5 py-4 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-30">
-        <Link aria-label="Back" href="/business/dashboard"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
-        <h1 className="text-body-lg font-black text-on-surface flex-1">Verify Participant</h1>
-        <Link aria-label="How verification works" href="/business/verification/how-it-works"><HelpCircle size={22} className="text-on-surface-variant" /></Link>
+      <div className="sticky top-0 z-30 border-b border-outline-variant bg-surface/95 backdrop-blur-sm">
+        <div className="mx-auto flex min-h-14 measure-form items-center gap-2 px-4">
+          <Link aria-label="Back" href="/business/dashboard" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-secondary"><ArrowLeft size={22} className="text-on-surface-variant" /></Link>
+          <h1 className="flex-1 text-lg font-extrabold text-on-surface">Verify Participant</h1>
+          <Link aria-label="How verification works" href="/business/verification/how-it-works" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-secondary"><HelpCircle size={22} className="text-on-surface-variant" /></Link>
+        </div>
       </div>
 
       <div className="px-5 py-5 mx-auto measure-form flex flex-col gap-5">
         {/* Instruction card */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-4 flex items-start gap-3 elev-1 surface-raised">
-          <div className="w-10 h-10 rounded-xl bg-secondary-fixed flex items-center justify-center shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-secondary" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><circle cx="18" cy="7" r="3"/><path d="M21 10c0 2-1 3-3 3"/></svg>
+        <div className="flex items-start gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/12 text-secondary">
+            <Users size={20} aria-hidden="true" />
           </div>
-          <p className="text-sm text-on-surface-variant leading-relaxed">Quest orders arrive with a STRIVUP code in the order description (e.g. SV-123456). Enter it here to verify the order.</p>
+          <div>
+            <h2 className="font-bold text-on-surface">Find a quest order</h2>
+            <p className="mt-1 text-sm leading-relaxed text-on-surface-variant">Find the STRIVUP code in the customer&apos;s order description (e.g. SV-123456).</p>
+          </div>
         </div>
 
         {/* OTP Input */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-on-surface-variant">Order verification code</label>
+        <div className="flex flex-col gap-2 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+          <label htmlFor="participant-order-code" className="text-sm font-semibold text-on-surface">Order verification code</label>
           <div className="flex gap-2">
-            <input aria-label="Order verification code"
+            <input id="participant-order-code"
               value={svCode}
               onChange={e => { setSvCode(formatCodeInput(e.target.value, "SV")); setSearchErr(null); }}
               onKeyDown={e => e.key === "Enter" && handleSearch()}
               placeholder="SV-000000"
               maxLength={9}
-              className="flex-1 h-12 rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant px-4 font-mono tracking-wider text-lg focus:outline-none focus:ring-2 focus:border-secondary focus:ring-secondary/30"
+              className="h-12 min-w-0 flex-1 rounded-xl border border-outline-variant bg-surface px-4 font-mono text-lg tracking-wider text-on-surface placeholder:text-on-surface-variant focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/30"
             />
             {svCode && (
               <button aria-label="Clear code" type="button" onClick={() => setSvCode("")}
@@ -198,7 +203,7 @@ function VerifyContent() {
           </div>
           {searchErr && <p role="alert" className="text-sm text-on-error-container">{searchErr}</p>}
           <button onClick={handleSearch} disabled={!svCode.trim() || searching}
-            className="w-full h-12 rounded-xl bg-secondary hover:opacity-90 disabled:opacity-40 text-white font-bold flex items-center justify-center gap-2 transition-all">
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary font-bold text-on-secondary transition-colors hover:opacity-90 disabled:opacity-40">
             {searching ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Search size={18} /> Search Order →</>}
           </button>
         </div>
@@ -263,7 +268,7 @@ function VerifyContent() {
               <p className="text-sm font-semibold text-on-surface">Build a more active community</p>
               <p className="text-xs text-on-surface-variant">Create a Quest to bring more participants to your business.</p>
             </div>
-            <span className="h-8 px-3 rounded-lg bg-secondary text-white text-xs font-bold flex items-center shrink-0">Create Quest</span>
+            <span className="flex h-8 shrink-0 items-center rounded-lg bg-secondary px-3 text-xs font-bold text-on-secondary">Create Quest</span>
           </div>
         </Link>
 
@@ -345,12 +350,21 @@ function VerifyContent() {
         </div>
 
         <div className="px-5 py-5 mx-auto measure-form flex flex-col gap-4">
-          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 text-center elev-1 surface-raised">
-            <p className="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">Order code</p>
-            <p className="mt-1 font-mono text-display-mobile font-black tracking-widest text-on-surface">{foundReq.sv_code}</p>
-            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-warning-container px-3 py-1 text-xs font-bold text-on-warning-container">
+          <div className="space-y-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-bold text-on-surface">Two-Code Verification</h2>
+              <span className="rounded-full bg-secondary/12 px-2.5 py-1 text-xs font-bold text-secondary">Step 1 of 2</span>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="flex items-center gap-2 text-sm font-bold text-on-surface">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-streak text-xs font-bold text-on-streak" aria-hidden="true">1</span>
+                Order code
+              </p>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-warning-container px-3 py-1 text-xs font-bold text-on-warning-container">
               <Clock size={13} /> Awaiting verification
-            </span>
+              </span>
+            </div>
+            <p className="select-all break-all rounded-xl bg-surface px-3 py-3 font-mono text-xl font-extrabold tracking-widest text-on-surface">{foundReq.sv_code}</p>
           </div>
 
           <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant px-4 divide-y divide-outline-variant elev-1 surface-raised">
@@ -404,7 +418,7 @@ function VerifyContent() {
                 <XCircle size={18} /> Reject
               </button>
               <button onClick={handleApprove} disabled={approving}
-                className="flex-[1.4] h-12 rounded-xl bg-success hover:bg-success text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                className="flex h-12 flex-[1.4] items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-bold text-on-secondary transition-colors hover:opacity-90 disabled:opacity-40">
                 {approving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><CheckCircle2 size={18} /> Verify Order</>}
               </button>
             </>
@@ -421,26 +435,31 @@ function VerifyContent() {
         <h1 className="text-body-lg font-black text-on-surface">Order Verified</h1>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-5 py-8 gap-6 max-w-sm mx-auto w-full">
-        {/* Big green check */}
-        <div className="w-24 h-24 rounded-full bg-success flex items-center justify-center elev-3">
-          <CheckCircle2 size={48} className="text-white" />
-        </div>
-
-        <div className="text-center">
-          <h2 className="text-headline-md font-black text-on-surface">Verification Successful</h2>
-          <p className="text-sm text-on-surface-variant mt-1">Now write the bill code below on the customer&apos;s bill.</p>
+      <div className="mx-auto flex w-full max-w-lg flex-col gap-4 px-5 py-5">
+        <div className="flex items-center gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-4">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-streak text-on-streak">
+            <CheckCircle2 size={22} aria-hidden="true" />
+          </span>
+          <div>
+            <h2 className="font-bold text-on-surface">Two-Code Verification</h2>
+            <p className="text-sm text-on-surface-variant">Order verified</p>
+          </div>
+          <span className="ml-auto shrink-0 rounded-full bg-secondary/12 px-2.5 py-1 text-xs font-bold text-secondary">Step 2 of 2</span>
         </div>
 
         {/* Bill code card */}
         <div className="w-full bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 elev-1 surface-raised">
-          <p className="text-sm font-bold text-on-surface mb-1">Bill Verification Code</p>
+          <p className="mb-2 flex items-center gap-2 text-sm font-bold text-on-surface">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-xs font-bold text-on-secondary" aria-hidden="true">2</span>
+            Bill Verification Code
+          </p>
           <p className="text-xs text-on-surface-variant mb-4">Write or print this clearly on the customer&apos;s bill. They enter it in STRIVUP to complete their task.</p>
-          <div className="flex items-center justify-between bg-surface-container-low rounded-xl px-5 py-4 border border-outline-variant">
-            <span className="font-mono font-black text-headline-lg text-on-surface tracking-widest">{billCode}</span>
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-outline-variant bg-surface px-3 py-2">
+            <span className="select-all break-all font-mono text-xl font-extrabold tracking-widest text-on-surface">{billCode}</span>
             <button type="button" onClick={() => navigator.clipboard.writeText(billCode).catch(()=>{})}
-              className="w-11 h-11 -mr-2 flex items-center justify-center text-on-surface-variant hover:text-on-surface ml-3" aria-label="Copy bill code">
+              className="flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-2 text-xs font-bold text-secondary hover:bg-surface-container-high focus-visible:outline-2 focus-visible:outline-secondary" aria-label="Copy bill code">
               <Copy size={20} />
+              Copy code
             </button>
           </div>
           <div className="flex items-center gap-6 mt-4">
@@ -457,16 +476,11 @@ function VerifyContent() {
           </div>
         </div>
 
-        <div className="bg-secondary-fixed rounded-xl p-3 border border-secondary-fixed-dim">
-          <p className="text-xs text-secondary text-center leading-relaxed">
-✏️ Write this code on the bill that goes with the order. The customer types it into STRIVUP — the task only completes when they do.
-          </p>
-        </div>
       </div>
 
       <div className="px-5 pb-8 flex flex-col gap-3 max-w-sm mx-auto w-full">
         <button onClick={() => router.push("/business/verification/how-it-works")}
-          className="w-full h-12 rounded-xl bg-secondary text-white font-bold text-sm">
+          className="w-full h-12 rounded-xl bg-secondary text-on-secondary font-bold text-sm">
           View Instructions →
         </button>
         <button onClick={reset} className="w-full h-12 rounded-xl border border-outline-variant text-on-surface-variant font-semibold text-sm">
@@ -486,7 +500,7 @@ function VerifyContent() {
         <h2 className="text-headline-md font-black text-on-surface">Order Rejected</h2>
         <p className="text-sm text-on-surface-variant mt-1">The customer has been notified{rejectReason.trim() ? " with your reason" : ""}.</p>
       </div>
-      <button onClick={reset} className="w-full h-12 rounded-xl bg-secondary text-white font-bold">Verify Another Order</button>
+      <button onClick={reset} className="h-12 w-full rounded-xl bg-secondary font-bold text-on-secondary">Verify Another Order</button>
       <button onClick={() => router.push("/business/dashboard")} className="w-full h-12 rounded-xl border border-outline-variant text-on-surface-variant font-semibold">Back to Dashboard</button>
     </div>
   );

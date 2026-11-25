@@ -41,16 +41,7 @@ export function MobileMenu() {
      the pathname: navigation here is always user-initiated, and setState
      straight from an effect body is the cascading-render pattern
      react-hooks/set-state-in-effect rejects. */
-  /* CHANGED: the drawer is now a short list of the things the bottom bar and
-     the rails cannot reach, not a copy of them.
-     
-     Everything else already has a thumb-reachable route: Home, Quest,
-     Challenges, Search and Create are the bottom bar, so repeating them here
-     was a second menu for a navigation that was never missing. What is left
-     is what has nowhere else to live on a phone.
-     
-     The desktop sidebar is untouched, because there is no bottom bar there
-     and the rail is the only way in. */
+  /* Secondary destinations complement the five mobile tabs. */
   const isBusiness = pathname.startsWith("/business");
 
   /* Get Verified appears in both modes. In business mode it is the only
@@ -58,7 +49,7 @@ export function MobileMenu() {
      PERSON, and there was nowhere else on a phone to start that. */
   const DRAWER_HREFS = isBusiness
     ? ["/settings/verification"]
-    : ["/rewards", "/settings/verification", "/settings", "/profile"];
+    : ["/profile", "/challenges", "/creator/challenges", "/search", "/alerts", "/rewards", "/coins", "/settings/verification", "/settings"];
 
   const byHref = new Map(NAV_ITEMS.map((i) => [i.href, i]));
   const items = DRAWER_HREFS.map((href) => byHref.get(href)).filter(

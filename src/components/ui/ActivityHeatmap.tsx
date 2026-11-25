@@ -59,16 +59,15 @@ const istDateFormatter = new Intl.DateTimeFormat("en-CA", {
 const todayInIndia = () => istDateFormatter.format(new Date());
 
 /**
- * Level tints: the brand blue stepping up in opacity rather than five picked
- * shades, so the ramp stays correct if --color-secondary moves and every step
+ * Level tints step up in opacity so the ramp follows the streak accent and every step
  * keeps the same hue.
  */
 const LEVEL_BG = [
-  "bg-surface-container",
-  "bg-secondary/25",
-  "bg-secondary/45",
-  "bg-secondary/70",
-  "bg-secondary",
+  "bg-surface-container-highest",
+  "bg-streak-ink/40",
+  "bg-streak-ink/60",
+  "bg-streak-ink/80",
+  "bg-streak-ink",
 ] as const;
 
 interface MonthBlock {
@@ -161,6 +160,7 @@ export function ActivityHeatmap({
   weekStartsOn = 0,
   locale = "en-GB",
   actions,
+  inset = false,
   className = "",
 }: {
   days: ActivityDay[];
@@ -174,6 +174,7 @@ export function ActivityHeatmap({
   weekStartsOn?: 0 | 1;
   locale?: string;
   actions?: React.ReactNode;
+  inset?: boolean;
   className?: string;
 }) {
   const model = useMemo(
@@ -212,6 +213,12 @@ export function ActivityHeatmap({
 
   const [tip, setTip] = useState<{ index: number; x: number; y: number } | null>(null);
   const plotRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const scroll = scrollRef.current;
+    if (inset && scroll) scroll.scrollLeft = scroll.scrollWidth;
+  }, [inset]);
 
   const noun = (n: number) => (n === 1 ? unit.one : unit.other);
 
@@ -294,7 +301,10 @@ export function ActivityHeatmap({
         {actions ? <div className="shrink-0">{actions}</div> : null}
       </div>
 
-      <div className="overflow-x-auto pb-1">
+      <div
+        ref={scrollRef}
+        className={`overflow-x-auto ${inset ? "rounded-xl bg-surface-container-low p-2.5" : "pb-1"}`}
+      >
         <div className="flex gap-1.5">
           {/* Weekday rail, aligned to the same 13px rows as every block. */}
           <div
@@ -421,7 +431,7 @@ export function ActivityHeatmap({
 
       <div className="mt-3 flex items-center justify-end gap-1.5">
         <span className="sr-only">
-          Darker squares mean more {unit.other}. Levels: {legendRanges.join(", ")}.
+          More saturated squares mean more {unit.other}. Levels: {legendRanges.join(", ")}.
         </span>
         <span aria-hidden="true" className="text-label-sm text-on-surface-variant">
           Less
