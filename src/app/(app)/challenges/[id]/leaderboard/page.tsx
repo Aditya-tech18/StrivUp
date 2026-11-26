@@ -1,8 +1,7 @@
 /**
  * app/(app)/challenges/[id]/leaderboard/page.tsx — Full Leaderboard
  *
- * Server component: fetches up to 50 participants ranked by current_streak
- * (longest_streak as tie-break) from the streaks view.
+ * Server component: fetches up to 50 participants ranked by approved days.
  */
 
 import Image from "next/image";
@@ -12,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getChallengeLeaderboard, getChallengeDetail } from "@/lib/data/challenges";
 import { Card } from "@/components/ui";
 import { notFound } from "next/navigation";
+import { LeaderboardRefresh } from "@/components/features/participation/LeaderboardRefresh";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -40,12 +40,13 @@ export default async function LeaderboardPage({ params }: PageProps) {
           >
             <ArrowLeft size={20} aria-hidden="true" />
           </Link>
-          <div>
+          <div className="min-w-0 flex-1">
             <h1 className="text-headline-md text-on-surface font-semibold leading-tight">
               Leaderboard
             </h1>
-            <p className="text-xs text-on-surface-variant">{challenge.title}</p>
+            <p className="truncate text-xs text-on-surface-variant">{challenge.title}</p>
           </div>
+          <LeaderboardRefresh auto />
         </div>
       </header>
 
@@ -54,7 +55,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
           <Card bordered padding="none">
             {entries.map((entry, idx) => (
               <div
-                key={entry.rank}
+                key={entry.userId}
                 className={[
                   "flex items-center gap-3 px-4 py-3",
                   idx < entries.length - 1 ? "border-b border-outline-variant" : "",
@@ -85,9 +86,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-on-surface text-sm truncate">{entry.name}</p>
                   <p className="text-xs text-on-surface-variant">
-                    {entry.totalDays !== null
-                      ? `${entry.daysCompleted}/${entry.totalDays} days`
-                      : `${entry.daysCompleted} day streak`}
+                    {entry.daysCompleted} {entry.daysCompleted === 1 ? "verified day" : "verified days"}
                   </p>
                 </div>
 
@@ -120,7 +119,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
                 No rankings yet
               </p>
               <p className="text-body-md text-on-surface-variant text-sm max-w-xs">
-                Rankings appear once participants start building streaks.
+                Rankings appear after participants get proof approved.
               </p>
             </div>
           </div>

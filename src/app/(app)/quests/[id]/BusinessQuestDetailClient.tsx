@@ -32,6 +32,10 @@ import { QuestLeaderboardModal } from "@/components/features/quest/QuestLeaderbo
 import { PeopleListSheet } from "@/components/features/people/PeopleList";
 import { getQuestMembers, getFacepile, type Facepile as FacepileData } from "@/lib/data/social";
 import { Facepile } from "@/components/features/people/Facepile";
+import { questPhase, type QuestPhase } from "@/lib/participation";
+import { ClosedBadge } from "@/components/features/participation/ClosedBadge";
+import { LeaveParticipationButton } from "@/components/features/participation/LeaveParticipationButton";
+import { useScheduleTime } from "@/components/features/participation/useScheduleTime";
 import {
   BusinessProfileCard, GoogleBusinessCard, LeaderboardPreviewCard,
   formatAddress,
@@ -96,14 +100,6 @@ function daysRemaining(end: string | null): number | null {
   return Math.ceil(ms / 86_400_000);
 }
 
-/** Whole days until the start date; 0 or negative once it has begun. */
-function daysUntil(start: string | null): number | null {
-  if (!start) return null;
-  const ms = new Date(start).getTime() - Date.now();
-  if (!Number.isFinite(ms)) return null;
-  return Math.ceil(ms / 86_400_000);
-}
-
 function durationDays(start: string | null, end: string | null): number | null {
   if (!start || !end) return null;
   const ms = new Date(end).getTime() - new Date(start).getTime();
@@ -146,28 +142,10 @@ export default function BusinessQuestDetailClient({
   const hasLeaderboard = quest.rewards.some((r) => r.is_leaderboard);
   const days = durationDays(quest.start_date, quest.end_date);
   const daysLeft = daysRemaining(quest.end_date);
+  const daysToStart = daysRemaining(quest.start_date);
   const isVerifiedBiz = quest.business_verification === "verified";
-  const isEnded = quest.quest_status === "completed" || quest.quest_status === "expired";
-
-  const daysToStart = daysUntil(quest.start_date);
-
-  /*
-   * A quest moves through three phases, and the dates decide — not the status
-   * alone. Before this, a quest starting next week still read as "Live",
-   * which invited people to upload proof for something that had not begun.
-   *
-   *   upcoming  start date is still ahead
-   *   live      started, not finished, still publicly open
-   *   closed    end date passed, or the status says it is over
-   */
-  const phase: "upcoming" | "live" | "closed" =
-    isEnded || (daysLeft != null && daysLeft <= 0)
-      ? "closed"
-      : daysToStart != null && daysToStart > 0
-        ? "upcoming"
-        : quest.quest_status === "active" || quest.quest_status === "published"
-          ? "live"
-          : "upcoming";
+  const scheduleTime = useScheduleTime(quest.start_date ?? quest.starts_at, quest.end_date ?? quest.ends_at);
+  const phase = questPhase(quest, scheduleTime);
 
   const businessName = quest.business?.business_name ?? quest.business_name ?? "Business";
   const userName = currentUserName?.split(" ")[0] ?? "there";
@@ -184,13 +162,9 @@ export default function BusinessQuestDetailClient({
     let cancelled = false;
 
     (async () => {
-      // Faces for the participant line, alongside the leaderboard load that
-      // already runs here.
-      getFacepile(supabase, "quest_participants", quest.id, 3).then(setPile);
-
-      const lb = await getQuestLeaderboard(supabase, quest.id, 10);
-      if (cancelled) return;
-      setLeaderboard(lb);
+      void getFacepile(supabase, "quest_participants", quest.id, 3).then((result) => {
+        if (!cancelled) setPile(result);
+      });
 
       if (!currentUserId) { setLoading(false); return; }
 
@@ -218,6 +192,24 @@ export default function BusinessQuestDetailClient({
     return () => { cancelled = true; };
   }, [supabase, quest.id, currentUserId]);
 
+  useEffect(() => {
+    if (!hasLeaderboard) return;
+    let cancelled = false;
+    async function refresh() {
+      if (document.visibilityState !== "visible") return;
+      const rows = await getQuestLeaderboard(supabase, quest.id, 10);
+      if (!cancelled) setLeaderboard(rows);
+    }
+    void refresh();
+    document.addEventListener("visibilitychange", refresh);
+    const timer = tab === "leaderboard" ? window.setInterval(refresh, 30_000) : null;
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", refresh);
+      if (timer !== null) window.clearInterval(timer);
+    };
+  }, [hasLeaderboard, quest.id, supabase, tab]);
+
   /* ── Join ───────────────────────────────────────────────────────────── */
 
   
@@ -227,7 +219,7 @@ const handleJoin = useCallback(async () => {
     return;
   }
 
-  if (phase !== "live") return;
+  if (questPhase(quest) !== "live") return;
 
   setJoining(true);
 
@@ -278,10 +270,9 @@ const handleJoin = useCallback(async () => {
 
 }, [
   currentUserId,
-  quest.id,
   router,
   supabase,
-  phase,
+  quest,
   tasks,
 ]);
 
@@ -381,6 +372,7 @@ const handleJoin = useCallback(async () => {
 
   const openProof = useCallback(
     (task: BusinessQuestDetail["tasks"][number]) => {
+      if (questPhase(quest) !== "live") return;
       if (!currentUserId) {
         router.push(`/login?redirectTo=/quests/${quest.id}`);
         return;
@@ -395,10 +387,23 @@ const handleJoin = useCallback(async () => {
         router.push(`/quests/${quest.id}/tasks`);
       }
     },
-    [currentUserId, hasJoined, handleJoin, quest.id, router]
+    [currentUserId, hasJoined, handleJoin, quest, router]
   );
 
   const completedCount = completedTaskIds.size;
+
+  function handleLeft() {
+    setHasJoined(false);
+    setActiveTask(null);
+    setCompletedTaskIds(new Set());
+    setVerifications(new Map());
+    void getFacepile(supabase, "quest_participants", quest.id, 3).then(setPile);
+    void supabase.from("quests").select("participant_count").eq("id", quest.id).maybeSingle().then(({ data }) => {
+      if (typeof data?.participant_count === "number") setParticipantCount(data.participant_count);
+    });
+    if (hasLeaderboard) void getQuestLeaderboard(supabase, quest.id, 10).then(setLeaderboard);
+    router.refresh();
+  }
 
   /* ── Render ─────────────────────────────────────────────────────────── */
 
@@ -476,7 +481,7 @@ const handleJoin = useCallback(async () => {
           <div className="min-w-0 flex flex-col gap-6">
 
             {/* Hero */}
-            <section className="relative rounded-2xl overflow-hidden border border-outline-variant bg-primary min-h-[260px] flex">
+            <section className={`relative rounded-2xl overflow-hidden border border-outline-variant bg-primary min-h-[260px] flex ${phase === "closed" ? "grayscale" : ""}`}>
               {heroImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -566,14 +571,7 @@ const handleJoin = useCallback(async () => {
                     Upcoming
                   </span>
                 </span>
-              ) : (
-                <span className="flex items-center gap-1.5 rounded-full bg-gray-100 border border-gray-200 px-2.5 py-1">
-                  <span className="inline-flex h-2 w-2 rounded-full bg-gray-400" />
-                  <span className="text-[11px] font-bold uppercase tracking-wide text-gray-600">
-                    Closed
-                  </span>
-                </span>
-              )}
+              ) : <ClosedBadge />}
 
               <span className="flex items-center gap-2">
                 <Users size={16} className="text-blue-600 shrink-0" />
@@ -678,9 +676,11 @@ const handleJoin = useCallback(async () => {
                   joined={hasJoined}
                   onJoin={handleJoin}
                   joining={joining}
-                  ended={isEnded}
+                  phase={phase}
+                  loading={loading}
                   joinRef={joinRef}
                 />
+                {hasJoined && <LeaveParticipationButton kind="quest" id={quest.id} onLeft={handleLeft} />}
                 <TaskSection
                   tasks={tasks}
                   completedTaskIds={completedTaskIds}
@@ -819,7 +819,7 @@ const handleJoin = useCallback(async () => {
       {/* ── Mobile join bar ────────────────────────────────────────────
           Sits on top of the bottom nav, which already folds the home-indicator
           inset into its own height, so this only needs its own padding. */}
-      {!loading && !hasJoined && !isEnded && (
+      {!loading && !hasJoined && phase === "live" && (
         <div className="fixed above-bottom-nav left-0 right-0 z-40 border-t border-outline-variant bg-surface-container-lowest px-gutter py-3 elev-3 lg:hidden">
           <button
             onClick={handleJoin}
@@ -877,7 +877,7 @@ const handleJoin = useCallback(async () => {
           past, so the action is always reachable without ever duplicating it
           on screen. Hidden entirely once joined or ended — a bar that says
           nothing actionable is just a strip of wasted screen. */}
-      {showStickyJoin && !hasJoined && !isEnded && (
+      {!loading && showStickyJoin && !hasJoined && phase === "live" && (
         <div className="fixed above-bottom-nav z-40 border-t border-outline-variant bg-surface-container-lowest/95 backdrop-blur-sm pb-safe">
           <div className="mx-auto max-w-[1400px] px-gutter lg:px-gutter-lg py-3 flex items-center gap-4">
             <div className="min-w-0 flex-1 hidden sm:block">
@@ -906,7 +906,7 @@ const handleJoin = useCallback(async () => {
 /* ── About this Quest ──────────────────────────────────────────────────── */
 
 function AboutQuestCard({
-  quest, days, locationLine, joined, onJoin, joining, ended, joinRef,
+  quest, days, locationLine, joined, onJoin, joining, phase, loading, joinRef,
 }: {
   quest: BusinessQuestDetail;
   days: number | null;
@@ -914,7 +914,8 @@ function AboutQuestCard({
   joined: boolean;
   onJoin: () => void;
   joining: boolean;
-  ended: boolean;
+  phase: QuestPhase;
+  loading: boolean;
   /** Watched by the page so the sticky bar appears once this scrolls away. */
   joinRef: React.RefObject<HTMLDivElement | null>;
 }) {
@@ -942,18 +943,13 @@ function AboutQuestCard({
         <h2 className="text-body-lg font-bold text-on-surface">About This Quest</h2>
 
         <div ref={joinRef} className="shrink-0 w-full sm:w-auto">
-          {ended ? (
-            <button
-              disabled
-              className="h-10 px-6 rounded-xl bg-surface-container text-on-surface-variant font-bold text-sm cursor-not-allowed w-full sm:w-auto"
-            >
-              Quest Ended
-            </button>
+          {phase !== "live" ? (
+            phase === "closed" ? <ClosedBadge /> : <p className="text-sm font-semibold text-on-surface-variant">Upcoming</p>
           ) : joined ? (
             <div className="inline-flex h-10 px-5 rounded-xl bg-success-container border border-success-outline text-on-success-container font-bold text-sm items-center justify-center gap-2 w-full sm:w-auto">
               <ShieldCheck size={16} /> You&apos;ve Joined
             </div>
-          ) : (
+          ) : loading ? null : (
             <button
               onClick={onJoin}
               disabled={joining}
@@ -1089,13 +1085,11 @@ function TaskCard({
   // Why the upload button is unavailable, checked in the order a user hits them.
   // Tasks are deliberately NOT sequential: someone may be able to do task 3
   // today and task 1 tomorrow, and forcing an order would just block them.
-  const blockedReason = !joined
-    ? "Join the Quest to start"
-    : phase === "upcoming"
+  const blockedReason = phase === "upcoming"
       ? "Quest hasn't started yet"
       : phase === "closed"
         ? "This Quest is closed"
-        : null;
+        : !joined ? "Join the Quest to start" : null;
 
   return (
     <li className="rounded-2xl border border-outline-variant bg-surface-container-lowest transition-colors hover:border-outline">

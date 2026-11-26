@@ -38,6 +38,8 @@ import { Badge, Button, Card, MobileMenu } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { ShareButton } from "@/components/features/share/ShareButton";
 import type { FeaturedChallenge, FeaturedQuest, TrendingChallenge } from "./page";
+import { isPastDeadline, questPhase } from "@/lib/participation";
+import { ClosedBadge } from "@/components/features/participation/ClosedBadge";
 
 type View = "discover" | "quests" | "challenges" | "mine";
 
@@ -82,10 +84,11 @@ const FOCUS_RING =
 function QuestCard({ quest, spotlight = false }: { quest: FeaturedQuest; spotlight?: boolean }) {
   const art = quest.cover_url ?? quest.thumbnail_url ?? null;
   const hasReward = Boolean(quest.rewards?.length);
+  const closed = questPhase(quest) === "closed";
   return (
     <article className="flex h-full flex-col rounded-2xl border border-outline-variant bg-surface-container-lowest">
       <Link href={`/quests/${quest.id}`} className={`group block rounded-t-2xl ${FOCUS_RING}`}>
-        <div className={`relative isolate w-full overflow-hidden rounded-t-2xl bg-surface-variant ${spotlight ? "aspect-[2/1] max-h-72" : "aspect-video"}`}>
+        <div className={`relative isolate w-full overflow-hidden rounded-t-2xl bg-surface-variant ${spotlight ? "aspect-[2/1] max-h-72" : "aspect-video"} ${closed ? "grayscale" : ""}`}>
           {art ? (
             <Image
               src={art}
@@ -101,10 +104,10 @@ function QuestCard({ quest, spotlight = false }: { quest: FeaturedQuest; spotlig
           )}
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/25" />
           <div className="absolute inset-x-3 top-3 flex flex-wrap items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-streak px-2.5 py-1 text-xs font-bold text-on-streak">
+            {closed ? <ClosedBadge /> : <span className="inline-flex items-center gap-1 rounded-full bg-streak px-2.5 py-1 text-xs font-bold text-on-streak">
               <MapPin size={13} aria-hidden="true" />
               Local quest
-            </span>
+            </span>}
             {quest.category && (
               <span className="rounded-full bg-[#0B1220]/90 px-2.5 py-1 text-xs font-semibold text-white">{quest.category}</span>
             )}
@@ -151,7 +154,7 @@ function QuestCard({ quest, spotlight = false }: { quest: FeaturedQuest; spotlig
           />
           <Link
             href={`/quests/${quest.id}`}
-            className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-streak px-3 text-xs font-bold text-on-streak transition-opacity hover:opacity-90 ${FOCUS_RING}`}
+            className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-opacity hover:opacity-90 ${closed ? "bg-surface-container-highest text-on-surface" : "bg-streak text-on-streak"} ${FOCUS_RING}`}
             aria-label={`View quest: ${quest.title}`}
           >
             View quest <ArrowRight size={14} aria-hidden="true" />
@@ -164,6 +167,7 @@ function QuestCard({ quest, spotlight = false }: { quest: FeaturedQuest; spotlig
 
 /* ── FeaturedCard ────────────────────────────────────────────────────────── */
 function FeaturedCard({ challenge }: { challenge: FeaturedChallenge }) {
+  const closed = isPastDeadline(challenge.enrollmentEndsAt);
   return (
     <Link href={`/challenges/${challenge.id}`} className={`block h-full rounded-xl ${FOCUS_RING}`}>
       <Card padding="none" bordered elevation={2} interactive className="h-full overflow-hidden">
@@ -172,11 +176,11 @@ function FeaturedCard({ challenge }: { challenge: FeaturedChallenge }) {
             src={challenge.coverImageUrl}
             alt=""
             fill
-            className="object-cover"
+            className={`object-cover ${closed ? "grayscale" : ""}`}
             sizes="280px"
           />
           <div className="absolute left-2 top-2">
-            <Badge variant="secondary" className="elev-1">Featured</Badge>
+            {closed ? <ClosedBadge /> : <Badge variant="secondary" className="elev-1">Featured</Badge>}
           </div>
           {challenge.verified && (
             <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest/85 px-2 py-0.5 backdrop-blur-sm">
@@ -220,8 +224,10 @@ function TrendingRow({
   const [joinState, setJoinState] = useState<"idle" | "loading" | "joined">("idle");
   const [isPending, startTransition] = useTransition();
   const isPublic = challenge.visibility === "public";
+  const closed = isPastDeadline(challenge.isParticipant ? challenge.participationEndsAt : challenge.enrollmentEndsAt);
 
   const handleJoin = () => {
+    if (isPastDeadline(challenge.enrollmentEndsAt)) return;
     if (!isPublic) { onPrivateClick(); return; }
     if (joinState === "joined" || joinState === "loading") return;
 
@@ -252,7 +258,7 @@ function TrendingRow({
         aria-hidden="true"
       >
         <div className="relative h-12 w-12 overflow-hidden rounded-lg bg-surface-variant sm:h-14 sm:w-14">
-          <Image src={challenge.thumbnailUrl} alt="" fill className="object-cover" sizes="56px" />
+          {challenge.thumbnailUrl && <Image src={challenge.thumbnailUrl} alt="" fill className={`object-cover ${closed ? "grayscale" : ""}`} sizes="56px" />}
         </div>
       </Link>
       <div className="min-w-0 flex-1 space-y-1">
@@ -265,14 +271,14 @@ function TrendingRow({
         <div className="flex items-center gap-3 text-body-sm text-on-surface-variant">
           <span className="flex items-center gap-0.5">
             <Flame size={11} className="text-streak-ink" aria-hidden="true" />
-            Day {challenge.currentDay}/{challenge.totalDays}
+            Day {challenge.currentDay}{challenge.totalDays > 0 ? `/${challenge.totalDays}` : ""}
           </span>
           <span className="flex items-center gap-1">
             <Users size={11} aria-hidden="true" />
             {challenge.memberCount.toLocaleString()}
           </span>
         </div>
-        <div
+        {challenge.totalDays > 0 && <div
           className="h-1 w-full overflow-hidden rounded-full bg-surface-container-highest"
           role="progressbar"
           aria-valuenow={challenge.progressPercent}
@@ -281,17 +287,21 @@ function TrendingRow({
           aria-label={`${challenge.title}: ${challenge.progressPercent}% complete`}
         >
           <div
-            className="h-full rounded-full bg-streak motion-safe:transition-all motion-safe:duration-500"
+            className={`h-full rounded-full motion-safe:transition-all motion-safe:duration-500 ${closed ? "bg-outline" : "bg-streak"}`}
             style={{ width: `${challenge.progressPercent}%` }}
           />
-        </div>
+        </div>}
       </div>
       {/* Action column: the primary button, with Share directly beneath it.
           Stacked rather than placed in the row because the row is already
           full at 56px of art plus the title block, and a third item there
           pushes the progress bar into the title on a narrow phone. */}
       <div className="flex shrink-0 flex-col items-stretch gap-1">
-        {challenge.isParticipant ? (
+        {closed ? (
+          <Link href={`/challenges/${challenge.id}`} className={`inline-flex min-h-11 items-center justify-center rounded-xl ${FOCUS_RING}`}>
+            <ClosedBadge />
+          </Link>
+        ) : challenge.isParticipant ? (
           <Link
             href={`/challenges/${challenge.id}`}
             className={[

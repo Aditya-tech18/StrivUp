@@ -46,6 +46,11 @@ import { currentChallengePeriodProgress } from "@/lib/data/activity";
 import { ProofRequirementsNotice } from "@/components/features/proof/ProofRequirementsNotice";
 import type { ProofRequirement } from "@/lib/data/proofRequirements";
 import type { PhysicalActivityConfig, QuestActivityProgress } from "@/lib/activity/types";
+import { challengeDeadline, isPastDeadline } from "@/lib/participation";
+import { ClosedBadge } from "@/components/features/participation/ClosedBadge";
+import { LeaveParticipationButton } from "@/components/features/participation/LeaveParticipationButton";
+import { LeaderboardRefresh } from "@/components/features/participation/LeaderboardRefresh";
+import { useScheduleTime } from "@/components/features/participation/useScheduleTime";
 
 /* ── Public types ─────────────────────────────────────────────────────────── */
 export interface ChallengeDetail {
@@ -58,7 +63,8 @@ export interface ChallengeDetail {
   successPercent: number;
   currentStreak: number;
   currentDay: number;
-  totalDays: number;
+  durationDays: number | null;
+  enrollmentEndsAt: string | null;
   todayTask: string;
   visibility: "public" | "private";
   /** Derived at creation time; tells a participant what to photograph. */
@@ -71,11 +77,11 @@ export interface ChallengeDetail {
 }
 
 export interface LeaderboardEntry {
+  userId: string;
   rank: number;
   name: string;
   avatarUrl: string;
   daysCompleted: number;
-  totalDays: number | null;
   badge?: "champion" | "leader";
 }
 
@@ -228,7 +234,7 @@ function LegacyUploadCard({
           <Camera size={19} className="text-streak-ink" aria-hidden="true" /> Today&apos;s proof
         </h2>
         <span className="rounded-full bg-surface-container-high px-2.5 py-1 text-xs font-semibold text-on-surface-variant">
-          Day {challenge.currentDay} of {challenge.totalDays}
+          Day {calcDayNumber(joinedAt)}{challenge.durationDays ? ` of ${challenge.durationDays}` : ""}
         </span>
       </div>
 
@@ -305,6 +311,11 @@ export function ChallengeDetailClient({
   const [isParticipant, setIsParticipant] = useState(initialIsParticipant);
   const [joinError, setJoinError] = useState<string | null>(null);
   const hasTasks = tasks.length > 0;
+  const deadline = isParticipant && joinedAt
+    ? challengeDeadline(joinedAt, challenge.durationDays)
+    : challenge.enrollmentEndsAt;
+  const scheduleTime = useScheduleTime(null, deadline);
+  const closed = isPastDeadline(deadline, scheduleTime);
 
   // Physical activity is additive: a challenge with no physical task simply
   // gets two empty results and renders exactly as it did before.
@@ -358,23 +369,13 @@ export function ChallengeDetailClient({
     };
   }, [userId, challenge.id, hasPhysicalTask]);
 
-  /* Join, optimistically.
-     The task list and the proof uploader are gated on isParticipant, so
-     waiting for the insert to come back meant tapping Join and then watching
-     a spinner before anything appeared. The row is flipped first and rolled
-     back if the write genuinely fails, which it does not normally do: the
-     only expected failure is the unique constraint, and that one means the
-     person is already a participant, so the optimistic state was right.
-
-     joinError is kept for the real failures, and the revert puts the button
-     back so the action can be retried. */
   const handleJoin = () => {
+    if (isPastDeadline(challenge.enrollmentEndsAt)) return;
     if (!userId) {
       router.push(`/login?next=/challenges/${challenge.id}`);
       return;
     }
     setJoinError(null);
-    setIsParticipant(true);
 
     startTransition(async () => {
       const supabase = createClient();
@@ -384,15 +385,12 @@ export function ChallengeDetailClient({
         status: "active",
       });
 
-      // Unique constraint = already joined → the optimistic state stands.
-      if (error && !error.message.includes("duplicate") && !error.message.includes("unique")) {
-        setIsParticipant(false);
+      if (error && error.code !== "23505") {
         setJoinError(error.message);
         return;
       }
 
-      // Pull the server's view of membership so the counts and the
-      // leaderboard reflect the new row.
+      setIsParticipant(true);
       router.refresh();
     });
   };
@@ -424,7 +422,7 @@ export function ChallengeDetailClient({
             isPrivate={isPrivate}
             className={toolbarButton}
           />
-          {isCreator ? (
+          {isCreator && !isPastDeadline(challenge.enrollmentEndsAt) ? (
             <button type="button" onClick={() => setInviteOpen(true)} className={toolbarButton} aria-label="Invite people to this challenge" title="Invite people">
               <UserPlus size={19} aria-hidden="true" />
             </button>
@@ -437,7 +435,7 @@ export function ChallengeDetailClient({
 
       <div className="mx-auto max-w-5xl space-y-4 px-4 py-4 sm:space-y-5 sm:px-6 sm:py-6">
         <section aria-labelledby="challenge-title" className="overflow-hidden rounded-2xl bg-surface-container-low sm:rounded-3xl">
-          <div className="relative flex min-h-56 flex-col justify-end overflow-hidden bg-[#151c2a] p-4 text-white sm:min-h-72 sm:p-6 lg:min-h-80">
+          <div className={`relative flex min-h-56 flex-col justify-end overflow-hidden bg-[#151c2a] p-4 text-white sm:min-h-72 sm:p-6 lg:min-h-80 ${closed ? "grayscale" : ""}`}>
             <Image
               src={challenge.bannerUrl}
               alt=""
@@ -449,11 +447,11 @@ export function ChallengeDetailClient({
             <div className="absolute inset-0 bg-linear-to-b from-black/50 via-black/20 to-[#101522]" aria-hidden="true" />
 
             <div className="absolute inset-x-4 top-4 flex flex-wrap items-center justify-between gap-2 sm:inset-x-6 sm:top-6">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-streak px-2.5 py-1 text-xs font-bold text-on-streak">
+              {closed ? <ClosedBadge /> : <span className="inline-flex items-center gap-1.5 rounded-full bg-streak px-2.5 py-1 text-xs font-bold text-on-streak">
                 {isPrivate ? <Lock size={13} aria-hidden="true" /> : <Zap size={13} aria-hidden="true" />}
                 {isPrivate ? "Private challenge" : "Public challenge"}
-              </span>
-              {challenge.dailyStake > 0 ? (
+              </span>}
+              {!closed && challenge.dailyStake > 0 ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-coin px-2.5 py-1 text-xs font-bold text-on-coin">
                   <Coins size={13} aria-hidden="true" /> {challenge.dailyStake} StrivCoins per day
                 </span>
@@ -468,7 +466,9 @@ export function ChallengeDetailClient({
               {challenge.category ? <p className="mt-1 text-sm font-semibold text-white/85 capitalize">{challenge.category.replace(/[-_]+/g, " ")}</p> : null}
             </div>
           </div>
-          {challenge.dailyStake > 0 ? (
+          {closed ? (
+            <p className="bg-surface-container-high px-4 py-3 text-sm font-semibold text-on-surface-variant sm:px-6">This challenge has ended.</p>
+          ) : challenge.dailyStake > 0 ? (
             <p className="flex items-start gap-2 bg-surface-container-high px-4 py-3 text-sm text-on-surface-variant sm:px-6">
               <ShieldCheck className="shrink-0 text-streak-ink" size={18} aria-hidden="true" />
               <span>Missed days cost <strong className="text-coin-ink">{challenge.dailyStake} StrivCoins</strong> each.</span>
@@ -478,7 +478,7 @@ export function ChallengeDetailClient({
 
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3" aria-label="Challenge statistics" role="list">
           {[
-            { label: "Duration", value: challenge.totalDays, unit: "days", detail: "Day " + challenge.currentDay + " of " + challenge.totalDays, Icon: Calendar, tone: "text-secondary" },
+            { label: "Duration", value: challenge.durationDays ?? "Ongoing", unit: challenge.durationDays ? "days" : undefined, detail: challenge.durationDays ? `Day ${isParticipant ? Math.min(proofDay, challenge.durationDays) : challenge.currentDay} of ${challenge.durationDays}` : undefined, Icon: Calendar, tone: "text-secondary" },
             { label: "Active members", value: challenge.activeCount.toLocaleString(), detail: "See members", Icon: Users, tone: "text-streak-ink" },
             { label: "Your streak", value: challenge.currentStreak, unit: challenge.currentStreak === 1 ? "day" : "days", Icon: Flame, tone: "text-coin-ink" },
             { label: "Latest proof rate", value: challenge.successPercent + "%", Icon: ChartNoAxesColumnIncreasing, tone: "text-secondary" },
@@ -528,9 +528,17 @@ export function ChallengeDetailClient({
           </nav>
         ) : null}
 
+        {isParticipant && userId ? (
+          <LeaveParticipationButton kind="challenge" id={challenge.id} onLeft={() => {
+            setIsParticipant(false);
+            if (isPrivate && !isCreator) router.replace("/challenges");
+            else router.refresh();
+          }} />
+        ) : null}
+
         <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <div className="min-w-0 space-y-4 sm:space-y-5">
-            {isParticipant ? (
+            {isParticipant && !closed ? (
               hasTasks ? (
                 <section id="proof" aria-label="Challenge tasks" className={panel + " scroll-mt-24"}>
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -538,7 +546,7 @@ export function ChallengeDetailClient({
                       <ListChecks size={19} className="text-streak-ink" aria-hidden="true" /> Today&apos;s tasks
                     </h2>
                     <span className="rounded-full bg-surface-container-high px-2.5 py-1 text-xs font-semibold text-on-surface-variant">
-                      Day {challenge.currentDay} of {challenge.totalDays}
+                      Day {proofDay}{challenge.durationDays ? ` of ${challenge.durationDays}` : ""}
                     </span>
                   </div>
                   {!userId ? (
@@ -599,7 +607,7 @@ export function ChallengeDetailClient({
                   submission={legacySubmission}
                 />
               )
-            ) : isPrivate ? (
+            ) : isPrivate && !closed && !isParticipant ? (
               <section aria-label="Join this challenge" className={panel}>
                 <div className="flex items-start gap-3">
                   <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary-fixed text-on-secondary-fixed">
@@ -655,14 +663,17 @@ export function ChallengeDetailClient({
               <h2 id="challenge-leaderboard" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight">
                 <Trophy size={19} className="text-coin-ink" aria-hidden="true" /> Leaderboard
               </h2>
-              <Link href={"/challenges/" + challenge.id + "/leaderboard"} className="inline-flex min-h-11 items-center gap-0.5 rounded-md text-xs font-bold text-secondary hover:underline">
-                View all <ChevronRight size={14} aria-hidden="true" />
-              </Link>
+              <div className="flex items-center gap-1">
+                <LeaderboardRefresh />
+                <Link prefetch={false} href={"/challenges/" + challenge.id + "/leaderboard"} className="inline-flex min-h-11 items-center gap-0.5 rounded-md text-xs font-bold text-secondary hover:underline">
+                  View all <ChevronRight size={14} aria-hidden="true" />
+                </Link>
+              </div>
             </div>
             {leaderboard.length > 0 ? (
               <ol className="space-y-2">
                 {leaderboard.map((entry) => (
-                  <li key={entry.rank} className="flex min-h-14 items-center gap-2.5 rounded-xl bg-surface-container-high/55 px-3 py-2">
+                  <li key={entry.userId} className="flex min-h-14 items-center gap-2.5 rounded-xl bg-surface-container-high/55 px-3 py-2">
                     <span className={"grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold " + (entry.rank === 1 ? "bg-coin text-on-coin" : "bg-surface-container-highest text-on-surface-variant")}>
                       {entry.rank}
                     </span>
@@ -670,7 +681,7 @@ export function ChallengeDetailClient({
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold">{entry.name}</p>
                       <p className="text-xs text-on-surface-variant">
-                        {entry.totalDays !== null ? entry.daysCompleted + "/" + entry.totalDays + " days" : entry.daysCompleted + " day streak"}
+                        {entry.daysCompleted} {entry.daysCompleted === 1 ? "verified day" : "verified days"}
                       </p>
                     </div>
                     {entry.badge ? (
@@ -681,7 +692,7 @@ export function ChallengeDetailClient({
                   </li>
                 ))}
               </ol>
-            ) : <p className="rounded-xl bg-surface-container-high/55 p-3 text-sm text-on-surface-variant">No streaks recorded yet.</p>}
+            ) : <p className="rounded-xl bg-surface-container-high/55 p-3 text-sm text-on-surface-variant">Rankings appear after participants get proof approved.</p>}
             {memberPile && memberPile.total > 0 ? (
               <Facepile people={memberPile.people} total={memberPile.total} verb="Joined by" noun="member" size={25} className="min-h-11 max-w-full" onOpen={() => setMembersOpen(true)} />
             ) : null}
@@ -701,7 +712,7 @@ export function ChallengeDetailClient({
           )}
         </section>
 
-        {!isParticipant && !isPrivate ? (
+        {!closed && !isParticipant && !isPrivate ? (
           <footer aria-label="Join this challenge" className="sticky bottom-[var(--bottom-nav-h)] z-20 -mx-4 border-t border-outline-variant/60 bg-surface/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 md:bottom-0">
             {joinError ? <p role="alert" className="mb-2 rounded-xl bg-error-container p-3 text-sm text-on-error-container">{joinError}</p> : null}
             <button

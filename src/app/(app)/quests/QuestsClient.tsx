@@ -17,6 +17,8 @@ import { AlertCircle, ArrowRight, Compass, Flame, MapPin, Store, Trophy, Users }
 import { createClient } from "@/lib/supabase/client";
 import { MobileMenu } from "@/components/ui";
 import type { Quest } from "@/lib/data/quests";
+import { questPhase } from "@/lib/participation";
+import { ClosedBadge } from "@/components/features/participation/ClosedBadge";
 import { sortQuestsByDistance } from "@/lib/data/quests";
 import {
   GeoError,
@@ -171,9 +173,9 @@ export default function QuestsClient({
     [initialTrendingQuests, supabase]
   );
 
-  const [hotQuest, ...moreHotQuests] = initialHotQuests;
+  const [hotQuest, ...moreHotQuests] = initialHotQuests.filter((quest) => questPhase(quest) === "live");
   const spotlight = tab === "all"
-    ? hotQuest ?? (activeFilter === "trending" ? initialTrendingQuests[0] : undefined)
+    ? hotQuest ?? (activeFilter === "trending" ? initialTrendingQuests.find((quest) => questPhase(quest) === "live") : undefined)
     : undefined;
 
   return (
@@ -350,7 +352,7 @@ export default function QuestsClient({
                     href={`/quests/${quest.id}`}
                     className="group flex h-full min-w-0 items-start gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-3 transition-colors hover:border-secondary/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
                   >
-                    <Thumb src={quest.thumbnail_url} alt="" className="h-16 w-16 shrink-0 overflow-hidden rounded-lg sm:h-20 sm:w-20" />
+                    <Thumb src={quest.thumbnail_url} alt="" className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg sm:h-20 sm:w-20 ${questPhase(quest) === "closed" ? "grayscale" : ""}`} />
                     <div className="min-w-0 flex-1 space-y-1">
                       <h3 className="line-clamp-2 text-sm font-bold text-on-surface">{quest.title}</h3>
                       {quest.business_name && <p className="truncate text-xs text-on-surface-variant">{quest.business_name}</p>}
@@ -366,6 +368,7 @@ export default function QuestsClient({
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        {questPhase(quest) === "closed" && <ClosedBadge />}
                         {quest.category && (
                           <span className="rounded-full bg-surface-container-high px-2 py-0.5 text-xs font-semibold text-on-surface-variant">{quest.category}</span>
                         )}

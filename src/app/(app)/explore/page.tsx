@@ -8,6 +8,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getDiscoveryData } from "@/lib/data/discovery";
 import { ExploreClient } from "./ExploreClient";
+import type { QuestSchedule } from "@/lib/participation";
 
 /* ── Public types — re-exported so ExploreClient and challenges.ts can import */
 export interface FeaturedChallenge {
@@ -18,6 +19,7 @@ export interface FeaturedChallenge {
   memberCount: number;
   durationLabel: string;
   verified: boolean;
+  enrollmentEndsAt: string | null;
 }
 
 export interface TrendingChallenge {
@@ -31,6 +33,8 @@ export interface TrendingChallenge {
   progressPercent: number;
   visibility: "public" | "private";
   isParticipant: boolean;
+  enrollmentEndsAt: string | null;
+  participationEndsAt: string | null;
 }
 
 /**
@@ -38,7 +42,7 @@ export interface TrendingChallenge {
  * section and imports this type; the fetch below is the half that was missing,
  * which is why the production build could not resolve it.
  */
-export interface FeaturedQuest {
+export interface FeaturedQuest extends QuestSchedule {
   id: string;
   title: string;
   cover_url: string | null;

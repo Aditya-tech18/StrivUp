@@ -6,8 +6,12 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, CheckCircle2, Clock, Lock, Upload, X, XCircle } from "lucide-react";
+import { ArrowLeft, Check, CheckCircle2, Clock, Upload, X, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { questPhase, type QuestSchedule } from "@/lib/participation";
+import { QUEST_SCHEDULE_FIELDS } from "@/lib/data/quests";
+import { ClosedBadge } from "@/components/features/participation/ClosedBadge";
+import { useScheduleTime } from "@/components/features/participation/useScheduleTime";
 import { compressImage, IMAGE_PRESETS } from "@/lib/image";
 import { PhysicalTaskCard } from "@/components/features/activity";
 import {
@@ -40,7 +44,7 @@ interface TaskSubmission {
   submitted_at: string;
 }
 
-interface QuestInfo {
+interface QuestInfo extends QuestSchedule {
   id: string;
   title: string;
   business_name: string | null;
@@ -80,6 +84,8 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
   const [submissions, setSubmissions] = useState<Map<string, TaskSubmission>>(new Map());
   const [isParticipant, setIsParticipant] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const scheduleTime = useScheduleTime(quest?.start_date ?? quest?.starts_at, quest?.end_date ?? quest?.ends_at);
+  const phase = quest ? questPhase(quest, scheduleTime) : "upcoming";
 
   // Physical activity: per-task config, the user's progress rows, and whether
   // they have a provider connected at all.
@@ -101,7 +107,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
       setUserId(user.id);
 
       const [questRes, tasksRes, participantRes, submissionsRes] = await Promise.all([
-        supabase.from("quests").select("id,title,business_name,quest_status,cover_url,thumbnail_url").eq("id", questId).maybeSingle(),
+        supabase.from("quests").select(`id,title,business_name,cover_url,thumbnail_url,${QUEST_SCHEDULE_FIELDS}`).eq("id", questId).maybeSingle(),
         supabase.from("quest_tasks").select("*").eq("quest_id", questId).order("sort_order"),
         supabase.from("quest_participants").select("id").eq("quest_id", questId).eq("user_id", user.id).maybeSingle(),
         supabase.from("quest_task_submissions").select("*").eq("quest_id", questId).eq("user_id", user.id),
@@ -173,7 +179,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleSubmit = async (task: QuestTask) => {
-    if (!userId) return;
+    if (!userId || !isParticipant || !quest || questPhase(quest) !== "live") return;
     const files = selectedFiles[task.id] ?? [];
     const existingSub = submissions.get(task.id);
 
@@ -251,9 +257,10 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleJoin = async () => {
-    if (!userId) return;
+    if (!userId || !quest || questPhase(quest) !== "live") return;
     const { error } = await supabase.from("quest_participants").insert({ quest_id: questId, user_id: userId, verification_status: "pending" });
     if (!error) setIsParticipant(true);
+    else setUploadError("Could not join this quest. Please try again.");
   };
 
   if (loading) return (
@@ -298,7 +305,13 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
           </div>
         )}
 
-        {!isParticipant && (
+        {phase !== "live" && (
+          <div className="flex items-center gap-3 rounded-xl bg-surface-container-low px-4 py-3 text-sm text-on-surface-variant">
+            {phase === "closed" ? <ClosedBadge /> : "This quest has not started yet."}
+          </div>
+        )}
+
+        {!isParticipant && phase === "live" && (
           <div className="bg-secondary-fixed border border-secondary-fixed-dim rounded-2xl p-5 flex flex-col items-center gap-3 text-center">
             <p className="text-sm font-semibold text-on-secondary-fixed">Join this Quest to complete tasks</p>
             <button onClick={handleJoin}
@@ -374,7 +387,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
               )}
 
               {/* Submission area — only if not approved or can resubmit */}
-              {isParticipant && !isApproved && (!sub || canResubmit) && (
+              {phase === "live" && isParticipant && !isApproved && (!sub || canResubmit) && (
                 <div className="p-4 flex flex-col gap-3">
                   {/* Existing uploaded images */}
                   {hasExistingMedia && (
@@ -433,7 +446,7 @@ export default function QuestTasksPage({ params }: { params: Promise<{ id: strin
               )}
 
               {/* No proof needed */}
-              {isParticipant && task.proof_type === "none" && !sub && (
+              {phase === "live" && isParticipant && task.proof_type === "none" && !sub && (
                 <div className="p-4">
                   <button onClick={() => handleSubmit(task)}
                     className="w-full h-10 rounded-xl bg-success text-white font-bold text-sm flex items-center justify-center gap-2 tap-target">

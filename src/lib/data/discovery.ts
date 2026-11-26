@@ -11,6 +11,8 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { QUEST_SCHEDULE_FIELDS } from "./quests";
+import { questPhase } from "@/lib/participation";
 import {
   getFeaturedChallenges,
   getMyChallenges,
@@ -41,9 +43,9 @@ export async function getDiscoveryData(
     supabase
       .from("quests")
       .select(
-        "id, title, cover_url, thumbnail_url, business_name, category, location_name, participant_count, quest_rewards!quest_id ( id )"
+        `id, title, cover_url, thumbnail_url, business_name, category, location_name, participant_count, ${QUEST_SCHEDULE_FIELDS}, quest_rewards!quest_id ( id )`
       )
-      .in("quest_status", ["active", "published"])
+      .in("quest_status", ["active", "published", "completed", "expired"])
       .eq("visibility", "public")
       .order("created_at", { ascending: false })
       .limit(30),
@@ -63,8 +65,16 @@ export async function getDiscoveryData(
     category: (q.category as string | null) ?? null,
     location_name: (q.location_name as string | null) ?? null,
     participant_count: (q.participant_count as number | null) ?? 0,
+    status: q.status,
+    quest_status: q.quest_status,
+    business_id: q.business_id,
+    start_date: q.start_date,
+    end_date: q.end_date,
+    starts_at: q.starts_at,
+    ends_at: q.ends_at,
     rewards: (q.quest_rewards as { id: string }[] | null) ?? null,
   }));
+  quests.sort((a, b) => Number(questPhase(a) === "closed") - Number(questPhase(b) === "closed"));
 
   return { featured, trending, quests, mine };
 }

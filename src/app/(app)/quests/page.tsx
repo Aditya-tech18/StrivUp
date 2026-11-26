@@ -4,7 +4,8 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
-import { getHotQuests, getTrendingQuests, getQuestCategories } from "@/lib/data/quests";
+import { getHotQuests, getTrendingQuests, getQuestCategories, QUEST_SCHEDULE_FIELDS } from "@/lib/data/quests";
+import { questPhase, type QuestSchedule } from "@/lib/participation";
 import QuestsClient from "./QuestsClient";
 import type { Quest } from "@/lib/data/quests";
 
@@ -19,15 +20,15 @@ export default async function QuestsPage() {
     getQuestCategories(supabase),
     supabase
       .from("quests")
-      .select("id,title,description,category,business_name,location_name,reward_description,is_hot,thumbnail_url,cover_url,participant_count,quest_status,visibility")
-      .in("quest_status", ["active", "published"])
+      .select(`id,title,description,category,business_name,location_name,reward_description,is_hot,thumbnail_url,cover_url,participant_count,${QUEST_SCHEDULE_FIELDS}`)
+      .in("quest_status", ["active", "published", "completed", "expired"])
       .eq("visibility", "public")
       .order("participant_count", { ascending: false })
       .limit(30),
   ]);
 
   // Convert business quests to Quest shape (only fields in Quest interface)
-  const bizQuests: Quest[] = (businessQuestsRes.data ?? []).map((q: {
+  const bizQuests: Quest[] = (businessQuestsRes.data ?? []).map((q: QuestSchedule & {
     id: string;
     title: string;
     description: string | null;
@@ -50,6 +51,12 @@ export default async function QuestsPage() {
     thumbnail_url: q.thumbnail_url ?? q.cover_url,
     participant_count: q.participant_count ?? 0,
     status: "active" as const,
+    quest_status: q.quest_status,
+    business_id: q.business_id,
+    start_date: q.start_date,
+    end_date: q.end_date,
+    starts_at: q.starts_at,
+    ends_at: q.ends_at,
   }));
 
   // Merge: deduplicate by id, business quests first if they have participants
@@ -61,6 +68,7 @@ export default async function QuestsPage() {
       mergedTrending.push(q);
     }
   }
+  mergedTrending.sort((a, b) => Number(questPhase(a) === "closed") - Number(questPhase(b) === "closed"));
 
   // Hot quests: include business quests with participant_count > 5
   const allHotIds = new Set<string>(hotQuests.map(q => q.id));

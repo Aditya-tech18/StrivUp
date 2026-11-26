@@ -12,16 +12,20 @@
  *  - Auto-approved display for proof_type='none'
  */
 
-import { useEffect, useState, useCallback, useTransition } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, MapPin, Users, CheckCircle2, AlertCircle, Upload, X } from "lucide-react";
+import { ChevronLeft, MapPin, Users, CheckCircle2, AlertCircle, Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { ShareButton } from "@/components/features/share/ShareButton";
 import { compressImage, IMAGE_PRESETS } from "@/lib/image";
-import { Button, Card, Badge, Input } from "@/components/ui";
+import { Button, Card, Badge } from "@/components/ui";
 import type { QuestDetail } from "@/lib/data/quests";
 import { emitStrivyEvent } from "@/components/features/strivy/companion";
+import { questPhase } from "@/lib/participation";
+import { ClosedBadge } from "@/components/features/participation/ClosedBadge";
+import { LeaveParticipationButton } from "@/components/features/participation/LeaveParticipationButton";
+import { useScheduleTime } from "@/components/features/participation/useScheduleTime";
 import {
   isUserQuestParticipant,
   getUserQuestParticipation,
@@ -43,7 +47,6 @@ export default function QuestDetailClient({
 }: QuestDetailClientProps) {
   const router = useRouter();
   const supabase = createClient();
-  const [isPending, startTransition] = useTransition();
 
   // State
   const [hasJoined, setHasJoined] = useState(false);
@@ -68,6 +71,8 @@ export default function QuestDetailClient({
 
   // Check-in state
   const [checkingIn, setCheckingIn] = useState(false);
+  const scheduleTime = useScheduleTime(quest.start_date ?? quest.starts_at, quest.end_date ?? quest.ends_at);
+  const phase = questPhase(quest, scheduleTime);
 
   // Load participation status
   useEffect(() => {
@@ -101,6 +106,7 @@ export default function QuestDetailClient({
 
   // Handle join
   const handleJoinQuest = useCallback(async () => {
+    if (questPhase(quest) !== "live") return;
     if (!currentUserId) {
       router.push(`/login?redirectTo=/quests/${quest.id}`);
       return;
@@ -137,6 +143,8 @@ export default function QuestDetailClient({
             media_url: null,
           });
         }
+      } else {
+        setUploadError("Failed to join quest. Please try again.");
       }
     } catch (err) {
       console.error("Error joining quest:", err);
@@ -174,7 +182,7 @@ export default function QuestDetailClient({
 
   // Handle proof upload
   const handleUploadProof = useCallback(async () => {
-    if (!uploadedFile || !participation?.id || proofState !== "idle") {
+    if (questPhase(quest) !== "live" || !uploadedFile || !participation?.id || proofState !== "idle") {
       return;
     }
 
@@ -233,11 +241,11 @@ export default function QuestDetailClient({
         err instanceof Error ? err.message : "Failed to upload proof."
       );
     }
-  }, [uploadedFile, participation, quest.id, supabase, proofState]);
+  }, [uploadedFile, participation, quest, supabase, proofState]);
 
   // Handle check-in
   const handleCheckIn = useCallback(async () => {
-    if (!participation?.id) return;
+    if (!participation?.id || questPhase(quest) !== "live") return;
 
     setCheckingIn(true);
     try {
@@ -255,7 +263,7 @@ export default function QuestDetailClient({
     } finally {
       setCheckingIn(false);
     }
-  }, [participation, supabase]);
+  }, [participation, quest, supabase]);
 
   if (loading) {
     return (
@@ -290,13 +298,14 @@ export default function QuestDetailClient({
 
       <div className="mx-auto measure-page">
         {/* Thumbnail */}
-        <div className="relative w-full h-64 bg-surface-container overflow-hidden">
+        <div className={`relative w-full h-64 bg-surface-container overflow-hidden ${phase === "closed" ? "grayscale" : ""}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={quest.thumbnail_url || ""}
             alt={quest.title}
             className="w-full h-full object-cover"
           />
+          {phase === "closed" && <div className="absolute left-4 top-4"><ClosedBadge /></div>}
         </div>
 
         {/* Content */}
@@ -359,7 +368,11 @@ export default function QuestDetailClient({
           )}
 
           {/* CTA Section */}
-          {!hasJoined ? (
+          {phase !== "live" && participation?.verification_status !== "approved" ? (
+            <p className="rounded-xl bg-surface-container-low px-4 py-3 text-sm font-semibold text-on-surface-variant">
+              {phase === "closed" ? "This quest is closed." : "This quest has not started yet."}
+            </p>
+          ) : !hasJoined ? (
             // Not joined: Join button
             <Button
               variant="primary"
@@ -451,6 +464,17 @@ export default function QuestDetailClient({
           ) : (
             // proof_type='none': auto-approved message already shown above
             null
+          )}
+          {hasJoined && currentUserId && !checkingIn && proofState !== "uploading" && (
+            <LeaveParticipationButton kind="quest" id={quest.id} onLeft={() => {
+              setHasJoined(false);
+              setParticipation(null);
+              setUploadedFile(null);
+              setPreviewUrl(null);
+              setUploadError(null);
+              setProofState("idle");
+              router.refresh();
+            }} />
           )}
 
           {/* Creator link (if user is creator) */}

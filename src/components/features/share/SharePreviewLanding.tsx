@@ -19,6 +19,8 @@ import { ArrowLeft, CalendarDays, Flag, Link2Off, MapPin, Users, Zap } from "luc
 import type { SharePreview } from "@/lib/data/share";
 import { formatTenure } from "@/lib/data/share";
 import { BrandMark, UserAvatar } from "@/components/ui";
+import { ClosedBadge } from "@/components/features/participation/ClosedBadge";
+import { isPastDeadline } from "@/lib/participation";
 
 export function SharePreviewLanding({
   preview,
@@ -70,13 +72,14 @@ export function SharePreviewLanding({
   const tenure = formatTenure(preview.startDate, preview.endDate);
   const kindLabel = preview.kind === "challenge" ? "Challenge" : "Quest";
   const KindIcon = preview.kind === "challenge" ? Flag : MapPin;
+  const closed = preview.closed || isPastDeadline(preview.endDate);
 
   return (
     <div className="min-h-[calc(100svh-var(--bottom-nav-h))] bg-surface text-on-surface md:min-h-screen">
       {header}
       <div className="mx-auto flex max-w-xl flex-col gap-4 px-4 pt-4 pb-8 sm:px-6 sm:pt-6">
         <article className="overflow-hidden rounded-2xl bg-surface-container-low sm:rounded-3xl">
-          <div className="relative flex min-h-56 flex-col justify-end overflow-hidden bg-[#151c2a] p-4 text-white sm:min-h-64 sm:p-6">
+          <div className={`relative flex min-h-56 flex-col justify-end overflow-hidden bg-[#151c2a] p-4 text-white sm:min-h-64 sm:p-6 ${closed ? "grayscale" : ""}`}>
             {preview.imageUrl ? (
               <Image
                 src={preview.imageUrl}
@@ -90,10 +93,10 @@ export function SharePreviewLanding({
               <KindIcon size={94} strokeWidth={1} className="absolute top-7 right-7 text-white/20" aria-hidden="true" />
             )}
             <div className="absolute inset-0 bg-linear-to-b from-black/20 to-[#101522]" aria-hidden="true" />
-            <p className="relative mb-auto inline-flex w-fit items-center gap-1.5 rounded-full bg-streak px-2.5 py-1 text-xs font-bold text-on-streak">
+            {closed ? <div className="relative mb-auto"><ClosedBadge /></div> : <p className="relative mb-auto inline-flex w-fit items-center gap-1.5 rounded-full bg-streak px-2.5 py-1 text-xs font-bold text-on-streak">
               <KindIcon size={13} aria-hidden="true" />
               {invited ? "You have been invited" : kindLabel}
-            </p>
+            </p>}
             <h1 className="relative mt-7 break-words font-display text-3xl leading-tight font-extrabold tracking-tight sm:text-4xl">
               {preview.title}
             </h1>
@@ -125,10 +128,12 @@ export function SharePreviewLanding({
         <div className="space-y-2">
           <Link href={signIn} className={action}>
             <Zap size={17} aria-hidden="true" />
-            {invited ? "Join challenge" : "Open in StrivUp"}
+            {invited && !closed ? "Join challenge" : "Open in StrivUp"}
           </Link>
           <p className="text-center text-sm text-on-surface-variant">
-            {invited
+            {closed
+              ? `Sign in to see the full ${kindLabel.toLowerCase()}.`
+              : invited
               ? "Sign in or create an account. You will land straight in the challenge."
               : `Sign in to see the full ${kindLabel.toLowerCase()} and join.`}
           </p>

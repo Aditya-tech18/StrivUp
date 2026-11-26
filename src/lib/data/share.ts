@@ -12,6 +12,7 @@
  */
 
 import { createAnonClient } from "@/lib/supabase/anon";
+import { questPhase } from "@/lib/participation";
 
 export interface SharePreview {
   kind: "challenge" | "quest";
@@ -25,6 +26,7 @@ export interface SharePreview {
   organizerImageUrl: string | null;
   startDate: string | null;
   endDate: string | null;
+  closed?: boolean;
   /** Shown under the dates, e.g. "128 joined". Zero means it is left off. */
   participantCount: number;
 }
@@ -137,7 +139,7 @@ export async function getQuestSharePreview(id: string): Promise<SharePreview | n
     .from("quests")
     .select(
       `
-      id, title, description, thumbnail_url, cover_url, start_date, end_date,
+      id, title, description, thumbnail_url, cover_url, start_date, end_date, starts_at, ends_at, status, quest_status,
       business_name, participant_count, visibility, business_id, creator_id
       `
     )
@@ -188,8 +190,9 @@ export async function getQuestSharePreview(id: string): Promise<SharePreview | n
     description: (data.description as string | null) ?? null,
     organizerName,
     organizerImageUrl,
-    startDate: (data.start_date as string | null) ?? null,
-    endDate: (data.end_date as string | null) ?? null,
+    startDate: data.start_date ?? data.starts_at ?? null,
+    endDate: data.end_date ?? data.ends_at ?? null,
+    closed: questPhase(data) === "closed",
     participantCount: (data.participant_count as number | null) ?? 0,
   };
 }

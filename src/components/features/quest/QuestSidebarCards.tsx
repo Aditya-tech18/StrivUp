@@ -18,17 +18,6 @@ import type { LeaderboardRow } from "@/lib/data/questOrderVerification";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
-/**
- * Placeholder rows shown only while no participant has verified activity yet.
- * They are labelled as sample UI data in the card itself — they are not real
- * people and must never read as though they were.
- */
-const PLACEHOLDER: { label: string; tasks: string; points: number }[] = [
-  { label: "User 1", tasks: "3/3", points: 320 },
-  { label: "User 2", tasks: "3/3", points: 310 },
-  { label: "User 3", tasks: "3/3", points: 300 },
-];
-
 export function LeaderboardPreviewCard({
   rows, totalTasks, enabled, onViewAll,
 }: {
@@ -38,7 +27,7 @@ export function LeaderboardPreviewCard({
   onViewAll: () => void;
 }) {
   if (!enabled) return null;
-  const isPlaceholder = rows.length === 0;
+  const hasRows = rows.length > 0;
 
   return (
     <section
@@ -52,29 +41,10 @@ export function LeaderboardPreviewCard({
         >
           Leaderboard Preview
         </h3>
-        {isPlaceholder && (
-          <span className="text-label-sm font-semibold text-on-surface-variant bg-surface-container-low border border-outline-variant px-2 py-0.5 rounded-full shrink-0">
-            Sample
-          </span>
-        )}
       </div>
 
       <ul className="flex flex-col gap-1 mt-3">
-        {isPlaceholder
-          ? PLACEHOLDER.map((p, i) => (
-              <li key={p.label} className="flex items-center gap-3 py-2">
-                <span className="text-base w-6 text-center shrink-0" aria-hidden="true">
-                  {MEDALS[i]}
-                </span>
-                <div className="w-8 h-8 rounded-full bg-surface-container shrink-0" aria-hidden="true" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-on-surface-variant truncate">{p.label}</p>
-                  <p className="text-label-sm text-on-surface-variant">{p.tasks}</p>
-                </div>
-                <span className="text-sm font-bold text-on-surface-variant shrink-0">{p.points} pts</span>
-              </li>
-            ))
-          : rows.slice(0, 3).map((r, i) => {
+        {rows.slice(0, 3).map((r, i) => {
               const name = r.full_name ?? r.username ?? "Participant";
               return (
                 <li key={r.user_id} className="flex items-center gap-3 py-2">
@@ -105,9 +75,9 @@ export function LeaderboardPreviewCard({
             })}
       </ul>
 
-      {isPlaceholder && (
+      {!hasRows && (
         <p className="text-label-sm text-on-surface-variant leading-relaxed mt-2">
-          Sample rows — the leaderboard fills in from verified Quest activity.
+          Rankings appear after participants get a task verified.
         </p>
       )}
 

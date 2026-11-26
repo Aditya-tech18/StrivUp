@@ -23,6 +23,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { FeaturedChallenge, TrendingChallenge } from "@/app/(app)/explore/page";
 import type { ChallengeDetail, LeaderboardEntry } from "@/app/(app)/challenges/[id]/ChallengeDetailClient";
+import { challengeDeadline } from "@/lib/participation";
+import { rankChallengeDays } from "./challengeRankings";
 
 /* ── Shared helpers ──────────────────────────────────────────────────────── */
 
@@ -49,7 +51,7 @@ export async function getFeaturedChallenges(
     .from("challenges")
     .select(
       `
-      id, title, thumbnail_url, duration_days,
+      id, title, thumbnail_url, duration_days, created_at,
       profiles!creator_id ( full_name ),
       challenge_participants!challenge_id ( user_id )
       `
@@ -77,6 +79,7 @@ export async function getFeaturedChallenges(
         (row.thumbnail_url as string | null) ?? fallbackThumbnail(row.id as string),
       memberCount,
       durationLabel: durationLabel(row.duration_days as number | null),
+      enrollmentEndsAt: challengeDeadline(row.created_at, row.duration_days),
       verified: false,
     };
   });
@@ -97,7 +100,7 @@ export async function getTrendingChallenges(
       `
       id, title, thumbnail_url, duration_days, created_at, creator_id, visibility,
       profiles!creator_id ( full_name ),
-      challenge_participants!challenge_id ( user_id )
+      challenge_participants!challenge_id ( user_id, joined_at )
       `
     )
     .order("created_at", { ascending: false })
@@ -114,13 +117,10 @@ export async function getTrendingChallenges(
     const memberCount = Array.isArray(rawParticipants)
       ? rawParticipants.length
       : 0;
-    const isParticipant =
-      userId !== null &&
-      Array.isArray(rawParticipants) &&
-      (rawParticipants as { user_id: string }[]).some(
-        (p) => p.user_id === userId
-      );
-    const totalDays = (row.duration_days as number | null) ?? 90;
+    const membership = Array.isArray(rawParticipants)
+      ? (rawParticipants as { user_id: string; joined_at: string }[]).find((p) => p.user_id === userId)
+      : undefined;
+    const totalDays = (row.duration_days as number | null) ?? 0;
     const daysSinceCreation = Math.max(
       1,
       Math.floor(
@@ -128,8 +128,8 @@ export async function getTrendingChallenges(
           86_400_000
       ) + 1
     );
-    const currentDay = Math.min(daysSinceCreation, totalDays);
-    const progressPercent = Math.round((currentDay / totalDays) * 100);
+    const currentDay = totalDays > 0 ? Math.min(daysSinceCreation, totalDays) : daysSinceCreation;
+    const progressPercent = totalDays > 0 ? Math.round((currentDay / totalDays) * 100) : 0;
 
     return {
       id: row.id as string,
@@ -142,7 +142,9 @@ export async function getTrendingChallenges(
       memberCount,
       progressPercent,
       visibility: (row.visibility as "public" | "private") ?? "public",
-      isParticipant,
+      isParticipant: Boolean(membership),
+      enrollmentEndsAt: challengeDeadline(row.created_at, row.duration_days),
+      participationEndsAt: challengeDeadline(membership?.joined_at ?? null, row.duration_days),
     };
   });
 }
@@ -186,7 +188,7 @@ export async function getMyChallenges(
       `
       id, title, thumbnail_url, duration_days, created_at, creator_id, visibility,
       profiles!creator_id ( full_name ),
-      challenge_participants!challenge_id ( user_id )
+      challenge_participants!challenge_id ( user_id, joined_at )
       `
     )
     .order("created_at", { ascending: false });
@@ -204,8 +206,9 @@ export async function getMyChallenges(
   return data.map((row) => {
     const profile = row.profiles as unknown as { full_name: string | null } | null;
     const participants = Array.isArray(row.challenge_participants)
-      ? (row.challenge_participants as { user_id: string }[])
+      ? (row.challenge_participants as { user_id: string; joined_at: string }[])
       : [];
+    const membership = participants.find((p) => p.user_id === userId);
     const durationDays = (row.duration_days as number | null) ?? 0;
     const started = new Date(row.created_at as string).getTime();
     const dayNumber = Math.max(
@@ -225,7 +228,9 @@ export async function getMyChallenges(
       progressPercent:
         durationDays > 0 ? Math.min(100, Math.round((currentDay / durationDays) * 100)) : 0,
       visibility: (row.visibility as "public" | "private") ?? "public",
-      isParticipant: participants.some((p) => p.user_id === userId),
+      isParticipant: Boolean(membership),
+      enrollmentEndsAt: challengeDeadline(row.created_at, row.duration_days),
+      participationEndsAt: challengeDeadline(membership?.joined_at ?? null, row.duration_days),
     };
   });
 }
@@ -260,14 +265,14 @@ export async function getChallengeDetail(
   }
 
   const profile = data.profiles as unknown as { full_name: string | null } | null;
-  const totalDays = (data.duration_days as number | null) ?? 90;
+  const durationDays = data.duration_days as number | null;
   const daysSince = Math.max(
     1,
     Math.floor(
       (Date.now() - new Date(data.created_at as string).getTime()) / 86_400_000
     ) + 1
   );
-  const currentDay = Math.min(daysSince, totalDays);
+  const currentDay = durationDays ? Math.min(daysSince, durationDays) : daysSince;
 
   return {
     id: data.id as string,
@@ -278,7 +283,8 @@ export async function getChallengeDetail(
       fallbackThumbnail(data.id as string),
     memberCount: 0, // filled separately by getChallengeStats
     currentDay,
-    totalDays,
+    durationDays,
+    enrollmentEndsAt: challengeDeadline(data.created_at, data.duration_days),
     todayTask: (data.description as string | null) ?? "Complete today's challenge task",
     visibility: (data.visibility as "public" | "private") ?? "public",
     // Null for challenges created before the create form started deriving
@@ -375,72 +381,73 @@ export async function getChallengeStats(
   return { activeCount: active, successPercent, currentStreak, memberCount: active };
 }
 
-/**
- * Top N participants ranked by current_streak, with longest_streak as tie-break.
- * Fetches from the streaks view then resolves profiles in a second query.
- */
+const RANKING_PAGE_SIZE = 500;
+
+// PostgREST caps results per request. Apply the display limit after ranking all members.
+async function readRankingRows<T>(
+  getPage: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let from = 0; ; from += RANKING_PAGE_SIZE) {
+    const { data, error } = await getPage(from, from + RANKING_PAGE_SIZE - 1);
+    if (error) throw new Error(error.message);
+    if (!data) return rows;
+    rows.push(...data);
+    if (data.length < RANKING_PAGE_SIZE) return rows;
+  }
+}
+
 export async function getChallengeLeaderboard(
   supabase: SupabaseClient,
   challengeId: string,
-  limit = 3
+  limit = 3,
 ): Promise<LeaderboardEntry[]> {
-  // Fetch streaks and the challenge's duration_days in parallel
-  const [{ data: streakRows, error }, { data: challengeRow }] = await Promise.all([
-    supabase
-      .from("streaks")
-      .select("user_id, current_streak, longest_streak")
-      .eq("challenge_id", challengeId)
-      .order("current_streak", { ascending: false })
-      .order("longest_streak", { ascending: false })
-      .limit(limit),
-    supabase
-      .from("challenges")
-      .select("duration_days")
-      .eq("id", challengeId)
-      .maybeSingle(),
-  ]);
+  try {
+    const [members, proofs, challenge] = await Promise.all([
+      readRankingRows<{ user_id: string }>((from, to) => supabase
+        .from("challenge_participants")
+        .select("user_id")
+        .eq("challenge_id", challengeId)
+        .in("status", ["active", "completed"])
+        .order("user_id")
+        .range(from, to)),
+      readRankingRows<{ user_id: string; day_number: number }>((from, to) => supabase
+        .from("proof_submissions")
+        .select("user_id, day_number")
+        .eq("challenge_id", challengeId)
+        .eq("verification_status", "approved")
+        .not("admin_removed", "is", true)
+        .order("id")
+        .range(from, to)),
+      supabase.from("challenges").select("duration_days").eq("id", challengeId).maybeSingle(),
+    ]);
+    if (challenge.error) throw new Error(challenge.error.message);
+    const durationDays: number | null = challenge.data?.duration_days ?? null;
+    const ranked = rankChallengeDays(members, proofs, durationDays).slice(0, limit);
+    if (!ranked.length) return [];
 
-  if (error || !streakRows || streakRows.length === 0) {
-    if (error) console.error("[getChallengeLeaderboard]", error.message);
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .in("id", ranked.map(({ userId }) => userId));
+    const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+
+    return ranked.map(({ userId, daysCompleted, rank }) => {
+      const profile = profileById.get(userId);
+      return {
+        userId,
+        rank,
+        name: profile?.full_name ?? "Unknown",
+        avatarUrl: profile?.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
+        daysCompleted,
+        badge: rank === 1 ? "champion" : rank === 2 ? "leader" : undefined,
+      };
+    });
+  } catch (error) {
+    console.error("[getChallengeLeaderboard]", error);
     return [];
   }
-
-  // null = Indefinite challenge (no fixed end date)
-  const durationDays = (challengeRow?.duration_days as number | null) ?? null;
-
-  const userIds = streakRows.map((r) => r.user_id as string);
-
-  const { data: profileRows } = await supabase
-    .from("profiles")
-    .select("id, full_name, avatar_url")
-    .in("id", userIds);
-
-  const profileMap = Object.fromEntries(
-    (profileRows ?? []).map((p) => [
-      p.id as string,
-      { full_name: p.full_name as string | null, avatar_url: p.avatar_url as string | null },
-    ])
-  );
-
-  return streakRows.map((row, idx) => {
-    const userId = row.user_id as string;
-    const profile = profileMap[userId];
-    return {
-      rank: idx + 1,
-      name: profile?.full_name ?? "Unknown",
-      avatarUrl:
-        profile?.avatar_url ??
-        `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
-      daysCompleted: (row.current_streak as number) ?? 0,
-      totalDays: durationDays,   // null → Indefinite; number → fixed challenge length
-      badge:
-        idx === 0 ? ("champion" as const)
-        : idx === 1 ? ("leader" as const)
-        : undefined,
-    };
-  });
 }
-
 
 /**
  * Get the joined_at timestamp for a user in a challenge.

@@ -12,11 +12,14 @@
  *                        creator_id, thumbnail_url, created_at
  *   quest_participants:  id, quest_id, user_id, verification_status (pending|approved|rejected),
  *                        completed_at (nullable), joined_at, rejection_reason (nullable),
- *                        proof_type (inherited from quest), media_url (nullable)
+ *                        proof_media_url (nullable)
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { haversineMeters, isValidCoordinate } from "@/lib/location/geo";
+import type { QuestSchedule } from "@/lib/participation";
+
+export const QUEST_SCHEDULE_FIELDS = "status, quest_status, start_date, end_date, starts_at, ends_at, business_id";
 
 /* ── Shared helpers ──────────────────────────────────────────────────────── */
 
@@ -27,7 +30,7 @@ function fallbackThumbnail(seed: string): string {
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 
-export interface Quest {
+export interface Quest extends QuestSchedule {
   id: string;
   title: string;
   category: string;
@@ -76,7 +79,7 @@ export async function getHotQuests(
     .select(
       `
       id, title, category, business_name, location_name, reward_description,
-      thumbnail_url, is_hot, status,
+      thumbnail_url, is_hot, ${QUEST_SCHEDULE_FIELDS},
       quest_participants!quest_id ( user_id )
       `
     )
@@ -101,6 +104,12 @@ export async function getHotQuests(
       (row.thumbnail_url as string | null) ?? fallbackThumbnail(row.id as string),
     is_hot: row.is_hot as boolean,
     status: (row.status as "active" | "inactive") ?? "active",
+    quest_status: row.quest_status,
+    business_id: row.business_id,
+    start_date: row.start_date,
+    end_date: row.end_date,
+    starts_at: row.starts_at,
+    ends_at: row.ends_at,
     participant_count: Array.isArray(row.quest_participants)
       ? row.quest_participants.length
       : 0,
@@ -119,7 +128,7 @@ export async function getTrendingQuests(
     .select(
       `
       id, title, category, business_name, location_name, reward_description,
-      thumbnail_url, is_hot, status,
+      thumbnail_url, is_hot, ${QUEST_SCHEDULE_FIELDS},
       quest_participants!quest_id ( user_id )
       `
     )
@@ -143,6 +152,12 @@ export async function getTrendingQuests(
       (row.thumbnail_url as string | null) ?? fallbackThumbnail(row.id as string),
     is_hot: row.is_hot as boolean,
     status: (row.status as "active" | "inactive") ?? "active",
+    quest_status: row.quest_status,
+    business_id: row.business_id,
+    start_date: row.start_date,
+    end_date: row.end_date,
+    starts_at: row.starts_at,
+    ends_at: row.ends_at,
     participant_count: Array.isArray(row.quest_participants)
       ? row.quest_participants.length
       : 0,
@@ -254,13 +269,12 @@ export async function getQuestDetail(
     .select(
       `
       id, title, description, category, business_name, location_name,
-      latitude, longitude, reward_description, proof_type, is_hot, status,
+      latitude, longitude, reward_description, proof_type, is_hot, ${QUEST_SCHEDULE_FIELDS},
       thumbnail_url, creator_id, created_at,
       quest_participants!quest_id ( user_id )
       `
     )
     .eq("id", id)
-    .eq("status", "active")
     .single();
 
   if (error || !data) {
@@ -283,6 +297,12 @@ export async function getQuestDetail(
       (data.thumbnail_url as string | null) ?? fallbackThumbnail(data.id as string),
     is_hot: data.is_hot as boolean,
     status: (data.status as "active" | "inactive") ?? "active",
+    quest_status: data.quest_status,
+    business_id: data.business_id,
+    start_date: data.start_date,
+    end_date: data.end_date,
+    starts_at: data.starts_at,
+    ends_at: data.ends_at,
     creator_id: data.creator_id as string,
     participant_count: Array.isArray(data.quest_participants)
       ? data.quest_participants.length
@@ -329,7 +349,7 @@ export async function getUserQuestParticipation(
 } | null> {
   const { data, error } = await supabase
     .from("quest_participants")
-    .select("id, verification_status, completed_at, rejection_reason, media_url")
+    .select("id, verification_status, completed_at, rejection_reason, proof_media_url")
     .eq("quest_id", questId)
     .eq("user_id", userId)
     .maybeSingle();
@@ -346,7 +366,7 @@ export async function getUserQuestParticipation(
     verification_status: (data.verification_status as "pending" | "approved" | "rejected") ?? "pending",
     completed_at: (data.completed_at as string | null) ?? null,
     rejection_reason: (data.rejection_reason as string | null) ?? null,
-    media_url: (data.media_url as string | null) ?? null,
+    media_url: (data.proof_media_url as string | null) ?? null,
   };
 }
 
@@ -365,7 +385,7 @@ export async function getQuestParticipants(
     .select(
       `
       id, user_id, verification_status, completed_at, joined_at,
-      rejection_reason, media_url,
+      rejection_reason, proof_media_url,
       profiles!user_id ( full_name, avatar_url )
       `
     )
@@ -386,7 +406,7 @@ export async function getQuestParticipants(
       completed_at: (row.completed_at as string | null) ?? null,
       joined_at: row.joined_at as string,
       rejection_reason: (row.rejection_reason as string | null) ?? null,
-      media_url: (row.media_url as string | null) ?? null,
+      media_url: (row.proof_media_url as string | null) ?? null,
       user_profile: {
         full_name: profile?.full_name ?? null,
         avatar_url: profile?.avatar_url ?? null,
@@ -535,7 +555,7 @@ export async function joinQuest(
 }
 
 /**
- * Update a quest participant's media_url and set verification_status to 'pending'.
+ * Store a participant's proof URL and set verification_status to 'pending'.
  */
 export async function submitQuestProof(
   supabase: SupabaseClient,
@@ -545,7 +565,7 @@ export async function submitQuestProof(
   const { error } = await supabase
     .from("quest_participants")
     .update({
-      media_url: mediaUrl,
+      proof_media_url: mediaUrl,
       verification_status: "pending",
     })
     .eq("id", participationId);
@@ -589,7 +609,7 @@ export interface OrderPlatformLink {
   url: string | null;
 }
 
-export interface BusinessQuestDetail {
+export interface BusinessQuestDetail extends QuestSchedule {
   id: string;
   title: string;
   description: string | null;
@@ -684,13 +704,13 @@ export async function getBusinessQuestDetail(
   const { data, error } = await supabase
     .from("quests")
     .select(`
-      id, title, description, category, business_name, business_id,
+      id, title, description, category, business_name,
       cover_url, thumbnail_url, location_name, destination_link, order_platforms,
-      start_date, end_date, visibility, quest_status, rules, eligibility,
+      ${QUEST_SCHEDULE_FIELDS}, visibility, rules, eligibility,
       participant_count, view_count, completion_count, creator_id, created_at
     `)
     .eq("id", id)
-    .in("quest_status", ["active", "published", "completed"])
+    .in("quest_status", ["active", "published", "completed", "expired"])
     .maybeSingle();
 
   if (error || !data) {

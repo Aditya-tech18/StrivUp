@@ -28,6 +28,9 @@ import { ArrowLeft, CalendarDays, Camera, Flag, Link2Off, LockKeyhole, Users } f
 import { BrandMark, UserAvatar } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 import { joinByInviteCode } from "@/lib/data/invites";
+import { getParticipantJoinedAt } from "@/lib/data/challenges";
+import { isPastDeadline } from "@/lib/participation";
+import { ClosedBadge } from "@/components/features/participation/ClosedBadge";
 import {
   getInviteSharePreview,
   buildShareDescription,
@@ -89,6 +92,9 @@ export default async function JoinPage({ params, searchParams }: PageProps) {
      than on this page a second time. */
   if (!user) {
     const preview = await getInviteSharePreview(code);
+    if (preview && isPastDeadline(preview.endDate)) {
+      return <InviteLanding preview={preview} closed backHref="/">{null}</InviteLanding>;
+    }
     const destination = `/join/${encodeURIComponent(code)}?auto=1`;
     return (
       <InviteLanding preview={preview} unavailable={!preview} backHref="/">
@@ -112,12 +118,23 @@ export default async function JoinPage({ params, searchParams }: PageProps) {
   }
 
   const preview = await getInviteSharePreview(code);
+  if (preview && isPastDeadline(preview.endDate)) {
+    const joinedAt = await getParticipantJoinedAt(supabase, preview.id, user.id);
+    return (
+      <InviteLanding preview={preview} closed backHref="/feed">
+        {joinedAt && <Link href={`/challenges/${preview.id}`} className={INVITE_ACTION}>View challenge</Link>}
+      </InviteLanding>
+    );
+  }
 
   /** Server Action: perform the join, then hand off to the challenge. */
   async function accept(): Promise<InviteJoinState> {
     "use server";
 
     const client = await createClient();
+    if (isPastDeadline(preview?.endDate)) {
+      return { error: "This challenge is closed to new members." };
+    }
     const { challengeId, error: joinError } = await joinByInviteCode(client, code);
 
     if (joinError || !challengeId) {
@@ -146,9 +163,10 @@ export default async function JoinPage({ params, searchParams }: PageProps) {
 
 const INVITE_ACTION = "flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary-container px-4 text-center font-bold text-on-secondary-container transition-opacity hover:opacity-90";
 
-function InviteLanding({ preview, unavailable = false, backHref, children }: {
+function InviteLanding({ preview, unavailable = false, closed = false, backHref, children }: {
   preview: SharePreview | null;
   unavailable?: boolean;
+  closed?: boolean;
   backHref: string;
   children: ReactNode;
 }) {
@@ -179,15 +197,15 @@ function InviteLanding({ preview, unavailable = false, backHref, children }: {
           <>
             <section className="rounded-2xl bg-surface-container-low p-4 sm:p-5">
               <div className="flex items-start gap-3">
-                <div className="relative grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-secondary-fixed text-on-secondary-fixed">
+                <div className={`relative grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-secondary-fixed text-on-secondary-fixed ${closed ? "grayscale" : ""}`}>
                   {preview?.imageUrl ? (
                     <Image src={preview.imageUrl} alt="" fill sizes="64px" className="object-cover" />
                   ) : <Flag size={26} aria-hidden="true" />}
                 </div>
                 <div className="min-w-0 space-y-1">
-                  <p className="inline-flex items-center gap-1 rounded-full bg-streak px-2 py-0.5 text-xs font-bold text-on-streak">
+                  {closed ? <ClosedBadge /> : <p className="inline-flex items-center gap-1 rounded-full bg-streak px-2 py-0.5 text-xs font-bold text-on-streak">
                     <LockKeyhole size={12} aria-hidden="true" /> Invite link
-                  </p>
+                  </p>}
                   <h1 className="break-words font-display text-2xl leading-tight font-extrabold tracking-tight sm:text-3xl">{preview?.title ?? "Join this challenge"}</h1>
                   {preview?.organizerName ? (
                     <p className="flex flex-wrap items-center gap-1.5 text-sm text-on-surface-variant">
@@ -205,7 +223,7 @@ function InviteLanding({ preview, unavailable = false, backHref, children }: {
                   <Flag size={18} className="text-secondary" aria-hidden="true" /> Challenge details
                 </h2>
                 {preview.imageUrl ? (
-                  <div className="relative aspect-[2.6] overflow-hidden rounded-xl bg-surface-container-high">
+                  <div className={`relative aspect-[2.6] overflow-hidden rounded-xl bg-surface-container-high ${closed ? "grayscale" : ""}`}>
                     <Image src={preview.imageUrl} alt="" fill sizes="(max-width: 575px) 90vw, 496px" className="object-cover" preload />
                     <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
                   </div>
